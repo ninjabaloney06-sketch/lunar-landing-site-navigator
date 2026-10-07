@@ -10,6 +10,14 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 - **Main risk:** terrain horizon masks from LOLA elevation data. Without them, lighting and comms answers are wrong. Go / no-go on 3 Nov (see TASKS.md phase 3).
 - **AI is not required** by the CLPS brief (unlike Flame). Don't add AI features unless they make the demo better.
 
+## Agent setup — repo agents and device agents (7 Oct 2026)
+
+- **Before:** agents could only edit this repo, so every download, file copy, account and form was a human `[H]` task.
+- **Now:** Isaac also runs **device agents** with computer use on Isaac's own computers (data computer, laptop). They can browse client-side pages, download, copy files between machines and to the USB stick, create Isaac's accounts and fill in forms.
+- **Consequence:** tasks that need this are tagged `device` in TASKS.md; several former `[H]` tasks became `[AI+H]` `device`. Rules in AGENTS.md.
+- **Still human:** decisions, anything on S's or D's accounts or machines, 2FA/CAPTCHA/ID checks, accepting binding terms, payments and bookings, the timed run through existing tools (pitch pain points), voice recording, pitching.
+- **Still gated:** every download, copy outside the repo, account creation and outward message needs Isaac's explicit approval for that action.
+
 ## Odds (estimate, not data)
 
 - Assumed 10–25 teams in Heilbronn across all 14 challenges; local judges likely pick overall winners and up to two global nominees, not per-challenge winners.
@@ -20,7 +28,7 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 
 - Venue: OpenSpace Heilbronn, Weipertstraße 8–10. Venue listing: 13–15 Nov, 13:00–19:00. Global hackathon: 14–15 Nov.
 - Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct; full resources expected 28 Oct (per a local organiser, unconfirmed).
-- The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser.
+- The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
 - Space Apps team maximum: 6. Our team: 3.
 
 ## Open questions (update when answered)

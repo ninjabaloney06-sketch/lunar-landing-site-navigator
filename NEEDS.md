@@ -6,14 +6,24 @@ Status: `required` · `optional` · `not needed`.
 
 | Item | Status | Why |
 |---|---|---|
-| NASA Space Apps account (each member) | required | Team registration and submission |
+| NASA Space Apps account (each member) | required | Team registration and submission. Each person owns and logs into their own; a device agent may only set up Isaac's |
 | GitHub | required | This repo, code, issues |
-| Vercel or Cloudflare Pages | required | Free static hosting for the demo URL |
-| AI coding assistant (Claude Code / Codex) | required | Writes most scripts and frontend code (see TASKS.md markers) |
+| Vercel or Cloudflare Pages | required | Free static hosting for the demo URL. Device agent creates it with Isaac's email after approval |
+| AI repo agents (Claude Code / Codex / ZCode) | required | Write most scripts, docs and frontend code (see TASKS.md markers) |
+| AI device agents with computer use | required | Run on Isaac's computers: browser-only pages, downloads, copying data, creating Isaac's accounts, filling forms (tasks tagged `device`; every such action needs Isaac's approval) |
+| Password manager (Isaac) | required | Where device agents store credentials for accounts they create. Never in the repo or chat |
 | JPL Horizons (web or API) | required | Reference values for validating ephemeris output; no account needed |
 | Cloudflare R2 or GitHub Releases | optional | Hosting precomputed data if it exceeds normal repo size |
 | Supabase | not needed | All results are precomputed and served as static JSON. No users, no writes, no auth. Add only if we later want saved comparisons or accounts. |
 | LLM API key | optional | Only if we add a "explain this site" text feature. Not part of the core challenge. |
+
+## Account register
+
+Accounts that exist for this project. Add a row when one is created. No passwords, tokens or recovery codes here — those live in the owner's password manager.
+
+| Service | Purpose | Owner (whose email) | Created by | Date |
+|---|---|---|---|---|
+| GitHub (account hosting this private repo) | Code, plan, build log | Isaac | existing account | — |
 
 ## Data
 
@@ -48,11 +58,11 @@ Status: `required` · `optional` · `not needed`.
 
 | Item | Status | Note |
 |---|---|---|
-| Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, only with Isaac's explicit approval |
+| Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, done by a device agent running on it, only with Isaac's explicit approval |
 | 3 laptops | required | Work machines; only small derived data, copied after approval |
 | Power strip + chargers | required | Venue sockets are usually scarce |
-| USB stick with data + kernels | required | Venue Wi-Fi may fail |
-| Train/car from Stuttgart | required | Day trip 13–15 Nov |
+| USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
+| Train/car from Stuttgart | required | 13–15 Nov; day trips vs. overnight still to decide (TASKS.md phase 0). Humans book and pay |
 | Headphones + mic | optional | Recording voice-over |
 
 ## People and knowledge
