@@ -32,7 +32,9 @@ story = [
     Paragraph("EVENT", h),
     table([
         ("Venue / dates", "OpenSpace Heilbronn, Weipertstraße 8–10. Listed 13–15 Nov, 13:00–19:00; hackathon 14–15 Nov. In person. Day trip from Stuttgart."),
-        ("Team", "3: Isaac + two teammates (coding/web, data/Python/ML, science)."),
+        ("Team", "3: S (science), D (data/web), Isaac (product, UI, integration, pitch)."),
+        ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
+                   "Isaac's accounts and forms; each such action only after Isaac approves it."),
         ("Open", "Register team on the CLPS page. Confirm Friday agenda, daily hours, Wi-Fi, food, overnight access, "
                  "rule on code written before the event, prizes, number of global nominations."),
     ]),

@@ -8,7 +8,7 @@ Team plan for the [CLPS Lunar Mission Browser](https://www.spaceappschallenge.or
 
 | File | Content |
 |---|---|
-| [AGENTS.md](AGENTS.md) | Rules for AI agents working on tasks |
+| [AGENTS.md](AGENTS.md) | Rules for AI agents (repo agents and device agents) working on tasks |
 | [BUILD_LOG.md](BUILD_LOG.md) | What got done, by humans and agents — add your line |
 | [docs/decisions.md](docs/decisions.md) | Why CLPS, odds, event facts, open questions |
 | [TASKS.md](TASKS.md) | Every task from now until submission, marked by who can do it |
@@ -21,7 +21,10 @@ Team plan for the [CLPS Lunar Mission Browser](https://www.spaceappschallenge.or
 |---|---|
 | `[AI]` | An AI agent can do this alone. A human only skims the result. |
 | `[AI+H]` | AI does the bulk; a human must check, decide or approve before it counts. |
-| `[H]` | Human only: decisions, physical presence, accounts, judgement, pitching. |
+| `[H]` | Human only: decisions, physical presence, judgement, pitching, anything on a teammate's own account, payments. |
+| `device` | Needs a **device agent** (runs on Isaac's computer with browser and file access). Without the tag, a repo-only agent is enough. See [AGENTS.md](AGENTS.md). |
+
+Device agents can download, copy files, create accounts and send messages, but only after Isaac approves each action (see [AGENTS.md](AGENTS.md#actions-that-need-isaacs-explicit-approval)).
 
 ## Rule
 
