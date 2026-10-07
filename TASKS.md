@@ -22,7 +22,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[AI+H]` **S** — Verify the primer's physics. S signs off before anyone builds on it.
 - [ ] `[AI]` — List current CLPS and Artemis south-pole sites with coordinates: Artemis III candidate regions, Shackleton–de Gerlache connecting ridge, IM-2 site, VIPER / Mons Mouton area, other planned CLPS polar landers. Every coordinate with source link.
 - [ ] `[AI+H]` **S** — Check the site list against primary sources (NASA, LRO, mission pages). Remove anything without a source.
-- [ ] `[AI+H]` **I** — Test the existing tools (JPL Horizons, NASA Moon Trek, LRO QuickMap). AI drafts the workflow for "Sun and Earth elevation at site X over dates Y"; I actually clicks through it, times it, and writes the 5 biggest pain points. These pain points are the pitch.
+- [ ] `[AI+H]` **I** — Test the existing tools (JPL Horizons, NASA Moon Trek, LRO QuickMap). AI drafts the workflow for "Sun and Earth elevation at site X over dates Y"; Isaac actually clicks through it, times it, and writes the 5 biggest pain points. These pain points are the pitch.
 - [ ] `[H]` **All** — Decide the primary user for the demo (mission planner vs. educator vs. public). One user, one story.
 - [ ] `[AI+H]` **I** — Write a one-sentence problem statement and a one-sentence solution statement. Human picks the final wording.
 
@@ -57,8 +57,8 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 ## Phase 5 — Product design (by 10 Nov)
 
-- [ ] `[AI+H]` **I** — Wireframes for four screens: (1) site picker map, (2) polar sky plot with horizon outline and Sun/Earth tracks, (3) daily timeline (lit / Earth visible / both), (4) side-by-side comparison of 2–3 sites with score. AI drafts; I decides.
-- [ ] `[AI+H]` **I** — Choose stack (see NEEDS.md). AI recommends; I decides.
+- [ ] `[AI+H]` **I** — Wireframes for four screens: (1) site picker map, (2) polar sky plot with horizon outline and Sun/Earth tracks, (3) daily timeline (lit / Earth visible / both), (4) side-by-side comparison of 2–3 sites with score. AI drafts; Isaac decides.
+- [ ] `[AI+H]` **I** — Choose stack (see NEEDS.md). AI recommends; Isaac decides.
 - [ ] `[AI]` — Prepare an empty project skeleton and component list, only if the rules allow pre-event setup. Otherwise write it down as a checklist to execute on Saturday morning.
 - [ ] `[AI+H]` **I** — Write the demo script: the 60-second story from "mission planner has a question" to "answer in 10 seconds".
 - [ ] `[H]` **I** — Test the wireframes on one person outside the team (5 minutes). Note what confused them.
@@ -78,7 +78,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[H]` **All** — Check in, find a table, test Wi-Fi and power.
 - [ ] `[H]` **I** — Talk to mentors in the first 2 hours: show the problem statement, ask what a judge would challenge.
 - [ ] `[AI+H]` **D** — Build the frontend shell and load static JSON. AI writes code; D reviews and runs it.
-- [ ] `[AI+H]` **I** — Build the polar sky plot (D3 / Plotly). AI writes; I checks it against a known case.
+- [ ] `[AI+H]` **I** — Build the polar sky plot (D3 / Plotly). AI writes; Isaac checks it against a known case.
 - [ ] `[AI+H]` **I** — Build the daily timeline view.
 - [ ] `[AI+H]` **S** — Spot-check 5 values shown in the UI against the validated scripts. Any mismatch blocks progress.
 - [ ] `[H]` **All** — Evening checkpoint: what works, what gets cut.
@@ -88,7 +88,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[AI+H]` **D** — Comparison view and score, only if day 1 checkpoints passed.
 - [ ] `[AI+H]` **D** — Deploy (Vercel / Cloudflare Pages) and test the public URL on a phone.
 - [ ] `[H]` **All** — Feature freeze at the agreed time. Only bug fixes after.
-- [ ] `[AI+H]` **I** — Write the project page text (summary, how it works, data sources, limitations). AI drafts; I cuts to essentials.
+- [ ] `[AI+H]` **I** — Write the project page text (summary, how it works, data sources, limitations). AI drafts; Isaac cuts to essentials.
 - [ ] `[AI+H]` **I** — Slides (max 7) or 30-second demo video, per the official submission format. AI drafts structure and captions; human records and edits.
 - [ ] `[H]` **I** — Record the demo video (screen recording + voice).
 - [ ] `[H]` **I** — Submit the project form before the deadline. Screenshot the confirmation.
