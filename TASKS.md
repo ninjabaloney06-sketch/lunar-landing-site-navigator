@@ -2,6 +2,8 @@
 
 Markers: `[AI]` AI alone · `[AI+H]` AI does it, human checks/decides · `[H]` human only. See [README](README.md).
 
+Downloads and saving data outside the repo always need Isaac's explicit approval first and go to his data computer by default (see [AGENTS.md](AGENTS.md)).
+
 Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (product, UI, integration, pitch).
 
 ---
@@ -28,7 +30,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 ## Phase 2 — Ephemeris: Sun and Earth in the local sky (by 27 Oct)
 
-- [ ] `[AI]` — Download NAIF SPICE kernels: `de440s.bsp` (planets), `naif0012.tls` (leap seconds), `pck00011.tpc`, lunar orientation (`moon_pa_de440_200625.bpc`, `moon_de440_250416.tf` or current equivalents). Record exact versions and URLs.
+- [ ] `[AI+H]` — **Needs Isaac's approval + target machine before downloading.** Download NAIF SPICE kernels: `de440s.bsp` (planets), `naif0012.tls` (leap seconds), `pck00011.tpc`, lunar orientation (`moon_pa_de440_200625.bpc`, `moon_de440_250416.tf` or current equivalents). Record exact versions and URLs.
 - [ ] `[AI]` — Script `ephemeris.py`: input lat, lon, elevation on the Moon (MOON_ME frame) + time range + step; output Sun and Earth azimuth and elevation (topocentric, local horizon). Python + `spiceypy`.
 - [ ] `[AI]` — Unit tests: known geometry checks (Sun elevation at equator noon ≈ 90° − |latitude offset|, symmetry checks, Earth always low at the pole).
 - [ ] `[AI+H]` **S** — Validate 10 sample points against JPL Horizons (observer on the Moon at site coordinates). Agreement target: < 0.05°. S records the comparison table in `docs/validation.md`.
@@ -38,7 +40,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 ## Phase 3 — Terrain horizon masks (by 3 Nov, hardest part)
 
 - [ ] `[AI+H]` **D** — Identify the right LOLA south-pole elevation product on NASA PGDA (~20 m/px polar stereographic, maybe 5 m tiles near key sites). AI finds candidates; D confirms size, projection and license.
-- [ ] `[AI]` — Download the selected elevation tiles; document size and checksum. (Expect several GB; check disk space first.)
+- [ ] `[AI+H]` — **Needs Isaac's approval + target machine before downloading.** Download the selected elevation tiles to the data computer; document size and checksum. (Expect several GB; check disk space first.)
 - [ ] `[AI]` — Script `horizon.py`: for a site, cast rays in 360 directions (1° steps, later 0.5°) out to ~100–150 km; for each, find the maximum elevation angle of terrain including lunar curvature. Output a horizon profile (azimuth → horizon elevation).
 - [ ] `[AI]` — Performance: vectorize with numpy; cache profiles per site as JSON.
 - [ ] `[AI+H]` **S** — Validate horizon results: compare computed illumination for 2–3 sites against PGDA published illumination maps (e.g. Mazarico et al. average illumination). Target: same ranking of sites and roughly matching percentages. Document gaps.
@@ -70,7 +72,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[AI]` — Write the cut list in order: score → comparison view → site map → keep sky plot + timeline.
 - [ ] `[H]` **All** — Pack: laptops, chargers, power strip, adapters, headphones, ID, tickets.
 - [ ] `[H]` **All** — Make sure every laptop has the repo, Python env and data offline (venue Wi-Fi may fail).
-- [ ] `[AI+H]` **D** — Copy precomputed data and kernels to a USB stick / each laptop. AI writes the checklist; D does it.
+- [ ] `[AI+H]` **D** — Copy precomputed data and kernels to a USB stick / each laptop, from Isaac's data computer, only after Isaac approves. AI writes the checklist; D does it.
 - [ ] `[AI]` — Check the 28 Oct full challenge resources and update this task list.
 
 ## Phase 7 — Hackathon day 1 (Sat 14 Nov)

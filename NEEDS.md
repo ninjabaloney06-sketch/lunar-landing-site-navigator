@@ -48,7 +48,8 @@ Status: `required` · `optional` · `not needed`.
 
 | Item | Status | Note |
 |---|---|---|
-| 3 laptops with ≥ 20 GB free disk | required | Elevation tiles are large |
+| Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, only with Isaac's explicit approval |
+| 3 laptops | required | Work machines; only small derived data, copied after approval |
 | Power strip + chargers | required | Venue sockets are usually scarce |
 | USB stick with data + kernels | required | Venue Wi-Fi may fail |
 | Train/car from Stuttgart | required | Day trip 13–15 Nov |

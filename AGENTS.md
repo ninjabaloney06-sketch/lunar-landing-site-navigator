@@ -29,6 +29,18 @@ Team plan for NASA Space Apps 2026, challenge **CLPS Lunar Mission Browser**, lo
 | `data/` | Small derived outputs (site list, horizon profiles JSON). Large raw data (elevation tiles, kernels) stays out of git; record URL, version and checksum in `data/SOURCES.md` |
 | `docs/` | Primer, validation tables (`docs/validation.md`), decisions, PDF |
 
+## Downloads and saving files — explicit approval required
+
+Isaac has a separate computer for data. **Do not download or save anything without Isaac's explicit approval in chat for that specific action.** This covers:
+
+- downloading any file (SPICE kernels, LOLA elevation tiles, PDFs, datasets, packages beyond what the task strictly needs),
+- writing any file outside this repo's working tree,
+- generating large outputs (> 10 MB) anywhere, including inside the repo.
+
+Before such a step, stop and ask: what, from where (URL), approximate size, and target machine/path. Default target is Isaac's **data computer, not the machine you are running on**. If approval is not given, write the exact commands/URLs into the task line (`→ needs Isaac: approve download ...`) and stop. Approval for one download does not cover the next.
+
+Small text edits inside the repo (code, Markdown, JSON < 10 MB) need no approval.
+
 ## Hard rules
 
 - Every coordinate, number and claim about NASA data needs a source link. No source → don't write it.
