@@ -14,7 +14,6 @@ Status: `required` · `optional` · `not needed`.
 | Password manager (Isaac) | required | Where device agents store credentials for accounts they create. Never in the repo or chat |
 | JPL Horizons (web or API) | required | Reference values for validating ephemeris output; no account needed |
 | Cloudflare R2 or GitHub Releases | optional | Hosting precomputed data if it exceeds normal repo size |
-| Supabase | not needed | All results are precomputed and served as static JSON. No users, no writes, no auth. Add only if we later want saved comparisons or accounts. |
 | LLM API key | optional | Only if we add a "explain this site" text feature. Not part of the core challenge. |
 
 ## Account register
