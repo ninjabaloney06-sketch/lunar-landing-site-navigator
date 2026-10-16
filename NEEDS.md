@@ -59,9 +59,10 @@ Accounts that exist for this project. Add a row when one is created. No password
 |---|---|---|
 | Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, done by a device agent running on it, only with Isaac's explicit approval |
 | 3 laptops | required | Work machines; only small derived data, copied after approval |
-| Power strip + chargers | required | Venue sockets are usually scarce |
+| Power strip + chargers | required | Organiser (16 Oct): cannot guarantee a socket per device per table — bring strips |
 | USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
-| Train/car from Stuttgart | required | 13–15 Nov; day trips vs. overnight still to decide (TASKS.md phase 0). Humans book and pay |
+| Bedding (sleeping bags/mats) or an off-site bed | required | Overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation (16 Oct). Decide by 7 Nov (TASKS.md phase 0) |
+| Train/car from Stuttgart | required | Arrive before the 8:30 check-in on Sat 14 Nov; overnight per the phase-0 decision. Humans book and pay |
 | Headphones + mic | optional | Recording voice-over |
 
 ## People and knowledge
@@ -72,3 +73,5 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Someone who can handle GeoTIFF/raster data | required | Data/web teammate |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
+| Accompanying parent (one can cover all three) | required | Must stay with the team for the whole event incl. overnight (organiser, 16 Oct) |
+| Written parental authorisation, one per participant | required | Names the accompanying person and authorises them for the whole event; bring originals on 14 Nov (organiser, 16 Oct) |

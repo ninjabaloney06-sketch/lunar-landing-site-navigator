@@ -8,14 +8,16 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 ---
 
-## Phase 0 — Organisation (now → 13 Oct)
+## Phase 0 — Organisation (now → 1 Nov)
 
 - [x] `[AI+H]` `device` **I** — Register the 3-person team on the CLPS challenge page from Isaac's Space Apps account and invite S and D. Isaac approves before submitting and accepts the participation terms personally.
 - [x] `[H]` **S, D** — Create your own Space Apps account and accept the team invite. Isaac confirms all three members show as linked.
-- [x] `[AI+H]` `device` **I** — Ask the Heilbronn organisers (OpenSpace) for: Friday agenda, daily opening hours, Wi-Fi, food, overnight access, power sockets, number of global nominations, local prizes, and whether pre-event code is allowed. Agent drafts the email; sends from Isaac's account after Isaac approves the text. Answers go into `docs/decisions.md`.
-- [ ] `[AI+H]` `device` **I** — Read the official participation terms and rules (pages render client-side; needs a real browser); AI summarizes what may be prepared before the event (code, data, design) and what must be built on site. Human confirms the reading with the organisers if unclear.
+- [x] `[AI+H]` `device` **I** — Ask the Heilbronn organisers (OpenSpace) for: Friday agenda, daily opening hours, Wi-Fi, food, overnight access, power sockets, number of global nominations, local prizes, and whether pre-event code is allowed. Agent drafts the email; sends from Isaac's account after Isaac approves the text. Answers go into `docs/decisions.md`. Reply arrived 16 Oct — answers in `docs/decisions.md`.
+- [ ] `[AI+H]` `device` **I** — Read the official participation terms and rules (pages render client-side; needs a real browser). The 16 Oct organiser email settled the prep question (project built at the event, no bring-your-own finished solution; see `docs/decisions.md`). Remaining from the terms: submission format, daily hours, 2026 award categories.
 - [ ] `[H]` **All** — Agree roles (S / D / I) and who owns the final submission form.
-- [ ] `[H]` **All** — Agree travel from Stuttgart: train or car, departure times, whether anyone stays overnight. Agent may look up connections and prices; humans book and pay.
+- [ ] `[H]` **All + parents** — Pick the accompanying parent (one can cover all three, per the organiser, 16 Oct). Each family writes a signed authorisation naming that person, valid for the whole event including overnight. Done by 7 Nov; every participant carries their own.
+- [ ] `[H]` **All** — Decide the sleeping plan before booking travel: overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation — bring bedding or book off-site; optionally take the organiser's offer to connect with local students (not guaranteed). Agent may research options; humans decide and book. Decide by 7 Nov.
+- [ ] `[H]` **All** — Agree travel from Stuttgart: train or car, arrival before the 8:30 check-in on Sat 14 Nov, overnight per the decision above. Agent may look up connections and prices; humans book and pay.
 - [ ] `[H]` **All** — Agree on a team chat tool and a weekly 30-minute sync slot.
 - [ ] `[AI+H]` `device` **I** — Create the team chat and the recurring calendar invite from Isaac's accounts, then invite S and D. Isaac approves before invites go out.
 - [x] `[AI]` — Create this repo, task list and requirements list.
@@ -63,24 +65,24 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 - [ ] `[AI+H]` **I** — Wireframes for four screens: (1) site picker map, (2) polar sky plot with horizon outline and Sun/Earth tracks, (3) daily timeline (lit / Earth visible / both), (4) side-by-side comparison of 2–3 sites with score. AI drafts; Isaac decides.
 - [ ] `[AI+H]` **I** — Choose stack and hosting (see NEEDS.md). AI recommends; Isaac decides.
-- [ ] `[AI+H]` `device` **I** — Create the hosting account (Vercel or Cloudflare Pages, free tier) with Isaac's email and connect it to this private repo. Isaac approves the sign-up and handles 2FA. Do not deploy anything public before the rules on pre-event code are clear.
-- [ ] `[AI]` — Prepare an empty project skeleton and component list, only if the rules allow pre-event setup. Otherwise write it down as a checklist to execute on Saturday morning.
+- [ ] `[AI+H]` `device` **I** — Create the hosting account (Vercel or Cloudflare Pages, free tier) with Isaac's email and connect it to this private repo. Isaac approves the sign-up and handles 2FA. Pre-event code rule confirmed 16 Oct (project built at the event) — nothing deployed public before the event.
+- [ ] `[AI]` — Prepare an empty project skeleton and component list. The 16 Oct rule allows preparation but not a brought-in solution, so the skeleton stays empty scaffolding — no challenge logic in it. If in doubt, keep it as a checklist to execute on Saturday morning instead (the day starts at the 8:30 check-in).
 - [ ] `[AI+H]` **I** — Write the demo script: the 60-second story from "mission planner has a question" to "answer in 10 seconds".
 - [ ] `[H]` **I** — Test the wireframes on one person outside the team (5 minutes). Note what confused them.
 - [ ] `[AI]` — Write the glossary shown in the app (horizon mask, DTE, libration, PSR) in plain language.
 
 ## Phase 6 — Event preparation (11–13 Nov)
 
-- [ ] `[AI]` — Write a 2-day hour-by-hour plan with checkpoints (Sat 12:00 sky plot works, Sat 20:00 timeline works, Sun 10:00 feature freeze, Sun 12:00 video recorded, submission deadline − 2 h submitted).
+- [ ] `[AI]` — Write a 2-day hour-by-hour plan starting at the Sat 8:30 check-in, with checkpoints (Sat 12:00 sky plot works, Sat 20:00 timeline works, Sun 10:00 feature freeze, Sun 12:00 video recorded, submission deadline − 2 h submitted).
 - [ ] `[AI]` — Write the cut list in order: score → comparison view → site map → keep sky plot + timeline.
-- [ ] `[H]` **All** — Pack: laptops, chargers, power strip, adapters, headphones, ID, tickets.
+- [ ] `[H]` **All** — Pack: laptops, chargers, power strips (organiser 16 Oct: not a socket for every device at every table), adapters, headphones, ID, the signed authorisations (one per participant), bedding if sleeping at the venue.
 - [ ] `[AI+H]` `device` **All** — Make sure every laptop has the repo, Python env and data offline (venue Wi-Fi may fail). A device agent sets up Isaac's laptop; S and D set up their own (or run an agent on their own machine). Each person confirms by running the tests offline.
 - [ ] `[AI+H]` `device` **D** — Copy precomputed data and kernels from Isaac's data computer to a USB stick, only after Isaac approves. Repo agent writes the checklist (files, sizes, checksums); device agent copies and verifies checksums; D checks the stick works on a second laptop.
 - [ ] `[AI]` `device` — Check the 28 Oct full challenge resources (challenge page needs a real browser) and update this task list.
 
 ## Phase 7 — Hackathon day 1 (Sat 14 Nov)
 
-- [ ] `[H]` **All** — Check in, find a table, test Wi-Fi and power.
+- [ ] `[H]` **All** — Check in at 8:30, find a table, set up the power strips, test Wi-Fi.
 - [ ] `[H]` **I** — Talk to mentors in the first 2 hours: show the problem statement, ask what a judge would challenge.
 - [ ] `[AI+H]` **D** — Build the frontend shell and load static JSON. AI writes code; D reviews and runs it.
 - [ ] `[AI+H]` **I** — Build the polar sky plot (D3 / Plotly). AI writes; Isaac checks it against a known case.

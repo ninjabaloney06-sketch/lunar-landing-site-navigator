@@ -28,4 +28,4 @@ Device agents can download, copy files, create accounts and send messages, but o
 
 ## Rule
 
-Code for the final project is written during the hackathon weekend unless the official rules allow otherwise (check before 13 Nov). Research, data downloads, validation scripts and design happen before.
+Code for the final project is written during the hackathon weekend — the organiser confirmed on 16 Oct 2026 that the project must arise during the event; a finished solution brought along and slightly adapted on site does not count. Research, data downloads, validation scripts and design happen before; the organiser explicitly encourages reading up on the physics, NASA datasets and tools like JPL Horizons beforehand.
