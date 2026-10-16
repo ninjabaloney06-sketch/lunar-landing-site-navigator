@@ -73,5 +73,5 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Someone who can handle GeoTIFF/raster data | required | Data/web teammate |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
-| Accompanying parent (one can cover all three) | required | Must stay with the team for the whole event incl. overnight (organiser, 16 Oct) |
-| Written parental authorisation, one per participant | required | Names the accompanying person and authorises them for the whole event; bring originals on 14 Nov (organiser, 16 Oct) |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One adult can cover all three; must stay with the team for the whole event incl. overnight (organiser, 16 Oct). Name pending from the school |
+| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 16 Oct). NASA terms additionally say "parent or legal guardian" — Sarah to confirm in writing that this scheme is accepted (TASKS.md phase 0) |

@@ -32,15 +32,20 @@ story = [
     Paragraph("EVENT", h),
     table([
         ("Venue / dates", "OpenSpace Heilbronn, Weipertstraße 8–10. Hackathon 14–15 Nov, in person, check-in Sat 8:30. "
-                           "Overnight at the venue allowed with a named chaperone; sleeping accommodation self-organised."),
-        ("Team", "3: S (science), D (data/web), Isaac (product, UI, integration, pitch)."),
+                           "Overnight at the venue allowed with the accompanying Betreuer; sleeping accommodation self-organised."),
+        ("Team", "3: S (science), D (data/web), Isaac (product, UI, integration, pitch). "
+                 "Accompanied overnight by a Betreuer from Isaac's school (name pending)."),
         ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
                    "Isaac's accounts and forms; each such action only after Isaac approves it."),
-        ("Confirmed", "Organiser, 16 Oct: project must arise during the event (prep = physics reading, NASA data, tools like JPL Horizons); "
-                      "under 18 → named chaperone for the whole event incl. overnight + written authorisation per participant; "
+        ("Confirmed", "Organiser + official rules, 16 Oct: project must arise during the event, no challenge work before it "
+                      "(prep = physics reading, NASA data, tools like JPL Horizons; statements 28 Oct, submission + judging guides 13 Nov); "
+                      "under 18 → accompaniment for the whole event incl. overnight + written authorisation per participant, "
+                      "a Betreuer from Isaac's school will accompany (name pending); team self-registered — ask Sarah how to reconcile "
+                      "with the terms' parent/guardian registration wording; "
                       "Wi-Fi unrestricted; bring power strips; global nominations scale with local submissions (no country quota); "
-                      "local prizes independent of the global funnel."),
-        ("Still open", "Submission format, daily hours, food, 2026 award categories."),
+                      "local prizes independent of the global funnel; submission: no minors' photos/voices/names, cite + license everything, describe AI-tool use."),
+        ("Still open", "Submission format and 2026 award categories (guides, 13 Nov) · daily hours, food · "
+                       "Sarah's written confirmation of the Betreuer scheme and the account-registration fix."),
     ]),
 
     Paragraph("CHALLENGE", h),

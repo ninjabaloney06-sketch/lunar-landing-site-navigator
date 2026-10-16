@@ -68,7 +68,8 @@ Small text edits inside the repo (code, Markdown, JSON < 10 MB) and reading publ
 
 - Every coordinate, number and claim about NASA data needs a source link. No source → don't write it.
 - Physics and coordinate results are not done until S has validated them (`[AI+H]` tasks in phases 2–4).
-- Final project code (the frontend shown to judges) is written during the event unless the official rules allow pre-event code. Check `docs/decisions.md` for the current status of that rule before building UI.
+- Final project code (the frontend shown to judges) is written during the event. Rules confirmed 16 Oct (organiser + official FAQ: no challenge work before the hackathon; research, data, validation scripts and design are the allowed preparation). Current status and reasoning: `docs/decisions.md`.
+- Submission constraints from the official terms that apply to anything agents produce: no photos, voices or recognizable names of anyone under 18 in the demo or submission; cite every source and document the license of every material (NASA can reject or strip awards for missing citations); the submission must describe how AI/SI tools were used. Original content is open source by default (Apache 2.0 if unspecified).
 - No secrets, API keys or personal data in the repo.
 - Keep it simple: static JSON + static frontend. No database, no backend (see NEEDS.md).
 
