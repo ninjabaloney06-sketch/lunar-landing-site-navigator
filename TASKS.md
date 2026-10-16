@@ -10,9 +10,9 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 ## Phase 0 — Organisation (now → 13 Oct)
 
-- [ ] `[AI+H]` `device` **I** — Register the 3-person team on the CLPS challenge page from Isaac's Space Apps account and invite S and D. Isaac approves before submitting and accepts the participation terms personally.
-- [ ] `[H]` **S, D** — Create your own Space Apps account and accept the team invite. Isaac confirms all three members show as linked.
-- [ ] `[AI+H]` `device` **I** — Ask the Heilbronn organisers (OpenSpace) for: Friday agenda, daily opening hours, Wi-Fi, food, overnight access, power sockets, number of global nominations, local prizes, and whether pre-event code is allowed. Agent drafts the email; sends from Isaac's account after Isaac approves the text. Answers go into `docs/decisions.md`.
+- [x] `[AI+H]` `device` **I** — Register the 3-person team on the CLPS challenge page from Isaac's Space Apps account and invite S and D. Isaac approves before submitting and accepts the participation terms personally.
+- [x] `[H]` **S, D** — Create your own Space Apps account and accept the team invite. Isaac confirms all three members show as linked.
+- [x] `[AI+H]` `device` **I** — Ask the Heilbronn organisers (OpenSpace) for: Friday agenda, daily opening hours, Wi-Fi, food, overnight access, power sockets, number of global nominations, local prizes, and whether pre-event code is allowed. Agent drafts the email; sends from Isaac's account after Isaac approves the text. Answers go into `docs/decisions.md`.
 - [ ] `[AI+H]` `device` **I** — Read the official participation terms and rules (pages render client-side; needs a real browser); AI summarizes what may be prepared before the event (code, data, design) and what must be built on site. Human confirms the reading with the organisers if unclear.
 - [ ] `[H]` **All** — Agree roles (S / D / I) and who owns the final submission form.
 - [ ] `[H]` **All** — Agree travel from Stuttgart: train or car, departure times, whether anyone stays overnight. Agent may look up connections and prices; humans book and pay.
