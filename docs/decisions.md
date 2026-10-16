@@ -27,7 +27,7 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 ## Event facts
 
 - Venue: OpenSpace Heilbronn, Weipertstraße 8–10. Venue listing: 13–15 Nov, 13:00–19:00. Global hackathon: 14–15 Nov.
-- Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct; full resources expected 28 Oct (per a local organiser, unconfirmed).
+- Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct. Official challenge statements (full requirements and resources) release 28 Oct — confirmed by the participant FAQ 16 Oct, no longer hearsay.
 - The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
 - Space Apps team maximum: 6. Our team: 3.
 - Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 16 Oct; the organisers will notify separately if Friday offers exist.
@@ -42,9 +42,11 @@ Answered 16 Oct 2026 by the organiser reply: pre-event code rule · Friday agend
 
 Still open:
 
-- Submission format for 2026 (past years: 30-second video or up to 7 slides).
+- Submission format for 2026 and 2026 award categories — answered by the Project Submission Guide and Judging & Awards Guide, both published **13 Nov** (official FAQ timeline). Do not chase these earlier.
+- Whether the team accounts satisfy the terms' "registered by a parent or legal guardian" for under-18s (check; ask Sarah if self-registered).
+- Written confirmation from Sarah that the one-parent + written-authorisation scheme satisfies NASA's "accompanied by a parent or legal guardian at all times" wording — the FAQ lets local events set their own extra requirements, her answer is the operative one, get it in writing.
+- Whether first names on slides or in the video count as "recognizable names" of minors (the rules bar them from submissions; past winning teams of minors used first names, likely fine — confirm with a mentor).
 - Daily opening hours and Sunday end time; food.
-- 2026 award categories (2025 categories used for now: Best Use of Data, Best Use of Technology, Galactic Impact).
 - Whether an empty pre-made repo skeleton counts as preparation or a brought-in project (assumed preparation; confirm with a mentor on day 1).
 
 ## Organiser reply — answers to the question list (16 Oct 2026)
@@ -54,3 +56,16 @@ Sarah (OpenSpace Heilbronn) answered the emailed questions on 16 Oct. Facts are 
 - **Prep rule confirmed.** Allowed before the event: physics reading, public information, NASA datasets, existing tools like JPL Horizons. The actual project must arise during the hackathon — a finished solution brought along and slightly adapted on site does not count. Our split (data, validation scripts and design before; judged frontend at the event) fits the rule.
 - **New logistics tasks in TASKS.md phase 0:** pick the accompanying parent, written authorisation per participant, sleeping plan (venue with bedding vs. off-site), travel planned around the 8:30 check-in. Authorisation and sleeping decision due 7 Nov, before travel booking.
 - **Odds entry corrected:** nominations scale with local submission count; no country quota. Local prizes exist and are independent of the global funnel — a local award is not a lesser version of a nomination.
+
+## Official rules read — Participant Terms and participant FAQ (16 Oct 2026)
+
+Sources: 2026 Participant Terms and Conditions (updated 7 Aug 2026), https://www.spaceappschallenge.org/legal/ · participant FAQ, https://www.spaceappschallenge.org/resources/participant-faqs/ . Read 16 Oct in a real browser.
+
+- **Prep rule is stricter than Sarah's email.** FAQ, verbatim: "Teams are not allowed to begin working on the challenges prior to the hackathon." And the full requirements only exist from 28 Oct (statements release) — until then we plan against the 17 Sep summary. **Our position:** pre-event work = general preparation the FAQ and Sarah both welcome (research, physics learning, data downloads, tool exploration, validation scripts, design). Nothing that is itself part of the submission is built before the event; the judged app is written 14–15 Nov. Phase 2–3 outputs are validation artefacts proving the data and math work — documented as preparation in the submission, not solution code.
+- **Under 18 (terms + FAQ):** registration by a parent or legal guardian required; accompanied by a parent or legal guardian at all times during the event; local events may add requirements (FAQ defers to the Local Lead — Sarah's authorisation scheme is her requirement, ask her to confirm it in writing).
+- **Minors in the submission:** no participant photos on avatars or the team page; no photo, video, voices or likeness of anyone under 18 in the project demo or submission; no recognizable names of under-18s in submissions. Consequence: demo video = screen-only with captions or TTS, no voiceover, no faces.
+- **License and citation requirements are hard:** original content is open source (OSI) — unspecified license means NASA redistributes under Apache 2.0; third-party Solution Materials must be open/free; every material's license stated in the submission documentation; **every source cited, even open source; missing citations can remove the Solution or strip nominations and awards.** Consequence: licenses column in `data/SOURCES.md`, license manifest in the project page text, LICENSE file in the submitted repo.
+- **AI use is allowed and its disclosure mandatory.** The FAQ (following a Sep 2026 U.S. EO) calls AI "Super Intelligence (SI)"; SI tools may be used; the submission must include a description of how they were used. Consequence: keep an SI-use log during the event.
+- **Official timeline:** 28 Oct statements · 3 Nov Space Apps Connect (community forum, closes at hackathon end) · 13 Nov Project Submission Guide + Judging & Awards Guide · 14–15 Nov event (terms: event starts 14 Nov) · judging after · Dec 2026 Global Nominees, Finalists, Honorable Mentions · Jan 2027 Global Winners.
+- **Submission channel:** the team's project page on spaceappschallenge.org — required to be eligible for Global Judging.
+- **Team rules reconfirmed:** max 6 members, all members signed up for the same Local Event, one team per person, one challenge per team.

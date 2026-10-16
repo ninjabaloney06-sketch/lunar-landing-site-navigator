@@ -13,7 +13,8 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [x] `[AI+H]` `device` **I** — Register the 3-person team on the CLPS challenge page from Isaac's Space Apps account and invite S and D. Isaac approves before submitting and accepts the participation terms personally.
 - [x] `[H]` **S, D** — Create your own Space Apps account and accept the team invite. Isaac confirms all three members show as linked.
 - [x] `[AI+H]` `device` **I** — Ask the Heilbronn organisers (OpenSpace) for: Friday agenda, daily opening hours, Wi-Fi, food, overnight access, power sockets, number of global nominations, local prizes, and whether pre-event code is allowed. Agent drafts the email; sends from Isaac's account after Isaac approves the text. Answers go into `docs/decisions.md`. Reply arrived 16 Oct — answers in `docs/decisions.md`.
-- [ ] `[AI+H]` `device` **I** — Read the official participation terms and rules (pages render client-side; needs a real browser). The 16 Oct organiser email settled the prep question (project built at the event, no bring-your-own finished solution; see `docs/decisions.md`). Remaining from the terms: submission format, daily hours, 2026 award categories.
+- [x] `[AI+H]` `device` **I** — Read the official participation terms and rules. Done 16 Oct: Participant Terms (7 Aug 2026) and participant FAQ read in a browser; rules summary and plan consequences in `docs/decisions.md` ("Official rules read", 16 Oct). Submission format and award categories are not findable before 13 Nov — the official guides publish then.
+- [ ] `[AI+H]` **I** — Check every team member's Space Apps account was registered by a parent or legal guardian (terms requirement for under-18s). If any account was self-registered, ask Sarah in the next email how to fix it — and get her written confirmation that the one-parent-plus-authorisation scheme satisfies NASA's "accompanied by a parent or legal guardian" wording.
 - [ ] `[H]` **All** — Agree roles (S / D / I) and who owns the final submission form.
 - [ ] `[H]` **All + parents** — Pick the accompanying parent (one can cover all three, per the organiser, 16 Oct). Each family writes a signed authorisation naming that person, valid for the whole event including overnight. Done by 7 Nov; every participant carries their own.
 - [ ] `[H]` **All** — Decide the sleeping plan before booking travel: overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation — bring bedding or book off-site; optionally take the organiser's offer to connect with local students (not guaranteed). Agent may research options; humans decide and book. Decide by 7 Nov.
@@ -34,7 +35,10 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 
 ## Phase 2 — Ephemeris: Sun and Earth in the local sky (by 27 Oct)
 
-- [ ] `[AI+H]` `device` — **Needs Isaac's approval + target machine before downloading.** Device agent on the data computer downloads NAIF SPICE kernels: `de440s.bsp` (planets), `naif0012.tls` (leap seconds), `pck00011.tpc`, lunar orientation (`moon_pa_de440_200625.bpc`, `moon_de440_250416.tf` or current equivalents). Record exact versions, URLs, sizes, checksums and path in `data/SOURCES.md`.
+The official challenge statements (full requirements, resources) release **28 Oct**. Until then this phase plans against the 17 Sep summary — after reading the statements, rescope before building anything heavy. Outputs of Phases 2–3 are validation artefacts (proven data and math), documented as preparation; the judged app itself is written at the event (`docs/decisions.md`, 16 Oct).
+
+- [ ] `[AI]` `device` — 28 Oct: read the official CLPS challenge statement in a real browser (full requirements, resources, judging-relevant details). Compare against this plan line by line, rescope Phases 2–5 where the statement differs, record the deltas in `docs/decisions.md`.
+- [ ] `[AI+H]` `device` — **Needs Isaac's approval + target machine before downloading.** Device agent on the data computer downloads NAIF SPICE kernels: `de440s.bsp` (planets), `naif0012.tls` (leap seconds), `pck00011.tpc`, lunar orientation (`moon_pa_de440_200625.bpc`, `moon_de440_250416.tf` or current equivalents). Record exact versions, URLs, sizes, checksums, license and path in `data/SOURCES.md` (terms require licensing every material).
 - [ ] `[AI]` — Script `ephemeris.py`: input lat, lon, elevation on the Moon (MOON_ME frame) + time range + step; output Sun and Earth azimuth and elevation (topocentric, local horizon). Python + `spiceypy`.
 - [ ] `[AI]` — Unit tests: known geometry checks (Sun elevation at equator noon ≈ 90° − |latitude offset|, symmetry checks, Earth always low at the pole).
 - [ ] `[AI+H]` **S** — Validate 10 sample points against JPL Horizons (observer on the Moon at site coordinates). Agreement target: < 0.05°. S records the comparison table in `docs/validation.md`.
@@ -44,7 +48,7 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 ## Phase 3 — Terrain horizon masks (by 3 Nov, hardest part)
 
 - [ ] `[AI+H]` `device` **D** — Identify the right LOLA south-pole elevation product on NASA PGDA (~20 m/px polar stereographic, maybe 5 m tiles near key sites). AI finds candidates; D confirms size, projection and license.
-- [ ] `[AI+H]` `device` — **Needs Isaac's approval + target machine before downloading.** Device agent on the data computer checks free disk space, downloads the selected elevation tiles, and records URL, size, checksum and path in `data/SOURCES.md`. (Expect several GB.)
+- [ ] `[AI+H]` `device` — **Needs Isaac's approval + target machine before downloading.** Device agent on the data computer checks free disk space, downloads the selected elevation tiles, and records URL, size, checksum, license and path in `data/SOURCES.md`. (Expect several GB.)
 - [ ] `[AI]` — Script `horizon.py`: for a site, cast rays in 360 directions (1° steps, later 0.5°) out to ~100–150 km; for each, find the maximum elevation angle of terrain including lunar curvature. Output a horizon profile (azimuth → horizon elevation).
 - [ ] `[AI]` — Performance: vectorize with numpy; cache profiles per site as JSON.
 - [ ] `[AI+H]` **S** — Validate horizon results: compare computed illumination for 2–3 sites against PGDA published illumination maps (e.g. Mazarico et al. average illumination). Target: same ranking of sites and roughly matching percentages. Document gaps.
@@ -78,12 +82,13 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[H]` **All** — Pack: laptops, chargers, power strips (organiser 16 Oct: not a socket for every device at every table), adapters, headphones, ID, the signed authorisations (one per participant), bedding if sleeping at the venue.
 - [ ] `[AI+H]` `device` **All** — Make sure every laptop has the repo, Python env and data offline (venue Wi-Fi may fail). A device agent sets up Isaac's laptop; S and D set up their own (or run an agent on their own machine). Each person confirms by running the tests offline.
 - [ ] `[AI+H]` `device` **D** — Copy precomputed data and kernels from Isaac's data computer to a USB stick, only after Isaac approves. Repo agent writes the checklist (files, sizes, checksums); device agent copies and verifies checksums; D checks the stick works on a second laptop.
-- [ ] `[AI]` `device` — Check the 28 Oct full challenge resources (challenge page needs a real browser) and update this task list.
+- [ ] `[AI]` `device` — 13 Nov: read the official Project Submission Guide and Judging & Awards Guide (published 13 Nov per FAQ). Submission format, required fields and award categories come from them — update the submission tasks below to match, same day.
 
 ## Phase 7 — Hackathon day 1 (Sat 14 Nov)
 
 - [ ] `[H]` **All** — Check in at 8:30, find a table, set up the power strips, test Wi-Fi.
-- [ ] `[H]` **I** — Talk to mentors in the first 2 hours: show the problem statement, ask what a judge would challenge.
+- [ ] `[H]` **I** — Talk to mentors in the first 2 hours: show the problem statement, ask what a judge would challenge. Also confirm the empty-skeleton question (phase 5).
+- [ ] `[AI+H]` **I** — Keep a running SI/AI-use log from the first hour (tool, what it did, who ran it). The submission must include a description of how SI tools were used (participant FAQ).
 - [ ] `[AI+H]` **D** — Build the frontend shell and load static JSON. AI writes code; D reviews and runs it.
 - [ ] `[AI+H]` **I** — Build the polar sky plot (D3 / Plotly). AI writes; Isaac checks it against a known case.
 - [ ] `[AI+H]` **I** — Build the daily timeline view.
@@ -95,9 +100,9 @@ Roles: **S** = science teammate · **D** = data/web teammate · **I** = Isaac (p
 - [ ] `[AI+H]` **D** — Comparison view and score, only if day 1 checkpoints passed.
 - [ ] `[AI+H]` `device` **D** — Deploy (Vercel / Cloudflare Pages) and test the public URL on a phone. Agent deploys; D tests on a phone.
 - [ ] `[H]` **All** — Feature freeze at the agreed time. Only bug fixes after.
-- [ ] `[AI+H]` **I** — Write the project page text (summary, how it works, data sources, limitations). AI drafts; Isaac cuts to essentials.
-- [ ] `[AI+H]` **I** — Slides (max 7) or 30-second demo video, per the official submission format. AI drafts structure and captions; human records and edits.
-- [ ] `[H]` **I** — Record the demo video (screen recording + voice).
+- [ ] `[AI+H]` **I** — Write the project page text (summary, how it works, data sources, limitations). Cite every source — even open-source ones — and state the license of every Solution Material: NASA rejects Solutions without license documentation and can strip nominations for missing citations (terms). Include the SI/AI-use description from the phase 7 log. AI drafts; Isaac cuts to essentials.
+- [ ] `[AI+H]` **I** — Slides (max 7) or demo video, per the Project Submission Guide (13 Nov). AI drafts structure and captions; human records and edits.
+- [ ] `[H]` **I** — Record the demo video: screen-only, no faces and no voices of anyone under 18 (rules bar minors' photos, voices and likenesses from submissions) — captions or a TTS narration instead of voiceover.
 - [ ] `[AI+H]` `device` **I** — Submit the project form before the deadline. Agent fills in the form from the project page text; Isaac reviews and clicks submit. Agent saves the confirmation screenshot to `docs/`.
 - [ ] `[H]` **All** — Rehearse the live pitch twice with a timer.
 - [ ] `[H]` **I** — Pitch to the local judges.
