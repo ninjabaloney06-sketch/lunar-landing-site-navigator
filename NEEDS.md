@@ -9,7 +9,7 @@ Status: `required` · `optional` · `not needed`.
 | NASA Space Apps account (each member) | required | Team registration and submission. Each person owns and logs into their own; a device agent may only set up Isaac's |
 | GitHub | required | This repo, code, issues |
 | Vercel or Cloudflare Pages | required | Free static hosting for the demo URL. Device agent creates it with Isaac's email after approval |
-| AI repo agents (Claude Code / Codex / ZCode) | required | Write most scripts, docs and frontend code (see TASKS.md markers) |
+| AI repo agents (Claude Code / Codex / ZCode) | required | Write most scripts, docs and frontend code (see TASKS.md markers). Available: Isaac's Claude account; O has two Claude Max plans |
 | AI device agents with computer use | required | Run on Isaac's computers: browser-only pages, downloads, copying data, creating Isaac's accounts, filling forms (tasks tagged `device`; every such action needs Isaac's approval) |
 | Password manager (Isaac) | required | Where device agents store credentials for accounts they create. Never in the repo or chat |
 | JPL Horizons (web or API) | required | Reference values for validating ephemeris output; no account needed |
@@ -23,6 +23,9 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Service | Purpose | Owner (whose email) | Created by | Date |
 |---|---|---|---|---|
 | GitHub (account hosting this private repo) | Code, plan, build log | Isaac | existing account | — |
+| NASA Space Apps (Isaac) | Team owner; CLPS team registration and submission | Isaac | Isaac (self-registered; see open question on parent registration) | before 10 Oct |
+| NASA Space Apps (O) | Team member | O | O (self-registered) | before 10 Oct |
+| NASA Space Apps (B) | Team member | B | B (self-registered) | before 10 Oct |
 
 ## Data
 
@@ -59,19 +62,19 @@ Accounts that exist for this project. Add a row when one is created. No password
 |---|---|---|
 | Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, done by a device agent running on it, only with Isaac's explicit approval |
 | 3 laptops | required | Work machines; only small derived data, copied after approval |
-| Power strip + chargers | required | Organiser (16 Oct): cannot guarantee a socket per device per table — bring strips |
+| Power strip + chargers | required | Organiser (13 Oct): cannot guarantee a socket per device per table — bring strips |
 | USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
-| Bedding (sleeping bags/mats) or an off-site bed | required | Overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation (16 Oct). Decide by 7 Nov (TASKS.md phase 0) |
+| Bedding (sleeping bags/mats) or an off-site bed | required | Overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation (13 Oct). Decide by 7 Nov (TASKS.md phase 0) |
 | Train/car from Stuttgart | required | Arrive before the 8:30 check-in on Sat 14 Nov; overnight per the phase-0 decision. Humans book and pay |
-| Headphones + mic | optional | Recording voice-over |
+| Headphones | optional | Focus at the venue. No voice-over in the video (no voices of under-18s in the submission) |
 
 ## People and knowledge
 
 | Item | Status | Owner |
 |---|---|---|
-| Someone who can verify orbital/coordinate math | required | Science teammate |
-| Someone who can handle GeoTIFF/raster data | required | Data/web teammate |
+| Someone who can verify orbital/coordinate math | required | Proposed: O (logic), backed by a mentor and hard checks against JPL Horizons / PGDA |
+| Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, O reviews (see `docs/decisions.md`, team strengths) |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
-| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One adult can cover all three; must stay with the team for the whole event incl. overnight (organiser, 16 Oct). Name pending from the school |
-| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 16 Oct). NASA terms additionally say "parent or legal guardian" — Sarah to confirm in writing that this scheme is accepted (TASKS.md phase 0) |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One adult can cover all three; must stay with the team for the whole event incl. overnight (organiser, 13 Oct). Name pending from the school |
+| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 13 Oct). NASA terms additionally say "parent or legal guardian" — Sarah to confirm in writing that this scheme is accepted (TASKS.md phase 0) |
