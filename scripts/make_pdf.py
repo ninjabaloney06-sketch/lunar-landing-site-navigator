@@ -34,7 +34,8 @@ story = [
         ("Venue / dates", "OpenSpace Heilbronn, Weipertstraße 8–10. Hackathon 14–15 Nov, in person. Sat 8:30 check-in, 10:30 hacking; "
                            "Sun 15:45 local submission deadline, 16:00 pitches, 18:00 awards. "
                            "Overnight at the venue allowed with the accompanying Betreuer; sleeping accommodation self-organised."),
-        ("Team", "3, all under 18. Proposed: O = science checks (logic), B = frontend + design, Isaac = product, data scripts via agents, pitch. "
+        ("Team", "4, all under 18. Proposed: L = science lead (physics, validation), O = code checks (tests, security), B = frontend + design, "
+                 "Isaac = product, data scripts via agents, pitch. "
                  "Accompanied overnight by a Betreuer from Isaac's school (name pending)."),
         ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
                    "Isaac's accounts and forms; each such action only after Isaac approves it."),
@@ -46,7 +47,7 @@ story = [
                       "Wi-Fi unrestricted; bring power strips; global nominations scale with local submissions (no country quota); "
                       "local prizes independent of the global funnel; submission: no minors' photos/voices/names, cite + license everything, describe AI-tool use."),
         ("Still open", "Submission format and 2026 award categories (guides, 13 Nov) · roles · "
-                       "Sarah's written confirmation of the Betreuer scheme and the account-registration fix."),
+                       "Sarah's written confirmation of the Betreuer scheme (now four participants) and the account-registration fix."),
     ]),
 
     Paragraph("CHALLENGE", h),
@@ -57,7 +58,8 @@ story = [
         ("Core tech", "Ephemeris (SPICE / Skyfield) + horizon masks from LOLA elevation data (NASA PGDA)."),
         ("Main risk", "Terrain horizon, now built at the event. Go / no-go Sat 22:00: fewer validated sites beat many wrong ones."),
         ("Demo", "Pick 2–3 sites + date range: polar sky plot (horizon, Sun/Earth tracks), daily light/comms timeline, power + comms score."),
-        ("Roles", "Science checks: Horizons + PGDA validation, score formula. Frontend: sky plot, timeline, views. Isaac: spec, agents, integration, pitch."),
+        ("Roles", "Science lead: physics, Horizons + PGDA validation, score formula. Code checks: tests, script review, security. "
+                  "Frontend: sky plot, timeline, views. Isaac: spec, agents, integration, pitch."),
         ("Cut first", "The score. Sky plot + timeline alone are a complete demo."),
         ("Award fit*", "Best Use of Data, Best Use of Technology, Galactic Impact."),
     ]),

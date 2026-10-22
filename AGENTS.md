@@ -4,7 +4,7 @@ Read before doing anything in this repo. Applies to Claude Code, Codex, ZCode an
 
 ## Context
 
-Team plan for NASA Space Apps 2026, challenge **CLPS Lunar Mission Browser**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 3: S (science checks), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
+Team plan for NASA Space Apps 2026, challenge **CLPS Lunar Mission Browser**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
 
 ## Two kinds of agent
 
@@ -49,7 +49,7 @@ A device agent states which machine it is on (`data computer`, `Isaac's laptop`,
 | Downloading any file (SPICE kernels, LOLA tiles, PDFs, datasets, packages beyond what the task strictly needs) | what, URL, approx. size, target machine and path | Target is Isaac's **data computer**, not a laptop or sandbox |
 | Writing or copying files outside this repo's working tree (other folders, other machines, USB stick) | source, destination, size | — |
 | Generating outputs > 10 MB anywhere, including inside the repo | what, size, where | — |
-| Creating an account or signing up for a service | service, which email/identity, free tier or not | Only for Isaac, with Isaac's email. Never for S or D |
+| Creating an account or signing up for a service | service, which email/identity, free tier or not | Only for Isaac, with Isaac's email. Never for S, Q or D |
 | Sending anything outside the team (email to organisers, form submissions, posts, invites) | full text / form content, recipient | Draft first, send after yes |
 | Spending money, booking travel, accepting paid plans | — | Never; humans do this |
 

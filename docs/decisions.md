@@ -29,7 +29,7 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 - Venue: OpenSpace Heilbronn, Weipertstraße 8–10. Venue listing: 13–15 Nov, 13:00–19:00. Global hackathon: 14–15 Nov.
 - Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct. Official challenge statements (full requirements and resources) release 28 Oct — confirmed by the participant FAQ 16 Oct, no longer hearsay.
 - The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
-- Space Apps team maximum: 6. Our team: 3.
+- Space Apps team maximum: 6. Our team: 4 (Leo joined 22 Oct).
 - Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 13 Oct; the organisers will notify separately if Friday offers exist.
 - Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 13 Oct).
 - Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (13 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school** (name still pending); the NASA terms' stricter "parent or legal guardian" wording is to be confirmed against this scheme by Sarah (see open questions).
@@ -44,6 +44,7 @@ Answered 13 Oct 2026 by the organiser reply: pre-event code rule · Friday agend
 Still open:
 
 - Submission format for 2026 and 2026 award categories — answered by the Project Submission Guide and Judging & Awards Guide, both published **13 Nov** (official FAQ timeline). Do not chase these earlier.
+- One Betreuer for four participants: the organiser said on 13 Oct one adult can cover all three; confirm for four now that Leo joined (22 Oct).
 - The team registered their own Space Apps accounts (confirmed 16 Oct). The terms require under-18 registration by a parent or legal guardian — ask Sarah how (or whether this) must be fixed.
 - Written confirmation from Sarah that the school-Betreuer + written-authorisation scheme satisfies NASA's "accompanied by a parent or legal guardian at all times" wording — the FAQ lets local events set their own extra requirements, her answer is the operative one, get it in writing.
 - Whether first names on slides or in the video count as "recognizable names" of minors (the rules bar them from submissions; past winning teams of minors used first names, likely fine — confirm with a mentor).
@@ -72,17 +73,19 @@ Sources: 2026 Participant Terms and Conditions (updated 7 Aug 2026), https://www
 
 ## Team strengths and roles (10 Oct 2026, proposal)
 
-Teammates by initial (B, O); no contact data in the repo.
+Teammates by initial (B, O, L); no contact data in the repo.
 
 | Person | Says they are strong in |
 |---|---|
 | Isaac | UI, UX, design, AI |
 | B | UI, design |
 | O | logic, security |
+| L (joined 22 Oct) | physics, rocket science, aerodynamics, MINT |
 
 - **Gap:** the original plan assumed **S** (checks orbital and coordinate math) and **D** (GeoTIFF / raster data). Nobody claims either, and three people lean towards UI.
 - **Proposal (not agreed yet, TASKS.md phase 0):** O takes **S** (checking logic and math: tests, Horizons comparisons, the score formula) plus security for deployment. B takes **D = frontend and visual design** (sky plot, timeline, site cards). Isaac keeps product, pitch and integration and drives the AI agents that write the data scripts; O reviews them.
-- **Consequence:** science validation is the weakest point. Ask a mentor with lunar or geodesy background early on Saturday, and rely on hard external checks (JPL Horizons, PGDA illumination maps).
+- **Update 22 Oct — L joins and takes S (proposal, not agreed yet).** L is the first teammate who claims physics, which closes the biggest gap. L = **S, science lead**: owns the primer sign-off and the coordinate-frame note, validates ephemeris output against JPL Horizons, checks the horizon-mask geometry (lunar curvature, ray length, Sun as a 0.5° disk) and the PGDA illumination comparison, writes the power-and-comms score formula, makes the science call at the 22:00 go / no-go, and answers the physics questions in pitch Q&A. O moves from S to **Q, code checks**, which fits logic and security better than physics: reviews the agent-written data scripts, owns the tests, runs the security check before deploy. B (D) and Isaac (I) unchanged. Raster / GeoTIFF handling still has no owner: Isaac + agents write it, L checks the geometry, O reviews the code.
+- **Consequence (10 Oct, before L):** science validation is the weakest point. Ask a mentor with lunar or geodesy background early on Saturday, and rely on hard external checks (JPL Horizons, PGDA illumination maps).
 - **Agent capacity:** O has two Claude Max plans; Isaac has his own Claude account. That allows parallel agents on separate worktrees (one file set per agent, AGENTS.md).
 
 ## Plan rewritten around the pre-event rule (17 Oct 2026)

@@ -26,6 +26,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | NASA Space Apps (Isaac) | Team owner; CLPS team registration and submission | Isaac | Isaac (self-registered; see open question on parent registration) | before 10 Oct |
 | NASA Space Apps (O) | Team member | O | O (self-registered) | before 10 Oct |
 | NASA Space Apps (B) | Team member | B | B (self-registered) | before 10 Oct |
+| NASA Space Apps (L) | Team member (joined 22 Oct) | L | L (pending) | — |
 
 ## Data
 
@@ -72,9 +73,9 @@ Accounts that exist for this project. Add a row when one is created. No password
 
 | Item | Status | Owner |
 |---|---|---|
-| Someone who can verify orbital/coordinate math | required | Proposed: O (logic), backed by a mentor and hard checks against JPL Horizons / PGDA |
-| Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, O reviews (see `docs/decisions.md`, team strengths) |
+| Someone who can verify orbital/coordinate math | required | Proposed: L (physics, joined 22 Oct), backed by a mentor and hard checks against JPL Horizons / PGDA |
+| Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, L checks the geometry, O reviews the code (see `docs/decisions.md`, team strengths) |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
-| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One adult can cover all three; must stay with the team for the whole event incl. overnight (organiser, 13 Oct). Name pending from the school |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One adult can cover all three (organiser, 13 Oct); now four with L — Sarah to confirm; must stay with the team for the whole event incl. overnight (organiser, 13 Oct). Name pending from the school |
 | Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 13 Oct). NASA terms additionally say "parent or legal guardian" — Sarah to confirm in writing that this scheme is accepted (TASKS.md phase 0) |
