@@ -29,7 +29,8 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 - Venue: OpenSpace Heilbronn, Weipertstraße 8–10. Venue listing: 13–15 Nov, 13:00–19:00. Global hackathon: 14–15 Nov.
 - Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct. Official challenge statements (full requirements and resources) release 28 Oct — confirmed by the participant FAQ 16 Oct, no longer hearsay.
 - The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
-- Space Apps team maximum: 6. Our team: 4 (Leo joined 22 Oct).
+- Space Apps team maximum: 6. Our team: 4 (Leo joined 22 Oct; registered in the team online, GitHub access).
+- **Betreuer (22 Oct):** one Betreuer covers our four and a second team. Settled — not an open question for Sarah.
 - Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 13 Oct; the organisers will notify separately if Friday offers exist.
 - Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 13 Oct).
 - Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (13 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school** (name still pending); the NASA terms' stricter "parent or legal guardian" wording is to be confirmed against this scheme by Sarah (see open questions).
@@ -44,7 +45,6 @@ Answered 13 Oct 2026 by the organiser reply: pre-event code rule · Friday agend
 Still open:
 
 - Submission format for 2026 and 2026 award categories — answered by the Project Submission Guide and Judging & Awards Guide, both published **13 Nov** (official FAQ timeline). Do not chase these earlier.
-- One Betreuer for four participants: the organiser said on 13 Oct one adult can cover all three; confirm for four now that Leo joined (22 Oct).
 - The team registered their own Space Apps accounts (confirmed 16 Oct). The terms require under-18 registration by a parent or legal guardian — ask Sarah how (or whether this) must be fixed.
 - Written confirmation from Sarah that the school-Betreuer + written-authorisation scheme satisfies NASA's "accompanied by a parent or legal guardian at all times" wording — the FAQ lets local events set their own extra requirements, her answer is the operative one, get it in writing.
 - Whether first names on slides or in the video count as "recognizable names" of minors (the rules bar them from submissions; past winning teams of minors used first names, likely fine — confirm with a mentor).

@@ -36,7 +36,7 @@ story = [
                            "Overnight at the venue allowed with the accompanying Betreuer; sleeping accommodation self-organised."),
         ("Team", "4, all under 18. Proposed: L = science lead (physics, validation), O = code checks (tests, security), B = frontend + design, "
                  "Isaac = product, data scripts via agents, pitch. "
-                 "Accompanied overnight by a Betreuer from Isaac's school (name pending)."),
+                 "Accompanied overnight by a Betreuer from Isaac's school (name pending), who also covers a second team."),
         ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
                    "Isaac's accounts and forms; each such action only after Isaac approves it."),
         ("Confirmed", "Organiser (13 Oct) + official rules (16 Oct): project must arise during the event, no challenge work before it "
@@ -47,7 +47,7 @@ story = [
                       "Wi-Fi unrestricted; bring power strips; global nominations scale with local submissions (no country quota); "
                       "local prizes independent of the global funnel; submission: no minors' photos/voices/names, cite + license everything, describe AI-tool use."),
         ("Still open", "Submission format and 2026 award categories (guides, 13 Nov) · roles · "
-                       "Sarah's written confirmation of the Betreuer scheme (now four participants) and the account-registration fix."),
+                       "Sarah's written confirmation of the Betreuer scheme and the account-registration fix."),
     ]),
 
     Paragraph("CHALLENGE", h),
