@@ -12,6 +12,7 @@ Team plan for the [CLPS Lunar Mission Browser](https://www.spaceappschallenge.or
 | [BUILD_LOG.md](BUILD_LOG.md) | What got done, by humans and agents — add your line |
 | [docs/decisions.md](docs/decisions.md) | Why CLPS, odds, event facts, open questions |
 | [TASKS.md](TASKS.md) | Every task from now until submission, marked by who can do it |
+| [WHERE-WHEN.md](WHERE-WHEN.md) | Where the team and the Betreuerin have to be on 14–15 Nov, hour by hour: train, venue, hostel |
 | [NEEDS.md](NEEDS.md) | Accounts, tools, libraries and data we need |
 | [docs/NASA-Heilbronn-CLPS.pdf](docs/NASA-Heilbronn-CLPS.pdf) | One-page plan (regenerate: `python3 scripts/make_pdf.py`) |
 

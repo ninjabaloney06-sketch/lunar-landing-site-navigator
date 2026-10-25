@@ -42,6 +42,12 @@ reviews — S signs every number that reaches the UI.
 
 ## Sleep plan (team of 4, at least 2 awake)
 
+**Decided 25 Oct: we sleep at the Jugendherberge Heilbronn, not at the venue.** The Betreuerin (Dagny Locher)
+sleeps there, and she has to stay with us, so everyone leaves the venue after the 22:30 wrap-up and is back
+at 07:30 ([WHERE-WHEN.md](../WHERE-WHEN.md)). The shift table below only works if the hostel has Wi-Fi
+in a common room and quiet hours allow it; otherwise everyone sleeps 23:00–06:45. The venue-overnight text
+below is kept for reference.
+
 Overnight at the venue is allowed with the Betreuer; no sleeping accommodation provided — bedding
 comes with us (decision venue vs. off-site is an open phase-0 task, due 7 Nov). The arithmetic first:
 22:45–07:30 is 8 h 45; with 2 of 4 sleeping at a time there are only ~17.5 bed-hours for 4 × 6 h = 24
@@ -74,7 +80,7 @@ with the organiser/Betreuer; name and written authorisations due 7 Nov (phase 0)
 - Night shift: bring snacks and drinks for 22:45–07:30 — kitchen/vending access overnight unknown — check.
 - Packing (phase 0, due 7 Nov): laptops, chargers, power strips (sockets scarce — organiser 13 Oct),
   adapters, headphones, ID, tickets, signed authorisations naming the Betreuer, USB stick with raw
-  data, bedding if sleeping at the venue.
+  data, overnight bag (hostel), DJH group card, phone hotspot.
 
 ## Saturday 14 Nov — 08:30 to 10:30 (setup, before hacking begins)
 
@@ -154,7 +160,7 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 | 15:45–16:00 | All | Demo setup for the pitch: online build, screen recording queued, offline build ready. |
 | 16:00–17:00 | I (All stand by) | Pitch to the local judges, within the time slot. S takes physics questions; live demo from the validated app. |
 | 17:00–18:00 | All | Collect judge and mentor feedback while it is fresh (phase 7). |
-| 18:00 | All | Awards. After: pack, return travel — unknown — check (travel decision is an open phase-0 task). |
+| 18:00 | All | Awards. After: walk to Heilbronn Hbf (18 min) and train home ([WHERE-WHEN.md](../WHERE-WHEN.md)). |
 
 ## Checkpoints and what they decide
 
@@ -186,16 +192,12 @@ recorded demo as backup.
 - Exact meal times Sat/Sun (board at the venue) and overnight kitchen/vending access.
 - Friday 13 Nov: no separate programme known as of 13 Oct; organisers said they notify separately if
   one exists — check the last organiser messages before travelling.
-- How the shared Betreuer covers the night across our team and the second team; Betreuer's name for
-  the authorisations (phase 0, due 7 Nov).
-- Sleeping decision: venue with bedding vs. off-site, and with it the sleep-shift variant (baseline
-  ≥ 2 awake vs. all-hands block) — team decision due 7 Nov.
-- Whether overnight guests may keep working in the room before the official Sunday 07:30 doors-open
-  (assumed yes in the plan — confirm with the organiser).
+- Hostel: entry after 22:30, Sunday key return before 07:30, Wi-Fi in a common room, quiet hours —
+  asked at booking by Dagny Locher ([WHERE-WHEN.md](../WHERE-WHEN.md)). Decides whether the night shift happens.
 - Submission-format details from the Project Submission Guide and Judging & Awards Guide (published
   13 Nov; read in phase 2) — they decide the video format, public-repo question and form fields used
   in phase 6.
-- Sunday departure after awards (travel decision open in phase 0).
+- Train times both ways (travel task, phase 0).
 
 Open item from phase 0 that touches this plan: role agreement (`[H]` All) — the S/Q/D/I names above
 stay "proposed" until the team confirms; the checkpoints do not depend on the names.
