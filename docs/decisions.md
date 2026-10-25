@@ -24,6 +24,10 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 - Local win / nomination: ~25–35 % with the prep in TASKS.md done; ~5–10 % without prep. Global award: ~1–3 %. Plan for a local win, treat global as a bonus.
 - Biggest levers: validated numbers (horizon + ephemeris) and a tight 3-minute pitch built on concrete pain points of existing tools.
 
+## Existing team attachment verified (25 Oct 2026)
+
+Device agent on ninja's Mac: after ninja signed in, the Space Apps dashboard listed the existing team **SFZ | MEXG**, local event **Heilbronn** and challenge **Lunar Landing Site Navigator**. The [public team page](https://www.spaceappschallenge.org/2026/find-a-team/mint-exzellenzgymnasium-team-2/) independently shows Team Information → Challenge: Lunar Landing Site Navigator; Local Event: Heilbronn, Germany. The [new challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) renders that title with the10-CLPS badge. Its old name remains in the team's description, but the structured challenge assignment is correct. No registration, invite, terms or account data changed. This verifies assignment, not the still-pending full statement/resources or human role/physics checks.
+
 ## Event facts
 
 - Venue: OpenSpace Heilbronn, Weipertstraße 8–10. Venue listing: 13–15 Nov, 13:00–19:00. Global hackathon: 14–15 Nov.
