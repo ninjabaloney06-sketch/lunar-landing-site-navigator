@@ -1,6 +1,6 @@
-# CLPS Lunar Mission Browser — NASA Space Apps 2026, Heilbronn
+# Lunar Landing Site Navigator — NASA Space Apps 2026, Heilbronn
 
-Team plan for the [CLPS Lunar Mission Browser](https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/) challenge at NASA Space Apps 2026 (OpenSpace Heilbronn, 14–15 Nov 2026).
+Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) challenge at NASA Space Apps 2026 (OpenSpace Heilbronn, 14–15 Nov 2026).
 
 > Build an intuitive tool that lets mission planners, educators and the public compare lunar south-pole landing sites and dates, visualizing Sun and Earth positions relative to the local horizon to assess solar power potential and direct-to-Earth communication windows.
 

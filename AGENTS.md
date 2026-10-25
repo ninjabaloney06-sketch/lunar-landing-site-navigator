@@ -4,7 +4,7 @@ Read before doing anything in this repo. Applies to Claude Code, Codex, ZCode an
 
 ## Context
 
-Team plan for NASA Space Apps 2026, challenge **CLPS Lunar Mission Browser**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
+Team plan for NASA Space Apps 2026, challenge **Lunar Landing Site Navigator**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
 
 ## Two kinds of agent
 
