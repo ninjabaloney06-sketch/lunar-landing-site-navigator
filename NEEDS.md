@@ -65,7 +65,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | 3 laptops | required | Work machines; only small derived data, copied after approval |
 | Power strip + chargers | required | Organiser (13 Oct): cannot guarantee a socket per device per table — bring strips |
 | USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
-| Bedding (sleeping bags/mats) or an off-site bed | required | Overnight at the venue is allowed with the chaperone, but the organiser provides no sleeping accommodation (13 Oct). Decide by 7 Nov (TASKS.md phase 0) |
+| Bed for Sat → Sun | required | Decided 25 Oct: Jugendherberge Heilbronn, 4-bed room, booked by Dagny Locher with the second team. DJH membership required (group card). See [WHERE-WHEN.md](WHERE-WHEN.md) |
 | Train/car from Stuttgart | required | Arrive before the 8:30 check-in on Sat 14 Nov; overnight per the phase-0 decision. Humans book and pay |
 | Headphones | optional | Focus at the venue. No voice-over in the video (no voices of under-18s in the submission) |
 
@@ -77,5 +77,5 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, L checks the geometry, O reviews the code (see `docs/decisions.md`, team strengths) |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
-| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One Betreuer covers our four and a second team (settled 22 Oct); must stay with the team for the whole event incl. overnight (organiser, 13 Oct). Name pending from the school |
-| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 13 Oct). NASA terms additionally say "parent or legal guardian" — Sarah to confirm in writing that this scheme is accepted (TASKS.md phase 0) |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One Betreuer covers our four and a second team (settled 22 Oct); must stay with the team for the whole event incl. overnight (organiser, 13 Oct). Betreuerin: **Dagny Locher** (25 Oct) |
+| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 13 Oct). Isaac decided 25 Oct that this scheme is accepted; no confirmation from Sarah needed |
