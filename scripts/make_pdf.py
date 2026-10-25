@@ -39,7 +39,7 @@ story = [
                  "Accompanied by Dagny Locher, a Betreuerin from Isaac's school, who also covers a second team."),
         ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
                    "Isaac's accounts and forms; each such action only after Isaac approves it."),
-        ("Confirmed", "Organiser (13 Oct) + official rules (16 Oct): project must arise during the event, no challenge work before it "
+        ("Confirmed", "Organiser (12 Oct) + official rules (16 Oct): project must arise during the event, no challenge work before it "
                       "(prep = physics reading, NASA data, tools like JPL Horizons; statements 28 Oct, submission + judging guides 13 Nov); "
                       "under 18 → accompaniment for the whole event incl. overnight + written authorisation per participant, "
                       "accompanied by Dagny Locher (school Betreuerin; scheme accepted, self-registration kept — Isaac, 25 Oct); "

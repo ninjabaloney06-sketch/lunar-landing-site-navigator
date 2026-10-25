@@ -78,7 +78,7 @@ with the organiser/Betreuer; name and written authorisations due 7 Nov (phase 0)
 - Break rhythm per person: 5–10 min roughly every 90–120 min, away from the screen; drink water; one
   short walk after each checkpoint. S takes an explicit pause before every validation sign-off.
 - Night shift: bring snacks and drinks for 22:45–07:30 — kitchen/vending access overnight unknown — check.
-- Packing (phase 0, due 7 Nov): laptops, chargers, power strips (sockets scarce — organiser 13 Oct),
+- Packing (phase 0, due 7 Nov): laptops, chargers, power strips (sockets scarce — organiser 12 Oct),
   adapters, headphones, ID, tickets, signed authorisations naming the Betreuer, USB stick with raw
   data, overnight bag (hostel), DJH group card, phone hotspot.
 
@@ -190,7 +190,7 @@ recorded demo as backup.
 ## Unknown — check (in this order at check-in Sat 08:30)
 
 - Exact meal times Sat/Sun (board at the venue) and overnight kitchen/vending access.
-- Friday 13 Nov: no separate programme known as of 13 Oct; organisers said they notify separately if
+- Friday 13 Nov: no separate programme known as of 12 Oct; organisers said they notify separately if
   one exists — check the last organiser messages before travelling.
 - Hostel: entry after 22:30, Sunday key return before 07:30, Wi-Fi in a common room, quiet hours —
   asked at booking by Dagny Locher ([WHERE-WHEN.md](../WHERE-WHEN.md)). Decides whether the night shift happens.

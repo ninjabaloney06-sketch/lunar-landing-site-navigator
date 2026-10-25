@@ -20,7 +20,7 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 
 ## Odds (estimate, not data)
 
-- Assumed 10–25 teams in Heilbronn across all 14 challenges. Corrected 13 Oct by the organisers: the number of global nominations scales with the number of projects submitted at the local event — no fixed quota per country.
+- Assumed 10–25 teams in Heilbronn across all 14 challenges. Corrected 12 Oct by the organisers: the number of global nominations scales with the number of projects submitted at the local event — no fixed quota per country.
 - Local win / nomination: ~25–35 % with the prep in TASKS.md done; ~5–10 % without prep. Global award: ~1–3 %. Plan for a local win, treat global as a bonus.
 - Biggest levers: validated numbers (horizon + ephemeris) and a tight 3-minute pitch built on concrete pain points of existing tools.
 
@@ -31,25 +31,25 @@ Newest at the bottom. Facts checked on 7 Oct 2026 unless noted.
 - The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
 - Space Apps team maximum: 6. Our team: 4 (Leo joined 22 Oct; registered in the team online, GitHub access).
 - **Betreuer (22 Oct):** one Betreuer covers our four and a second team. Settled — not an open question for Sarah.
-- Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 13 Oct; the organisers will notify separately if Friday offers exist.
-- Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 13 Oct).
-- Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (13 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school**: **Dagny Locher** (named 25 Oct). Isaac decided 25 Oct that this scheme is accepted despite the NASA terms' "parent or legal guardian" wording; no question to Sarah.
-- Overnight at the venue allowed with the chaperone; no sleeping accommodation provided — we organise our own. Organisers offer to connect us with local students for the search, not guaranteed (13 Oct). **Decided 25 Oct:** Jugendherberge Heilbronn, 4-bed room Sat → Sun; the Betreuerin sleeps there, so the team sleeps there too. Day timeline: [WHERE-WHEN.md](../WHERE-WHEN.md).
-- Selection funnel (13 Oct): the local jury rates the submitted projects and the strongest eligible ones go in as Global Nominees — the number scales with the number of local submissions, no fixed quota for Germany or Europe. NASA and partner-agency experts then pick Global Finalists, then Global Winners. Local prizes are independent of the global funnel.
+- Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 12 Oct; the organisers will notify separately if Friday offers exist.
+- Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 12 Oct).
+- Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (12 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school**: **Dagny Locher** (named 25 Oct). Isaac decided 25 Oct that this scheme is accepted despite the NASA terms' "parent or legal guardian" wording; no question to Sarah.
+- Overnight at the venue allowed with the chaperone; no sleeping accommodation provided — we organise our own. Organisers offer to connect us with local students for the search, not guaranteed (12 Oct). **Decided 25 Oct:** Jugendherberge Heilbronn, 4-bed room Sat → Sun; the Betreuerin sleeps there, so the team sleeps there too. Day timeline: [WHERE-WHEN.md](../WHERE-WHEN.md).
+- Selection funnel (12 Oct): the local jury rates the submitted projects and the strongest eligible ones go in as Global Nominees — the number scales with the number of local submissions, no fixed quota for Germany or Europe. NASA and partner-agency experts then pick Global Finalists, then Global Winners. Local prizes are independent of the global funnel.
 - Heilbronn schedule ([local event page](https://www.spaceappschallenge.org/2026/local-events/heilbronn/?tab=schedule), read 10 Oct): Sat 14 Nov 08:30 registration and breakfast, 10:30 hacking begins, 22:30 day-1 wrap-up; Sun 15 Nov 07:30 doors open, **15:45 final submission deadline** (global deadline is 23:59, the local one counts for us), live pitches from 16:00, 18:00 awards. Breakfast, lunch and dinner are on the schedule.
 
 ## Open questions (update when answered)
 
-Answered 13 Oct 2026 by the organiser reply: pre-event code rule · Friday agenda · Wi-Fi · sockets · overnight access · global nomination count · local prizes.
+Answered 12 Oct 2026 by the organiser reply: pre-event code rule · Friday agenda · Wi-Fi · sockets · overnight access · global nomination count · local prizes.
 
 Still open:
 
 - Submission format for 2026 and 2026 award categories — answered by the Project Submission Guide and Judging & Awards Guide, both published **13 Nov** (official FAQ timeline). Do not chase these earlier.
 - Whether first names on slides or in the video count as "recognizable names" of minors (the rules bar them from submissions; past winning teams of minors used first names, likely fine — confirm with a mentor).
 
-## Organiser reply — answers to the question list (13 Oct 2026)
+## Organiser reply — answers to the question list (12 Oct 2026)
 
-Sarah (OpenSpace Heilbronn) answered the emailed questions (sent 10 Oct) on 13 Oct. Facts are mirrored under Event facts above. Consequences for the plan:
+Sarah (OpenSpace Heilbronn) answered the emailed questions (sent 10 Oct) on 12 Oct. Facts are mirrored under Event facts above. Consequences for the plan:
 
 - **Prep rule confirmed.** Allowed before the event: physics reading, public information, NASA datasets, existing tools like JPL Horizons. The actual project must arise during the hackathon — a finished solution brought along and slightly adapted on site does not count. Plan consequence: see "Plan rewritten around the pre-event rule" below.
 - **New logistics tasks in TASKS.md phase 0:** written authorisation per participant naming the accompanying adult, sleeping plan (venue with bedding vs. off-site), travel planned around the 8:30 check-in. Authorisation and sleeping decision due 7 Nov, before travel booking. Updated 16 Oct: the accompanying adult will be a **Betreuer provided by Isaac's school**, not a parent — each set of parents authorises that person in writing.
