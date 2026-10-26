@@ -6,6 +6,8 @@ Downloads, copying files outside the repo, creating accounts and sending anythin
 
 Roles: **S** = science lead: physics, orbital and coordinate math, horizon geometry, validation, score formula (proposed: L) · **Q** = code checks: tests, review of agent-written data scripts, security (proposed: O) · **D** = frontend and visual design (proposed: B) · **I** = Isaac: product, integration, data scripts via AI agents, pitch. Not agreed yet (phase 0).
 
+**Per-person task lists:** `docs/team/` (`leo.md`, `otto.md`, `bene.md`, `isaac.md`) — prep before the event, role tasks at the event, and an "Assigned during the event" list Isaac fills.
+
 **The rule that shapes this plan:** before Sat 14 Nov 09:00 only general preparation is allowed: learning the physics, getting to know NASA datasets and existing tools, collecting sources, raw data downloads, logistics. The project itself (scripts, processed data, designs of our app, the spec, app code) is built at the event; a finished solution adapted slightly does not count (participant FAQ, Team Formation Guide, organiser reply 12 Oct; see `docs/decisions.md`). Phases 1–2 are preparation, phases 3–6 happen at the event. **Local submission deadline: Sun 15 Nov, 15:45.**
 
 ---
