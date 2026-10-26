@@ -65,7 +65,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | 3 laptops | required | Work machines; only small derived data, copied after approval |
 | Power strip + chargers | required | Organiser (12 Oct): cannot guarantee a socket per device per table — bring strips |
 | USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
-| Bed for Sat → Sun | required | Decided 25 Oct: Jugendherberge Heilbronn, 4-bed room, booked by Dagny Locher with the second team. DJH membership required (group card). See [WHERE-WHEN.md](WHERE-WHEN.md) |
+| Sleeping bag + mat for Sat → Sun | required | Decided 26 Oct: the team sleeps at the venue (replaces the 25 Oct hostel plan). No beds provided — everyone brings their own. See docs/decisions.md |
 | Train/car from Stuttgart | required | Arrive before the 8:30 check-in on Sat 14 Nov; overnight per the phase-0 decision. Humans book and pay |
 | Headphones | optional | Focus at the venue. No voice-over in the video (no voices of under-18s in the submission) |
 
