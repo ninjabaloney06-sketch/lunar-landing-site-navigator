@@ -1,5 +1,7 @@
 # Where and when — Sat 14 / Sun 15 Nov 2026
 
+> **Superseded 26 Oct:** the team sleeps at the venue, not in the Jugendherberge. Ignore the hostel rows below; see docs/decisions.md.
+
 Where the team (Isaac, O, B, L) and the Betreuerin, **Dagny Locher**, have to be, hour by hour.
 What we build in those hours is in [docs/event-plan.md](docs/event-plan.md).
 
