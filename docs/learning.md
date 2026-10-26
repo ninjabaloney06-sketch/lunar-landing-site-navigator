@@ -10,7 +10,7 @@ Roles are a proposal, not yet agreed (phase 0) — read your proposed rows anywa
 |---|---|---|
 | S (L) | spiceypy · JPL Horizons · worktrees | ~4 h |
 | Q (O) | pytest · worktrees | ~2.5 h |
-| D (B) | Vite + React · polar charts (Plotly or D3, pick one) · worktrees | ~5 h |
+| D (B) | Replaced 26 Oct: B directs the agents instead of learning React/Plotly; his prep is in [team/bene.md](team/bene.md). The D sections below stay as optional reference. | ~6 h |
 | I | spiceypy (short) · rasterio + pyproj · worktrees | ~4.5 h |
 
 Links checked 2026-10-24 with `curl -sI` (HTTP 200 unless noted). If one is dead later, search for the title — don't guess a URL.
