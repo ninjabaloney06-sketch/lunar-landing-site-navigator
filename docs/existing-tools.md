@@ -127,6 +127,24 @@ Load 28 s. Coordinate entry + point + projection switch ≈ 1 min. Exploring the
 
 No single existing tool answers "Sun AND Earth elevation at site X over dates Y" as a readable plot or summary — the only numeric path is Horizons' raw text, read by hand, with terrain ignored.
 
+## Isaac's timed run, 27 Oct 2026 — the pitch pain points
+
+Human run in a normal browser, first-time user, without reading the agent steps above. Same question: Sun AND Earth elevation at Connecting Ridge (−89.46°, −136.68°), 14–28 Nov 2026, hourly. Stopwatch from opening the URL; cap 15 min per tool.
+
+| Tool | Time | Answered? |
+|---|---|---|
+| JPL Horizons | 6:11 | **No — wrong answer that looked right** |
+| NASA Moon Trek | gave up at 5:00 | No |
+| LRO QuickMap | 3:00 | No |
+
+### The 5 pain points
+
+1. **Horizons gives a wrong answer that looks right.** Searching "moon" for the observer lists Earth observatories with "Moon" in their name. The run produced two complete hourly tables: the Sun seen from Crescent Moon Observatory, Columbus, Ohio ([txt](existing-tools/h-horizons-sun-from-ohio.txt): `Center-site name: Crescent Moon Observatory, Columbus`) and the Moon seen from Earth's centre ([txt](existing-tools/h-horizons-moon-from-geocentre.txt): `Center-site name: GEOCENTRIC`). No warning; neither answers the question. Screenshots [h01](existing-tools/h01-horizons-observer-search-moon.webp), [h05](existing-tools/h05-horizons-observer-search-luna.webp), [h04](existing-tools/h04-horizons-observer-equals-target.webp).
+2. **Horizons won't let you just type a point on the Moon.** No lat/lon field on the obvious path; the location search finds named sites only; 5 nested dialogs and 49 output checkboxes; the default output is RA/Dec, not elevation (both txt files contain no azimuth/elevation column). Old layout, duplicate buttons, unusable on an iPad or phone. Screenshots [h02](existing-tools/h02-horizons-49-checkboxes.webp), [h03](existing-tools/h03-horizons-table-settings.webp).
+3. **Moon Trek hides its tools, then locks them.** 15 s to load; lighting tools are behind small buttons in a menu; "Surface Lighting" is "not available in this projection and requires a Trek account"; the search box searches a data catalog, not places or tools; the globe rendered only partly. Gave up after 5 min without a number. Screenshots [h06](existing-tools/h06-moontrek-flyto.webp), [h07](existing-tools/h07-moontrek-search-catalog.webp), [h08](existing-tools/h08-moontrek-tools-need-account.webp), [h09](existing-tools/h09-moontrek-partial-render.webp).
+4. **QuickMap is a good map with no answer.** Fast load, typed coordinates, hover shows lat/lon, right-click to go there or set a point. But the default view can't show the site ("Location is outside of bounds of current projection"), and there is no Sun or Earth elevation anywhere. 3 min, no number. Screenshots [h10](existing-tools/h10-quickmap-out-of-bounds.webp), [h11](existing-tools/h11-quickmap-projections.webp).
+5. **None of the three answered the question.** ~14 minutes across three NASA tools: one wrong answer, two dead ends. Nothing shows Sun and Earth together for a point on the Moon.
+
 ## AGENT OBSERVATIONS — Isaac must do his own timed run; the pitch uses his 5 pain points, not these
 
 Candidate pain points observed by the device agent, 25 Oct 2026. They are input for Isaac's timed human run, not the pitch material themselves.
@@ -139,7 +157,7 @@ Candidate pain points observed by the device agent, 25 Oct 2026. They are input 
 6. **QuickMap's Visibility Analysis sat inert** (Lat/Lon "--", undocumented in the user guide); the default projection cannot even display the site ("outside of bounds") until switched to a polar projection; the time slider animates shadows but yields no numbers and has no Earth geometry.
 7. **Cross-tool:** answering one planning question needs Horizons (numbers, no terrain, text only) *plus* a map tool (terrain, no numbers) — nothing combines them, and nothing anywhere reports Earth azimuth/elevation as a table.
 
-## What Isaac should do next (per TASKS.md, human part)
+## What Isaac should do next (per TASKS.md, human part) — done 27 Oct, see "Isaac's timed run" above
 
 - Repeat the Horizons run timed (both targets), note your 5 pain points.
 - Retry Moon Trek's Calculate Sun Angle and Surface Lighting in a normal browser (my failure may be webview-specific); also try FlyTo by real typing.
