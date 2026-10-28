@@ -6,7 +6,7 @@ Downloads, copying files outside the repo, creating accounts and sending anythin
 
 Roles: **S** = science lead: physics, orbital and coordinate math, horizon geometry, validation, score formula (proposed: L) · **Q** = code checks: tests, review of agent-written data scripts, security (proposed: O) · **D** = frontend and visual design (proposed: B) · **I** = Isaac: product, integration, data scripts via AI agents, pitch. Not agreed yet (phase 0).
 
-**Per-person task lists:** `docs/team/` (`leo.md`, `otto.md`, `bene.md`, `isaac.md`) — prep before the event, role tasks at the event, and an "Assigned during the event" list Isaac fills.
+**Per-person task lists:** `docs/team/` (`leo.md`, `otto.md`, `bene.md`, `isaac.md`) — prep before the event, role tasks at the event, and an "Assigned during the event" list Isaac fills. The [28 Oct issue-to-task checklist](docs/existing-tools.md#product-follow-through--28-oct-2026) is required reading for I, Q and D; its checks are scheduled in phases 4–5 below.
 
 **The rule that shapes this plan:** before Sat 14 Nov 09:00 only general preparation is allowed: learning the physics, getting to know NASA datasets and existing tools, collecting sources, raw data downloads, logistics. The project itself (scripts, processed data, designs of our app, the spec, app code) is built at the event; a finished solution adapted slightly does not count (participant FAQ, Team Formation Guide, organiser reply 12 Oct; see `docs/decisions.md`). Phases 1–2 are preparation, phases 3–6 happen at the event. **Local submission deadline: Sun 15 Nov, 15:45.**
 
@@ -46,7 +46,7 @@ Learning material and knowledge only. No project code, no project data files, no
 - [x] `[AI]` — Learning path per role in `docs/learning.md`: short official tutorials for `spiceypy` (S, I), `rasterio` / `pyproj` (I), D3 or Plotly polar plots and Vite + React (D), Claude Code worktrees and parallel agents (all). Practise on the tutorials' own examples, outside this repo; nothing about our sites or our app.
 - [ ] `[H]` **All** — Work through your part of `docs/learning.md`. Note what you got stuck on.
 - [x] `[AI]` — Inspiration list `docs/inspiration.md`: links and short notes on good sky plots, lighting timelines and mission-planning tools (NASA, ESA, papers, apps). Agents copy good examples better than they invent; this is what we point them at on Saturday.
-- [ ] `[AI]` `device` — 28 Oct: read the official CLPS challenge statement in a real browser (full requirements, resources, judging-relevant details). Compare with this plan line by line, record the deltas in `docs/decisions.md` and adjust phases 3–6 where the statement differs. → Checked 28 Oct ~14:04 CET: Details still summary-only, Resources says "Resources coming soon." Summary-to-plan matrix in docs/decisions.md; phases 3–6 retained provisionally. Needs full statement publication before this task can close.
+- [x] `[AI]` `device` — 28 Oct: compare the current official challenge page and Sarah's 12 Oct email with the plan; record deltas in docs/decisions.md and adjust phases 3–6. Completed using the sources ninja specified: core site/date comparison is required, score and side-by-side layout optional; competitor pain points now have owned implementation and acceptance checks. No missing-statement publication gate.
 - [ ] `[H]` **All** — Talk about who the user is (mission planner vs. educator vs. public), based on the pain points. Final decision at the Saturday kickoff.
 
 ## Phase 2 — Get ready for the weekend (2 → 13 Nov, allowed preparation)
@@ -56,15 +56,15 @@ Learning material and knowledge only. No project code, no project data files, no
 - [ ] `[AI+H]` `device` **All** — Every laptop ready offline: Python 3.11+, Node 20+, git, editor, Claude Code logged in, libraries from NEEDS.md installed, docs from `docs/learning.md` saved. No project code. A device agent sets up Isaac's laptop; O, B and L set up their own. Each person confirms with a tutorial example that runs offline. → repo-only part done: exact commands, pinned versions (verified 2026-10-25), offline doc-cache commands and a Wi-Fi-off self-test per library in `docs/offline-setup.md` (branch `docs/offline-laptop-checklist`, PR); needs device agent for Isaac's laptop; O, B and L follow their OS section there and confirm the self-test.
 - [ ] `[H]` **All** — Agent setup for the weekend: who runs which agents on which account (Isaac's Claude account, O's two Claude Max plans). Practise once on a throwaway toy project: two agents in parallel worktrees, merged without conflicts.
 - [ ] `[AI+H]` `device` **I** — Create the hosting account (Vercel or Cloudflare Pages, free tier) with Isaac's email. Isaac approves the sign-up and handles 2FA. Nothing is deployed before Saturday.
-- [x] `[AI]` — Event plan `docs/event-plan.md`: hour by hour from Sat 10:30 to Sun 15:45 with the checkpoints of phases 3–6, who does what, sleep shifts, and the cut list in order (score → comparison view → site map; keep sky plot + timeline).
-- [ ] `[AI]` `device` — 13 Nov: read the official Project Submission Guide and Judging & Awards Guide (published 13 Nov per FAQ). Submission format, required fields, public repo yes/no and award categories come from them; update `docs/decisions.md` and phases 5–6 the same day.
+- [x] `[AI]` — Event plan `docs/event-plan.md`: hour by hour from Sat 10:30 to Sun 15:45 with phases 3–6 checkpoints, owners, venue sleep proposal and cut list (score → side-by-side layout → map; keep basic site/date comparison, sky plot + timeline). Updated 28 Oct with UX-01–05 acceptance before freeze.
+- [ ] `[AI]` `device` — 13 Nov: check the actual submission form and any instructions supplied by the organisers; record required fields, media format and code-link requirements in docs/decisions.md. Use a guide if one is supplied; do not assume a future guide is needed to finish the 28 Oct challenge comparison.
 - [ ] `[H]` **All** — Pack: laptops, chargers, power strips (organiser 12 Oct: not a socket for every device at every table), adapters, headphones, ID, tickets, the signed authorisations naming the Betreuer (one per participant), USB stick, bedding if sleeping at the venue.
 
 ## Phase 3 — Saturday kickoff (Sat 14 Nov, 08:30 → 12:30)
 
 - [ ] `[H]` **All** — Check in at 8:30, find a table, set up the power strips, test Wi-Fi.
 - [ ] `[AI+H]` **I** — Keep a running AI-use log from the first hour (tool, what it did, who ran it). The submission must describe how AI ("SI") tools were used (participant FAQ).
-- [ ] `[AI+H]` **I** — Spec interview from 10:30 (about 1 hour): an agent interviews the team and writes `docs/spec.md`. Start from the winning demo and work backwards: who the user is, one-sentence problem and solution, the 60-second demo story ("mission planner has a question" → "answer in 10 seconds"), the four screens (site picker map, polar sky plot with horizon outline and Sun/Earth tracks, daily timeline lit / Earth visible / both, side-by-side comparison with score), default date range, and the JSON format between scripts and frontend so the tracks can work in parallel. Isaac decides.
+- [ ] `[AI+H]` **I** — Spec interview from 10:30 (about 1 hour): an agent interviews the team and writes `docs/spec.md`. Choose the primary user and demo question; turn UX-01–05 in docs/existing-tools.md into acceptance criteria. Core: obvious site/date selection, Sun + Earth together against terrain, numeric values and daily windows, comparison across at least two validated sites and two supported date ranges. Map, score and side-by-side layout are optional. Fix supported dates, units, frames and JSON contract; Isaac decides.
 - [ ] `[AI]` — Repo skeleton from the spec: `scripts/`, `tests/`, `data/`, frontend (Vite + React, D3 or Plotly), sample JSON in the agreed format so the frontend can start before real data exists. LICENSE file (Apache 2.0 unless we choose another open-source license).
 - [ ] `[H]` **I** — Talk to mentors in the first 2 hours: show the problem statement, ask what a judge would challenge, and ask for someone with lunar or geodesy background to look at the validation plan. Also ask whether first names of minors may appear in the submission.
 
@@ -73,37 +73,40 @@ Learning material and knowledge only. No project code, no project data files, no
 Track A — ephemeris (I + agents, S validates):
 - [ ] `[AI]` — `scripts/ephemeris.py`: input lat, lon, elevation on the Moon (frame per the primer note) + time range + step; output Sun and Earth azimuth and elevation in the local horizon frame. Python + `spiceypy`, kernels from the USB stick.
 - [ ] `[AI+H]` **Q** — Unit tests: known geometry checks (symmetry, Earth always low at the pole, Sun elevation bounds). S supplies the expected values; Q reviews the tests and the script.
+- [ ] `[AI+H]` **Q + S** — UX-01: add regression checks for the wrong-but-plausible Horizons result: observer body must be Moon (301), targets Sun (10) and Earth (399), with local azimuth/elevation in degrees and UTC dates. Reject an Earth-observatory/geocentre or RA/Dec-only reference before validation. Check selected site coordinates/frame match the output metadata; Q reviews, S signs the reference configuration. Record evidence in docs/validation.md by 16:00.
 - [ ] `[AI+H]` **S** — Validate 10 sample points against JPL Horizons (observer on the Moon at the site). Target < 0.05°. Table in `docs/validation.md`. **Checkpoint 16:00.**
 - [ ] `[AI]` — Earth phase and Sun–Earth separation output.
 
 Track B — terrain horizon (I + agents, S validates):
 - [ ] `[AI]` — `data/sites.json` from `docs/sources.md` (only checked entries, with source link per site).
 - [ ] `[AI]` — `scripts/horizon.py`: for a site, cast rays in 360 directions (1° steps) out to ~100–150 km over the LOLA tiles; maximum terrain elevation angle including lunar curvature; vectorised with numpy; profiles cached as JSON.
-- [ ] `[AI+H]` **S** — Validate one site's illumination against the PGDA published maps: same ranking, roughly matching percentages. Document gaps in `docs/validation.md`.
+- [ ] `[AI+H]` **S** — Validate terrain/window results using compatible reference periods and visibility definitions; do not compare a 14-day Earth-centre result directly with 18.6-year any-disc averages. Check DEM frame/height scaling and sensitivity to horizon ray distance; published averages are a contextual cross-check unless definitions match. Document evidence and limitations in docs/validation.md (see data-guide.md, 28 Oct review).
 - [ ] `[H]` **All** — **Go / no-go 22:00:** if horizon masks are not validated, cut to fewer sites or published data and label it clearly, rather than show wrong numbers.
 
 Track C — frontend (D + agents):
-- [ ] `[AI+H]` **D** — App shell loading the sample JSON; site picker. Point the agent at examples from `docs/inspiration.md`. D reviews and runs it.
+- [ ] `[AI+H]` **D** — UX-02/03: app shell with visible site and supported-date controls, curated named lunar sites, labelled lat/lon and UTC; no account, hidden tool menu or output-column setup for the core answer. Use a site list if the map fails/is cut; a south-pole map must reach every offered site. Reject invalid/out-of-coverage selections, show loading/error/empty states, and never show stale results as the newly selected site/date. D reviews in browser.
 - [ ] `[AI+H]` **D** — Polar sky plot: horizon outline, Sun and Earth tracks. Isaac checks it against a known case. **Checkpoint 20:00: sky plot with real ephemeris data.**
-- [ ] `[H]` **All** — 22:30 wrap-up: what works, what gets cut. Then sleep in shifts, at least 6 hours each, with the Betreuer. Tired people ship wrong numbers.
+- [ ] `[H]` **All** — 22:30 wrap-up: what works, what gets cut; save the morning queue. Confirm venue sleep hours with the Betreuer, at least 6 hours each. No required human night shift; see docs/event-plan.md. Tired people ship wrong numbers.
 
 ## Phase 5 — Sunday build: windows, views, deploy (Sun 07:30 → 12:00)
 
 - [ ] `[AI]` — `scripts/windows.py`: per time step `sun_visible` (upper limb above mask), `earth_visible` (centre above mask + margin), both; fraction of solar disk above the horizon (Sun is ~0.5° wide).
 - [ ] `[AI]` — Summaries: % time lit, % time Earth visible, longest darkness, longest comms blackout, overlapping windows. Export static JSON per site.
-- [ ] `[AI+H]` **D** — Daily timeline view (lit / Earth visible / both).
-- [ ] `[AI+H]` **S** — Power-and-comms score formula, explainable in one sentence. S approves. Only if the timeline works.
-- [ ] `[AI+H]` **D** — Comparison view of 2–3 sites with score. Only if the 20:00 and 22:00 checkpoints passed.
+- [ ] `[AI+H]` **D** — UX-04/05: daily timeline (lit / Earth visible / both), Sun + Earth together with numeric azimuth/elevation in degrees for the selected UTC time, and summaries visible without reading raw tables. Touch and mouse must both expose the values. Show selected site/coordinates, period, sources and terrain/model limitations beside the results.
+- [ ] `[AI+H]` **D + I** — Required basic comparison: switch between at least two validated sites for the same supported period, and two supported periods for the same site; keep result labels and numeric scales comparable. A list/select control is sufficient. This capability stays when score, side-by-side layout or map is cut; fewer than two supported sites/periods is a documented challenge gap, not a complete fallback.
+- [ ] `[AI+H]` **S** — Optional power-and-comms score, explainable in one sentence and approved by S; only after required site/date comparison and UX-01–05 pass.
+- [ ] `[AI+H]` **D** — Optional side-by-side view of 2–3 validated sites, only if 20:00 and 22:00 checkpoints passed. Add a score only after S approves its formula; basic site/date comparison does not depend on this enhancement.
 - [ ] `[AI]` — Glossary in the app (horizon mask, DTE, libration, PSR) in plain language, from the primer.
 - [ ] `[AI+H]` **S** — Spot-check 5 values in the UI against the validated scripts. Any mismatch blocks the freeze.
 - [ ] `[AI+H]` **Q** — Security check before deploy: no secrets, keys or personal data in the repo or the build; dependencies pinned.
 - [ ] `[AI+H]` `device` **D** — Deploy (Vercel / Cloudflare Pages); test the URL on a phone.
+- [ ] `[AI+H]` **I + Q + D** — UX-01–05 acceptance run before 12:00 freeze: fresh signed-out browser, repeat ninja's Connecting Ridge / 14–28 Nov UTC question without instructions; get correct Sun + Earth values, plot and windows within 60 s, then switch site/date and read the updated answer within 10 s. Test desktop and a 375 px touch viewport; verify wrong-observer/invalid-coordinate rejection, data-load failure and usable core results with map unavailable. Record times, failures/fixes and S's numeric sign-off in docs/validation.md. Core failures block freeze; cut optional views first.
 - [ ] `[H]` **All** — **Feature freeze 12:00.** Only bug fixes after.
 
 ## Phase 6 — Submission and pitch (Sun 12:00 → 18:00)
 
 - [ ] `[AI+H]` **I** — Project page text: summary, how it works, data sources, limitations. Cite every source, even open-source ones, and state the license of every material (NASA can reject Solutions or strip nominations for missing citations or license documentation). Include the AI-use description from the phase 3 log. AI drafts; Isaac cuts.
-- [ ] `[AI+H]` **I** — Slides or demo video in the format of the Project Submission Guide (13 Nov). Screen recording with captions or TTS only: no faces, voices or recognizable names of anyone under 18. AI drafts structure and captions; Isaac records the screen.
+- [ ] `[AI+H]` **I** — Slides or demo video in the actual submission format checked in phase 2. Screen recording with captions or TTS only, retaining the previously recorded submission constraints. AI drafts structure and captions; Isaac records the screen.
 - [ ] `[AI]` — README: data sources, licenses, how to run. Make the judged code public only if the Submission Guide requires a code link (Isaac decides).
 - [ ] `[AI+H]` `device` **I** — Fill in the submission form on the team's project page; Isaac reviews and clicks submit **by 15:00** (local deadline 15:45). Agent saves the confirmation screenshot to `docs/`.
 - [ ] `[H]` **All** — Rehearse the pitch twice with a timer. Live demo, with the screen recording and an offline build as backup.

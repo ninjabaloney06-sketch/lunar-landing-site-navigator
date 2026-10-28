@@ -22,12 +22,12 @@ You don't need to learn React or a chart library: the agents write the code, you
 
 | When | Task |
 |---|---|
-| Sat 10:30 | Spec interview with the team: the four screens (site picker, polar sky plot, daily timeline, comparison). You decide the look. |
-| Sat 12:30 → | **App shell** loading the sample JSON + site picker. Show the agent your top 3 references; review in the browser and give precise feedback until it looks right. Every screen goes through your data-viz checklist. |
+| Sat 10:30 | Spec interview: required site/date controls, combined Sun/Earth plot + numbers, timeline and basic site/date comparison. Map/score/side-by-side are optional. Read [UX-01–05](../existing-tools.md#product-follow-through--28-oct-2026). You decide the look. |
+| Sat 12:30 → | **UX-02/03 app shell:** obvious site/date controls, signed-out access, usable site list when map is unavailable, clear loading/error/invalid-input behavior. Show agents your references; use your data-viz checklist. |
 | Sat → 20:00 | **Polar sky plot:** horizon outline, Sun and Earth tracks. **Checkpoint 20:00: sky plot with real ephemeris data.** |
-| Sun morning | **Daily timeline view** (lit / Earth visible / both). |
-| Sun morning | **Comparison view** of 2–3 sites with score — only if the 20:00 and 22:00 checkpoints passed. |
-| Sun before 12:00 | **Deploy** (Vercel / Cloudflare Pages) and test the URL on a phone. |
+| Sun morning | **UX-04/05:** daily windows + numeric az/el for both bodies, touch-readable values, site/UTC/source labels; basic switching between two validated sites and two supported periods is required. |
+| Sun morning | **Optional side-by-side view**, after the 20:00/22:00 checkpoints; score only with S's approval and after core acceptance passes. |
+| Sun before 12:00 | With I + Q run UX-01–05 on desktop + 375 px touch viewport (≤60 s original answer, ≤10 s changed context); fix core failures. Deploy and recheck on a phone; record evidence in docs/validation.md. |
 | Sun 16:00 | Pitch together; you drive the live demo. |
 
 ## Assigned during the event

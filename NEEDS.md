@@ -37,7 +37,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Published south-pole illumination maps | required | pgda.gsfc.nasa.gov, for validation |
 | Site coordinates (Artemis III regions, CLPS polar sites) | required | NASA mission pages, papers |
 | LROC imagery / basemap tiles | optional | Moon Trek / LROC, for a nicer site map |
-| Official challenge resources | required | Challenge page, expected 28 Oct |
+| Official challenge resources | optional | Use any sources actually supplied on the challenge page; their absence does not block planning (ninja, 28 Oct) |
 
 ## Software
 

@@ -19,10 +19,10 @@ You read the code line by line. Nothing an agent writes goes in without your rev
 | When | Task |
 |---|---|
 | Sat 10:30 | Spec interview with the team. Check that the JSON format between scripts and frontend is testable. |
-| Sat 12:30 → 16:00 | **Unit tests for the ephemeris script:** symmetry, Earth always low at the pole, Sun elevation bounds. Leo gives you the expected values. Review the tests and `scripts/ephemeris.py` line by line. |
+| Sat 12:30 → 16:00 | **Unit tests + UX-01:** geometry expectations from Leo; lunar observer/Sun/Earth metadata and az/el output checks. Reject Ohio/geocentre or RA/Dec-only reference results before validation. Review tests and ephemeris script; S signs reference setup. |
 | Sat afternoon/evening | **Review every agent-written data script** (`horizon.py`, `sites.json` builder) before it is merged. |
 | Sun morning | Review `windows.py` and the summaries export. |
-| Sun before 12:00 | **Security check before deploy:** no secrets, keys or personal data in the repo or the build; dependencies pinned. |
+| Sun before 12:00 | With I + D run [UX-01–05](../existing-tools.md#product-follow-through--28-oct-2026), including invalid input, failed data load, map unavailable and mobile completion; record failures/fixes in docs/validation.md. Core failures block freeze. **Security check:** no secrets, keys or personal data; dependencies pinned. |
 | Sun 16:00 | Pitch together; you explain how we know the code is correct (tests, validation). |
 
 ## Assigned during the event
