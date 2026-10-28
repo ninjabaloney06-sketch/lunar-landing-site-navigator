@@ -114,3 +114,24 @@ Source: challenge page read 25 Oct 2026, 03:07 CET, on Isaac's laptop (device ag
 - **Weekly sync:** in the WhatsApp group instead of a call. Proposed: every Sunday by 20:00 each member posts done / next / blocked.
 - **Sleeping: the whole team stays overnight at the venue** (OpenSpace Heilbronn; overnight allowed with the chaperone, organiser reply 12 Oct). This **replaces the Jugendherberge decision of 25 Oct**: no hostel booking, no DJH card, no late-entry or key arrangements. The venue provides no sleeping accommodation, so everyone brings sleeping bag and mat. The hostel rows in WHERE-WHEN.md are superseded.
 - **Still needed:** each participant's written parental authorisation naming Dagny Locher, due 7 Nov (Isaac's: calendar slot 29 Oct).
+
+## Challenge release-day check and data review (28 Oct 2026)
+
+Device agent: Codex on ninja's Mac (`Guest123`), approximately 14:04 CET. Read the [current challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) in a real browser, including both Details and Resources.
+
+**Release status:** Details still contains the summary and metadata only; Resources says "Resources coming soon." No full objectives, considerations, required deliverables or challenge resource list were visible. The expected release date does not establish that publication has happened. The full statement comparison remains open; no full-statement rescope or judging requirements can be claimed from this check.
+
+Summary-to-plan comparison (not a substitute for the missing full statement):
+
+| Published summary requirement | Existing plan | Result on 28 Oct |
+|---|---|---|
+| Intuitive tool for mission planners, educators and the public | Phase 3 spec interview chooses the primary user using the timed tools run | Compatible; primary user remains a team decision at kickoff |
+| Quickly compare sites and dates | Phase 4 site picker; phase 5 timelines, summaries and optional side-by-side view | Compatible if switching sites/dates remains possible; cutting the side-by-side view must not remove all comparison |
+| Sun and Earth relative to the horizon | Phase 4 ephemeris, terrain mask and sky plot | Already covered |
+| Assess power generation potential | Phase 5 illumination/windows and summaries | Already planned as illumination potential; no new claim of electrical power in watts |
+| Direct-to-Earth communication windows | Phase 5 Earth-visibility windows | Already planned as geometric visibility; no claim of a complete radio-link budget |
+| Resources, judging details and required submission format | Phase 2 guide read on 13 Nov; phase 6 format remains guide-dependent | Not available from this challenge-page check |
+
+**Plan decision:** retain phases 3–6 provisionally. No new requirements were published in the material visible today. Re-open the full comparison when the Details tab gains the full statement and the Resources tab gains its sources; the 13 Nov submission/judging guide task stays separate. Nothing was built, designed or processed for the project.
+
+**Data review:** candidate sizes, projections and usage terms are recorded in [data-guide.md](data-guide.md#candidate-review--28-oct-2026). Recommendation for phase 2: the existing [download-checklist.md](download-checklist.md) required set, 5,082,105,383 bytes (~5.1 GB): SPICE + adjusted 20 m DEM + PDS 5 m polar DEM/label + reference maps. Keep the PDS 10 m pair and PSR map optional; defer the SDEM archive. This is a recommendation, not approval to download or a final site selection. The `[AI+H]` candidate task remains open for ninja's selection; physics/frame sign-off remains with S. Only public pages/metadata and HTTP headers were read; no datasets were saved.

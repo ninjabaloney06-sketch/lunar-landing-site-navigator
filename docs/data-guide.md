@@ -53,3 +53,21 @@ Projection (quoted): "Polar stereographic, with a reference radius of 1737.4 km 
 | SDEM archive (only if needed) | 26.6 GB | largest item; decide at the event |
 
 USB-stick and disk planning should assume ≥ 35 GB for the full set. All downloads need Isaac's per-action approval and `data/SOURCES.md` entries (URL, version, size, checksum, license, path) per AGENTS.md.
+
+## Candidate review — 28 Oct 2026
+
+Reviewed on ninja's Mac; no dataset downloads. Exact raster sizes below were rechecked with HTTP HEAD (all returned 200 with raster/binary content types). PDS labels were read as metadata, not saved. This review narrows the full inventory above; it does not select project sites or approve downloads.
+
+| Candidate | Size and coverage | Projection / reference | Usage terms and recommendation |
+|---|---|---|---|
+| [Adjusted 20 m DEM](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF) | 2,696,082,051 B; 80–90°S | COG; south polar stereographic, MOON_ME/DE421 ([PGDA 90](https://pgda.gsfc.nasa.gov/products/90)) | Product page requires Barker et al. 2023 and provides data DOI 10.60903/gsfcpgda-lola-spole; no explicit product license found. Recommended baseline |
+| PDS 5 m polar grid + [label](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.lbl) | IMG 1,840,545,792 B; label 4,990 B per 25 Oct checklist; 87.5–90°S, V2.0 | Polar stereographic; planetocentric, east-positive, ME/polar axis of DE421, reference sphere 1737.4 km (label) | No explicit license in label; NASA mission-data default discussed below. Recommended to have available, with S checking suitability |
+| PDS 10 m grid + [label](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_85s_10m.lbl) | IMG 1,840,545,792 B; label 4,993 B per 25 Oct checklist; 85–90°S, V2.0 | Same PDS conventions as the 5 m grid | Same usage status. Optional if the eventual sites need finer coverage outside the 5 m cap |
+| [Adjusted 10 m DEM](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_83S_10MPP_ADJ.TIF) | 5,116,709,568 B (5.12 GB / 4.77 GiB); 83–90°S | Same COG/frame conventions as adjusted 20 m product | Same PGDA citation requirement. Defer; distinct from the smaller, older PDS 10 m product |
+| [Regional SDEMs](https://zenodo.org/records/17954508) | 26,559,680,857 B total across archive files (Zenodo API); 13 original 2022 regions, 5 m grids | Compressed 32-bit GeoTIFF; Moon (2015) South Polar Stereographic per record | CC BY 4.0 confirmed in [record metadata](https://zenodo.org/api/records/17954508); cite Bertone et al. per [PGDA 104](https://pgda.gsfc.nasa.gov/products/104). Defer; partial regional coverage does not replace the broad DEM |
+
+License interpretation: the [NASA Science Data Portal](https://science.data.nasa.gov/about/license) states CC0 as the default for NASA-led mission data unless a restrictive notice/license is supplied. Applying that default to the PDS LOLA mission products is an inference; the individual labels contain no explicit license. Record both the policy basis and the product citation/attribution, and recheck the archive's notices at download time. Do not confuse the paper's CC BY license with a dataset license. PGDA's citation instructions remain recorded separately.
+
+Data limitations for S's review: the PDS labels explicitly describe interpolated grids; a 5 m pixel is not proof of 5 m measured terrain detail. Their height conversion is DN × 0.5 m; adding 1,737,400 m gives planetary radius, not height. The [published illumination/Earth maps](https://pgda.gsfc.nasa.gov/products/69) are long-period averages and use any visible part of Earth's disc: compare only compatible intervals/visibility definitions, not a short-window Earth-centre result directly against their percentages.
+
+Recommended phase-2 selection: the existing checklist's 5.1 GB required set (20 m + 5 m terrain, SPICE, reference maps). With its optional PDS 10 m pair and PSR map: ~7.0 GB. A 16 GB USB stick is enough for those sets; the ≥35 GB estimate above applies to the much larger inventory including the SDEM archive. Selection awaits ninja; downloads still need a target machine/path and per-action approval. S must resolve frame conventions before computation.
