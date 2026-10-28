@@ -8,6 +8,8 @@ Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verifie
 - PGDA's own illumination/COG copies (`.../data/MoonIllumination/...`) all returned the PGDA "Not Found" HTML page (HTTP 200, Content-Length 3,789) on 2026-10-25. Download the PDS / MIT mirrors below and re-check the PGDA COG links on download day.
 - NAIF's `.cmt` companion file is named `moon_pa_de440_200625.cmt` (not `.bpc.cmt`); it adds 1,898 bytes on top of the data-guide's 5-kernel total of 45,745,465 bytes (confirmed correct).
 
+**Selection confirmed by ninja, 28 Oct 2026:** prepare the required set below, 5,082,105,383 bytes (~5.1 GB). The PDS 10 m pair and PSR map remain optional and are excluded from this selection; the SDEM archive is deferred. This selection does not authorize downloads; the per-action and target-machine gates above still apply.
+
 ## 0. Before anything: free disk space
 
 ```sh
