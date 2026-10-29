@@ -6,6 +6,7 @@ You own the physics. If a number in our app is wrong, it's your call to stop it.
 
 ## Before the event (now → Fri 13 Nov)
 
+- [ ] **Review Isaac's two audits FIRST (2 min, unblocks him)** — [docs/primer-audit.md](../primer-audit.md): decide on the two sign errors and the coordinate-frame note at the bottom; [docs/sources-audit.md](../sources-audit.md): decide on the VIPER line and the source corrections. Reply per item accept/reject, then the tasks below fold your decisions in.
 - [ ] **Check the primer** — read [docs/primer.md](../primer.md) completely. For every physics claim, open its source link and check that the source actually says it. Mark anything wrong or unclear directly in the file (or tell Isaac). When you are satisfied, add a line at the bottom: `Checked by Leo, <date>`.
 - [ ] **Coordinate-frame note** — learn the difference between MOON_ME (mean Earth / polar axis) and MOON_PA (principal axis), and IAU vs. mean-Earth conventions (NAIF frames lesson, see below). Add a half-page section to `docs/primer.md`: which frame we use for site coordinates, which for the ephemeris, and how we convert. Mixing them silently is the classic error and shifts positions by hundreds of metres.
 - [ ] **Check the sources** — go through [docs/sources.md](../sources.md) entry by entry. Each site needs a primary source (NASA, LRO, mission page, paper) that states the coordinates. Remove or mark anything without one.
