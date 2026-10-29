@@ -9,8 +9,8 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 - [ ] **Existing tools run (Tue 27 Oct)** — click through JPL Horizons, NASA Moon Trek and LRO QuickMap yourself ("Sun and Earth elevation at site X over dates Y"), time it, write the 5 biggest pain points into [docs/existing-tools.md](../existing-tools.md). These are the pitch.
 - **Challenge comparison complete (28 Oct)** — current challenge page + Sarah's email compared; changes in docs/decisions.md and TASKS.md. No future-publication blocker.
 - **LOLA selection complete (28 Oct)** — reviewed sizes/projections/usage terms; ninja chose the 5.1 GB set in [docs/data-guide.md](../data-guide.md). Downloads remain a separate phase-2 task.
-- [ ] **Learn spiceypy, short (~1.5 h)** — load kernels, UTC → ET, position vectors without looking it up ([docs/learning.md](../learning.md)).
-- [ ] **Learn rasterio + pyproj (~2.5 h)** — on the tutorial's sample GeoTIFF, print the pixel value at a lat/lon you picked and state CRS and resolution.
+- [ ] **spiceypy via agent (~1.5 h, agent-executed)** — the agent runs kernels → ET → position vectors on the tutorial kernels; you restate its output and can say what `furnsh`/`str2et`/`spkpos` each did ([docs/learning.md](../learning.md)).
+- [ ] **rasterio + pyproj via agent (~2.5 h, agent-executed)** — the agent reads the sample GeoTIFF at a lat/lon you pick; you state the CRS and resolution from its output.
 - [ ] **Teach the agent workflow** — one session with Leo, Otto and Bene on a throwaway toy repo: two worktrees, two agents, merge without conflict. Agree who runs which agent on which account.
 - [ ] **Raw data download + USB stick** (phase 2, needs your approval per download).
 - [ ] **Hosting account** (Vercel or Cloudflare Pages, free tier), nothing deployed before Saturday.

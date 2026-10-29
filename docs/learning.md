@@ -27,7 +27,7 @@ Links checked 2026-10-24 with `curl -sI` (HTTP 200 unless noted). If one is dead
 
 - Tutorial: [spiceypy docs](https://spiceypy.readthedocs.io/en/latest/) incl. the worked [example page](https://spiceypy.readthedocs.io/en/latest/exampleone.html); the underlying concepts in the official NAIF [tutorials](https://naif.jpl.nasa.gov/naif/tutorials.html) and [code lessons](https://naif.jpl.nasa.gov/naif/lessons.html) (pick the time and coordinate-system lessons, not all of them).
 - Practise (NAIF example kernels only): install spiceypy, load kernels with `furnsh`, convert UTC ↔ ET with `str2et`, get the Sun's position with `spkezr`, and express it as azimuth and elevation for a generic lat/lon point on a generic surface (a local topocentric frame via `pxform`; the NAIF frames lesson shows the pattern).
-- Done when (S level): using only tutorial kernels — none of our data — you can produce the Sun's azimuth and elevation at one generic point and time, and get the same elevation within 0.01° by a second, independent route (another NAIF routine or a hand calculation). I level: you can do the load / time-conversion / position-vector part without looking it up.
+- Done when (S level): using only tutorial kernels — none of our data — you can produce the Sun's azimuth and elevation at one generic point and time, and get the same elevation within 0.01° by a second, independent route (another NAIF routine or a hand calculation). I level (agent-executed since 29 Oct): the agent runs load / time-conversion / position-vector; you read its script and output and state in one sentence which `spkpos` argument is the observer and which is the target.
 
 ## S — JPL Horizons (~1 h)
 
@@ -58,12 +58,13 @@ Links checked 2026-10-24 with `curl -sI` (HTTP 200 unless noted). If one is dead
 
 - Tutorial: [rasterio quickstart](https://rasterio.readthedocs.io/en/stable/quickstart.html); [pyproj docs](https://pyproj4.github.io/pyproj/stable/) incl. the [advanced examples](https://pyproj4.github.io/pyproj/stable/advanced_examples.html).
 - Practise: open the quickstart's own sample raster and read its metadata and pixel values; transform coordinates between two coordinate systems with pyproj; combine both — read the raster value at a lat/lon you picked yourself.
-- Done when: on the tutorial's sample GeoTIFF you can print the pixel value at your chosen lat/lon and state the raster's CRS and resolution in one sentence. The real elevation tiles stay on the data computer and are only touched after approval (AGENTS.md).
+- Done when (agent-executed for I since 29 Oct): the agent prints the pixel value at your chosen lat/lon on the tutorial's sample GeoTIFF; you read its output and state the raster's CRS and resolution in one sentence. The real elevation tiles stay on the data computer and are only touched after approval (AGENTS.md).
 
 ---
 
 ## Ground rules
 
+- **Isaac's tool rows are agent-executed (decided 29 Oct, see [decisions.md](decisions.md)).** The agent runs the tutorial exercises in his scratch folder; his check is understanding the output, not typing the code. Leo and Otto still own physics and code review — the human who cannot eyeball a number must never also be the one who signs it off.
 - Scratch folders only; nothing in this repo except your notes on where you got stuck.
 - Tutorial kernels and tutorial data only — never our sites, never our app (prep rule).
 - If a done-when check fails, that is the point: write down what broke and move on; the event needs the basics, not mastery.
