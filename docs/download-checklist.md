@@ -8,6 +8,10 @@ Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verifie
 - PGDA's own illumination/COG copies (`.../data/MoonIllumination/...`) all returned the PGDA "Not Found" HTML page (HTTP 200, Content-Length 3,789) on 2026-10-25. Download the PDS / MIT mirrors below and re-check the PGDA COG links on download day.
 - NAIF's `.cmt` companion file is named `moon_pa_de440_200625.cmt` (not `.bpc.cmt`); it adds 1,898 bytes on top of the data-guide's 5-kernel total of 45,745,465 bytes (confirmed correct).
 
+**Re-check 2026-10-31 (repo agent, `curl -sIL`, no files downloaded):** all 25 file URLs below return 200 with the same Content-Length and Last-Modified as on 25 Oct; NAIF's MD5 for `de440s.bsp` in [aa_checksums.txt](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aa_checksums.txt) is unchanged. There are no newer files for the selected set in NAIF's [lsk/](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/), [pck/](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/) or [fk/satellites/](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/fk/satellites/). `naif0012.tls`, `pck00011.tpc`, `moon_pa_de440_200625.bpc` and `moon_de440_250416.tf` are still the newest. `de442s.bsp` (6 Feb 2025) is already discussed in data-guide.md and is not a new release. Two changes:
+- The MIT mirror (`imbrium.mit.edu`) also serves HTTPS with a valid certificate and identical sizes. The links and commands below now use `https://` instead of `http://`, because these files have no published checksum.
+- On [PGDA product 69](https://pgda.gsfc.nasa.gov/products/69), the plain `.TIF` illumination files now load (`image/tiff`, e.g. `AVGVISIB_85S_060M_201608.TIF` 33,994,464 B). The `_COG.TIF` copies still return the 3,789-byte "Not Found" page. The plan stays PDS/MIT IMG; the PGDA TIFs are an HTTPS fallback of the same 2016 release, but they are a different format, so their sizes differ from the IMG rows.
+
 **Selection confirmed by ninja, 28 Oct 2026:** prepare the required set below, 5,082,105,383 bytes (~5.1 GB). The PDS 10 m pair and PSR map remain optional and are excluded from this selection; the SDEM archive is deferred. This selection does not authorize downloads; the per-action and target-machine gates above still apply.
 
 ## 0. Before anything: free disk space
@@ -99,10 +103,10 @@ Target dir: `<DATA_ROOT>/clps/illumination/`. PGDA's COG TIF copies were unreach
 | `avgvisib_65s_240m_201608.lbl` | [pds.../avgvisib_65s_240m_201608.lbl](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608.lbl) | 4,098 | PDS label | none published | same |
 | `avgvisib_65s_240m_201608_earth.img` | [pds.../avgvisib_65s_240m_201608_earth.img](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608_earth.img) | 82,432,800 | avg Earth visibility, 65S–90S, 240 m/px | none published | same |
 | `avgvisib_65s_240m_201608_earth.lbl` | [pds.../avgvisib_65s_240m_201608_earth.lbl](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608_earth.lbl) | 4,116 | PDS label | none published | same |
-| `AVGVISIB_75S_120M_201608.IMG` | [imbrium.../IMG/AVGVISIB_75S_120M_201608.IMG](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.IMG) | 116,250,752 | avg solar illumination, 75S–90S, 120 m/px (MIT mirror; 75S band is not in the PDS release_2016 tree) | none published | same |
-| `AVGVISIB_75S_120M_201608.LBL` | [imbrium.../AVGVISIB_75S_120M_201608.LBL](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.LBL) | 4,092 | PDS label | none published | same |
-| `AVGVISIB_75S_120M_201608_EARTH.IMG` | [imbrium.../AVGVISIB_75S_120M_201608_EARTH.IMG](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608_EARTH.IMG) | 116,250,752 | avg Earth visibility, 75S–90S, 120 m/px | none published | same |
-| `AVGVISIB_75S_120M_201608_EARTH.LBL` | [imbrium.../AVGVISIB_75S_120M_201608_EARTH.LBL](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608_EARTH.LBL) | 4,112 | PDS label | none published | same |
+| `AVGVISIB_75S_120M_201608.IMG` | [imbrium.../IMG/AVGVISIB_75S_120M_201608.IMG](https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.IMG) | 116,250,752 | avg solar illumination, 75S–90S, 120 m/px (MIT mirror; 75S band is not in the PDS release_2016 tree) | none published | same |
+| `AVGVISIB_75S_120M_201608.LBL` | [imbrium.../AVGVISIB_75S_120M_201608.LBL](https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.LBL) | 4,092 | PDS label | none published | same |
+| `AVGVISIB_75S_120M_201608_EARTH.IMG` | [imbrium.../AVGVISIB_75S_120M_201608_EARTH.IMG](https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608_EARTH.IMG) | 116,250,752 | avg Earth visibility, 75S–90S, 120 m/px | none published | same |
+| `AVGVISIB_75S_120M_201608_EARTH.LBL` | [imbrium.../AVGVISIB_75S_120M_201608_EARTH.LBL](https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608_EARTH.LBL) | 4,112 | PDS label | none published | same |
 
 Optional row: PSR map for the 85S band (useful context for the dark-ratio story, not needed for validation):
 
@@ -115,7 +119,7 @@ Optional row: PSR map for the 85S band (useful context for the dark-ratio story,
 ```sh
 mkdir -p "$DATA_ROOT/clps/illumination" && cd "$DATA_ROOT/clps/illumination"
 B=https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img
-M=http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG
+M=https://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG
 curl -fL --retry 3 -O "$B/avgvisib_85s_060m_201608.img" && shasum -a 256 avgvisib_85s_060m_201608.img | tee -a SHA256SUMS.txt
 curl -fL --retry 3 -O "$B/avgvisib_85s_060m_201608.lbl" && shasum -a 256 avgvisib_85s_060m_201608.lbl | tee -a SHA256SUMS.txt
 curl -fL --retry 3 -O "$B/avgvisib_85s_060m_201608_earth.img" && shasum -a 256 avgvisib_85s_060m_201608_earth.img | tee -a SHA256SUMS.txt
