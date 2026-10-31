@@ -67,14 +67,14 @@ Proposed baseline for the team/Betreuer to confirm: all sleep 23:00–06:45, so 
 |---|---|---|
 | 08:30–09:00 | All + Betreuer | Check-in, breakfast, find a table, set up power strips, test Wi-Fi. Write venue meal times + Wi-Fi password on the table card. |
 | 09:00–09:15 | I | Official project start (09:00). Start the AI/SI-use log (tool, what it did, who ran it) — runs from now to submission. |
-| 09:15–10:25 | I (S joins for validation questions) | Mentor round inside the first 2 hours: show the problem statement, ask what a judge would attack, ask for a lunar/geodesy contact for the validation plan, ask whether first names of minors may appear in the submission. Meanwhile: Q, D and S set up laptops offline-ready and verify USB-stick checksums against `data/SOURCES.md`. |
+| 09:15–10:25 | I (S joins for validation questions) | Mentor round inside the first 2 hours: show the problem statement, ask what a judge would attack, ask for a lunar/geodesy contact for the validation plan, ask whether first names of minors may appear in the submission, and ask how the local judges judge (pitch length, live demo or slides, project page read first?). Meanwhile: Q, D and S set up laptops offline-ready and verify USB-stick checksums against `data/SOURCES.md`. |
 | 10:25–10:30 | All | Quick sync: roles confirmed? Who drives which agents today. |
 
 ## Saturday — 10:30 to 12:30 (kickoff, phase 3)
 
 | Time | Who | What |
 |---|---|---|
-| 10:30–11:30 | All, I leads | Spec interview (about 1 h): an agent interviews the team and writes `docs/spec.md`. Work backwards from the winning demo: who the user is, one-sentence problem and solution, the 60-second demo story, the required site/date selection, combined Sun/Earth sky plot, numbers and timeline; at least two validated sites and two supported date ranges; UX-01–05 checks; optional map, score and side-by-side layout; the JSON contract between scripts and frontend. Isaac decides. |
+| 10:30–11:30 | All, I leads | Spec interview (about 1 h): an agent interviews the team and writes `docs/spec.md`. Work backwards from the winning demo: who the user is, one-sentence problem and solution, the demo story (≤30 s, see below), the required site/date selection, combined Sun/Earth sky plot, numbers and timeline; at least two validated sites and two supported date ranges; UX-01–05 checks; optional map, score and side-by-side layout; the JSON contract between scripts and frontend. Also: the user's decision and the one-sentence answer the app gives, one named demo owner (proposal: D), a ≤30 s storyboard, and a one-line-per-criterion judging map (Impact, Creativity, Validity, Relevance, Presentation). See [past-winners.md](past-winners.md). Isaac decides. |
 | 11:30–12:15 | I + agents | Isaac cuts the spec to one page; team confirms. Agents scaffold the repo skeleton from the spec: `scripts/`, `tests/`, `data/`, Vite + React frontend, sample JSON in the agreed format, LICENSE (Apache 2.0 unless we choose otherwise). |
 | 12:15–12:30 | All | Lock the JSON contract and the worktree/file-set split per track. Agents start on the three tracks. |
 
@@ -90,7 +90,7 @@ don't eat. Every block ends with the output committed so the next block builds o
 | **16:00 — checkpoint 1** | **S: ephemeris validated?** Pass → real ephemeris JSON feeds the sky plot. Fail → pivot to a published-table subset, clearly labelled; I + S decide by 16:30, agents re-tasked. | geometry re-checked by S (curvature, ray length, Sun as 0.5° disk) | plug real ephemeris into the sky plot |
 | 16:00–18:00 | Sun–Earth separation + phase output finished; agents freeze A unless bugs surface | ray casting vectorised + cached for all candidate sites; performance pass | Sun/Earth tracks live in the sky plot |
 | ~18:30–19:00 | Dinner, all four, rotating (time unknown — check) | | |
-| 19:00–20:00 | A on standby for B/C integration questions | S validates horizon/window results with compatible periods and disc/centre definitions; long-term PGDA averages alone cannot validate a short window. Record evidence in `docs/validation.md`; Q reviews `horizon.py` | **20:00 — checkpoint 2: sky plot with real ephemeris data.** Isaac checks it against a known case. Pass (together with 22:00) → optional side-by-side view unlocked; basic site/date comparison remains required. |
+| 19:00–20:00 | A on standby for B/C integration questions | S validates horizon/window results with compatible periods and disc/centre definitions; long-term PGDA averages alone cannot validate a short window. Record evidence in `docs/validation.md`; Q reviews `horizon.py` | **20:00 — checkpoint 2: sky plot with real ephemeris data.** Isaac checks it against a known case. Pass (together with 22:00) → optional side-by-side view unlocked; basic site/date comparison remains required. Then D deploys a public no-login preview (private-window phone check) and the demo owner records a 10–20 s clip. |
 | 20:00–21:45 | Bugfix queue from C; A supports B | finish PGDA comparison; prepare the 22:00 evidence pack (validation tables) | polish sky plot; start timeline scaffolding |
 | 21:45–22:00 | All — pitch rehearsal 1 with a timer: demo story, what exists so far, what each judge question gets for an answer | | |
 | **22:00 — go/no-go** | **S makes the science call: are horizon masks validated?** Pass → full site set. Partial → fewer sites, labelled. Fail → published data, clearly labelled — wrong numbers never ship (decisions.md). Also fixes optional scope (side-by-side view needs 20:00 + 22:00 passed); fewer than two validated sites leaves an explicit challenge gap. | | |
@@ -110,7 +110,7 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 | 07:30–09:00 | I + Q, D, S | Build/review `windows.py` and summaries from Saturday's validated inputs. D builds the timeline, combined numeric Sun/Earth output and source/context labels (UX-04/05). S checks definitions. Basic site/date comparison is required. |
 | 09:00–10:30 | I + Q + D, S | Finish required comparison across two sites/two supported date ranges. Run UX-01–05 on desktop and 375 px touch viewport: original question within 60 s, site/date change within 10 s; signed-out, invalid input, failed data load and map unavailable. S verifies numbers; record evidence in docs/validation.md. Score/side-by-side only if core checks pass and time remains. |
 | 10:00–11:00 | S + D + Q | Fix UX-01–05 failures. **S spot-checks 5 UI values against validated scripts; mismatch or a core usability failure blocks freeze.** Q checks secrets/keys/personal data and pinned dependencies. |
-| 10:30–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to Vercel / Cloudflare Pages (account created in phase 2), test the URL on a phone. |
+| 10:30–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to the same URL as Saturday's preview (Vercel / Cloudflare Pages, account created in phase 2), test the URL on a phone in a private window. |
 | 11:30–12:00 | All | Freeze sweep: console errors, broken links, missing citations visible in the UI. |
 | **12:00 — feature freeze** | All | Only bug fixes after this line. |
 
@@ -120,9 +120,9 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 |---|---|---|
 | 12:00–12:30 | All | Lunch (serving time unknown — check the board). Last full-team sync before submission. |
 | 12:30–13:30 | I drafts (agents), I cuts; Q parallel | Project page text: summary, how it works, data sources, limitations. Cite every source, state every material's license (NASA can reject or strip awards for missing citations), include the AI/SI-use description from the phase-3 log. Q: README in parallel — data sources, licenses, how to run; make the judged code public only if the Submission Guide requires a code link (Isaac decides; actual form/organiser requirements checked in phase 2). |
-| 13:30–14:30 | I records; D + S parallel | Demo video per the actual submission format checked in phase 2: screen-only, captions or TTS — no faces, voices or recognizable names of anyone under 18. AI drafts structure and captions; Isaac records the screen. D + S fix last bugs; S preps pitch backup numbers. |
-| 14:30–15:00 | I | Isaac reviews the filled submission form on the team's project page end to end, then **clicks submit by 15:00**. Save the confirmation screenshot to `docs/`. |
-| 15:00–15:30 | All | Buffer use: re-submit if a fix was needed, then **pitch rehearsal 2 with a timer** — live demo, screen recording and an offline build as backup. |
+| 13:30–14:30 | Demo owner records; I, D + S parallel | Demo video per the actual submission format checked in phase 2 (default ≤30 s video or ≤7 slides; 2022 judges stopped at the limit), built from the spec storyboard and the checkpoint clips. Screen-only, English captions or TTS — no faces, voices or recognizable names of anyone under 18. AI drafts structure and captions. Check: runtime within limit, link opens without login. Others fix last bugs; S preps pitch backup numbers. |
+| 14:30–15:00 | I | Isaac opens every link in the form in a private window, reviews the filled submission form on the team's project page end to end, then **clicks submit by 15:00**. Save the confirmation screenshot to `docs/`. |
+| 15:00–15:30 | All | Buffer use: re-submit if a fix was needed, then **pitch rehearsal 2 with a timer** — live demo, screen recording and an offline build as backup. Before it, someone outside the team (Betreuerin or a mentor) watches the demo cold and repeats the problem and the answer. |
 | 15:30–15:45 | All | Pure buffer. Nothing new gets touched. |
 | **15:45 — local submission deadline** | — | Deadline passes; submission is already in. |
 | 15:45–16:00 | All | Demo setup for the pitch: online build, screen recording queued, offline build ready. |
@@ -150,6 +150,8 @@ Triggers: a failed checkpoint, or the next block starting with the previous one 
    Keep basic switching between at least two validated sites and two supported date ranges. A single-site demo is an explicit challenge gap, not a complete replacement.
 3. **Cut the site map** (site picker map). Trigger: frontend behind schedule Sun ~11:00. A plain
    site list with sources replaces it.
+
+**Not planned at all:** 3D globe, game or first-person view. Three of four past lunar winners had one, but non-winners did too, and our brief is a decision tool ([past-winners.md](past-winners.md), P8).
 
 **Never cut: correct combined Sun/Earth output, sky plot + daily timeline, and basic site/date comparison.** Use simple lists/selectors and validated (or clearly labelled published) data. If the data cannot support two sites and two periods, report the remaining challenge gap; do not relabel a single-site fallback as complete. Keep a recorded demo as backup.
 
