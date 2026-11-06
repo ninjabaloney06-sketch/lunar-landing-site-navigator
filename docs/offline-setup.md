@@ -187,7 +187,7 @@ print(a.sum(), a.mean())
 ```
 
 `check_scipy.py` — scipy interpolate tutorial example (CubicSpline).
-Pass: prints `0.997` (sin(1.5), evaluated by the spline).
+Pass: prints `0.988` (the cubic spline's approximation at 1.5).
 
 ```python
 import numpy as np
@@ -269,3 +269,16 @@ Plotly.newPlot("plot", [{x: [1, 2, 3, 4], y: [10, 15, 13, 17], type: "scatter"}]
 9. Claude Code logged in         claude --version answers (do while online)
 10. Wi-Fi OFF: all §5 checks green, doc pages open from disk -> tell Isaac "ready offline"
 ```
+
+## 7 — Ninja's Mac setup, 6 Nov 2026
+
+Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps-offline-prep`, outside this repo:
+
+- Existing Python 3.14.8 and Node v26.7.0; ninja confirmed tools/login already ready.
+- `.venv`: all six required Python library pins above installed; exact transitive versions in `requirements.lock.txt` there.
+- `node-tutorial`: create-vite's React tutorial scaffold, Vite 8.3.5, React/React DOM 19.3.1, Plotly 4.1.2, installed dependencies and package lock retained for offline use.
+- `docs/index.html`: 12 readable offline pages covering ninja's learning rows plus Vite, React, Plotly and Pytest; source URLs and capture hashes in `docs/manifest.json`. Text/code/images are local; interactive examples and external links require internet.
+- The small leap-seconds kernel was copied from the previously approved local download; no mission data was processed.
+- Online preflight passed: library tutorial examples, pytest sample, Vite production build, and saved-doc local resource checks. **Ninja's Wi-Fi-off confirmation is still pending**, as are O/B/L's laptop confirmations.
+
+Ninja: turn Wi-Fi off, run `~/Documents/clps-offline-prep/check-offline.command`, check the docs and Plotly chart it opens, then run `npm run dev` in `~/Documents/clps-offline-prep/node-tutorial` and confirm the page updates after a text edit. Full local handoff: `~/Documents/clps-offline-prep/README.md`.

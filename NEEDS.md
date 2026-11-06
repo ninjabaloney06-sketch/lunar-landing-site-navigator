@@ -27,6 +27,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | NASA Space Apps (O) | Team member | O | O (self-registered) | before 10 Oct |
 | NASA Space Apps (B) | Team member | B | B (self-registered) | before 10 Oct |
 | NASA Space Apps (L) | Team member (joined 22 Oct) | L | L (self-registered) | before 22 Oct |
+| Cloudflare Pages | Free static demo hosting; no deployment yet | ninja (existing personal account; email not recorded) | Existing account, confirmed by ninja | confirmed 6 Nov 2026 |
 
 ## Data
 
