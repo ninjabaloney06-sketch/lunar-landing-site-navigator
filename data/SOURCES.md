@@ -7,7 +7,7 @@ Raw public data for general preparation. Not processed. Files stay out of git.
 - **Checks:** every file matches the expected byte size; every SHA-256 was recorded after download and re-verified with `shasum -a 256 -c`; `de440s.bsp` matches NAIF's published MD5. No other file has a published checksum, so its SHA-256 only detects later changes.
 - **Read test:** `LDEM_80S_20MPP_ADJ.TIF` was resumed over several attempts; it opens in rasterio and an overview plus the last tile read. `ldem_875s_5m.img` size equals its label (30336 records x 60672 bytes).
 - **USB stick:** copied on 8 Nov to stick `Ninja` (exFAT, 59 GB) as `clps/`. `shasum -a 256 -c` on ninja's Mac: 21/21 OK.
-- **Still open:** independent verify of the stick on a second laptop (checklist section 6).
+- **Second laptop:** independent verify on 8 Nov on a Windows 11 ThinkPad (stick at `D:\`), SHA-256 via PowerShell `Get-FileHash` against each `SHA256SUMS.txt`: spice 6/6, lola 3/3, illumination 12/12 OK; file count 21. RESULT: 21/21 OK.
 
 | File | Source URL | Version / release | Size (bytes) | SHA-256 | Published checksum | License / required citation | Path under root | Downloaded |
 |---|---|---|---|---|---|---|---|---|
