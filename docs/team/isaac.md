@@ -10,7 +10,7 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 - **Challenge comparison complete (28 Oct)** — current challenge page + Sarah's email compared; changes in docs/decisions.md and TASKS.md. No future-publication blocker.
 - **LOLA selection complete (28 Oct)** — reviewed sizes/projections/usage terms; ninja chose the 5.1 GB set in [docs/data-guide.md](../data-guide.md). Downloads remain a separate phase-2 task.
 - [x] **spiceypy via agent (~1.5 h, agent-executed)** — the agent runs kernels → ET → position vectors on the tutorial kernels; you restate its output and can say what `furnsh`/`str2et`/`spkpos` each did ([docs/learning.md](../learning.md)).
-- [ ] **rasterio + pyproj via agent (~2.5 h, agent-executed)** — the agent reads the sample GeoTIFF at a lat/lon you pick; you state the CRS and resolution from its output.
+- [x] **rasterio + pyproj via agent (~2.5 h, agent-executed)** — the agent reads the sample GeoTIFF at a lat/lon you pick; you state the CRS and resolution from its output.
 - [ ] **Teach the agent workflow** — one session with Leo, Otto and Bene on a throwaway toy repo: two worktrees, two agents, merge without conflict. Agree who runs which agent on which account.
 - [x] **Raw data download + USB stick** (phase 2, needs your approval per download). Download done 1 Nov, see [data/SOURCES.md](../../data/SOURCES.md); USB copy done 8 Nov, verified 21/21 OK on ninja's Mac and on a second laptop.
 - [ ] **Hosting account** (Vercel or Cloudflare Pages, free tier), nothing deployed before Saturday.
