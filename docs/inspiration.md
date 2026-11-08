@@ -4,6 +4,10 @@ Agents copy good examples better than they invent — this is what we point them
 
 Site and data-product sources live in `docs/sources.md` and `docs/data-guide.md` (separate task) — this list is about visuals and tools. 18 entries, grouped. Links checked 2026-10-24 with `curl`; entries marked **(unverified)** sit behind bot blocks (WAF / captcha) that curl cannot pass — URL confirmed by web search, browser check still owed. Most tools here are client-side apps: judge them in a browser, not by curl (same as the challenge page).
 
+## Saturday shortlist (agreed 8 Nov)
+
+Show the UI agents only these six: sky plot #3, #1, #2; timeline #6, #13; benchmark #16. The rest is reference for S (#7–12, #14, #15) or pitch background (#17, #18).
+
 ## A. Polar sky plots (azimuth / elevation)
 
 1. **Heavens-Above — satellite pass chart** — <https://heavens-above.com/PassSummary.aspx?satid=25544>

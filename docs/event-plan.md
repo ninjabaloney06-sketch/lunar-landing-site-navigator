@@ -33,7 +33,7 @@ Mapping from decisions.md ("Roles agreed and sleeping at the venue", 26 Oct): S 
 | Role | Owns | Person |
 |---|---|---|
 | **S** — science lead | coordinate frames, ephemeris + horizon validation (Horizons, PGDA), score formula, science call at 22:00, physics Q&A in pitch | L |
-| **Q** — code checks | unit tests, review of agent-written scripts, security check before deploy | O |
+| **Q** — code checks | unit tests, review of agent-written scripts, security check before deploy; drives the Track B (horizon) agents on Saturday | O |
 | **D** — frontend + design | app shell, site picker, sky plot, timeline, comparison view, deploy | B |
 | **I** — Isaac | product, spec, integration, agent orchestration, submission form, pitch | Isaac |
 
@@ -57,7 +57,7 @@ Proposed baseline for the team/Betreuer to confirm: all sleep 23:00–06:45, so 
 - Break rhythm per person: 5–10 min roughly every 90–120 min, away from the screen; drink water; one
   short walk after each checkpoint. S takes an explicit pause before every validation sign-off.
 - Bring snacks/water; overnight kitchen access is unknown — check at the venue.
-- Packing (phase 0, due 7 Nov): laptops, chargers, power strips (sockets scarce — organiser 12 Oct),
+- Packing (phase 0, due Thu 12 Nov, team check Fri 13 Nov morning): laptops, chargers, power strips (sockets scarce — organiser 12 Oct),
   adapters, headphones, ID, tickets, signed authorisations naming the Betreuer, USB stick with raw
   data, sleeping bag, mat and phone hotspot.
 
@@ -83,7 +83,7 @@ Proposed baseline for the team/Betreuer to confirm: all sleep 23:00–06:45, so 
 Lunch ~12:30–13:00 in rotating pairs (serving time unknown — check). Tracks run through it; agents
 don't eat. Every block ends with the output committed so the next block builds on it.
 
-| Time | Track A — ephemeris (I + agents, S validates) | Track B — terrain horizon (I + agents, S validates) | Track C — frontend (D + agents) |
+| Time | Track A — ephemeris (I + agents, S validates) | Track B — terrain horizon (Q + agents, S validates) | Track C — frontend (D + agents) |
 |---|---|---|---|
 | 12:30–14:30 | `scripts/ephemeris.py`: lat/lon/elevation + time range + step → Sun/Earth az/el in the local horizon frame (spiceypy, kernels from the USB stick) | `data/sites.json` from `docs/sources.md` (checked entries only, source link per site); start `scripts/horizon.py` (rays in 360 directions, 1° steps, ~100–150 km, curvature, numpy, cached JSON) | UX-02/03: obvious site/date controls, signed-out core flow, site-list fallback, loading/error/input checks (sample JSON) |
 | 14:30–16:00 | Q writes geometry tests plus UX-01 observer/target/output regressions; S verifies the lunar reference metadata and 10 sample points against Horizons (< 0.05°), recording evidence in `docs/validation.md` | `horizon.py` runs end-to-end on one site; Earth phase + Sun–Earth separation output added to A | Sky plot frame: horizon outline rendering, placeholder tracks |
@@ -109,8 +109,8 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 |---|---|---|
 | 07:30–09:00 | I + Q, D, S | Build/review `windows.py` and summaries from Saturday's validated inputs. D builds the timeline, combined numeric Sun/Earth output and source/context labels (UX-04/05). S checks definitions. Basic site/date comparison is required. |
 | 09:00–10:30 | I + Q + D, S | Finish required comparison across two sites/two supported date ranges. Run UX-01–05 on desktop and 375 px touch viewport: original question within 60 s, site/date change within 10 s; signed-out, invalid input, failed data load and map unavailable. S verifies numbers; record evidence in docs/validation.md. Score/side-by-side only if core checks pass and time remains. |
-| 10:00–11:00 | S + D + Q | Fix UX-01–05 failures. **S spot-checks 5 UI values against validated scripts; mismatch or a core usability failure blocks freeze.** Q checks secrets/keys/personal data and pinned dependencies. |
-| 10:30–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to the same URL as Saturday's preview (Vercel / Cloudflare Pages, account created in phase 2), test the URL on a phone in a private window. |
+| 10:00–11:00 | S + I (agents) + Q | I's agents fix UX-01–05 failures while D finishes the comparison. **S spot-checks 5 UI values against validated scripts; mismatch or a core usability failure blocks freeze.** Q checks secrets/keys/personal data and pinned dependencies. |
+| 11:00–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to the same URL as Saturday's preview (Vercel / Cloudflare Pages, account created in phase 2), test the URL on a phone in a private window. |
 | 11:30–12:00 | All | Freeze sweep: console errors, broken links, missing citations visible in the UI. |
 | **12:00 — feature freeze** | All | Only bug fixes after this line. |
 
