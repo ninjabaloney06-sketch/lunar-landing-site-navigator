@@ -6,7 +6,8 @@ Raw public data for general preparation. Not processed. Files stay out of git.
 - **Selection:** required set from [docs/download-checklist.md](../docs/download-checklist.md), confirmed by ninja on 28 Oct 2026. The optional 10 m pair and PSR map are not included.
 - **Checks:** every file matches the expected byte size; every SHA-256 was recorded after download and re-verified with `shasum -a 256 -c`; `de440s.bsp` matches NAIF's published MD5. No other file has a published checksum, so its SHA-256 only detects later changes.
 - **Read test:** `LDEM_80S_20MPP_ADJ.TIF` was resumed over several attempts; it opens in rasterio and an overview plus the last tile read. `ldem_875s_5m.img` size equals its label (30336 records x 60672 bytes).
-- **Still open:** USB stick copy and second-laptop verify (checklist section 6).
+- **USB stick:** copied on 8 Nov to stick `Ninja` (exFAT, 59 GB) as `clps/`. `shasum -a 256 -c` on ninja's Mac: 21/21 OK.
+- **Still open:** independent verify of the stick on a second laptop (checklist section 6).
 
 | File | Source URL | Version / release | Size (bytes) | SHA-256 | Published checksum | License / required citation | Path under root | Downloaded |
 |---|---|---|---|---|---|---|---|---|

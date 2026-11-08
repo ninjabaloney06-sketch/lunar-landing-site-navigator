@@ -12,7 +12,7 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 - [x] **spiceypy via agent (~1.5 h, agent-executed)** — the agent runs kernels → ET → position vectors on the tutorial kernels; you restate its output and can say what `furnsh`/`str2et`/`spkpos` each did ([docs/learning.md](../learning.md)).
 - [ ] **rasterio + pyproj via agent (~2.5 h, agent-executed)** — the agent reads the sample GeoTIFF at a lat/lon you pick; you state the CRS and resolution from its output.
 - [ ] **Teach the agent workflow** — one session with Leo, Otto and Bene on a throwaway toy repo: two worktrees, two agents, merge without conflict. Agree who runs which agent on which account.
-- [ ] **Raw data download + USB stick** (phase 2, needs your approval per download). Download done 1 Nov, see [data/SOURCES.md](../../data/SOURCES.md); USB stick open.
+- [ ] **Raw data download + USB stick** (phase 2, needs your approval per download). Download done 1 Nov, see [data/SOURCES.md](../../data/SOURCES.md); USB copy done 8 Nov (21/21 OK); second-laptop verify open.
 - [ ] **Hosting account** (Vercel or Cloudflare Pages, free tier), nothing deployed before Saturday.
 - [ ] **Laptop offline-ready** — [docs/offline-setup.md](../offline-setup.md), Wi-Fi-off self-test.
 - [ ] **Check-in with the team** before the event: learning done, laptops ready, authorisations signed.
