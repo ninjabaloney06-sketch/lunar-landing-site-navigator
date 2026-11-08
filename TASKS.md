@@ -60,7 +60,7 @@ Learning material and knowledge only. No project code, no project data files, no
 - [x] `[AI+H]` `device` **I** — Create the hosting account (Vercel or Cloudflare Pages, free tier) with Isaac's email. Isaac approves the sign-up and handles 2FA. Nothing is deployed before Saturday. → 6 Nov: ninja confirmed he already has a Cloudflare Pages account; recorded in NEEDS.md. No new account or deployment needed.
 - [x] `[AI]` — Event plan `docs/event-plan.md`: hour by hour from Sat 10:30 to Sun 15:45 with phases 3–6 checkpoints, owners, venue sleep proposal and cut list (score → side-by-side layout → map; keep basic site/date comparison, sky plot + timeline). Updated 28 Oct with UX-01–05 acceptance before freeze.
 - [ ] `[AI]` `device` — 13 Nov: check the actual submission form and any instructions supplied by the organisers; record required fields, media format and code-link requirements in docs/decisions.md. Use a guide if one is supplied; do not assume a future guide is needed to finish the 28 Oct challenge comparison. Answer these three explicitly (2022 rules as the default until then): (1) demo limit: 2022 allowed a ≤30 s video or ≤7 slides, and judges stopped at the limit (6 of 7 measured winner videos, 2022–2024, run 27–31 s); (2) must the final-project and demo links open without login or permission (2022: yes)? (3) is a public code link required? If yes → needs Isaac: decide what gets published, because AGENTS.md keeps this repo private. Done when all three answers and the guide URL are in docs/decisions.md. Answer sheet: docs/templates/submission-check-13nov.md. (winners P1, P6)
-- [ ] `[H]` **All** — Pack: laptops, chargers, power strips (organiser 12 Oct: not a socket for every device at every table), adapters, headphones, ID, tickets, the signed authorisations naming the Betreuer (one per participant), USB stick, bedding if sleeping at the venue.
+- [ ] `[H]` **All** — Due Thu 12 Nov, team check Fri 13 Nov morning. Pack: laptops, chargers, power strips (organiser 12 Oct: not a socket for every device at every table), adapters, headphones, ID, tickets, the signed authorisations naming the Betreuer (one per participant), USB stick, bedding if sleeping at the venue.
 
 ## Phase 3 — Saturday kickoff (Sat 14 Nov, 08:30 → 12:30)
 
@@ -80,7 +80,7 @@ Track A — ephemeris (I + agents, S validates):
 - [ ] `[AI+H]` **S** — Validate 10 sample points against JPL Horizons (observer on the Moon at the site). Target < 0.05°. Table in `docs/validation.md`. **Checkpoint 16:00.**
 - [ ] `[AI]` — Earth phase and Sun–Earth separation output.
 
-Track B — terrain horizon (I + agents, S validates):
+Track B — terrain horizon (Q + agents, S validates):
 - [ ] `[AI]` — `data/sites.json` from `docs/sources.md` (only checked entries, with source link per site).
 - [ ] `[AI]` — `scripts/horizon.py`: for a site, cast rays in 360 directions (1° steps) out to ~100–150 km over the LOLA tiles; maximum terrain elevation angle including lunar curvature; vectorised with numpy; profiles cached as JSON.
 - [ ] `[AI+H]` **S** — Validate terrain/window results using compatible reference periods and visibility definitions; do not compare a 14-day Earth-centre result directly with 18.6-year any-disc averages. Check DEM frame/height scaling and sensitivity to horizon ray distance; published averages are a contextual cross-check unless definitions match. Document evidence and limitations in docs/validation.md (see data-guide.md, 28 Oct review).
