@@ -8,7 +8,7 @@ Roles are a proposal, not yet agreed (phase 0) — read your proposed rows anywa
 
 | Person | Rows | Total |
 |---|---|---|
-| S (L) | spiceypy · JPL Horizons · worktrees | ~4 h |
+| S (L) | Replaced 10 Nov: L writes no code; he validates agent output by hand (Horizons web form, calculator). His prep is in [team/leo.md](team/leo.md). The S sections below stay as optional reference. | ~6 h |
 | Q (O) | pytest · worktrees | ~2.5 h |
 | D (B) | Replaced 26 Oct: B directs the agents instead of learning React/Plotly; his prep is in [team/bene.md](team/bene.md). The D sections below stay as optional reference. | ~6 h |
 | I | spiceypy (short) · rasterio + pyproj · worktrees | ~4.5 h |
@@ -64,7 +64,7 @@ Links checked 2026-10-24 with `curl -sI` (HTTP 200 unless noted). If one is dead
 
 ## Ground rules
 
-- **Isaac's tool rows are agent-executed (decided 29 Oct, see [decisions.md](decisions.md)).** The agent runs the tutorial exercises in his scratch folder; his check is understanding the output, not typing the code. Leo and Otto still own physics and code review — the human who cannot eyeball a number must never also be the one who signs it off.
+- **Isaac's tool rows are agent-executed (decided 29 Oct, see [decisions.md](decisions.md)).** The agent runs the tutorial exercises in his scratch folder; his check is understanding the output, not typing the code. Since 10 Nov the same holds for Leo's spiceypy row; his sign-off rests on values he gets without our code (Horizons by hand, calculator). Leo and Otto still own physics and code review — the human who cannot eyeball a number must never also be the one who signs it off.
 - Scratch folders only; nothing in this repo except your notes on where you got stuck.
 - Tutorial kernels and tutorial data only — never our sites, never our app (prep rule).
 - If a done-when check fails, that is the point: write down what broke and move on; the event needs the basics, not mastery.

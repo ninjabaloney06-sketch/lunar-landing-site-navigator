@@ -192,3 +192,7 @@ Statement vs. plan (TASKS.md phases 3–6):
 **For the 13 Nov check (TASKS.md phase 2):** also read the challenge Resources tab that day and compare its list against `docs/data-guide.md` and `data/SOURCES.md`.
 
 **Stale after this read:** statements in README.md, AGENTS.md and `docs/NASA-Heilbronn-CLPS.pdf` that the page shows the summary only. Not edited here.
+
+## Leo writes no code (10 Nov 2026)
+
+**DECIDED — DO NOT REOPEN without a reason:** ninja, 10 Nov: Leo does not learn spiceypy or any programming language for this event; agents write and run all code. His spiceypy and worktree prep rows are removed. Reason: four days left, and a science lead's value is judging numbers, not typing them. Consequence: Leo's sign-off must rest on values obtained without our code, otherwise nobody independent checks the agents (29 Oct decision). His prep is now Horizons by hand, one hand-calculated row, a checklist for reading agent output, the illumination-map definitions and judge questions; at the event he picks the sample points and pulls the Horizons reference himself while an agent runs our script. Sign-off gates unchanged. Files: docs/team/leo.md, docs/learning.md.
