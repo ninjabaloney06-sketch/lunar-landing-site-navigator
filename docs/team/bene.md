@@ -15,7 +15,7 @@ You don't need to learn React or a chart library: the agents write the code, you
 - [ ] **Agents in parallel (~0.5 h)** — Isaac shows the team how two agents work in parallel without touching the same files. You need to know it so you don't break someone else's work.
 - [ ] **Demo story (~0.5 h)** — you drive the live demo on Sunday. Think about how a 60-second demo of a tool like ours should flow (question → click → answer). Watch 2–3 past Space Apps winner videos for how they show their app. **Done when:** you can describe a good 60-second demo flow in 3 steps.
 - [ ] **Laptop offline-ready** — Claude Code logged in, browser, Node 20+ so you can run the app locally ([docs/offline-setup.md](../offline-setup.md), your OS section).
-- [ ] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov.
+- [X] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov.
 - [ ] **Pack** — laptop, charger, sleeping bag, mat, ID, the signed authorisation.
 
 ## At the event
