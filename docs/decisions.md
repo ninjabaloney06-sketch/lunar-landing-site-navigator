@@ -159,3 +159,36 @@ Sarah's email-to-plan check:
 ## I rows agent-executed (29 Oct 2026)
 
 **DECIDED — DO NOT REOPEN without a reason:** ninja's own tool learning (I rows: spiceypy short, rasterio + pyproj) and his event-side scripting run agent-first — the agent writes and executes the tutorial exercises and project scripts, ninja reviews and restates the output. Reason: the whole weekend is agent-driven anyway (Claude Code on Otto's plans, AI-use log required), so the human bar on the I side is judging output, not typing code. Consequence recorded everywhere: since no human on the I side eyeballs SPICE or raster numbers directly, Otto's tests/review and Leo's independent validation are the only correctness net — their sign-off gates stay unchanged and Leo's audit review stays first in his checklist. learning.md and the team files carry the changed Done-when wording. No project code was written by this decision; it changes who types, not the prep rule.
+
+## Full challenge statement published (10 Nov 2026)
+
+Device agent: Claude Code on ninja's Mac (`Guest123`), real browser, 10 Nov 2026. Read the [challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/), Details and Resources tabs, and the [Resources / Participant Guides page](https://www.spaceappschallenge.org/resources/). This is new source material, so it reopens the 28 Oct comparison for the points below only.
+
+**What changed on the page:** Details now carries Background, Objectives and Potential Considerations in addition to the summary (summary text unchanged from 25 Oct). The Resources tab reads "Resources will be available on Friday, November 13." The Participant Guides page lists only the FAQ, Team Formation Guide and Space Apps Connect Guide — no Submission or Judging guide yet.
+
+**Requirement strength:** only one objective is phrased as a requirement: "Display the positions of the Sun and Earth relative to the horizon at a selected landing site on a chosen date." Every other objective is "you may consider"; the considerations are "may (but are not required to)". The stated format is open: "a web application, a mobile app, an interactive visualization, an educational game, or another format entirely — as long as it makes rapid site evaluation clear and efficient."
+
+**User story from the Background (use in the pitch):** schedules slip ("hardware development challenges, launch delays"), and "engineers need to quickly evaluate alternative sites in the same region, or alternative dates at the same site". The page names Quickmap, Moon Trek and JPL Horizons as the hard-to-use existing tools — the same three as ninja's 27 Oct timed run.
+
+Statement vs. plan (TASKS.md phases 3–6):
+
+| Statement item (all optional unless marked) | Plan today | Result |
+|---|---|---|
+| **Required:** Sun and Earth positions relative to the horizon, selected site, chosen date | Sky plot with terrain horizon, numeric az/el | Covered |
+| Curated site list, side-by-side or sequential comparison | Curated list; comparison across ≥ 2 sites and ≥ 2 date ranges required, side-by-side optional | Covered |
+| Alternative dates at one site / alternative sites in one region | Same required comparison | Covered; matches the Background story |
+| "How much time remains before sunset or Earthset" (objectives and considerations, twice) | Windows and longest-blackout summaries; no time-remaining readout | **Gap** — derivable from `windows.py` output |
+| Solar elevation angle displayed "prominently"; duration of sunlight; Earth visibility windows | Numeric az/el for the selected time; % lit and windows in summaries | Partly covered — elevation not planned as a prominent value |
+| Animations or timeline views over a lunar day or several days | Daily timeline | Partly covered — no time scrubber/animation |
+| Conditions across "different lunar days or seasons" | Two supported date ranges | Partly covered — depends on which ranges the spec picks |
+| Custom lunar coordinates | Excluded (static precomputed data, 28 Oct) | Not planned — terrain masks cannot be precomputed for arbitrary sites |
+| Notable sites beyond the south pole (Apollo, other countries' landers) | South-pole sites from `docs/sources.md` only | Not planned |
+| 2D maps, 3D surface views | Map optional (third on the cut list); 3D not planned | Unchanged |
+| Terrain-based horizon, no atmospheric refraction, libration | Horizon mask from LOLA; SPICE ephemeris | Covered |
+| Help users see why small location/date changes matter; serve planners, educators and the public | Comparison view, glossary | Covered |
+
+**Not decided here:** whether time-remaining, a prominent solar-elevation value or a time scrubber enter the spec is decided at the Saturday 10:30 spec interview (prep rule: no spec or app design before 14 Nov 09:00). TASKS.md and the event plan are unchanged by this entry.
+
+**For the 13 Nov check (TASKS.md phase 2):** also read the challenge Resources tab that day and compare its list against `docs/data-guide.md` and `data/SOURCES.md`.
+
+**Stale after this read:** statements in README.md, AGENTS.md and `docs/NASA-Heilbronn-CLPS.pdf` that the page shows the summary only. Not edited here.
