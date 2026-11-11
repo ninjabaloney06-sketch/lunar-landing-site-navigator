@@ -1,6 +1,6 @@
 # Existing tools — device-agent run (Phase 1)
 
-TASKS.md Phase 1: "Test the existing tools (JPL Horizons, NASA Moon Trek, LRO QuickMap). Device agent runs 'Sun and Earth elevation at site X over dates Y' once and writes the steps and screenshots into `docs/existing-tools.md`; then Isaac clicks through it himself, times it and writes the 5 biggest pain points."
+TASKS.md Phase 1: "Test the existing tools (JPL Horizons, NASA Moon Trek, LRO QuickMap). Device agent runs 'Sun and Earth elevation at site X over dates Y' once and writes the steps and screenshots into `docs/reference/existing-tools.md`; then Isaac clicks through it himself, times it and writes the 5 biggest pain points."
 
 - **Machine:** Isaac's laptop (device agent, browser automated end to end).
 - **Agent run date:** 25 Oct 2026, ~00:45–01:45 local.
@@ -11,14 +11,14 @@ TASKS.md Phase 1: "Test the existing tools (JPL Horizons, NASA Moon Trek, LRO Qu
 
 **Connecting Ridge** (= Shackleton–de Gerlache ridge), center **−89.46° lat, −136.68° lon** (= 223.32° E), altitude 0 km.
 
-- Source: [Collins et al., LPSC 2024 abstract #1775, Table 1](https://www.hou.usra.edu/meetings/lpsc2024/pdf/1775.pdf) (LROC team, ASU) — "Connecting Ridge −89.46 & −136.68"; already recorded in [docs/sources.md](sources.md#shackletonde-gerlache-ridge-nasas-connecting-ridge). NASA's own 2022 candidate-region release names "Connecting Ridge" but gives no coordinates ([NASA release](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon)).
+- Source: [Collins et al., LPSC 2024 abstract #1775, Table 1](https://www.hou.usra.edu/meetings/lpsc2024/pdf/1775.pdf) (LROC team, ASU) — "Connecting Ridge −89.46 & −136.68"; already recorded in [docs/reference/sources.md](sources.md#shackleton-connecting-ridge). NASA's own 2022 candidate-region release names "Connecting Ridge" but gives no coordinates ([NASA release](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon)).
 - Cross-check inside the tools: QuickMap parses the entry as "−89.46° LAT, −136.68° LON" and reports the created point as `(lat, lon) −89.46000, 223.32000`; Horizons echoes "Center geodetic: 223.32, −89.46, 0.0 {E-lon(deg),Lat(deg),Alt(km)}".
 
-Screenshots live in [docs/existing-tools/](existing-tools/) (8 PNGs, all < 500 KB).
+Screenshots live in [docs/reference/screenshots/](screenshots) (8 PNGs, all < 500 KB).
 
 ## 1. JPL Horizons web app — ANSWERS the question (ideal horizon, numbers)
 
-<https://ssd.jpl.nasa.gov/horizons/app.html> — screenshots [01](existing-tools/01-horizons-settings.png), [02](existing-tools/02-horizons-sun-result.png), [03](existing-tools/03-horizons-earth-result.png).
+<https://ssd.jpl.nasa.gov/horizons/app.html> — screenshots [01](screenshots/01-horizons-settings.png), [02](screenshots/02-horizons-sun-result.png), [03](screenshots/03-horizons-earth-result.png).
 
 ### Exact steps (Sun run, 12 UI steps)
 
@@ -68,7 +68,7 @@ Load 7.5 s; each `Generate Ephemeris` ~8 s. Sun run (12 steps through 4 nested d
 
 ## 2. NASA Moon Trek — Sun tool exists, but the run could NOT be completed
 
-<https://trek.nasa.gov/moon/> — screenshots [04](existing-tools/04-moontrek-tools-menu.png), [05](existing-tools/05-moontrek-sunangle-tool.png).
+<https://trek.nasa.gov/moon/> — screenshots [04](screenshots/04-moontrek-tools-menu.png), [05](screenshots/05-moontrek-sunangle-tool.png).
 
 ### Exact steps (as far as they went)
 
@@ -94,7 +94,7 @@ Load 23–40 s (+ tutorial modal every load). Reaching a usable south-pole view 
 
 ## 3. LRO QuickMap — best navigation, no numeric answer
 
-<https://quickmap.lroc.asu.edu/> (now redirects internally to <https://quickmap.lroc.im-ldi.com/>) — screenshots [06](existing-tools/06-quickmap-southpole-stereo.png), [07](existing-tools/07-quickmap-point-inspector.png), [08](existing-tools/08-quickmap-time-controls.png).
+<https://quickmap.lroc.asu.edu/> (now redirects internally to <https://quickmap.lroc.im-ldi.com/>) — screenshots [06](screenshots/06-quickmap-southpole-stereo.png), [07](screenshots/07-quickmap-point-inspector.png), [08](screenshots/08-quickmap-time-controls.png).
 
 ### Exact steps
 
@@ -139,10 +139,10 @@ Human run in a normal browser, first-time user, without reading the agent steps 
 
 ### The 5 pain points
 
-1. **Horizons gives a wrong answer that looks right.** Searching "moon" for the observer lists Earth observatories with "Moon" in their name. The run produced two complete hourly tables: the Sun seen from Crescent Moon Observatory, Columbus, Ohio ([txt](existing-tools/h-horizons-sun-from-ohio.txt): `Center-site name: Crescent Moon Observatory, Columbus`) and the Moon seen from Earth's centre ([txt](existing-tools/h-horizons-moon-from-geocentre.txt): `Center-site name: GEOCENTRIC`). No warning; neither answers the question. Screenshots [h01](existing-tools/h01-horizons-observer-search-moon.webp), [h05](existing-tools/h05-horizons-observer-search-luna.webp), [h04](existing-tools/h04-horizons-observer-equals-target.webp).
-2. **Horizons won't let you just type a point on the Moon.** No lat/lon field on the obvious path; the location search finds named sites only; 5 nested dialogs and 49 output checkboxes; the default output is RA/Dec, not elevation (both txt files contain no azimuth/elevation column). Old layout, duplicate buttons, unusable on an iPad or phone. Screenshots [h02](existing-tools/h02-horizons-49-checkboxes.webp), [h03](existing-tools/h03-horizons-table-settings.webp).
-3. **Moon Trek hides its tools, then locks them.** 15 s to load; lighting tools are behind small buttons in a menu; "Surface Lighting" is "not available in this projection and requires a Trek account"; the search box searches a data catalog, not places or tools; the globe rendered only partly. Gave up after 5 min without a number. Screenshots [h06](existing-tools/h06-moontrek-flyto.webp), [h07](existing-tools/h07-moontrek-search-catalog.webp), [h08](existing-tools/h08-moontrek-tools-need-account.webp), [h09](existing-tools/h09-moontrek-partial-render.webp).
-4. **QuickMap is a good map with no answer.** Fast load, typed coordinates, hover shows lat/lon, right-click to go there or set a point. But the default view can't show the site ("Location is outside of bounds of current projection"), and there is no Sun or Earth elevation anywhere. 3 min, no number. Screenshots [h10](existing-tools/h10-quickmap-out-of-bounds.webp), [h11](existing-tools/h11-quickmap-projections.webp).
+1. **Horizons gives a wrong answer that looks right.** Searching "moon" for the observer lists Earth observatories with "Moon" in their name. The run produced two complete hourly tables: the Sun seen from Crescent Moon Observatory, Columbus, Ohio ([txt](screenshots/h-horizons-sun-from-ohio.txt): `Center-site name: Crescent Moon Observatory, Columbus`) and the Moon seen from Earth's centre ([txt](screenshots/h-horizons-moon-from-geocentre.txt): `Center-site name: GEOCENTRIC`). No warning; neither answers the question. Screenshots [h01](screenshots/h01-horizons-observer-search-moon.webp), [h05](screenshots/h05-horizons-observer-search-luna.webp), [h04](screenshots/h04-horizons-observer-equals-target.webp).
+2. **Horizons won't let you just type a point on the Moon.** No lat/lon field on the obvious path; the location search finds named sites only; 5 nested dialogs and 49 output checkboxes; the default output is RA/Dec, not elevation (both txt files contain no azimuth/elevation column). Old layout, duplicate buttons, unusable on an iPad or phone. Screenshots [h02](screenshots/h02-horizons-49-checkboxes.webp), [h03](screenshots/h03-horizons-table-settings.webp).
+3. **Moon Trek hides its tools, then locks them.** 15 s to load; lighting tools are behind small buttons in a menu; "Surface Lighting" is "not available in this projection and requires a Trek account"; the search box searches a data catalog, not places or tools; the globe rendered only partly. Gave up after 5 min without a number. Screenshots [h06](screenshots/h06-moontrek-flyto.webp), [h07](screenshots/h07-moontrek-search-catalog.webp), [h08](screenshots/h08-moontrek-tools-need-account.webp), [h09](screenshots/h09-moontrek-partial-render.webp).
+4. **QuickMap is a good map with no answer.** Fast load, typed coordinates, hover shows lat/lon, right-click to go there or set a point. But the default view can't show the site ("Location is outside of bounds of current projection"), and there is no Sun or Earth elevation anywhere. 3 min, no number. Screenshots [h10](screenshots/h10-quickmap-out-of-bounds.webp), [h11](screenshots/h11-quickmap-projections.webp).
 5. **None of the three answered the question.** ~14 minutes across three NASA tools: one wrong answer, two dead ends. Nothing shows Sun and Earth together for a point on the Moon.
 
 ## AGENT OBSERVATIONS — Isaac must do his own timed run; the pitch uses his 5 pain points, not these
@@ -180,4 +180,4 @@ Reference setup for UX-01: [NAIF body identifiers](https://naif.jpl.nasa.gov/pub
 
 Internal acceptance targets (not NASA rules or measured product performance): from a fresh signed-out URL, an unbriefed tester answers the original Connecting Ridge / 14–28 Nov 2026 UTC question with correct Sun/Earth numbers, plot and windows within 60 seconds. After load, changing a supported site/date gives a readable updated answer within 10 seconds. The event spec must name at least two validated sites and two supported date ranges; a reduced single-site demo must be reported as a challenge gap. Static precomputed data is sufficient; unrestricted dates, arbitrary custom sites and a backend are not required.
 
-Record actual timings, environment, numerical sign-off, failures and fixes in docs/validation.md at the event. Q checks UX-01 regressions by Saturday 16:00; D implements the core controls/fallback by Saturday's 20:00 sky-plot checkpoint; I + Q + D run UX-01–05 before Sunday's 12:00 freeze. Core failures block freeze; drop score, extra layouts and map before dropping correct, usable answers. None of these future implementation checks is marked passed by this planning review.
+Record actual timings, environment, numerical sign-off, failures and fixes in docs/event/validation.md at the event. Q checks UX-01 regressions by Saturday 16:00; D implements the core controls/fallback by Saturday's 20:00 sky-plot checkpoint; I + Q + D run UX-01–05 before Sunday's 12:00 freeze. Core failures block freeze; drop score, extra layouts and map before dropping correct, usable answers. None of these future implementation checks is marked passed by this planning review.

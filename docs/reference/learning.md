@@ -1,6 +1,6 @@
 # Learning path per role
 
-Phase 1 preparation ([TASKS.md](../TASKS.md)): short official tutorials, practised on **the tutorials' own examples in a scratch folder outside this repo**. Nothing about our sites, our data or our app before Sat 14 Nov 2026, 09:00 (prep rule in [AGENTS.md](../AGENTS.md) and [decisions.md](decisions.md)).
+Phase 1 preparation ([TASKS.md](../../TASKS.md)): short official tutorials, practised on **the tutorials' own examples in a scratch folder outside this repo**. Nothing about our sites, our data or our app before Sat 14 Nov 2026, 09:00 (prep rule in [AGENTS.md](../../AGENTS.md) and [decisions.md](decisions.md)).
 
 Budget: **≤ 6 h per person.** Pick your rows, note where you get stuck (feeds the phase-1 task "work through your part of learning.md"), and save your notes offline for the event (phase-2 laptop task).
 
@@ -8,9 +8,9 @@ Roles are a proposal, not yet agreed (phase 0) — read your proposed rows anywa
 
 | Person | Rows | Total |
 |---|---|---|
-| S (L) | Replaced 10 Nov: L writes no code; he validates agent output by hand (Horizons web form, calculator). His prep is in [team/leo.md](team/leo.md). The S sections below stay as optional reference. | ~6 h |
+| S (L) | Replaced 10 Nov: L writes no code; he validates agent output by hand (Horizons web form, calculator). His prep is in [team/leo.md](../event/team.md). The S sections below stay as optional reference. | ~6 h |
 | Q (O) | pytest · worktrees | ~2.5 h |
-| D (B) | Replaced 26 Oct: B directs the agents instead of learning React/Plotly; his prep is in [team/bene.md](team/bene.md). The D sections below stay as optional reference. | ~6 h |
+| D (B) | Replaced 26 Oct: B directs the agents instead of learning React/Plotly; his prep is in [team/bene.md](../event/team.md). The D sections below stay as optional reference. | ~6 h |
 | I | spiceypy (short) · rasterio + pyproj · worktrees | ~4.5 h |
 
 Links checked 2026-10-24 with `curl -sI` (HTTP 200 unless noted). If one is dead later, search for the title — don't guess a URL.

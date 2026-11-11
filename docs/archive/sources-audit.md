@@ -1,6 +1,6 @@
-# Audit of `docs/sources.md` against the primary sources
+# Audit of `docs/reference/sources.md` against the primary sources
 
-AI check (Claude Code) of every entry in [sources.md](../sources.md), for Leo's (S) sign-off. Every link was opened on **26 Oct 2026**: page text read, PDF text extracted, nothing downloaded beyond the pages themselves. `sources.md` itself is unchanged. The verdicts are suggestions; Leo decides.
+AI check (Claude Code) of every entry in [sources.md](../reference/sources.md), for Leo's (S) sign-off. Every link was opened on **26 Oct 2026**: page text read, PDF text extracted, nothing downloaded beyond the pages themselves. `sources.md` itself is unchanged. The verdicts are suggestions; Leo decides.
 
 How to read the table:
 - **Link:** `ok` = HTTP 200 directly. `redirected` = the server redirected (only a trailing slash here). `dead` = would mean it did not load (none).

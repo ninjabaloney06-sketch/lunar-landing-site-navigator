@@ -14,7 +14,7 @@ Inventory of the ephemeris kernels, elevation products and illumination/visibili
 
 - Set logic: DE440 ephemeris + DE440 lunar orientation + matching frame kernel. A newer planetary SPK exists (`de442.bsp`/`de442s.bsp`, listing dated 6 Feb 2025, coverage 31 Dec 1549 → 25 Jan 2650 per the same summaries file), but the [pck directory](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/) holds **no** `moon_pa_de442` binary PCK yet — so the DE440 set remains the current matched set. Legacy alternative: `moon_080317.tf` (21,437 bytes, verified) + `moon_pa_de421_1900-2050.bpc`.
 - Background reading: [NAIF Frames Required Reading](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html), [NAIF PCK Required Reading](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/pck.html).
-- **License/usage:** no license files in the NAIF `pub` tree; NASA media guidance applies (attribute NASA/JPL/Caltech; see [NASA Images and Media](https://www.nasa.gov/nasa-brand-center/images-and-media/)). Record in `data/SOURCES.md` at download time.
+- **License/usage:** no license files in the NAIF `pub` tree; NASA media guidance applies (attribute NASA/JPL/Caltech; see [NASA Images and Media](https://www.nasa.gov/nasa-brand-center/images-and-media/)). Record in `docs/reference/data-sources.md` at download time.
 
 ## 2. LOLA south-pole elevation products (PGDA)
 
@@ -23,7 +23,7 @@ Inventory of the ephemeris kernels, elevation products and illumination/visibili
 - Elevation models (LDEM) at **10, 20, 30, 40, 60, 80, 120, 240 m/pixel**, covering latitude bands **60°S–90°S, 75°S–90°S, 80°S–90°S, 83°S–90°S**; the paper's reference product is "the 80°–90° 20 m pixel⁻¹ south polar LDEM".
 - Projection/frame, quoted from the product page: cloud-optimized GeoTiffs "with south polar stereographic X/Y coordinates in meters and in the **MOON_ME reference frame of the JPL DE421 ephemeris**"; from the paper: "All the LOLA polar products use a stereographic projection centered at the pole in the MOON_ME frame of the JPL ephemeris DE421". Elevation referenced to 1737.4 km.
 - Example sizes: `LDEM_80S_20MPP_ADJ.TIF` listed "2.6G" on the page — HEAD-verified **2,696,082,051 bytes** at [pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF); finest DEM `LDEM_83S_10MPP_ADJ.TIF` "4.8G"; point clouds `LDEM_80S_ADJ.XYZI` "13G", `LDEM_60S_ADJ.XYZI` "48G". Also slope maps, roughness maps and PSR maps (TIF/CSV/shapefile).
-- **License/usage:** "Please cite this paper when using these products" — Barker et al. 2023 + data DOI **10.60903/gsfcpgda-lola-spole**. No explicit open license on the page; record the citation requirement in `data/SOURCES.md`.
+- **License/usage:** "Please cite this paper when using these products" — Barker et al. 2023 + data DOI **10.60903/gsfcpgda-lola-spole**. No explicit open license on the page; record the citation requirement in `docs/reference/data-sources.md`.
 
 **Finer grids near key sites (5 m):** the LOLA gridded data records step up near the pole — "20 m grid spacing at absolute latitudes greater than 80°, 10 m grid spacing at [greater than 85°], and 5 m spacing above 87.5°" ([Beyer et al. 2025, PSJ 6, 236, CC BY 4.0](https://iopscience.iop.org/article/10.3847/PSJ/ae061a); the same paper notes "90% of pixels in the 5 m gridded product being interpolated"). The LROC team likewise worked with "the LOLA 5 meter/pixel DTMs of the corresponding landing sites" ([LPSC 2024 #1775](https://www.hou.usra.edu/meetings/lpsc2024/pdf/1775.pdf)). The canonical 5 m files live in the PDS LOLA archive; exact product paths to be pinned by the device agent in phase 2 — archive root: [PDS Geosciences, LRO LOLA RDR](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/).
 
@@ -52,7 +52,7 @@ Projection (quoted): "Polar stereographic, with a reference radius of 1737.4 km 
 | Illumination/visibility maps (PGDA/PDS) | sizes not listed on page; per-file sizes to be read in phase 2 | validation reference |
 | SDEM archive (only if needed) | 26.6 GB | largest item; decide at the event |
 
-USB-stick and disk planning should assume ≥ 35 GB for the full set. All downloads need Isaac's per-action approval and `data/SOURCES.md` entries (URL, version, size, checksum, license, path) per AGENTS.md.
+USB-stick and disk planning should assume ≥ 35 GB for the full set. All downloads need Isaac's per-action approval and `docs/reference/data-sources.md` entries (URL, version, size, checksum, license, path) per AGENTS.md.
 
 ## Candidate review — 28 Oct 2026
 

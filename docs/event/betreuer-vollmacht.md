@@ -3,10 +3,10 @@
 Draft prepared 31 Oct for the phase 0 task "Accompanying person = a Betreuer provided by Isaac's school" (TASKS.md). Each participant's parents print it, fill it in, sign it and give it to their child to bring. **Due 7 Nov**; the original is handed in at check-in on **Sat 14 Nov, 08:30**.
 
 Where the requirements come from:
-- The organiser (Sarah, OpenSpace Heilbronn) wrote on 12 Oct that participants under 18 need an accompanying person named by name, who stays with them for the whole event including the night, and that each participant needs a written parental authorisation naming that person ([docs/decisions.md](../decisions.md), "Event facts").
+- The organiser (Sarah, OpenSpace Heilbronn) wrote on 12 Oct that participants under 18 need an accompanying person named by name, who stays with them for the whole event including the night, and that each participant needs a written parental authorisation naming that person ([docs/reference/decisions.md](../reference/decisions.md), "Event facts").
 - On 25 Oct Isaac decided that the Betreuerin provided by the school, Dagny Locher, fills this role.
 - On 26 Oct the team decided to sleep at the venue, with no hostel booking.
-- Venue, address and schedule: [WHERE-WHEN.md](../../WHERE-WHEN.md) and the [Heilbronn local event schedule](https://www.spaceappschallenge.org/2026/local-events/heilbronn/?tab=schedule).
+- Venue, address and schedule: [docs/event/where-when.md](where-when.md) and the [Heilbronn local event schedule](https://www.spaceappschallenge.org/2026/local-events/heilbronn/?tab=schedule).
 
 Before printing:
 - Ask Dagny Locher whether the school already uses its own form for overnight trips. If it does, use the school's form and attach the event details from this letter.

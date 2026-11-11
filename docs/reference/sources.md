@@ -1,6 +1,6 @@
 # South-pole site sources (Phase 1 reading list)
 
-Primary sources for current CLPS and Artemis south-pole sites. Reading list only — the site data file (`data/sites.json`) is built at the event, not before. All URLs checked to load (HTTP 200) on 24 Oct 2026, re-checked 26 and 31 Oct; coordinates are quoted **exactly as written in the source**. Audit fixes from [sources-audit.md](archive/sources-audit.md) applied 10 Nov 2026. What could not be verified is labeled **(unverified)**; our own conclusions are labeled **(ours)**.
+Primary sources for current CLPS and Artemis south-pole sites. Reading list only — the site data file (`app/public/data/sites.json`) is built at the event, not before. All URLs checked to load (HTTP 200) on 24 Oct 2026, re-checked 26 and 31 Oct; coordinates are quoted **exactly as written in the source**. Audit fixes from [sources-audit.md](../archive/sources-audit.md) applied 10 Nov 2026. What could not be verified is labeled **(unverified)**; our own conclusions are labeled **(ours)**.
 
 **Frame of all coordinates below:** no site source names ME or PA. All are LRO-based, so MOON_ME planetocentric, east-positive is the likely frame **(inferred, not stated)**. Only VIPER (Beyer et al. 2025) names its datum. See [primer.md](primer.md#coordinate-frames-which-one-we-use).
 

@@ -3,7 +3,7 @@
 Raw public data for general preparation. Not processed. Files stay out of git.
 
 - **Machine and root:** ninja's Mac (Guest123), `~/Documents/clps-data/clps/`. ninja chose this Mac as the data computer on 1 Nov 2026.
-- **Selection:** required set from [docs/archive/download-checklist.md](../docs/archive/download-checklist.md), confirmed by ninja on 28 Oct 2026. The optional 10 m pair and PSR map are not included.
+- **Selection:** required set from [docs/archive/download-checklist.md](../archive/download-checklist.md), confirmed by ninja on 28 Oct 2026. The optional 10 m pair and PSR map are not included.
 - **Checks:** every file matches the expected byte size; every SHA-256 was recorded after download and re-verified with `shasum -a 256 -c`; `de440s.bsp` matches NAIF's published MD5. No other file has a published checksum, so its SHA-256 only detects later changes.
 - **Read test:** `LDEM_80S_20MPP_ADJ.TIF` was resumed over several attempts; it opens in rasterio and an overview plus the last tile read. `ldem_875s_5m.img` size equals its label (30336 records x 60672 bytes).
 - **USB stick:** copied on 8 Nov to stick `Ninja` (exFAT, 59 GB) as `clps/`. `shasum -a 256 -c` on ninja's Mac: 21/21 OK.

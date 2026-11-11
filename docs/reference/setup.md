@@ -1,4 +1,88 @@
-# Offline laptop setup — every laptop ready offline
+# What we need
+
+Status: `required` · `optional` · `not needed`.
+
+## Accounts and services
+
+| Item | Status | Why |
+|---|---|---|
+| NASA Space Apps account (each member) | required | Team registration and submission. Each person owns and logs into their own; a device agent may only set up Isaac's |
+| GitHub | required | This repo, code, issues |
+| Vercel or Cloudflare Pages | required | Free static hosting for the demo URL. Device agent creates it with Isaac's email after approval |
+| AI repo agents (Claude Code / Codex / ZCode) | required | Write most scripts, docs and frontend code (see TASKS.md markers). Available: Isaac's Claude account; O has two Claude Max plans |
+| AI device agents with computer use | required | Run on Isaac's computers: browser-only pages, downloads, copying data, creating Isaac's accounts, filling forms (tasks tagged `device`; every such action needs Isaac's approval) |
+| Password manager (Isaac) | required | Where device agents store credentials for accounts they create. Never in the repo or chat |
+| JPL Horizons (web or API) | required | Reference values for validating ephemeris output; no account needed |
+| Cloudflare R2 or GitHub Releases | optional | Hosting precomputed data if it exceeds normal repo size |
+| LLM API key | optional | Only if we add a "explain this site" text feature. Not part of the core challenge. |
+
+## Account register
+
+Accounts that exist for this project. Add a row when one is created. No passwords, tokens or recovery codes here — those live in the owner's password manager.
+
+| Service | Purpose | Owner (whose email) | Created by | Date |
+|---|---|---|---|---|
+| GitHub (account hosting this private repo) | Code, plan, build log; L has access (22 Oct) | Isaac | existing account | — |
+| NASA Space Apps (Isaac) | Team owner; CLPS team registration and submission | Isaac | Isaac (self-registered; see open question on parent registration) | before 10 Oct |
+| NASA Space Apps (O) | Team member | O | O (self-registered) | before 10 Oct |
+| NASA Space Apps (B) | Team member | B | B (self-registered) | before 10 Oct |
+| NASA Space Apps (L) | Team member (joined 22 Oct) | L | L (self-registered) | before 22 Oct |
+| Cloudflare Pages | Free static demo hosting; no deployment yet | ninja (existing personal account; email not recorded) | Existing account, confirmed by ninja | confirmed 6 Nov 2026 |
+
+## Data
+
+| Item | Status | Source |
+|---|---|---|
+| NAIF SPICE kernels (de440s, leap seconds, lunar orientation, PCK) | required | naif.jpl.nasa.gov |
+| LOLA south-pole elevation maps (~20 m/px, 5 m near key sites) | required | pgda.gsfc.nasa.gov (LRO LOLA) |
+| Published south-pole illumination maps | required | pgda.gsfc.nasa.gov, for validation |
+| Site coordinates (Artemis III regions, CLPS polar sites) | required | NASA mission pages, papers |
+| LROC imagery / basemap tiles | optional | Moon Trek / LROC, for a nicer site map |
+| Official challenge resources | optional | Use any sources actually supplied on the challenge page; their absence does not block planning (ninja, 28 Oct) |
+
+## Software
+
+| Item | Status | Use |
+|---|---|---|
+| Python 3.11+ | required | All computation scripts |
+| `spiceypy` | required | Sun/Earth positions in the lunar local frame |
+| `skyfield` | optional | Cross-check for ephemeris |
+| `numpy`, `scipy` | required | Horizon ray casting, interpolation |
+| `rasterio` / GDAL | required | Reading polar stereographic elevation GeoTIFFs |
+| `pyproj` | required | Polar stereographic ↔ lat/lon |
+| `pytest` | required | Tests for ephemeris and horizon scripts |
+| Node.js 20+ | required | Frontend build |
+| Vite + React (or Next.js static export) | required | Frontend |
+| D3 or Plotly | required | Polar sky plot and timeline |
+| MapLibre / Leaflet | optional | Site picker map |
+| Screen recorder (QuickTime / OBS) | required | Demo video |
+| Slides tool | required | Pitch deck |
+
+## Hardware and logistics
+
+| Item | Status | Note |
+|---|---|---|
+| Isaac's data computer | required | All large downloads (elevation tiles, kernels) go here, done by a device agent running on it, only with Isaac's explicit approval |
+| 3 laptops | required | Work machines; only small derived data, copied after approval |
+| Power strip + chargers | required | Organiser (12 Oct): cannot guarantee a socket per device per table — bring strips |
+| USB stick with data + kernels | required | Venue Wi-Fi may fail. Filled from the data computer by a device agent after approval |
+| Sleeping bag + mat for Sat → Sun | required | Decided 26 Oct: the team sleeps at the venue (replaces the 25 Oct hostel plan). No beds provided — everyone brings their own. See docs/reference/decisions.md |
+| Train/car from Stuttgart | required | Arrive before the 8:30 check-in on Sat 14 Nov; overnight per the phase-0 decision. Humans book and pay |
+| Headphones | optional | Focus at the venue. No voice-over in the video (no voices of under-18s in the submission) |
+
+## People and knowledge
+
+| Item | Status | Owner |
+|---|---|---|
+| Someone who can verify orbital/coordinate math | required | Proposed: L (physics, joined 22 Oct), backed by a mentor and hard checks against JPL Horizons / PGDA |
+| Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, L checks the geometry, O reviews the code (see `docs/reference/decisions.md`, team strengths) |
+| Product, UI decisions and pitch | required | Isaac |
+| A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One Betreuer covers our four and a second team (settled 22 Oct); must stay with the team for the whole event incl. overnight (organiser, 12 Oct). Betreuerin: **Dagny Locher** (25 Oct) |
+| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 12 Oct). Isaac decided 25 Oct that this scheme is accepted; no confirmation from Sarah needed |
+
+
+## Offline laptop setup — every laptop ready offline
 
 Repo-only part of the TASKS.md phase-2 task "Every laptop ready offline" (`[AI+H]` `device`).
 Each person runs their OS section on their own laptop (a device agent sets up Isaac's laptop,
@@ -9,13 +93,13 @@ section on a Mac, the Windows 11 section on a PC.
 Boundaries:
 
 - Preparation only: installers and the libraries' own quickstart examples, nothing about our
-  sites, our data or our app (prep rule in [AGENTS.md](../AGENTS.md)). Every example below is
+  sites, our data or our app (prep rule in [AGENTS.md](../../AGENTS.md)). Every example below is
   the library's tutorial example or a trivial variant of it.
 - Do this at home before 13 Nov, on real internet. Downloads per laptop total roughly
   300–500 MB (installers + pip wheels + npm packages + saved doc pages). Not on venue Wi-Fi.
 - `naif0012.tls` (5 KB) is the only data file: the leap-seconds kernel, same one as in the
-  [download-checklist](archive/download-checklist.md); each laptop fetches its own copy in §5.
-- Optional NEEDS.md items (skyfield cross-check, MapLibre/Leaflet site map) are not needed for
+  [download-checklist](../archive/download-checklist.md); each laptop fetches its own copy in §5.
+- Optional docs/reference/setup.md items (skyfield cross-check, MapLibre/Leaflet site map) are not needed for
   this check — the site map is first on the event cut list anyway.
 
 Versions pinned on 2026-10-25, verified read-only via `pip index versions <pkg>` and
@@ -40,14 +124,14 @@ pins; if a newer stable exists on your day, the pinned lines still work.
 | d3 | 7.9.0 | D alternative to Plotly |
 | Claude Code | 2.1.310 | npm global; login needs internet — do it while online |
 
-## 1 — macOS (Homebrew)
+### 1 — macOS (Homebrew)
 
 ```bash
 xcode-select --install          # git via Command Line Tools (or: brew install git)
 brew install python@3.13 node   # node formula = current release (≥ 22.12, satisfies Vite 8)
 brew install --cask visual-studio-code
 
-# verify (new terminal window so PATH is fresh):
+## verify (new terminal window so PATH is fresh):
 python3.13 --version            # expect 3.13.x
 node --version && npm --version # expect v24+ (any ≥ 22.12)
 git --version
@@ -60,10 +144,10 @@ mkdir -p ~/clps-tutorial && cd ~/clps-tutorial
 python3.13 -m venv .venv && source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install spiceypy==8.3.0 numpy==2.5.4 scipy==1.18.1 rasterio==1.5.2 pyproj==3.8.0 pytest==9.1.1
-# optional cross-check only: pip install skyfield==1.55
+## optional cross-check only: pip install skyfield==1.55
 ```
 
-## 2 — Windows 11 (winget)
+### 2 — Windows 11 (winget)
 
 Run in PowerShell. Installers come from winget; no manual PATH editing needed.
 
@@ -90,10 +174,10 @@ py -3.13 -m venv .venv
 .venv\Scripts\activate            # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 python -m pip install --upgrade pip
 pip install spiceypy==8.3.0 numpy==2.5.4 scipy==1.18.1 rasterio==1.5.2 pyproj==3.8.0 pytest==9.1.1
-# optional cross-check only: pip install skyfield==1.55
+## optional cross-check only: pip install skyfield==1.55
 ```
 
-## 3 — Node libraries and Claude Code (everyone; D especially)
+### 3 — Node libraries and Claude Code (everyone; D especially)
 
 The Vite scaffold pulls packages from the npm registry — run it while online. Afterwards
 `node_modules/` is local and `npm run dev` / `npm run build` never touch the network.
@@ -115,7 +199,7 @@ npm install -g @anthropic-ai/claude-code    # 2.1.310 on 2026-10-25
 claude            # log in with the account you will use at the event
 ```
 
-## 4 — Save the tutorial pages offline (per role, from [learning.md](learning.md))
+### 4 — Save the tutorial pages offline (per role, from [learning.md](learning.md))
 
 Same URLs on every OS. macOS/Linux: one wget per page, all small (single page + assets).
 Windows 11: no wget — open each URL and "Save as → Webpage, Complete" (Ctrl+S). react.dev
@@ -150,13 +234,13 @@ $WGET -P d3         https://d3js.org/getting-started
 $WGET -P d3         https://d3js.org/d3-shape/line
 $WGET -P rasterio   https://rasterio.readthedocs.io/en/stable/quickstart.html
 $WGET -P pyproj     https://pyproj4.github.io/pyproj/stable/advanced_examples.html
-# react.dev/learn: browser save-as (Save Page As → Web Page, Complete) — wget renders it poorly
+## react.dev/learn: browser save-as (Save Page As → Web Page, Complete) — wget renders it poorly
 ```
 
 (Commands listed only — nothing was mirrored to write this file. Each page stays in the
 low-single-digit MBs; total well under 100 MB.)
 
-## 5 — Offline self-test (Wi-Fi OFF; per person, in the scratch venv)
+### 5 — Offline self-test (Wi-Fi OFF; per person, in the scratch venv)
 
 One tiny example per library, all taken from the library's own tutorial pages, nothing about
 our app. Preparation (the only online step): put the leap-seconds kernel next to the scripts.
@@ -164,7 +248,7 @@ our app. Preparation (the only online step): put the leap-seconds kernel next to
 ```bash
 cd ~/clps-tutorial        # Windows: cd $env:USERPROFILE\clps-tutorial
 curl -fL -O https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls   # 5 KB
-# now switch Wi-Fi off, activate the venv, and run every file below with: python <file>
+## now switch Wi-Fi off, activate the venv, and run every file below with: python <file>
 ```
 
 `check_spice.py` — spiceypy docs example pattern (furnsh + str2et + et2utc).
@@ -255,7 +339,7 @@ Plotly.newPlot("plot", [{x: [1, 2, 3, 4], y: [10, 15, 13, 17], type: "scatter"}]
   different file in each worktree, commit both, `git merge branch-b` — both branches merged
   without conflict.
 
-## 6 — Printable checklist (10 lines, one per laptop)
+### 6 — Printable checklist (10 lines, one per laptop)
 
 ```
 1. Python 3.12+ installed        python3.13 --version / py -3.13 --version   -> 3.13.x
@@ -270,7 +354,7 @@ Plotly.newPlot("plot", [{x: [1, 2, 3, 4], y: [10, 15, 13, 17], type: "scatter"}]
 10. Wi-Fi OFF: all §5 checks green, doc pages open from disk -> tell Isaac "ready offline"
 ```
 
-## 7 — Ninja's Mac setup, 6 Nov 2026
+### 7 — Ninja's Mac setup, 6 Nov 2026
 
 Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps-offline-prep`, outside this repo:
 

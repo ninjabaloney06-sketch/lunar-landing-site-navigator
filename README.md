@@ -8,23 +8,24 @@ Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.
 
 | Read | Why |
 |---|---|
-| [docs/event-plan.md](docs/event-plan.md) | The weekend hour by hour: checkpoints, build order, cut list |
+| [docs/event/build-plan.md](docs/event/build-plan.md) | What we build and how every part works: architecture, data, horizon method, UI, validation, build order |
+| [docs/event/event-plan.md](docs/event/event-plan.md) | The weekend hour by hour: checkpoints, cut list |
 | [TASKS.md](TASKS.md) | Every task until submission, marked by who does it |
-| `docs/team/<your name>.md` | Your own checklist ([Isaac](docs/team/isaac.md), [Leo](docs/team/leo.md), [Otto](docs/team/otto.md), [Bene](docs/team/bene.md)) |
-| [WHERE-WHEN.md](WHERE-WHEN.md) | Where to be on 14–15 Nov: train, venue |
+| [docs/event/team.md](docs/event/team.md) | Your own checklist (one section per person) |
+| [docs/event/where-when.md](docs/event/where-when.md) | Where to be on 14–15 Nov: train, venue |
 
-Everything else is reference: physics [primer](docs/primer.md), [site sources](docs/sources.md), [data guide](docs/data-guide.md), [existing tools](docs/existing-tools.md), [inspiration](docs/inspiration.md), [past winners](docs/past-winners.md), [laptop setup](docs/offline-setup.md), [learning](docs/learning.md), [NEEDS.md](NEEDS.md), [decisions and reasons](docs/decisions.md), [one-page plan PDF](docs/NASA-Heilbronn-CLPS.pdf). Finished audits and checklists are in [docs/archive/](docs/archive/). Agents read [AGENTS.md](AGENTS.md) and log in [BUILD_LOG.md](BUILD_LOG.md).
+Everything else is reference: physics [primer](docs/reference/primer.md), [site sources](docs/reference/sources.md), [data guide](docs/reference/data-guide.md), [existing tools](docs/reference/existing-tools.md), [inspiration](docs/reference/inspiration.md), [past winners](docs/reference/past-winners.md), [setup and needs](docs/reference/setup.md), [learning](docs/reference/learning.md), [decisions and reasons](docs/reference/decisions.md), [one-page plan PDF](docs/event/NASA-Heilbronn-CLPS.pdf). Finished audits and checklists are in [docs/archive/](docs/archive). Code goes only in `scripts/` and `app/`. Agents read [AGENTS.md](AGENTS.md) and log in [BUILD_LOG.md](BUILD_LOG.md).
 
 ## Challenge in short (checked 11 Nov 2026)
 
 - **Required:** Sun and Earth positions relative to the horizon at a selected landing site on a chosen date.
 - **Optional ("you may consider"):** curated site list and custom coordinates; side-by-side comparison; dates across lunar days and seasons; time left before sunset/Earthset; prominent solar elevation, sunlight duration, Earth visibility windows; 2D map or 3D view; animation or timeline; usable by planners, educators and the public.
 - **User story:** schedules slip, so engineers must quickly check other sites nearby or other dates at the same site. Quickmap, Moon Trek and JPL Horizons are too slow for that.
-- Resources tab opens Fri 13 Nov. Full comparison against our plan: [docs/decisions.md](docs/decisions.md#full-challenge-statement-published-10-nov-2026).
+- Resources tab opens Fri 13 Nov. Full comparison against our plan: [docs/reference/decisions.md](docs/reference/decisions.md#full-challenge-statement-published-10-nov-2026).
 
 ## Rule
 
-Nothing of the project is built before **Sat 14 Nov, 09:00** (official FAQ and Team Formation Guide). Local submission target Sun 15:00, deadline 15:45.
+No code before **Sat 14 Nov, 09:00** (official FAQ and Team Formation Guide). The written build plan is the one exception (ninja, 11 Nov). Local submission target Sun 15:00, deadline 15:45.
 
 ## Task markers
 

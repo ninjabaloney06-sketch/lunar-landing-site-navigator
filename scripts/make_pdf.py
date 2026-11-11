@@ -5,7 +5,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 
-OUT = str(Path(__file__).resolve().parent.parent / "docs" / "NASA-Heilbronn-CLPS.pdf")
+OUT = str(Path(__file__).resolve().parent.parent / "docs" / "event" / "NASA-Heilbronn-CLPS.pdf")
 
 ss = getSampleStyleSheet()
 body = ParagraphStyle("b", parent=ss["Normal"], fontName="Helvetica", fontSize=8.5, leading=11)

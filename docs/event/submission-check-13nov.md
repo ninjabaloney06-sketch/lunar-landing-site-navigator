@@ -1,8 +1,8 @@
 # 13 Nov submission-form check: answer sheet
 
-Template prepared 31 Oct for the phase 2 task "13 Nov: check the actual submission form" (TASKS.md). On 13 Nov the device agent fills it in from the published 2026 guides and the live form, then copies the filled section into [docs/decisions.md](../decisions.md) as "## Submission form and guides checked (13 Nov 2026)". Every answer needs a source link and a quote of 15 words or fewer. "Not stated" is a valid answer.
+Template prepared 31 Oct for the phase 2 task "13 Nov: check the actual submission form" (TASKS.md). On 13 Nov the device agent fills it in from the published 2026 guides and the live form, then copies the filled section into [docs/reference/decisions.md](../reference/decisions.md) as "## Submission form and guides checked (13 Nov 2026)". Every answer needs a source link and a quote of 15 words or fewer. "Not stated" is a valid answer.
 
-Defaults until then come from the 2022 guides ([docs/past-winners.md](../past-winners.md)): [2022 Project Submission Guide](https://spaceapps-prod.s3.amazonaws.com/media/documents/Space_Apps_2022_Project_Submission_Guide.pdf), [2022 Judging & Awards Guide](https://spaceapps-prod.s3.amazonaws.com/media/documents/Space_Apps_2022_Judging_and_Awards_Guide.pdf). On 31 Oct the [Project Submission Guide page](https://www.spaceappschallenge.org/resources/project-submission-guide/) returned "Page Not Found".
+Defaults until then come from the 2022 guides ([docs/reference/past-winners.md](../reference/past-winners.md)): [2022 Project Submission Guide](https://spaceapps-prod.s3.amazonaws.com/media/documents/Space_Apps_2022_Project_Submission_Guide.pdf), [2022 Judging & Awards Guide](https://spaceapps-prod.s3.amazonaws.com/media/documents/Space_Apps_2022_Judging_and_Awards_Guide.pdf). On 31 Oct the [Project Submission Guide page](https://www.spaceappschallenge.org/resources/project-submission-guide/) returned "Page Not Found".
 
 ## Sources found on 13 Nov
 
@@ -31,8 +31,8 @@ Defaults until then come from the 2022 guides ([docs/past-winners.md](../past-wi
 | Final project link | | | |
 | Demo link (video / slides) | | | |
 | Code / repository link | | | |
-| Data and resources used (NASA + other) | | | data/SOURCES.md |
-| SI/AI-use description | | | docs/ai-use-log.md |
+| Data and resources used (NASA + other) | | | docs/reference/data-sources.md |
+| SI/AI-use description | | | docs/event/ai-use-log.md |
 | License | | | |
 | Team members / roles | | | names of minors: check the rules |
 | Tags / award categories | | | |
@@ -51,4 +51,4 @@ Defaults until then come from the 2022 guides ([docs/past-winners.md](../past-wi
 
 ## Consequences for the plan
 
-List each change to TASKS.md / docs/event-plan.md here, then make it. If there are none, write "none".
+List each change to TASKS.md / docs/event/event-plan.md here, then make it. If there are none, write "none".

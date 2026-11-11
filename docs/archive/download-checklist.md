@@ -2,7 +2,7 @@
 
 **Needs Isaac's approval before any download (AGENTS.md).** Every command below runs on the data computer, per action, only after Isaac says yes for that specific item. Nothing in this file has been downloaded; all sizes are HTTP HEAD results.
 
-Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verified every URL 200; deviations from [data-guide.md](../data-guide.md) found on that pass:
+Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verified every URL 200; deviations from [data-guide.md](../reference/data-guide.md) found on that pass:
 
 - The 20 m DEM path in data-guide.md has the wrong case: `.../data/LOLA_20MPP/...` now returns the PGDA "Not Found" page. The working path (linked from [PGDA product 90](https://pgda.gsfc.nasa.gov/products/90)) is lowercase `.../data/LOLA_20mpp/...`.
 - PGDA's own illumination/COG copies (`.../data/MoonIllumination/...`) all returned the PGDA "Not Found" HTML page (HTTP 200, Content-Length 3,789) on 2026-10-25. Download the PDS / MIT mirrors below and re-check the PGDA COG links on download day.
@@ -72,7 +72,7 @@ Optional row (the 5 m grid stops at 87.5°S; the Artemis candidate regions betwe
 | `ldem_85s_10m.img` | [pds.../polar/img/ldem_85s_10m.img](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_85s_10m.img) | 1,840,545,792 | PDS LOLA GDR V2.0 (per label), 85S–90S at 10 m/px | none published | same as 5 m IMG |
 | `ldem_85s_10m.lbl` | [pds.../polar/img/ldem_85s_10m.lbl](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_85s_10m.lbl) | 4,993 | PDS label for the IMG | none published | same as IMG |
 
-Which candidate sites need which grid is Isaac's call at download time (phase 1 site decision, `docs/sources.md`). The 20 m COG alone covers every site coarsely; 10 m and 5 m refine the chosen ones.
+Which candidate sites need which grid is Isaac's call at download time (phase 1 site decision, `docs/reference/sources.md`). The 20 m COG alone covers every site coarsely; 10 m and 5 m refine the chosen ones.
 
 ### 2a. Download + checksum commands (LOLA)
 
@@ -151,7 +151,7 @@ Group 3 total: 499,725,187 bytes (~500 MB); with the optional PSR pair 550,895,8
 
 USB stick needs the same size plus file-system overhead; a 16 GB stick is enough even with all optionals. FAT32 works (largest single file is 2.7 GB < 4 GB limit) but exFAT is safer.
 
-## 5. `data/SOURCES.md` row template (do not create the file here; fill in on the data computer after each download)
+## 5. `docs/reference/data-sources.md` row template (do not create the file here; fill in on the data computer after each download)
 
 One row per downloaded file, then commit the filled file into the repo:
 
@@ -180,5 +180,5 @@ VOL="/Volumes/CLPS_DATA"                     # adjust; on Linux the stick may mo
 cd "$VOL/clps/spice" && shasum -a 256 -c SHA256SUMS.txt
 cd "$VOL/clps/lola" && shasum -a 256 -c SHA256SUMS.txt
 cd "$VOL/clps/illumination" && shasum -a 256 -c SHA256SUMS.txt
-# every line must end ': OK' on the second laptop too; record both runs' output in data/SOURCES.md
+# every line must end ': OK' on the second laptop too; record both runs' output in docs/reference/data-sources.md
 ```

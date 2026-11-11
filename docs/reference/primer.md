@@ -1,6 +1,6 @@
 # Lunar south pole primer
 
-Phase 1 learning material (general preparation only, no project design). Every number below links to its source; the sources were checked to load on 24 Oct 2026 and re-checked on 26 Oct 2026. Lines marked **(derived)** are arithmetic on cited numbers. Audit fixes from [primer-audit.md](archive/primer-audit.md) applied 10 Nov 2026; derived numbers re-computed then and all match.
+Phase 1 learning material (general preparation only, no project design). Every number below links to its source; the sources were checked to load on 24 Oct 2026 and re-checked on 26 Oct 2026. Lines marked **(derived)** are arithmetic on cited numbers. Audit fixes from [primer-audit.md](../archive/primer-audit.md) applied 10 Nov 2026; derived numbers re-computed then and all match.
 
 ## Why lighting is extreme at the poles
 

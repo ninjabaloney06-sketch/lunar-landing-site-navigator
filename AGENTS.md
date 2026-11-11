@@ -4,9 +4,9 @@ Read before doing anything in this repo. Applies to Claude Code, Codex, ZCode an
 
 ## Context
 
-Team plan for NASA Space Apps 2026, challenge **Lunar Landing Site Navigator**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
+Team plan for NASA Space Apps 2026, challenge **Lunar Landing Site Navigator**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/reference/decisions.md`. Background and decisions: [docs/reference/decisions.md](docs/reference/decisions.md). Repo is **private**; never make it public.
 
-28 Oct planning review is complete against the current challenge page and Sarah's 12 Oct email, as ninja instructed. The full statement was published 10 Nov and compared against the plan in `docs/decisions.md`; the Resources tab opens Fri 13 Nov. Do not reopen the review merely because Resources is still empty. Basic site/date comparison is required even when optional views are cut; implement and verify UX-01–05 from `docs/existing-tools.md` during the event, per TASKS.md phases 4–5. No implementation checks have passed yet.
+28 Oct planning review is complete against the current challenge page and Sarah's 12 Oct email, as ninja instructed. The full statement was published 10 Nov and compared against the plan in `docs/reference/decisions.md`; the Resources tab opens Fri 13 Nov. Do not reopen the review merely because Resources is still empty. Basic site/date comparison is required even when optional views are cut; implement and verify UX-01–05 from `docs/reference/existing-tools.md` during the event, per TASKS.md phases 4–5. No implementation checks have passed yet.
 
 ## Two kinds of agent
 
@@ -37,10 +37,13 @@ A device agent states which machine it is on (`data computer`, `Isaac's laptop`,
 
 | Path | Content |
 |---|---|
-| `scripts/` | Python computation and tooling (`ephemeris.py`, `horizon.py`, `windows.py`, `make_pdf.py`) |
-| `tests/` | `pytest` tests for scripts |
-| `data/` | Small derived outputs (site list, horizon profiles JSON). Large raw data (elevation tiles, kernels) stays out of git, on Isaac's data computer; record URL, version, size, checksum and path on the data computer in `data/SOURCES.md` |
-| `docs/` | Primer, validation tables (`docs/validation.md`), decisions, PDF |
+| `scripts/` | All Python: data pipeline (`ephemeris.py`, `horizon.py`, `windows.py`, …), tooling (`make_pdf.py`), tests in `scripts/tests/` |
+| `app/` | The web app (created at the event). Pipeline output goes to `app/public/data/` (small JSON only) |
+| `docs/event/` | Everything for the weekend: build plan, event plan, team checklists, where-when, templates; spec, validation and AI-use log are created here at the event |
+| `docs/reference/` | Background: primer, sources, data guide and raw-data register (`data-sources.md`), existing tools (+ `screenshots/`), decisions |
+| `docs/archive/` | Finished audits and checklists; do not edit |
+
+Code lives only in `scripts/` and `app/`. Keep `docs/event/` and `docs/reference/` small: extend an existing file before adding a new one. Large raw data (elevation tiles, kernels) stays out of git on the data computer; record URL, version, size, checksum and path in `docs/reference/data-sources.md`. `private/` is git-ignored and never committed.
 
 ## Actions that need Isaac's explicit approval
 
@@ -64,17 +67,17 @@ Small text edits inside the repo (code, Markdown, JSON < 10 MB) and reading publ
 - Stop and hand over to Isaac at 2FA, CAPTCHA, ID checks, payment details and legal terms that bind a person (e.g. Space Apps participation terms).
 - Passwords, tokens and recovery codes go into Isaac's password manager, never into the repo, BUILD_LOG, chat or a plain-text file.
 - Each teammate registers and logs in with their own account. A device agent on Isaac's computer acts only as Isaac.
-- Record which accounts exist (service, purpose, owner, no credentials) in [NEEDS.md](NEEDS.md).
+- Record which accounts exist (service, purpose, owner, no credentials) in [docs/reference/setup.md](docs/reference/setup.md).
 
 ## Hard rules
 
 - Every coordinate, number and claim about NASA data needs a source link. No source → don't write it.
 - Physics and coordinate results are not done until S has validated them (`[AI+H]` **S** tasks in phases 1 and 4–5).
-- Nothing of the project itself is built before Sat 14 Nov 2026, 09:00 (participant FAQ, Team Formation Guide, organiser reply of 12 Oct). Before then only general preparation: reading up, learning NASA datasets and existing tools, collecting sources, downloading raw public data, logistics. No project scripts, processed or precomputed project data, app designs or project skeleton before the event. Reasoning: `docs/decisions.md`.
+- Nothing of the project itself is built before Sat 14 Nov 2026, 09:00 (participant FAQ, Team Formation Guide, organiser reply of 12 Oct). Before then only general preparation: reading up, learning NASA datasets and existing tools, collecting sources, downloading raw public data, logistics. No project scripts, processed or precomputed project data, or project skeleton before the event. Exception decided by ninja on 11 Nov: the written build plan `docs/event/build-plan.md` (no code). Reasoning: `docs/reference/decisions.md`.
 - Submission constraints from the official terms that apply to anything agents produce: no photos, voices or recognizable names of anyone under 18 in the demo or submission; cite every source and document the license of every material (NASA can reject or strip awards for missing citations); the submission must describe how AI/SI tools were used. Original content is open source by default (Apache 2.0 if unspecified).
 - No secrets, API keys or personal data in the repo.
-- Keep it simple: static JSON + static frontend. No database, no backend (see NEEDS.md).
+- Keep it simple: static JSON + static frontend. No database, no backend (see docs/reference/setup.md).
 
 ## Regenerating the PDF
 
-`python3 scripts/make_pdf.py` writes `docs/NASA-Heilbronn-CLPS.pdf` (needs `reportlab`). Edit the script, not the PDF.
+`python3 scripts/make_pdf.py` writes `docs/event/NASA-Heilbronn-CLPS.pdf` (needs `reportlab`). Edit the script, not the PDF.

@@ -1,8 +1,8 @@
 # Primer audit (for Leo)
 
-Phase 1 preparation for the two `[AI+H]` **S** tasks in TASKS.md. Prepared by an AI agent on 26 Oct 2026; **Leo signs off**. Nothing in `docs/primer.md` was changed. Leo decides which fixes go in.
+Phase 1 preparation for the two `[AI+H]` **S** tasks in TASKS.md. Prepared by an AI agent on 26 Oct 2026; **Leo signs off**. Nothing in `docs/reference/primer.md` was changed. Leo decides which fixes go in.
 
-**Method.** Every factual claim in `docs/primer.md` (version on `main`, commit `ac17391`) was checked against its cited source. All cited URLs were opened on 26 Oct 2026 and loaded (HTTP 200). For the SVS data file, the agent read the minimum and maximum of each field over all 8,760 hourly 2026 records. That is a reading of NASA's published file, not a calculation for our sites. Quotes are verbatim and at most 15 words long. **(derived)** marks arithmetic on cited numbers that S still has to check.
+**Method.** Every factual claim in `docs/reference/primer.md` (version on `main`, commit `ac17391`) was checked against its cited source. All cited URLs were opened on 26 Oct 2026 and loaded (HTTP 200). For the SVS data file, the agent read the minimum and maximum of each field over all 8,760 hourly 2026 records. That is a reading of NASA's published file, not a calculation for our sites. Quotes are verbatim and at most 15 words long. **(derived)** marks arithmetic on cited numbers that S still has to check.
 
 **Verdicts:** **yes** = the source says it · **partly** = the source supports part of it, or the wording goes beyond the source · **no** = the source does not say it, or no source is cited.
 
@@ -65,7 +65,7 @@ Phase 1 preparation for the two `[AI+H]` **S** tasks in TASKS.md. Prepared by an
 **What our sources use.**
 
 - **LOLA south-pole products:** MOON_ME of DE421. Barker et al. 2023 say the polar products are "centered at the pole in the MOON_ME frame of the JPL ephemeris DE421". [PGDA 90](https://pgda.gsfc.nasa.gov/products/90) says the same: "in the MOON_ME reference frame of the JPL DE421 ephemeris". Heights are relative to a 1737.4 km sphere, and the stereographic projection is true scale at the pole ([PGDA 69](https://pgda.gsfc.nasa.gov/products/69)). The only PA product is the global [PGDA 95](https://pgda.gsfc.nasa.gov/products/95) ("in MOON_PA DE421 frame"), made for geophysics, which we don't need.
-- **Site coordinates in `docs/sources.md`:** *none of the site sources names ME or PA explicitly*. Indirect evidence:
+- **Site coordinates in `docs/reference/sources.md`:** *none of the site sources names ME or PA explicitly*. Indirect evidence:
   - The Artemis region centres ([LPSC 2024 #1775](https://www.hou.usra.edu/meetings/lpsc2024/pdf/1775.pdf)) come from mosaics controlled "to the LOLA reference frame" and projected in "IAU2000:30120" (a south polar stereographic projection on the IAU 2000 Moon sphere).
   - VIPER ([Beyer et al. 2025](https://iopscience.iop.org/article/10.3847/PSJ/ae061a)) uses SPICE and a local stereographic projection on "Moon (2015) - Sphere / Ocentric", which is planetocentric.
   - The LROC IM-1 and IM-2 pages give bare latitude/longitude pairs.
