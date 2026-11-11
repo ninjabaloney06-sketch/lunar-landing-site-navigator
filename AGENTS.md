@@ -6,7 +6,7 @@ Read before doing anything in this repo. Applies to Claude Code, Codex, ZCode an
 
 Team plan for NASA Space Apps 2026, challenge **Lunar Landing Site Navigator**, local event OpenSpace Heilbronn, 14–15 Nov 2026. Team of 4: S (science lead: physics, math, validation), Q (code checks: tests, script review, security), D (frontend and design), I (Isaac: product, integration, data scripts via agents, pitch); roles proposal in `docs/decisions.md`. Background and decisions: [docs/decisions.md](docs/decisions.md). Repo is **private**; never make it public.
 
-28 Oct planning review is complete against the current challenge page and Sarah's 12 Oct email, as ninja instructed. Do not reopen it merely because Resources says "coming soon". Basic site/date comparison is required even when optional views are cut; implement and verify UX-01–05 from `docs/existing-tools.md` during the event, per TASKS.md phases 4–5. No implementation checks have passed yet.
+28 Oct planning review is complete against the current challenge page and Sarah's 12 Oct email, as ninja instructed. The full statement was published 10 Nov and compared against the plan in `docs/decisions.md`; the Resources tab opens Fri 13 Nov. Do not reopen the review merely because Resources is still empty. Basic site/date comparison is required even when optional views are cut; implement and verify UX-01–05 from `docs/existing-tools.md` during the event, per TASKS.md phases 4–5. No implementation checks have passed yet.
 
 ## Two kinds of agent
 

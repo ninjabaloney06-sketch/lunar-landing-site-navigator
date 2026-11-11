@@ -27,7 +27,7 @@ def table(rows):
 
 
 story = [
-    Paragraph("NASA Space Apps 2026 — Heilbronn · CLPS Lunar Mission Browser", title),
+    Paragraph("NASA Space Apps 2026 — Heilbronn · Lunar Landing Site Navigator", title),
 
     Paragraph("EVENT", h),
     table([
@@ -53,7 +53,7 @@ story = [
     table([
         ("Build", "Tool for planners, educators and the public to compare south-pole landing sites and dates, showing Sun and Earth "
                   "relative to the local horizon: solar power potential and direct-to-Earth comms windows."),
-        ("Status", "Official summary only. Full resources expected 28 Oct."),
+        ("Status", "Full statement published 10 Nov. Only required item: Sun + Earth vs. horizon at a chosen site and date. Resources tab opens Fri 13 Nov."),
         ("Core tech", "Ephemeris (SPICE / Skyfield) + horizon masks from LOLA elevation data (NASA PGDA)."),
         ("Main risk", "Terrain horizon, now built at the event. Go / no-go Sat 22:00: fewer validated sites beat many wrong ones."),
         ("Demo", "Pick 2–3 sites + date range: polar sky plot (horizon, Sun/Earth tracks), daily light/comms timeline, power + comms score."),
@@ -79,12 +79,12 @@ story = [
     Paragraph("SOURCES", h),
     table([
         ("Event", "spaceappschallenge.org/2026 · openspace.hn/events · spaceappschallenge.org/legal"),
-        ("Challenge", "spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser"),
+        ("Challenge", "spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator"),
         ("Data", "pgda.gsfc.nasa.gov · naif.jpl.nasa.gov · ssd.jpl.nasa.gov/horizons"),
         ("Awards*", "spaceappschallenge.org/2025/awards — 2025 categories; 2026 unconfirmed."),
     ]),
 ]
 
 SimpleDocTemplate(OUT, pagesize=A4, leftMargin=16 * mm, rightMargin=16 * mm, topMargin=14 * mm, bottomMargin=14 * mm,
-                  title="NASA Space Apps 2026 — Heilbronn CLPS").build(story)
+                  title="NASA Space Apps 2026 — Heilbronn Lunar Landing Site Navigator").build(story)
 print(OUT)

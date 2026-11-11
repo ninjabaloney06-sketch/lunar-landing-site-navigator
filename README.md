@@ -4,6 +4,17 @@ Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.
 
 > Build an intuitive tool that lets mission planners, educators and the public compare lunar south-pole landing sites and dates, visualizing Sun and Earth positions relative to the local horizon to assess solar power potential and direct-to-Earth communication windows.
 
+## Challenge statement (checked 11 Nov 2026)
+
+Full statement published 10 Nov; unchanged on 11 Nov. Details: [docs/decisions.md](docs/decisions.md#full-challenge-statement-published-10-nov-2026).
+
+- **Only required item:** display the Sun and Earth positions relative to the horizon at a selected landing site on a chosen date. Everything else is "you may consider".
+- **Optional objectives:** curated site list (Apollo, CLPS, commercial, other countries) and custom coordinates; side-by-side or sequential comparison; date/time selection across lunar days and seasons; time remaining before sunset/Earthset; solar elevation shown prominently, sunlight duration, Earth visibility windows; 2D maps or 3D views; animations or timelines; usable by planners, educators and the public.
+- **User story:** schedules slip, so engineers must quickly check alternative sites in the same region or alternative dates at the same site. Quickmap, Moon Trek and JPL Horizons are named as too hard for rapid comparison.
+- **Considerations:** Horizons or pre-computed ephemeris, LOLA topography for terrain horizons, no atmospheric refraction, libration, steep south-pole terrain.
+- **Format:** open (web app, mobile app, visualization, game, other). Tags: Advanced, Intermediate · Human Exploration, Moon, Software, Space Exploration.
+- **Resources tab:** "Resources will be available on Friday, November 13." Participant Guides still list no Submission or Judging guide.
+
 ## Files
 
 | File | Content |
