@@ -2,7 +2,7 @@
 
 Agents copy good examples better than they invent — this is what we point them at on Saturday ([TASKS.md](../TASKS.md), phase 1). Copy **form and method only**: nothing of our app is designed or built before Sat 14 Nov 2026, 09:00 (prep rule in [AGENTS.md](../AGENTS.md), reasoning in [decisions.md](decisions.md)).
 
-Site and data-product sources live in `docs/sources.md` and `docs/data-guide.md` (separate task) — this list is about visuals and tools. 18 entries, grouped. Links checked 2026-10-24 with `curl`; entries marked **(unverified)** sit behind bot blocks (WAF / captcha) that curl cannot pass — URL confirmed by web search, browser check still owed. Most tools here are client-side apps: judge them in a browser, not by curl (same as the challenge page).
+Site and data-product sources live in `docs/sources.md` and `docs/data-guide.md` (separate task) — this list is about visuals and tools. 19 entries, grouped. Links checked 2026-10-24 with `curl`; entries marked **(unverified)** sit behind bot blocks (WAF / captcha) that curl cannot pass — URL confirmed by web search, browser check still owed. Most tools here are client-side apps: judge them in a browser, not by curl (same as the challenge page).
 
 ## Saturday shortlist (agreed 8 Nov)
 
@@ -52,6 +52,13 @@ Show the UI agents only these six: sky plot #3, #1, #2; timeline #6, #13; benchm
     The customer side: which CLPS landers fly, to which sites, carrying which payloads. Copy: the mission list as the pool of candidate sites for the demo (checked, sourced coordinates go in `docs/sources.md` — this entry is for knowing the missions).
 18. **ESA Moonlight** — <https://www.esa.int/Applications/Connectivity_and_Secure_Communications/Moonlight>
     ESA's lunar communications and navigation constellation programme. Copy: the comms context — why direct-to-Earth gaps at the poles matter and what relay satellites would change; good pitch background.
+
+## D. 3D viewers (checked 11 Nov in a real browser)
+
+19. **Our Solar System — 3D orrery (Polyxmedia)** — <https://3dsolarsystem.online/viewer/#/iss>
+    Three.js/WebGL 2 orrery: drag to rotate, scroll to zoom, click to select; a time panel (Now, presets, 0.01x–1000x, "drag to move up to a week either way"); a "Walk on the Moon" mode at the Apollo 15 site. Measured on ninja's Mac, 11 Nov: ~96 MB transferred on first load (108 requests, 24 MB ISS model, 8 MB cloud texture), 1.2 MB of JS, canvas rendered at device-pixel-ratio 2.
+    Fit for us: **form only, not data or code.** The page itself says its telemetry is "scene-derived, not JPL Horizons ephemeris yet", so none of its positions may be used or cited; it is a commercial product (paid VR unlock), so no code or assets are reusable. Copy: the time-scrubber panel (drag ± a week, preset jumps, speed buttons) — the closest example yet of the "time scrubber" gap in decisions.md (10 Nov); and drag-to-orbit as the camera control if a 3D view survives the spec interview. Do not copy: the payload — on a weak laptop a 3D view has to stay a few MB (one low-res lunar texture, no models, DPR capped at 1).
+    Out of scope noted on 11 Nov: ninja suggested an "optimal route" between user-entered start and end coordinates. The challenge asks for site and date evaluation (Sun/Earth vs. horizon, power, direct-to-Earth comms), not traverse planning; custom coordinates are already "Not planned" (decisions.md, 10 Nov). Both go to the Saturday 10:30 spec interview as cut-list candidates, not as prep work.
 
 ---
 
