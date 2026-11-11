@@ -140,6 +140,25 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 | Sun 12:00 | Feature freeze — gated by S's 5-value UI spot-check, UX-01–05 acceptance and Q's security check | S + Q | Freeze; bug fixes only | Numeric mismatch, core UX failure or security finding blocks freeze until fixed |
 | Sun 15:00 | Submission form clicked, screenshot saved | I | 45-min buffer before the deadline | Use the buffer to fix and re-submit; escalation at 15:30 latest |
 
+## Build order (ninja, 11 Nov)
+
+Work strictly in order of importance and see how far we get. Two rules:
+
+- **Bug gate:** a step counts as done only when its known bugs are fixed and Leo/Otto have signed off its numbers and code. Nobody starts the next step before that.
+- **Feature stop:** no new features after the feature freeze; only bug fixes.
+
+| Order | Step | Starts when |
+|---|---|---|
+| 1 | Core (required): Sun + Earth vs. terrain horizon in the sky plot, site and date selection, comparison of ≥ 2 sites and ≥ 2 date ranges | Sat 10:30 |
+| 2 | Time left before sunset / Earthset; solar elevation shown large; sunlight hours and Earth-visible windows as numbers | Step 1 passed the bug gate |
+| 3 | Time scrubber over one or more lunar days (form: inspiration #19); dates chosen to show different lunar days and seasons | Step 2 passed |
+| 4 | Side-by-side view; 2D south-pole map as site picker | Step 3 passed and horizon go at 22:00 |
+| 5 | More curated sites beyond the south pole (Apollo, other countries), each with a validated horizon | Step 4 passed |
+| 6 | Light 3D view (one low-res lunar texture, no models, pixel ratio capped at 1) | Step 5 passed |
+| 7 | Custom lat/long input (needs a horizon computed on demand; label the accuracy) | Step 6 passed |
+
+Team laptop model (ThinkPad X1 Carbon Gen 13: Core Ultra 7 256V, Arc 140V, 16 GB) handles a light 3D view, so step 6 is a time question, not a hardware one.
+
 ## Cut list (in order — cut top-down, one checkpoint at a time)
 
 Triggers: a failed checkpoint, or the next block starting with the previous one unfinished.
@@ -151,7 +170,7 @@ Triggers: a failed checkpoint, or the next block starting with the previous one 
 3. **Cut the site map** (site picker map). Trigger: frontend behind schedule Sun ~11:00. A plain
    site list with sources replaces it.
 
-**Not planned at all:** 3D globe, game or first-person view. Three of four past lunar winners had one, but non-winners did too, and our brief is a decision tool ([past-winners.md](past-winners.md), P8).
+**3D view:** step 6 of the build order, only after steps 1–5 pass. No game or first-person view. Three of four past lunar winners had 3D, but non-winners did too, and our brief is a decision tool ([past-winners.md](past-winners.md), P8).
 
 **Never cut: correct combined Sun/Earth output, sky plot + daily timeline, and basic site/date comparison.** Use simple lists/selectors and validated (or clearly labelled published) data. If the data cannot support two sites and two periods, report the remaining challenge gap; do not relabel a single-site fallback as complete. Keep a recorded demo as backup.
 

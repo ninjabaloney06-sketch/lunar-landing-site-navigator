@@ -14,7 +14,7 @@ Boundaries:
 - Do this at home before 13 Nov, on real internet. Downloads per laptop total roughly
   300–500 MB (installers + pip wheels + npm packages + saved doc pages). Not on venue Wi-Fi.
 - `naif0012.tls` (5 KB) is the only data file: the leap-seconds kernel, same one as in the
-  [download-checklist](download-checklist.md); each laptop fetches its own copy in §5.
+  [download-checklist](archive/download-checklist.md); each laptop fetches its own copy in §5.
 - Optional NEEDS.md items (skyfield cross-check, MapLibre/Leaflet site map) are not needed for
   this check — the site map is first on the event cut list anyway.
 

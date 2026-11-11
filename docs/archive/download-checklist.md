@@ -2,7 +2,7 @@
 
 **Needs Isaac's approval before any download (AGENTS.md).** Every command below runs on the data computer, per action, only after Isaac says yes for that specific item. Nothing in this file has been downloaded; all sizes are HTTP HEAD results.
 
-Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verified every URL 200; deviations from [data-guide.md](data-guide.md) found on that pass:
+Content-Lengths recorded 2026-10-25 (CEST) via `curl -sI`. Repo agent re-verified every URL 200; deviations from [data-guide.md](../data-guide.md) found on that pass:
 
 - The 20 m DEM path in data-guide.md has the wrong case: `.../data/LOLA_20MPP/...` now returns the PGDA "Not Found" page. The working path (linked from [PGDA product 90](https://pgda.gsfc.nasa.gov/products/90)) is lowercase `.../data/LOLA_20mpp/...`.
 - PGDA's own illumination/COG copies (`.../data/MoonIllumination/...`) all returned the PGDA "Not Found" HTML page (HTTP 200, Content-Length 3,789) on 2026-10-25. Download the PDS / MIT mirrors below and re-check the PGDA COG links on download day.

@@ -2,7 +2,7 @@
 
 Empty template, prepared 31 Oct. It is process paperwork, not project work. During the event, copy it to `docs/ai-use-log.md` and add a row whenever an AI ("SI") tool produces or changes something that ends up in the project.
 
-Why: the participant FAQ requires the submission to describe how SI tools were used ([docs/decisions.md](../decisions.md), "Official rules read", 16 Oct). NASA's media guidelines add that information incorporated into an LLM may not be attributed directly to NASA, and NASA "strongly encourages AI-generated products maintain a marking" ([docs/sources-audit.md](../sources-audit.md), fix 9). Phase 6 builds the project page's AI-use paragraph from this table.
+Why: the participant FAQ requires the submission to describe how SI tools were used ([docs/decisions.md](../decisions.md), "Official rules read", 16 Oct). NASA's media guidelines add that information incorporated into an LLM may not be attributed directly to NASA, and NASA "strongly encourages AI-generated products maintain a marking" ([docs/archive/sources-audit.md](../archive/sources-audit.md), fix 9). Phase 6 builds the project page's AI-use paragraph from this table.
 
 Rules for filling it in:
 - One row per task or session, not per prompt. Time is local (CET).
