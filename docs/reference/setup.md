@@ -27,7 +27,7 @@ Accounts that exist for this project. Add a row when one is created. No password
 | NASA Space Apps (O) | Team member | O | O (self-registered) | before 10 Oct |
 | NASA Space Apps (B) | Team member | B | B (self-registered) | before 10 Oct |
 | NASA Space Apps (L) | Team member (joined 22 Oct) | L | L (self-registered) | before 22 Oct |
-| Cloudflare Pages | Free static demo hosting; no deployment yet | ninja (existing personal account; email not recorded) | Existing account, confirmed by ninja | confirmed 6 Nov 2026 |
+| Cloudflare Pages | Free static demo hosting. 13 Nov: Worker `digi-works-nasa` serves a placeholder at https://nasa.digi-works.org (custom domain in the digi-works.org zone); the app replaces it from Sat 20:00, see build-plan §5.3 | ninja (existing personal account; email not recorded) | Existing account, confirmed by ninja | confirmed 6 Nov 2026 |
 
 ## Data
 
@@ -366,3 +366,5 @@ Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps-offline-prep`, outside
 - Online preflight passed: library tutorial examples, pytest sample, Vite production build, and saved-doc local resource checks. Ninja then reported the offline check worked and local pages opened in Safari; pasted terminal output confirms Python examples, pytest and Vite build passed. On 8 Nov ninja confirmed React live updates work with Wi-Fi off. **Ninja's laptop preparation is complete**; O/B/L's laptop confirmations remain pending.
 
 Ninja completed the offline React dev-server/live-update check on 8 Nov. Full local handoff: `~/Documents/clps-offline-prep/README.md`.
+
+13 Nov re-check on ninja's Mac: venv still works after Homebrew moved Python to 3.14.10 (library examples + pytest sample pass; run with Wi-Fi on, the Wi-Fi-off run is ninja's via `check-offline.command`); all five SPICE kernels in `~/Documents/clps-data/clps/spice` load with spiceypy. 44 pages added to `~/Documents/clps-offline-prep/docs` for the 13 Nov stack: NAIF frames/time/kernel required reading, two NAIF tutorial PDFs (lunar PCK/FK, frames), 8 CSPICE function pages, 4 rasterio topics, 8 three.js manual + 12 three.js API pages, D3, TypeScript, Playwright; sources and hashes in `docs/manifest.json`. Not offline yet: three.js, D3, TypeScript, Playwright npm packages and Playwright's Chromium (step 0 installs them with venue Wi-Fi).

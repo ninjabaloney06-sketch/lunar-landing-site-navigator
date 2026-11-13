@@ -128,7 +128,7 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 | 09:00–10:30 | I + Q + D, S | Finish required comparison across two sites/two supported date ranges. Run UX-01–05 on desktop and 375 px touch viewport: original question within 60 s, site/date change within 10 s; signed-out, invalid input, failed data load and map unavailable. S verifies numbers; record evidence in docs/event/validation.md. Score/side-by-side only if core checks pass and time remains. |
 | 10:00–11:00 | S + I (agents) + Q | I's agents fix UX-01–05 failures while D finishes the comparison. **S spot-checks 5 UI values against validated scripts; mismatch or a core usability failure blocks freeze.** Q checks secrets/keys/personal data and pinned dependencies. |
 | 10:30 | I + D | **Mentor Round #2 (official, "judge your project")**: a mentor uses the app cold with ninja's demo question and the finder ("the date slipped to Dec — what now?"). Record time-to-answer for UX-01. |
-| 11:00–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to the same URL as Saturday's preview (Vercel / Cloudflare Pages, account created in phase 2), test the URL on a phone in a private window. |
+| 11:00–11:30 | D (device agent on D's/B's machine or Isaac's) | Deploy to the same URL as Saturday's preview (https://nasa.digi-works.org, build-plan §5.3), test the URL on a phone in a private window. |
 | 11:30–12:00 | All | Freeze sweep: console errors, broken links, missing citations visible in the UI. |
 | **12:00 — feature freeze** | All | Only bug fixes after this line. |
 

@@ -26,7 +26,7 @@ raw data (USB / data computer, never in git)
                 ──► scripts/basemap.py   ──► app/public/data/basemap.png         (2D map)
   docs/reference/sources.md ─► scripts/sites.csv ─► scripts/sites.py ─► app/public/data/sites.json
                                                  scripts/periods.py ─► app/public/data/periods.json
-app/ (Vite + React + TypeScript, D3 for SVG, three.js lazy-loaded) ──► Cloudflare Pages
+app/ (Vite + React + TypeScript, D3 for SVG, three.js lazy-loaded) ──► Cloudflare Worker (static assets), nasa.digi-works.org
 ```
 
 **Key design choice: the ephemeris does not depend on the site.** The pipeline stores the Sun and Earth position vectors in the Moon-fixed frame MOON_ME, relative to the Moon's centre, for every 30 minutes from 2026-11-01 to 2030-12-31. The browser turns them into azimuth and elevation for any site in microseconds:
@@ -275,7 +275,18 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 
 - **Stack:** Vite + React + TypeScript + D3 (horizon strip, timeline) + three.js (main view, loaded from the start; postprocessing for bloom). No other 3D framework.
 - **No backend, no accounts, no analytics** (AGENTS.md: static JSON + static frontend).
-- **Deploy:** Cloudflare Pages on ninja's existing account ([setup.md](../reference/setup.md)). Same URL from the first preview (Sat 20:00) to the final build.
+- **Deploy:** Cloudflare Worker with static assets on ninja's existing account ([setup.md](../reference/setup.md)), URL **https://nasa.digi-works.org** (set up 13 Nov; serves a "coming soon" placeholder until the first deploy replaces it). Same URL from the first preview (Sat 20:00) to the final build. In step 0, create `app/wrangler.jsonc` with exactly this content (kept here as text because no project files may exist before Sat 09:00):
+
+  ```jsonc
+  {
+    "name": "digi-works-nasa",
+    "compatibility_date": "2026-11-01",
+    "assets": { "directory": "./dist", "not_found_handling": "single-page-application" },
+    "routes": [{ "pattern": "nasa.digi-works.org", "custom_domain": true }]
+  }
+  ```
+
+  Deploy from `app/`: `npm run build && npx wrangler deploy`. Wrangler is logged in on ninja's Mac via OAuth (no API token). The name must stay `digi-works-nasa`; another name creates a second Worker and the domain will not move.
 
 ### 5.4 The 3D viewer: how we build it, and how agents build it without seeing it
 

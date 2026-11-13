@@ -112,7 +112,7 @@ Track C — frontend (D + agents):
 - [ ] `[AI]` — Glossary in the app (horizon mask, DTE, libration, PSR) in plain language, from the primer.
 - [ ] `[AI+H]` **S** — Spot-check 5 values in the UI against the validated scripts. Any mismatch blocks the freeze.
 - [ ] `[AI+H]` **Q** — Security check before deploy: no secrets, keys or personal data in the repo or the build; dependencies pinned.
-- [ ] `[AI+H]` `device` **D** — Deploy the freeze build to the same URL as Saturday's preview (Vercel / Cloudflare Pages); test the URL on a phone in a private window, without login. (winners P1)
+- [ ] `[AI+H]` `device` **D** — Deploy the freeze build to the same URL as Saturday's preview (https://nasa.digi-works.org, build-plan §5.3); test the URL on a phone in a private window, without login. (winners P1)
 - [ ] `[AI+H]` **I + Q + D** — UX-01–05 acceptance run before 12:00 freeze: fresh signed-out browser, repeat ninja's Connecting Ridge / 14–28 Nov UTC question without instructions; get correct Sun + Earth values, plot and windows within 60 s, then switch site/date and read the updated answer within 10 s. Test desktop and a 375 px touch viewport; verify wrong-observer/invalid-coordinate rejection, data-load failure and usable core results with map unavailable. Record times, failures/fixes and S's numeric sign-off in docs/event/validation.md. Core failures block freeze; cut optional views first.
 - [ ] `[H]` **All** — **Feature freeze 12:00.** Only bug fixes after.
 
