@@ -222,3 +222,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 - Event plan aligned with the official local schedule (Mentor Round #1 11:00, stand-ups 18:00, Mentor Round #2 Sun 10:30, workshop 12:00, submission checkpoint 14:30).
 - **Open, for ninja/Isaac at kickoff:** confirm build-plan §9 items 6–8; whether step 2b ranks above step 3 (recommended: yes, it answers the problem statement directly).
 
+## 3D-first, simple UI (13 Nov 2026)
+
+**DECIDED by ninja, 13 Nov:** "the most simple UI possible but with beautiful 3D", started "from the start", camera free to "move around … to see multiple angles"; bodies limited to what matters ("not like the full solar system but with the necessary planets and suns and moons"). Finder defaults confirmed and adjustable; finder ranks above the scrubber. Plan: [build-plan.md §5.1 and §5.4](../event/build-plan.md#54-the-3d-viewer-how-we-build-it-and-how-agents-build-it-without-seeing-it). Consequences: polar plot and 2D map dropped (globe replaces the map), horizon strip kept for exact values and as the no-WebGL fallback, first-load budget 1.5 → 5 MB, ephemeris gains two quaternions, tests T14–T17, stop rule at Sat 22:00 (T14 red → strip becomes the main view). Textures downloaded 13 Nov on ninja's Mac with ninja's approval ("yes, do now on this laptop"), see data-sources.md.
+

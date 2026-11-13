@@ -48,11 +48,12 @@ Why we can't take a shortcut with Earth's direction: the site sits up to 1737 km
 | Item | Size |
 |---|---|
 | PGDA 60 m illumination crops per curated site (PNG, step 4) | ~20 KB each |
-| One month of ephemeris | ~90 KB raw, ~35 KB gzipped **(derived: 1440 rows × 6 numbers)** |
+| One month of ephemeris | ~210 KB raw, ~80 KB gzipped **(derived: 1440 rows × 14 numbers: two vectors + two quaternions)** |
 | One site horizon | ~10 KB |
 | Coarse DEM | ~4.6 MB, loaded only when a custom site is used |
-| 3D view | three.js, loaded only when the 3D tab opens |
-| Target first load | ≤ 1.5 MB gzipped |
+| 3D assets at first load | Moon colour 4k WebP ~1.5 MB, Moon normal map 2k ~0.8 MB, stars 4k JPG ~1 MB, Earth 2k JPG ~0.4 MB, three.js ~0.2 MB gzipped |
+| Site terrain tile (on fly-in) | 500 × 500 heights Int16 ~0.5 MB + overlay PNG ~0.2 MB |
+| Target first load | ≤ 5 MB gzipped (was 1.5 MB before the 3D-first decision); numbers render before textures finish |
 
 **Code folders (only these two):** `scripts/` (Python pipeline, tests in `scripts/tests/`) and `app/` (frontend). Raw data path comes from the environment variable `CLPS_DATA`: `~/Documents/clps-data/clps` on ninja's Mac, or the USB stick's `clps/` folder elsewhere. Sub-paths are listed in the "Path under root" column of [data-sources.md](../reference/data-sources.md).
 
@@ -98,6 +99,8 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | `frame` | `MOON_ME` |
 | `correction` | `LT+S` (see §4.1, trap 1) |
 | `sun_km`, `earth_km` | `n` × 3 position vectors, Moon centre → body |
+| `q_me_to_j2000` | `n` × 4 quaternion (x, y, z, w), MOON_ME → J2000, from `pxform`; orients the star sphere and the system view (added 13 Nov for 3D) |
+| `q_earth_to_me` | `n` × 4 quaternion, IAU_EARTH → MOON_ME at the light-time-corrected epoch; rotates the Earth texture so the right continent faces the Moon |
 | `kernels` | file names + SHA-256 prefixes from data-sources.md |
 
 **`periods.json`**: preset date ranges with a one-line reason each ("Now", "Best sun season 2027", "Worst sun season 2027", "Best Earth visibility"), produced by `periods.py`.
@@ -214,23 +217,29 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 
 ## 5. App (`app/`)
 
-### 5.1 Layout (one screen, no setup dialogs: UX-02)
+### 5.1 Layout: one 3D screen, almost no UI (ninja, 13 Nov)
+
+**Direction (ninja, 13 Nov):** "the most simple UI possible but with a beautiful 3D viewer", built "from the start", where you "move around … to see multiple angles". It shows only the bodies that matter here (Sun, Earth, Moon, stars), not a full solar system. The 3D scene *is* the answer, not decoration. Full method: §5.4.
 
 ```
-┌ Site: [list ▾ grouped] [map] [lat ___ lon ___ ▸]   Date: [2026-11-14 ▾][12:00 UTC] [presets ▾] [Find dates] [Explain ◻] ┐
-├────────────────────────────────────────────── Numbers ──────────────────────────────────────────────┤
-│ SUN ELEVATION  1.2°   │ SUNSET IN  3 d 04 h │ EARTHSET IN  18 h 20 m │ LIT NOW ●  EARTH NOW ●          │
-├─────────────────────────────────────────── Horizon view ────────────────────────────────────────────┤
-│ panorama: azimuth 0–360° across, elevation −2…+10° up; terrain filled grey; Sun ☉ and Earth ⊕ with    │
-│ their tracks for the selected day; [panorama | polar | 3D] tabs                                     │
-├───────────────────────────────────────────── Timeline ──────────────────────────────────────────────┤
-│ ███ lit  ▒▒▒ Earth  ▓▓▓ both  over the period, cursor = scrubber (drag, ±1 day keys, ▶ 1 h/s…1 d/s)  │
-├──────────────────────────────────────── Compare (step 4) ───────────────────────────────────────────┤
-│ up to 3 sites or 2 periods: same metrics as columns, stacked timelines on one time axis              │
-└ Sources · limits · frame · data versions (always visible footer, UX-04/05) ──────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [⌕ Shackleton Connecting Ridge ▾]        [14 Nov 2026 · 12:00 UTC]          [Find dates] [?] │
+│                                                                                              │
+│                      full-screen 3D: Moon globe → fly to site → stand on it                  │
+│                 Sun and Earth at their true directions; drag = orbit, scroll = zoom          │
+│                                                                                              │
+│                                                        ┌ SUN 1.2° ─ SUNSET IN 3 d 04 h ────┐ │
+│                                                        │ EARTH 4.8° ─ EARTHSET IN 18 h 20 m │ │
+│                                                        └ ● lit   ● Earth in view ──────────┘ │
+├─ horizon strip: azimuth 0–360°, elevation −2…+10°, terrain + Sun ☉ + Earth ⊕ (exact values) ─┤
+│ ▶  ███ lit ▒▒▒ Earth ▓▓▓ both ─────────────●──────────────── timeline / scrubber             │
+└ sources · limits · frame (one line, expands) ────────────────────────────────────────────────┘
 ```
 
-**Why a panorama and not only a polar plot:** at the south pole the Sun stays within about ±1.6° and Earth within about ±7° of the horizon ([primer](../reference/primer.md)). On a standard polar plot that is a thin ring at the edge. Stretching the elevation axis makes the terrain-versus-Sun story readable at a glance. The polar plot stays as the second tab (it is the familiar form, [inspiration](../reference/inspiration.md) #1–3).
+- **Four controls only:** site (search + list, or click on the globe), date/time, Find dates, `?` (Explain). Compare, export and panel type live in a slide-in drawer, not on screen.
+- **The horizon strip stays** under the 3D view: at the pole the Sun stays within ±1.6° of the horizon, too thin to read off a 3D picture. The strip gives exact values on hover/tap (UX-04) and is the full fallback when WebGL fails (UX-03).
+- **Polar plot dropped** (one more view to explain); the strip and the 3D view cover it.
+- **Compare** (step 4): drawer with columns of numbers + stacked timelines; the 3D view shows the selected column.
 
 ### 5.2 Modules
 
@@ -240,24 +249,99 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | `data/` | Load sites, horizons, months of ephemeris on demand, coarse DEM on first custom site; cache | Show loading / error / empty states; never show the previous site's numbers under a new site's name (UX-03) |
 | `state` | Selected sites (1–3), period, cursor time, view tab, explain mode, all in the URL hash | Shareable link reproduces the exact view |
 | `views/Numbers` | The four big values + lit/Earth indicators | Values as text, not colour only |
-| `views/Panorama`, `views/Polar` | D3 SVG sky views, hover/tap shows exact az/el | Touch and mouse both expose values (UX-04) |
+| `views/HorizonStrip` | D3 SVG panorama strip under the 3D view, hover/tap shows exact az/el | Touch and mouse both expose values (UX-04); full fallback without WebGL |
 | `views/Timeline` | Window bars + scrubber; keyboard ←/→ = 30 min, shift = 1 day; play speeds | Scrubber form from [inspiration](../reference/inspiration.md) #19 |
 | `views/Compare` | Columns per site/period, synced cursor | Same scales across columns |
-| `views/Map` | Basemap PNG, site markers, click = custom site | Pure projection maths, no map library; list still works if the map fails (UX-03/04) |
-| `views/View3D` | Local 3D panorama: terrain silhouette ring from `mask` + `mask_dist_km`, Sun and Earth as sprites, drag to orbit (three.js) | Lazy-loaded; no textures, no models; pixel ratio capped at 1; ≥ 30 fps on the team laptop |
+| (map) | Replaced by the 3D globe: site pins, click on the surface = custom site (raycast → lat/lon) | The site list still works if WebGL fails (UX-03/04) |
+| `scene3d/` | The main 3D view, spec in §5.4: system, globe and site levels, camera, assets, debug API | Only consumes MOON_ME vectors from `geometry/`; no hand-written matrices; ≥ 30 fps on the team laptop |
 | `views/CustomSite` | lat/lon input with validation; computes horizon from the coarse DEM in a Web Worker (< 1 s) | Inside 80°S–90°S: "coarse horizon (400 m), typical error X°" with X from V6; outside: flat horizon, "no terrain data"; rejects invalid input, never NaN |
 | `views/Explain` | Toggle: one-sentence caption under each view, glossary (horizon mask, DTE, libration, PSR) from the primer; "vs. Earth" card: Sun's highest elevation here vs. Stuttgart on the same date, day length (29.5 Earth days), no atmosphere | For educators and the public |
 | `views/Finder` | Landing window finder (§4.4): threshold form with mission-planner defaults, list of next 5 windows, "show in compare" button | Same numbers as `windows.py` (V8); explains a miss |
-| `views/Inset` | 4 × 4 km crop of the PGDA 60 m average-illumination map (`avgvisib_85s_060m`) around the site, site dot + region outline; PSR cells (0 % lit) hatched | Answers "why does 500 m matter"; labelled 18.6-year average, Mazarico et al. 2011 |
+| (inset) | The PGDA 60 m average-illumination map becomes an overlay toggle on the 3D site terrain ("% of time lit"), PSR cells hatched | Answers "why does 500 m matter"; labelled 18.6-year average, Mazarico et al. 2011 |
 | `export` | CSV of windows + summaries for the current view, next to "copy link" | For handing numbers to another team |
 
 **Colours:** lit = warm yellow, Earth = blue, both = green, plus pattern fills for colour-blind users. **Dark theme only** (space context, projector-friendly). Fonts: system stack.
 
 ### 5.3 Stack and deploy
 
-- **Stack:** Vite + React + TypeScript + D3 (sky views, timeline). three.js only inside `View3D`.
+- **Stack:** Vite + React + TypeScript + D3 (horizon strip, timeline) + three.js (main view, loaded from the start; postprocessing for bloom). No other 3D framework.
 - **No backend, no accounts, no analytics** (AGENTS.md: static JSON + static frontend).
 - **Deploy:** Cloudflare Pages on ninja's existing account ([setup.md](../reference/setup.md)). Same URL from the first preview (Sat 20:00) to the final build.
+
+### 5.4 The 3D viewer: how we build it, and how agents build it without seeing it
+
+**Goal:** one beautiful, simple 3D scene that is also correct. Every bright thing in it sits where our validated numbers say. Sizes and distances may be compressed for the eye; **directions and angular sizes never are**.
+
+#### What the user sees: three zoom levels, one continuous camera
+
+| Level | Camera | Shows | Purpose |
+|---|---|---|---|
+| **System** | Far out, orbiting the Moon–Earth pair | Sun as glow in its true direction; Earth and Moon (sizes ×N, labelled "sizes enlarged"); Moon's orbit line; stars | Why the Sun circles the pole once a month and Earth barely moves (libration wobble). Educators and public. |
+| **Globe** | 3,000–20,000 km from the Moon's centre | Textured Moon lit by the true Sun direction (terminator correct), site pins, Earth in its true direction, stars | Pick a site (pin or click on the surface → custom lat/lon). Seeing that the pole sits on the terminator *is* the problem statement. |
+| **Site** | Orbit around the site from 50 m to 30 km, plus an **eye-level** button (2 m, drag to look around) | Real LOLA terrain around the site, far horizon ring from the mask, Sun and Earth discs at true angular size, optional "% time lit" overlay | The answer: Sun grazing the ridge, Earth above or below the far rim, shadows sweeping as time plays. "Many angles" (ninja) = orbit + eye level + "look at Sun" / "look at Earth" buttons. |
+
+Double-click a pin → 1.5 s fly-in (eased position + slerped orientation). `Esc` or the back button → fly out. Time play animates all three levels.
+
+#### Frames and scale: why no hand-written matrix is needed
+
+1. **Two scenes, two unit systems** (avoids float precision problems):
+   - *Space scene* (system + globe): origin = Moon centre, axes = MOON_ME, unit = km. Sun and Earth vectors come straight from the ephemeris JSON.
+   - *Site scene*: origin = the site, axes = local east-north-up (ENU), unit = m. Terrain heights within ±10 km stay precise in float32; the space scene at 1737 km would jitter by decimetres.
+   - The fly-in crossfades from space to site scene at ~30 km altitude.
+2. **The only transform we write ourselves** is the ENU basis at a site (east, north, up), already in `geometry/` and tested (T4). In three.js it is one call: `new Matrix4().makeBasis(east, north, up)`. Everything else uses three.js primitives: `position.copy(v)`, `lookAt`, `Quaternion.setFromUnitVectors`, `Quaternion.slerp`. **Rule for agents: no Euler angles, no hand-typed 4×4 matrices, no trigonometry in `scene3d/`**; anything angular goes through `geometry/` and its fixtures.
+3. **True direction, true angular size, compressed distance.** The Sun (1 AU) and the stars would wreck the depth buffer. Each distant body is placed at a display distance `d` along its true unit vector with radius `d × tan(true angular radius)`. On screen this is pixel-identical to the real geometry. Earth in the site scene: true topocentric direction (site vector subtracted, §2) at display distance 50 km. `logarithmicDepthBuffer: true` in the space scene.
+4. **Orientation of the textures:**
+   - Moon texture: equirectangular, longitude 0 at the centre of the image, in MOON_ME (SVS CGI Moon Kit convention; S checks once with a known crater, test T16).
+   - Stars: J2000 equatorial sky map on an inside-out sphere, rotated by `q_me_to_j2000` (inverse) for the current time.
+   - Earth texture: rotated by `q_earth_to_me`, so the continent facing the Moon is right; lit by the Sun direction, so Earth's phase seen from the Moon comes out by itself (and must match T3).
+
+#### Assets (downloaded 13 Nov to `$CLPS_DATA/textures/`, see [data-sources.md](../reference/data-sources.md); processed at the event)
+
+| Asset | Raw file | Event processing (`scripts/textures.py`) | In the app |
+|---|---|---|---|
+| Moon colour | `lroc_color_poles_8k.tif` / `_4k.tif` (LRO WAC, SVS 4720) | → 4096 × 2048 WebP, sRGB | globe base colour |
+| Moon relief | `ldem_16_uint.tif` (LOLA 16 px/deg) | → 2048 × 1024 normal map (no geometry displacement at globe scale: ±10 km on 1737 km is invisible) | globe lighting detail |
+| South-pole cap | LOLA 20 m DEM (already on disk) | hillshade 80–90°S, polar stereographic → spherical-cap mesh over the globe | hides the pole pinching of equirectangular maps exactly where we zoom |
+| Site terrain | LOLA 20 m DEM | `terrain_tiles.py`: 40 × 40 km around each curated site at 80 m → 500 × 500 Int16 heights | site-scene mesh; far ring from `mask` + `mask_dist_km` |
+| Stars | `starmap_2020_4k.exr` (SVS 4851) | tone-map → 4096 × 2048 JPG | sky sphere |
+| Earth | `world.200411.3x5400x2700.jpg` (Blue Marble NG, Nov) | → 2048 × 1024 JPG | Earth sphere + thin atmosphere rim shader |
+| Sun | none | — | emissive disc + bloom |
+
+#### Looks: the recipe for "super beautiful", kept cheap
+
+- One directional light = the Sun; **no ambient light**: lunar shadows are black, which is what makes the Moon look real. Add a faint "earthshine" fill from Earth's direction only.
+- `MeshStandardMaterial`, roughness 1, metalness 0 for regolith; ACES filmic tone mapping, sRGB output.
+- Bloom on the Sun only; Earth gets a 30-line fresnel atmosphere rim; stars dimmed when the camera looks near the Sun.
+- Site scene: one shadow-casting light with a tight shadow camera (4096² map) around the view. **Label: "shadows are visual; lit/dark comes from the validated horizon mask".** Grazing-angle shadow maps are not exact and are never used for numbers.
+- UI on top: dark translucent panels, one typeface, large numbers, nothing else. Bene owns the look.
+- Performance: device-pixel-ratio cap 1.5, MSAA, shadows only in the site scene; target ≥ 30 fps on the ThinkPad (Arc 140V), checked with an fps counter in `?debug=1`.
+
+#### How agents build and check 3D they cannot "see"
+
+The risk with agent-written 3D is a pretty scene that is subtly wrong: a mirrored texture, Sun 90° off, Earth on the wrong side. We remove guesswork in five layers:
+
+1. **Maths outside the renderer.** All positions come from `geometry/`, already proven against Python (T9) and Horizons (V1). `scene3d/` only places objects at given vectors.
+2. **Debug API.** In `?test=1` the page exposes `window.__scene` with: camera pose, world position of every body, `project(name)` → screen pixel, and `setView({site, utc, level, az, el, fov})` for a deterministic camera.
+3. **Numeric screen tests** (Playwright + headless Chromium, fixed 1280 × 720 viewport):
+   - **T14 projection:** eye-level camera looking at the Sun's azimuth; the Sun's projected pixel must match the pinhole projection of the `geometry/` az/el within 1 px. Same for Earth.
+   - **T15 silhouette:** for 8 azimuths, scan the pixel column downward from the top until the first terrain pixel; its elevation angle must match `mask(az)` within the angle of one pixel (~0.05° at 60° field of view).
+   - **T16 orientation:** debug checker texture with labelled meridians; a pin at (0° N, 0° E) must face Earth's mean direction (+x in MOON_ME), a pin at 90° E must sit at +y. Then the real texture: a known crater (Tycho, coordinates from a primary source) lands under its pin.
+   - **T17 occlusion:** at a time when the mask says "Sun below terrain", the Sun pixel must be dark (depth-occluded), and lit when the mask says lit.
+4. **Screenshots the agent reads.** Claude reads images. Every 3D agent loop ends with: take 4 fixed screenshots (system, globe, site orbit, eye level) → read them → check against a written list (horizon level? Sun disc ≈ 0.53° wide? terminator through the sub-solar point? Earth phase matches T3? text readable at 375 px?) → fix → repeat. Bene approves the look; the agent never approves its own look.
+5. **Golden images.** Once Bene approves, the 4 screenshots become golden files; later changes are compared with pixelmatch, and a large difference needs Bene's yes. This keeps one agent's "improvement" from silently breaking another's scene.
+
+**Agent split (disjoint files):** C1 `app/src/scene3d/` (scene, camera, assets, debug API); C2 `app/src/views/` + overlay UI; Track B adds `scripts/textures.py` and `scripts/terrain_tiles.py`; Track A adds the two quaternions to `ephemeris.py`. Otto reviews; Leo checks T14–T17 numbers.
+
+#### Order inside the build steps
+
+| Build step | 3D content | Gate |
+|---|---|---|
+| 1 (Sat) | Globe level: textured Moon lit by the real Sun direction, pins, Earth and Sun at true directions, orbit controls. Site level v1: far horizon ring from the mask + Sun/Earth discs, eye-level and orbit. Horizon strip below. Runs on `fixtures.json` until real data lands. | T14, T16 by Sat 22:00 |
+| 3 | Time play animates every level | T17 |
+| 4 | Real terrain mesh per curated site, "% time lit" overlay, fly-in transitions, globe click → custom site | T15 |
+| 6 | Polish: system level, bloom, Earth atmosphere, oriented stars, shadows, golden images | Bene approves |
+
+**Stop rule:** if T14 is not green by Sat 22:00, the horizon strip becomes the main view and the globe stays as a site picker; the numbers never wait for the visuals.
 
 ---
 
@@ -292,6 +376,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | T11 | Security: no secrets, keys or personal data in the build; dependencies pinned |
 | T12 | Finder: synthetic always-lit site → every candidate passes; always-dark → none, with the failed threshold named; far-side site → Earth threshold fails |
 | T13 | Ray length: a synthetic 5 km cone at 200 km is in the mask (fails with the old 150 km cutoff) |
+| T14–T17 | 3D projection, silhouette, texture orientation, occlusion (§5.4) |
 
 ---
 
@@ -302,20 +387,20 @@ Ships strictly in this order. A step is done only when its bugs are fixed and Le
 | Step | Contents | Owner | Target |
 |---|---|---|---|
 | 0 | Kickoff 10:30: confirm this plan, the 5 decisions in §9, demo owner; copy AI-use log template; app skeleton + LICENSE (Apache 2.0) | I | Sat 11:00 |
-| 1 | Core: §4.1, §4.2, `sites.py`, geometry + Numbers (sun elevation) + Panorama + Timeline (windows) + basic site/date switch for ≥ 2 sites and ≥ 2 periods; first deploy | Tracks A/B/C below | Sat 22:00 |
+| 1 | Core: §4.1, §4.2, `sites.py`, geometry + Numbers (sun elevation) + **3D globe and site view v1 (§5.4)** + horizon strip + Timeline (windows) + basic site/date switch for ≥ 2 sites and ≥ 2 periods; first deploy | Tracks A/B/C below | Sat 22:00 |
 | 2 | Sunset/Earthset countdown, large solar elevation, sunlight hours, Earth windows as numbers; UTC time field | D + I | Sun 08:30 |
 | 2b | **Landing window finder** (§4.4) + V8 — the answer to "the date slipped, what now?" | I + S | Sun 09:00 |
 | 3 | Scrubber with play speeds; periods presets from `periods.py` (seasons); panel-type toggle + "vs. Earth" card (V9) | D + I | Sun 09:30 |
-| 4 | Compare view (3 sites / 2 periods), 2D map with basemap + PSR layer, PGDA 60 m inset per site, CSV export | D + I | Sun 10:30 |
+| 4 | Compare drawer (3 sites / 2 periods), real terrain mesh + "% time lit" overlay with PSR hatching, globe click → custom site, fly-in, CSV export (§5.4) | D + I | Sun 10:30 |
 | 5 | More curated sites: Apollo, Chandrayaan-3, Chang'e 3–6, SLIM, Luna-25, Blue Ghost M1 (flat horizon outside DEM, labelled; far-side explanation) | I + S | Sun 11:00 |
-| 6 | 3D local panorama | D | Sun 11:30 |
+| 6 | 3D polish: system level, bloom, Earth atmosphere, oriented stars, shadows, golden images (§5.4) | D | Sun 11:30 |
 | 7 | Custom lat/long with coarse horizon + V6 accuracy label | I + S | Sun 12:00 |
 
 **Saturday tracks (step 1), disjoint files:**
 
 - **Track A (I + agent):** `ephemeris.py`, `periods.py`, `export_fixtures.py`, `app/src/geometry/`. Leo runs V1, V2.
 - **Track B (Otto + agent):** `horizon.py`, `sites.py`, `coarse_dem.py`, `basemap.py`, `scripts/tests/`. Leo runs V3, V4.
-- **Track C (Bene + agent):** `app/src/views/`, `app/src/data/`, `app/src/state`. Works on `fixtures.json` and a fake horizon until the real data lands (contract §3).
+- **Track C (Bene + two agents):** C1 `app/src/scene3d/` (3D, §5.4); C2 `app/src/views/`, `app/src/data/`, `app/src/state` (overlay UI, strip, timeline). Both work on `fixtures.json` and a fake horizon until the real data lands (contract §3). Track A adds the two quaternions; Track B adds `textures.py` and `terrain_tiles.py`.
 
 **Fallback for step 1 (added 13 Nov):** step 1 has one chain that can sink the demo: ephemeris → horizon → TypeScript geometry → fixture parity (T9) → views. If T9 is not green by **Sat 18:00**, switch to *step 1-lite*: `windows.py` writes per-site time series (az/el, lit, Earth, both, every 30 min) for the preset periods, and the views draw those directly. The TS geometry then becomes the upgrade that unlocks custom sites (7) and the in-browser finder (2b; the finder can also run in Python over presets). Track C builds against the same JSON shape either way.
 
@@ -343,9 +428,11 @@ Model: Opus for pipeline and geometry, Haiku for mechanical UI chores. Two agent
 3. **Light-time correction: LT+S** (Leo confirms against Horizons in V1).
 4. **Primary user: mission planner**, with the Explain toggle for educators and the public.
 5. **Date range: Nov 2026 – Dec 2030** at 30-minute steps.
-6. **Finder defaults** (planner can change them): mission length **14 days**, ≥ **70 %** lit, ≥ **50 %** Earth visible, no blackout > **48 h**, no darkness > **72 h**. Leo proposes final numbers with a one-line reason each.
+6. **Finder defaults — CONFIRMED by ninja 13 Nov, every value adjustable in the UI** (form fields, kept in the URL): mission length **14 days**, ≥ **70 %** lit, ≥ **50 %** Earth visible, no blackout > **48 h**, no darkness > **72 h**. Leo proposes final numbers with a one-line reason each.
 7. **Ray length: 300 km** (was 150 km; plan-review-13nov.md §2).
 8. **Demo site label:** Connecting Ridge = Blue Moon MK1 target; Artemis regions = NASA's 2024 set first.
+9. **CONFIRMED by ninja 13 Nov:** finder (step 2b) ranks above the scrubber (step 3).
+10. **CONFIRMED by ninja 13 Nov:** simplest possible UI around a beautiful 3D viewer with only the bodies that matter (Sun, Earth, Moon, stars), built from step 1, free camera movement for many angles (§5.1, §5.4).
 
 ## 10. Before Saturday (allowed preparation only, no code)
 
