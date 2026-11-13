@@ -16,12 +16,13 @@ Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.
 
 Everything else is reference: physics [primer](docs/reference/primer.md), [site sources](docs/reference/sources.md), [data guide](docs/reference/data-guide.md), [existing tools](docs/reference/existing-tools.md), [inspiration](docs/reference/inspiration.md), [past winners](docs/reference/past-winners.md), [setup and needs](docs/reference/setup.md), [learning](docs/reference/learning.md), [decisions and reasons](docs/reference/decisions.md), [one-page plan PDF](docs/event/NASA-Heilbronn-CLPS.pdf). Finished audits and checklists are in [docs/archive/](docs/archive). Code goes only in `scripts/` and `app/`. Agents read [AGENTS.md](AGENTS.md) and log in [BUILD_LOG.md](BUILD_LOG.md).
 
-## Challenge in short (checked 11 Nov 2026)
+## Challenge in short (checked 11 Nov, re-checked 13 Nov 2026)
 
 - **Required:** Sun and Earth positions relative to the horizon at a selected landing site on a chosen date.
 - **Optional ("you may consider"):** curated site list and custom coordinates; side-by-side comparison; dates across lunar days and seasons; time left before sunset/Earthset; prominent solar elevation, sunlight duration, Earth visibility windows; 2D map or 3D view; animation or timeline; usable by planners, educators and the public.
 - **User story:** schedules slip, so engineers must quickly check other sites nearby or other dates at the same site. Quickmap, Moon Trek and JPL Horizons are too slow for that.
-- Resources tab opens Fri 13 Nov. Full comparison against our plan: [docs/reference/decisions.md](docs/reference/decisions.md#full-challenge-statement-published-10-nov-2026).
+- Resources tab (live 13 Nov): Quickmap, Moon Trek, JPL Horizons, CSA Moon Exploration portal. No datasets beyond what we already hold.
+- **13 Nov fact check and plan holes:** [docs/event/plan-review-13nov.md](docs/event/plan-review-13nov.md) — 2024 Artemis region list, light-time size, 300 km rays, landing window finder, international sites, official schedule.
 
 ## Rule
 

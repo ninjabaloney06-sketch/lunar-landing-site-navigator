@@ -210,3 +210,15 @@ Statement vs. plan (TASKS.md phases 3–6):
 ## Repo layout (11 Nov 2026)
 
 ninja asked for folders people browse to stay minimal. Layout since 11 Nov: code only in `scripts/` and `app/`; `docs/event/` (weekend material), `docs/reference/` (background), `docs/archive/` (finished). The four team files are merged into `docs/event/team.md`; `NEEDS.md` and the offline setup into `docs/reference/setup.md`; `data/SOURCES.md` is now `docs/reference/data-sources.md`; pipeline output goes to `app/public/data/`. `private/` is git-ignored.
+
+## Plan review and fact check (13 Nov 2026)
+
+Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). Applied to build-plan.md, event-plan.md, team.md and TASKS.md the same day (ninja asked for the fact check and for as many challenge objectives as possible in the plan; plan text only, no code before Sat 09:00).
+
+- Curated sites follow NASA's **28 Oct 2024** nine-region set first; 2022-only regions labelled "dropped in 2024"; Connecting Ridge labelled as Blue Moon MK1 target.
+- Light-time effect corrected to ~0.006° (aberration), not 0.07°; LT+S stays to match Horizons.
+- Horizon rays 300 km (was 150 km).
+- New: landing window finder (step 2b), panel-type toggle + "vs. Earth" card, PSR layer + PGDA 60 m inset + CSV export (step 4), international and commercial sites (step 5), UTC time field, step-1-lite fallback if T9 is not green by Sat 18:00.
+- Event plan aligned with the official local schedule (Mentor Round #1 11:00, stand-ups 18:00, Mentor Round #2 Sun 10:30, workshop 12:00, submission checkpoint 14:30).
+- **Open, for ninja/Isaac at kickoff:** confirm build-plan §9 items 6–8; whether step 2b ranks above step 3 (recommended: yes, it answers the problem statement directly).
+

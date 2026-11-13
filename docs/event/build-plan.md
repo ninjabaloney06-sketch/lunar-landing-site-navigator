@@ -1,6 +1,6 @@
 # Build plan — Lunar Landing Site Navigator
 
-What we build, how every part works, in which order, and how we know each part is right. Written 11 Nov 2026 on ninja's decision (see [decisions.md](../reference/decisions.md#build-plan-before-the-event-11-nov-2026)). **No code in here, and no code before Sat 09:00.** Schedule and checkpoints: [event-plan.md](event-plan.md). Physics background: [primer.md](../reference/primer.md).
+What we build, how every part works, in which order, and how we know each part is right. Written 11 Nov 2026 on ninja's decision (see [decisions.md](../reference/decisions.md#build-plan-before-the-event-11-nov-2026)). Updated 13 Nov after the fact check in [plan-review-13nov.md](plan-review-13nov.md) (2024 site list, light-time size, 300 km rays, landing window finder, objective coverage). **No code in here, and no code before Sat 09:00.** Schedule and checkpoints: [event-plan.md](event-plan.md). Physics background: [primer.md](../reference/primer.md).
 
 Numbers marked **(derived)** are our own arithmetic from sourced constants; everything else links to a source.
 
@@ -8,11 +8,11 @@ Numbers marked **(derived)** are our own arithmetic from sourced constants; ever
 
 ## 1. The product in one paragraph
 
-A static web app. Pick a landing site (curated list, map click, or typed lat/long) and a date. The app shows where the Sun and Earth are relative to that site's **real terrain horizon**. It shows the time left until sunset and Earthset, the solar elevation in large type, and windows for light, Earth contact, and both together, for any day from Nov 2026 to Dec 2030. Two or three sites, or two date ranges, sit side by side. Every number carries its source and its limits.
+A static web app. Pick a landing site (curated list, map click, or typed lat/long) and a date. The app shows where the Sun and Earth are relative to that site's **real terrain horizon**. It shows the time left until sunset and Earthset, the solar elevation in large type, and windows for light, Earth contact, and both together, for any day from Nov 2026 to Dec 2030. Two or three sites, or two date ranges, sit side by side. When a date slips, the **landing window finder** lists the next dates that still meet the mission's sunlight and Earth-contact needs. Every number carries its source and its limits.
 
 **Demo question** (from ninja's timed tool run, [existing-tools.md](../reference/existing-tools.md)): *"At Shackleton Connecting Ridge, 14–28 Nov 2026 UTC: when do we have sunlight, when can we talk to Earth, and when both?"* The app answers it in under 60 s, and switching site or date updates the answer in under 10 s (UX-01–05).
 
-**What the app does not do:** route or traverse planning, landing trajectories, atmospheric refraction (the Moon has none).
+**What the app does not do:** route or traverse planning, landing trajectories, atmospheric refraction (the Moon has none), thermal modelling, ground-station (DSN) coverage on Earth. The last two are stated in the limits footer.
 
 ---
 
@@ -47,6 +47,7 @@ Why we can't take a shortcut with Earth's direction: the site sits up to 1737 km
 
 | Item | Size |
 |---|---|
+| PGDA 60 m illumination crops per curated site (PNG, step 4) | ~20 KB each |
 | One month of ephemeris | ~90 KB raw, ~35 KB gzipped **(derived: 1440 rows × 6 numbers)** |
 | One site horizon | ~10 KB |
 | Coarse DEM | ~4.6 MB, loaded only when a custom site is used |
@@ -67,7 +68,9 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 |---|---|
 | `id` | slug, e.g. `connecting-ridge` |
 | `name` | as printed in the source |
-| `group` | `artemis-region`, `clps`, `other-lander`, `apollo` (step 5) |
+| `group` | `artemis-2024` (NASA's nine regions, 28 Oct 2024), `artemis-2022` (dropped in 2024, labelled so), `clps`, `commercial`, `international`, `apollo` (step 5) |
+| `slope_deg` | DEM slope at the site over a 100 m baseline (filled by `horizon.py`; NASA names terrain slope as a region criterion) |
+| `far_side` | `true` if Earth can never rise (sub-Earth longitude ± libration never reaches it); the UI says why |
 | `lat`, `lon` | as quoted by the source |
 | `frame_note` | e.g. "ME inferred, not stated" (from sources.md) |
 | `elev_m` | DEM height at the site (filled by `horizon.py`) |
@@ -83,7 +86,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | `az_step` | 0.5 |
 | `mask` | 720 numbers: terrain elevation angle per azimuth, north = 0, clockwise |
 | `mask_dist_km` | 720 numbers: distance of the blocking terrain (for 3D silhouette and debugging) |
-| `ray_max_km` | 150 |
+| `ray_max_km` | 300 |
 | `truncated` | list of azimuths where the ray left the DEM before `ray_max_km` |
 | `dem` | product ID + DOI (Barker et al. 2023) |
 
@@ -115,7 +118,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 
 **Traps, stated first:**
 
-1. **Light time.** The Sun's light takes ~499 s to arrive. In that time the Moon turns about **0.07° (derived: 360°/29.53 d × 499 s)**, more than our tolerance. Horizons reports apparent positions, so we use correction `LT+S` (light time + stellar aberration) for both bodies. The primer's example uses `NONE`; **Leo confirms `LT+S` against Horizons at 16:00.**
+1. **Light time.** Horizons reports apparent positions, so we use correction `LT+S` (light time + stellar aberration) for both bodies; the primer's example uses `NONE`. **Size (corrected 13 Nov):** the MOON_ME orientation is evaluated at observation time, so the Moon's rotation during the 499 s light time does *not* enter. The real geometric-vs-apparent difference for the Sun is about the aberration, **~0.006° (derived: 30 km/s × 499 s / 1 AU)**; for Earth the two terms nearly cancel (< 0.001°). Both are below our 0.05° tolerance, so LT+S is for matching Horizons exactly, not a make-or-break trap. **Leo confirms `LT+S` against Horizons at 16:00.**
 2. **Frame.** Never IAU_MOON. Name `MOON_ME` explicitly in every call ([primer](../reference/primer.md#coordinate-frames-which-one-we-use)). Before trusting a Horizons comparison, find out which lunar frame Horizons uses for surface observers; a ~0.7 km site offset otherwise looks like an ephemeris error (primer, open item).
 3. **Libration** is included automatically: MOON_ME orientation comes from the DE440 lunar orientation kernel, so Earth's wobble near the horizon is real, not modelled.
 
@@ -136,11 +139,11 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 3. **Rays.** 720 azimuths, 0.5° apart (the Sun's disc is ~0.53° wide **(derived: 2 × 696,000 km / 1 AU)**, so 1° would be too coarse; this replaces the 1° in TASKS.md).
 4. **Samples along each ray.**
    - 20 m steps out to 4 km;
-   - then each step 0.5 % longer than the last, out to 150 km: ~930 samples per ray **(derived)**.
+   - then each step 0.5 % longer than the last, out to 300 km: ~1070 samples per ray **(derived)**. Changed from 150 km on 13 Nov: a 5 km massif clears a flat horizon from ~132 km, and from a site 2 km up the line of sight reaches ~215 km (√(2Rh) per side); Barker et al. use 310 km.
    - Each sample point is the great-circle destination from the site at that azimuth and distance, then converted to DEM x/y.
 5. **Two-level DEM in memory, not 2.7 GB.**
    - Near field (≤ 20 km): a 40 × 40 km window at full 20 m resolution, 2000 × 2000 pixels, ~16 MB.
-   - Far field (20–150 km): the same area read decimated to 160 m/px, ~1900 × 1900 pixels, ~14 MB.
+   - Far field (20–300 km): a 600 × 600 km box (clipped to the DEM) read decimated to 160 m/px, up to ~3750 × 3750 pixels, ~56 MB.
    Read both once per site with windowed reads.
 6. **Elevation angle of each sample.**
    - Target vector P = (1737.4 km + DEM height) × unit vector of the sample.
@@ -149,7 +152,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 7. **Mask.** mask(az) = the maximum angle along the ray. Also keep the distance at which it occurred.
 8. **Edges.** If a sample is outside the DEM or nodata, stop the ray there and add the azimuth to `truncated`. This matters only for sites near 80°S. The UI shows "horizon incomplete in these directions".
 
-**Expected scale:** ~670,000 samples per site **(derived)**, a few seconds with numpy. All curated sites take minutes, so this runs live at the event, not overnight.
+**Expected scale:** ~770,000 samples per site **(derived)**, a few seconds with numpy. All curated sites take minutes, so this runs live at the event, not overnight.
 
 **Done when:** the synthetic tests T5–T7 pass, every curated site has a horizon file, and Leo signs V3 and V4 (§6).
 
@@ -159,7 +162,11 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 - **`basemap.py`:** hillshade of the coarse DEM as a 1024 px PNG in the same polar stereographic grid, so map clicks convert to lat/lon with the same projection maths as the DEM. Optional layer: PGDA average illumination (`avgvisib_85s_060m_201608.img`, cite Mazarico et al. 2011) as a "% time lit" overlay.
 - **`sites.py`:**
   - `scripts/sites.csv` is hand-built from [sources.md](../reference/sources.md): only entries Leo checked, one source URL each.
-  - Start with Connecting Ridge, Connecting Ridge Extension, Peak Near Shackleton, de Gerlache Rim 1 and 2, Faustini Rim A, Haworth, Malapert Massif, Nobile Rim 1 and 2, Leibnitz Beta Plateau, Amundsen Rim, de Gerlache-Kocher Massif, IM-2 actual and intended, VIPER / Mons Mouton, IM-1 actual.
+  - **First, NASA's 2024 set** (`artemis-2024`, 28 Oct 2024 release): Peak near Cabeus B, Haworth, Malapert Massif, Mons Mouton Plateau, Mons Mouton, Nobile Rim 1, Nobile Rim 2, de Gerlache Rim 2, Slater Plain. NASA gives no coordinates; the five that were also in 2022 use the LROC mosaic centres in sources.md; the four new ones need a source (Leo, Fri 13 Nov) or ship without terrain, labelled.
+  - **Then the 2022-only regions** (`artemis-2022`, labelled "dropped in 2024"): Faustini Rim A, Peak Near Shackleton, Connecting Ridge Extension, de Gerlache Rim 1, de Gerlache-Kocher Massif, Leibnitz Beta Plateau, Amundsen Rim.
+  - **Connecting Ridge** (the demo site) is labelled "Blue Moon MK1 target" (`commercial`), not "Artemis region": it is not in the 2024 set.
+  - **Polar landers:** IM-2 actual and intended, VIPER / Mons Mouton, IM-1 actual.
+  - **Step 5, outside the DEM (flat horizon, labelled):** Apollo 11, 12, 14, 15, 16, 17; Chandrayaan-3 (ISRO); Chang'e 3, 4, 5, 6 (CNSA); SLIM (JAXA); Luna-25 target (Roscosmos, crashed); Blue Ghost M1 (CLPS). Coordinates only from primary sources Leo adds to sources.md. Chang'e 4 and 6 are on the far side: Earth never rises, the UI explains why they needed the Queqiao relay. Chandrayaan-3 and Luna-25 (~69°S) lie inside the PGDA 65°S illumination maps on disk: show those averages as context.
   - Nobile Rim 2 (83.95°S) and IM-1 (80.13°S) will have truncated rays: expected, labelled.
 - **`periods.py`:**
   - Finds in 2027: the date of maximum and minimum subsolar latitude (best and worst sun season at the south pole) and the period with the highest share of Earth above the flat horizon.
@@ -174,13 +181,24 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 - Power proxy = fraction, i.e. a vertical, sun-tracking panel. Label it that way.
 
 **Earth.**
-- Angular radius ~0.95° **(derived: 6371 / 384,400 km)**.
+- Angular radius from the actual distance: 0.90°–1.02° **(derived: 6371 km / 406,700–356,400 km)**, ~0.95° on average.
 - *Visible* = any part of the disc above the mask (PGDA definition, [data guide §4](../reference/data-guide.md#4-published-illumination-and-earth-visibility-maps-mazarico-et-al)).
 - Also report the centre elevation above the mask as "link margin".
 
 **Windows.**
 - Find state changes on the 30-minute grid.
 - Refine each change by bisection on the interpolated vectors to ±1 minute.
+
+**Power proxy by panel type** (Explain mode shows why the Moon differs from Earth):
+- vertical, sun-tracking: fraction × 1 (default);
+- horizontal: fraction × sin(elevation) — ~2.6 % at 1.5° elevation;
+- vertical, fixed azimuth: fraction × cos(elevation) × max(0, cos(az − panel_az)).
+
+**Landing window finder** (also mirrored in `app/src/geometry/`):
+- Inputs: site, earliest landing date, latest landing date, mission length (days), thresholds: minimum % lit, minimum % Earth visible, maximum single blackout (hours) and maximum single darkness (hours).
+- For every candidate landing time on a 6-hour grid, evaluate the mission interval on the 30-minute series; keep candidates that pass all thresholds; merge neighbours into windows; rank by % both.
+- Output: the next 5 windows with their numbers, or the nearest miss and which threshold failed.
+- Cost: ≤ 4 years × 4 candidates/day; prefix sums make % lit / % Earth O(1) per candidate, longest-gap checks use precomputed gap lists. Under 1 s in the browser.
 
 **Summaries per site and period:**
 - % lit, % Earth visible, % both;
@@ -199,7 +217,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 ### 5.1 Layout (one screen, no setup dialogs: UX-02)
 
 ```
-┌ Site: [list ▾ grouped] [map] [lat ___ lon ___ ▸]   Date: [2026-11-14 ▾] [presets ▾]   [Explain ◻] ┐
+┌ Site: [list ▾ grouped] [map] [lat ___ lon ___ ▸]   Date: [2026-11-14 ▾][12:00 UTC] [presets ▾] [Find dates] [Explain ◻] ┐
 ├────────────────────────────────────────────── Numbers ──────────────────────────────────────────────┤
 │ SUN ELEVATION  1.2°   │ SUNSET IN  3 d 04 h │ EARTHSET IN  18 h 20 m │ LIT NOW ●  EARTH NOW ●          │
 ├─────────────────────────────────────────── Horizon view ────────────────────────────────────────────┤
@@ -228,7 +246,10 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | `views/Map` | Basemap PNG, site markers, click = custom site | Pure projection maths, no map library; list still works if the map fails (UX-03/04) |
 | `views/View3D` | Local 3D panorama: terrain silhouette ring from `mask` + `mask_dist_km`, Sun and Earth as sprites, drag to orbit (three.js) | Lazy-loaded; no textures, no models; pixel ratio capped at 1; ≥ 30 fps on the team laptop |
 | `views/CustomSite` | lat/lon input with validation; computes horizon from the coarse DEM in a Web Worker (< 1 s) | Inside 80°S–90°S: "coarse horizon (400 m), typical error X°" with X from V6; outside: flat horizon, "no terrain data"; rejects invalid input, never NaN |
-| `views/Explain` | Toggle: one-sentence caption under each view, glossary (horizon mask, DTE, libration, PSR) from the primer | For educators and the public |
+| `views/Explain` | Toggle: one-sentence caption under each view, glossary (horizon mask, DTE, libration, PSR) from the primer; "vs. Earth" card: Sun's highest elevation here vs. Stuttgart on the same date, day length (29.5 Earth days), no atmosphere | For educators and the public |
+| `views/Finder` | Landing window finder (§4.4): threshold form with mission-planner defaults, list of next 5 windows, "show in compare" button | Same numbers as `windows.py` (V8); explains a miss |
+| `views/Inset` | 4 × 4 km crop of the PGDA 60 m average-illumination map (`avgvisib_85s_060m`) around the site, site dot + region outline; PSR cells (0 % lit) hatched | Answers "why does 500 m matter"; labelled 18.6-year average, Mazarico et al. 2011 |
+| `export` | CSV of windows + summaries for the current view, next to "copy link" | For handing numbers to another team |
 
 **Colours:** lit = warm yellow, Earth = blue, both = green, plus pattern fills for colour-blind users. **Dark theme only** (space context, projector-friendly). Fonts: system stack.
 
@@ -251,6 +272,8 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | V5 | Window edges: bisection result vs 1-minute brute force on 3 sites × 3 days | ≤ 1 min | Sun 09:00 |
 | V6 | Coarse (400 m) vs full (20 m) horizon on all curated sites: max and median difference | reported, shown in UI | before step 7 ships |
 | V7 | 5 values read off the UI vs `windows.py` | exact to display precision | Sun 12:00 (freeze gate) |
+| V8 | Landing window finder: 3 sites × 1 threshold set, browser result vs `windows.py` brute force over every 30-min landing time; Leo checks one window by hand on the timeline | same windows, edges ≤ 6 h | Sun 10:00 |
+| V9 | Panel types: horizontal power at a polar site ≈ sin(elevation) of the tracking value; one value by calculator | 3 significant digits | Sun 10:00 |
 
 ---
 
@@ -267,6 +290,8 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | T9 | TypeScript geometry matches `fixtures.json` within 1e-6° |
 | T10 | UI: invalid lat/lon, failed data load and map unavailable still leave a usable core flow (UX-03) |
 | T11 | Security: no secrets, keys or personal data in the build; dependencies pinned |
+| T12 | Finder: synthetic always-lit site → every candidate passes; always-dark → none, with the failed threshold named; far-side site → Earth threshold fails |
+| T13 | Ray length: a synthetic 5 km cone at 200 km is in the mask (fails with the old 150 km cutoff) |
 
 ---
 
@@ -278,10 +303,11 @@ Ships strictly in this order. A step is done only when its bugs are fixed and Le
 |---|---|---|---|
 | 0 | Kickoff 10:30: confirm this plan, the 5 decisions in §9, demo owner; copy AI-use log template; app skeleton + LICENSE (Apache 2.0) | I | Sat 11:00 |
 | 1 | Core: §4.1, §4.2, `sites.py`, geometry + Numbers (sun elevation) + Panorama + Timeline (windows) + basic site/date switch for ≥ 2 sites and ≥ 2 periods; first deploy | Tracks A/B/C below | Sat 22:00 |
-| 2 | Sunset/Earthset countdown, large solar elevation, sunlight hours, Earth windows as numbers | D + I | Sun 08:30 |
-| 3 | Scrubber with play speeds; periods presets from `periods.py` (seasons) | D + I | Sun 09:30 |
-| 4 | Compare view (3 sites / 2 periods), 2D map with basemap | D + I | Sun 10:30 |
-| 5 | More curated sites incl. Apollo (flat horizon outside DEM, labelled) | I + S | Sun 11:00 |
+| 2 | Sunset/Earthset countdown, large solar elevation, sunlight hours, Earth windows as numbers; UTC time field | D + I | Sun 08:30 |
+| 2b | **Landing window finder** (§4.4) + V8 — the answer to "the date slipped, what now?" | I + S | Sun 09:00 |
+| 3 | Scrubber with play speeds; periods presets from `periods.py` (seasons); panel-type toggle + "vs. Earth" card (V9) | D + I | Sun 09:30 |
+| 4 | Compare view (3 sites / 2 periods), 2D map with basemap + PSR layer, PGDA 60 m inset per site, CSV export | D + I | Sun 10:30 |
+| 5 | More curated sites: Apollo, Chandrayaan-3, Chang'e 3–6, SLIM, Luna-25, Blue Ghost M1 (flat horizon outside DEM, labelled; far-side explanation) | I + S | Sun 11:00 |
 | 6 | 3D local panorama | D | Sun 11:30 |
 | 7 | Custom lat/long with coarse horizon + V6 accuracy label | I + S | Sun 12:00 |
 
@@ -290,6 +316,8 @@ Ships strictly in this order. A step is done only when its bugs are fixed and Le
 - **Track A (I + agent):** `ephemeris.py`, `periods.py`, `export_fixtures.py`, `app/src/geometry/`. Leo runs V1, V2.
 - **Track B (Otto + agent):** `horizon.py`, `sites.py`, `coarse_dem.py`, `basemap.py`, `scripts/tests/`. Leo runs V3, V4.
 - **Track C (Bene + agent):** `app/src/views/`, `app/src/data/`, `app/src/state`. Works on `fixtures.json` and a fake horizon until the real data lands (contract §3).
+
+**Fallback for step 1 (added 13 Nov):** step 1 has one chain that can sink the demo: ephemeris → horizon → TypeScript geometry → fixture parity (T9) → views. If T9 is not green by **Sat 18:00**, switch to *step 1-lite*: `windows.py` writes per-site time series (az/el, lit, Earth, both, every 30 min) for the preset periods, and the views draw those directly. The TS geometry then becomes the upgrade that unlocks custom sites (7) and the in-browser finder (2b; the finder can also run in Python over presets). Track C builds against the same JSON shape either way.
 
 **Honest note on speed:** steps 5–7 fit only if steps 1–4 pass their gates on time. If a gate fails, the remaining steps drop. They do not ship half-checked (cut list, [event-plan.md](event-plan.md#cut-list-in-order--cut-top-down-one-checkpoint-at-a-time)).
 
@@ -315,9 +343,12 @@ Model: Opus for pipeline and geometry, Haiku for mechanical UI chores. Two agent
 3. **Light-time correction: LT+S** (Leo confirms against Horizons in V1).
 4. **Primary user: mission planner**, with the Explain toggle for educators and the public.
 5. **Date range: Nov 2026 – Dec 2030** at 30-minute steps.
+6. **Finder defaults** (planner can change them): mission length **14 days**, ≥ **70 %** lit, ≥ **50 %** Earth visible, no blackout > **48 h**, no darkness > **72 h**. Leo proposes final numbers with a one-line reason each.
+7. **Ray length: 300 km** (was 150 km; plan-review-13nov.md §2).
+8. **Demo site label:** Connecting Ridge = Blue Moon MK1 target; Artemis regions = NASA's 2024 set first.
 
 ## 10. Before Saturday (allowed preparation only, no code)
 
-- **Leo:** collect sourced coordinates for the Apollo landing sites (NASA NSSDC pages) and add them to [sources.md](../reference/sources.md). This is source collection, needed for step 5.
+- **Leo:** collect sourced coordinates for the Apollo landing sites (NASA NSSDC pages), for the international and commercial landers in §4.3 (ISRO, CNSA, JAXA, Roscosmos, Firefly/NASA pages or peer-reviewed papers) and for the four 2024-only Artemis regions; add them to [sources.md](../reference/sources.md). This is source collection, needed for steps 1 and 5.
 - **Bene:** check that every team laptop opens a WebGL page smoothly (Arc 140V: expected fine).
 - **Isaac:** 13 Nov submission-form check ([submission-check-13nov.md](submission-check-13nov.md)); read the Resources tab when it opens.
