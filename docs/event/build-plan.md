@@ -223,23 +223,30 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [⌕ Shackleton Connecting Ridge ▾]        [14 Nov 2026 · 12:00 UTC]          [Find dates] [?] │
+│ Connecting Ridge                                                          [Find better dates] │
+│ 14 November 2026, 12:00 UTC                                                                  │
 │                                                                                              │
-│                      full-screen 3D: Moon globe → fly to site → stand on it                  │
-│                 Sun and Earth at their true directions; drag = orbit, scroll = zoom          │
-│                                                                                              │
-│                                                        ┌ SUN 1.2° ─ SUNSET IN 3 d 04 h ────┐ │
-│                                                        │ EARTH 4.8° ─ EARTHSET IN 18 h 20 m │ │
-│                                                        └ ● lit   ● Earth in view ──────────┘ │
-├─ horizon strip: azimuth 0–360°, elevation −2…+10°, terrain + Sun ☉ + Earth ⊕ (exact values) ─┤
-│ ▶  ███ lit ▒▒▒ Earth ▓▓▓ both ─────────────●──────────────── timeline / scrubber             │
-└ sources · limits · frame (one line, expands) ────────────────────────────────────────────────┘
+│              Sun 1.2°                                         Earth 4.8°                     │
+│                ☀                                                 ◐                           │
+│      ~~~~~~~~ real terrain, drag to orbit, scroll to zoom ~~~~~~~~                           │
+│                                   Landing site │ (mast on the exact point, cross on ground)  │
+│ Sunlight for 3 more days.                                                                    │
+│ Earth sets in 18 hours.                                                                      │
+│ Sun   ━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  (cursor │)        │
+│ Earth ━━━                                                    ━━━━━━━━━━━━                    │
+│ 14 Nov      16 Nov      18 Nov      20 Nov      22 Nov      24 Nov      26 Nov      28 Nov   │
+└ Terrain LOLA 20 m · ephemeris JPL DE440 · how this is computed ──────────────────────────────┘
 ```
 
-- **Four controls only:** site (search + list, or click on the globe), date/time, Find dates, `?` (Explain). Compare, export and panel type live in a slide-in drawer, not on screen.
-- **The horizon strip stays** under the 3D view: at the pole the Sun stays within ±1.6° of the horizon, too thin to read off a 3D picture. The strip gives exact values on hover/tap (UX-04) and is the full fallback when WebGL fails (UX-03).
-- **Polar plot dropped** (one more view to explain); the strip and the 3D view cover it.
-- **Compare** (step 4): drawer with columns of numbers + stacked timelines; the 3D view shows the selected column.
+**Revised 13 Nov after ninja's review of a throwaway mockup** ("too AI-slop like", "too many buttons/informations on the main screen"; the mockup itself stays outside the repo). Rules, from ninja's taste book (Ninja-2 `taste-ui-web`, section "AI slop"):
+
+- **Three clickable things on the main screen:** the site name (opens search/list), the date (opens date/time), *Find better dates*. Everything else is direct manipulation or keys: drag = orbit, scroll = zoom, double-click pin = fly to site, `E` eye level, `S`/`T` look at Sun/Earth, space = play, `Esc` = back out to the globe. One "details" drawer (opened from the answer sentence) holds the horizon strip with exact az/el, compare, CSV export and panel type.
+- **One answer in plain words** ("Sunlight for 3 more days. Earth sets in 18 hours.") instead of a readout card. Numbers appear once, on the thing: "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth.
+- **The landing site marker touches the exact point:** a thin mast from the surface point plus a small ground cross, label at the mast top. No floating rings.
+- **No:** frosted-glass pills, icon+label chips, sparkles icons, ALL-CAPS tracked labels, legends or status dots that repeat what the picture shows, a saturated primary button.
+- **Type and colour:** Newsreader (serif) for the place name and the answer, IBM Plex Sans for UI, IBM Plex Mono for numbers; Sun = warm amber, Earth = blue, used the same in scene labels, sentence and timeline; near-black tinted background, a bottom fade only where text needs contrast.
+- **The horizon strip** moves from the main screen into the details drawer; it stays the exact readout (UX-04) and the full fallback without WebGL (UX-03).
+- **Compare** opens in the same drawer: columns of numbers + stacked timelines; the 3D view shows the selected column.
 
 ### 5.2 Modules
 
@@ -313,7 +320,7 @@ Double-click a pin → 1.5 s fly-in (eased position + slerped orientation). `Esc
 - `MeshStandardMaterial`, roughness 1, metalness 0 for regolith; ACES filmic tone mapping, sRGB output.
 - Bloom on the Sun only; Earth gets a 30-line fresnel atmosphere rim; stars dimmed when the camera looks near the Sun.
 - Site scene: one shadow-casting light with a tight shadow camera (4096² map) around the view. **Label: "shadows are visual; lit/dark comes from the validated horizon mask".** Grazing-angle shadow maps are not exact and are never used for numbers.
-- UI on top: dark translucent panels, one typeface, large numbers, nothing else. Bene owns the look.
+- UI on top: no panels, three text controls, one answer sentence, labels on the objects (§5.1). Bene owns the look; the taste rules in §5.1 are the brief.
 - Performance: device-pixel-ratio cap 1.5, MSAA, shadows only in the site scene; target ≥ 30 fps on the ThinkPad (Arc 140V), checked with an fps counter in `?debug=1`.
 
 #### How agents build and check 3D they cannot "see"
@@ -336,7 +343,7 @@ The risk with agent-written 3D is a pretty scene that is subtly wrong: a mirrore
 
 | Build step | 3D content | Gate |
 |---|---|---|
-| 1 (Sat) | Globe level: textured Moon lit by the real Sun direction, pins, Earth and Sun at true directions, orbit controls. Site level v1: far horizon ring from the mask + Sun/Earth discs, eye-level and orbit. Horizon strip below. Runs on `fixtures.json` until real data lands. | T14, T16 by Sat 22:00 |
+| 1 (Sat) | Globe level: textured Moon lit by the real Sun direction, pins, Earth and Sun at true directions, orbit controls. Site level v1: far horizon ring from the mask + Sun/Earth discs, eye-level and orbit. Horizon strip in the details drawer. Runs on `fixtures.json` until real data lands. | T14, T16 by Sat 22:00 |
 | 3 | Time play animates every level | T17 |
 | 4 | Real terrain mesh per curated site, "% time lit" overlay, fly-in transitions, globe click → custom site | T15 |
 | 6 | Polish: system level, bloom, Earth atmosphere, oriented stars, shadows, golden images | Bene approves |
