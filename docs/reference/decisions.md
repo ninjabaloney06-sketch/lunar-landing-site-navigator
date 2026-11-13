@@ -236,3 +236,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 
 **DECIDED by ninja, 13 Nov:** Leo + Isaac sleep 22:00–01:00, Otto + Bene 01:00–04:00. Reason (ninja): Isaac's and Leo's concentration drops after 22:00, Otto and Bene work well late; three hours is accepted, catch-up after the event. Replaces the six-hour baseline of 26 Oct. Plan changes: horizon go/no-go and T14 stop rule 22:00 → 21:30, pitch rehearsal 1 → 21:15, handover 21:40–22:00, Otto + Bene take the official 22:30 wrap-up, Sunday steps start 01:00. Open: Dagny Locher confirms (she stays with the team all night).
 
+
+## Pitch deck drafted before the event (13 Nov 2026)
+
+**DECIDED by ninja, 13 Nov:** draft the full 7-slide backup deck before Saturday (second exception to the pre-event rule, after the build plan). Agent flagged that slides are a judged submission artifact; ninja chose the full deck over an outline only. Limits: problem, timed-tool results, approach and known limits only; every fact about the built app (screenshot, measured error, validated sites, cut features) stays a visible [Sunday] slot in [pitch-outline.md](../event/pitch-outline.md) until it exists. Regenerate with `python3 scripts/make_pitch_pdf.py`.
