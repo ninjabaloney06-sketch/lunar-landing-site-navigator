@@ -9,6 +9,7 @@ Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.
 | Read | Why |
 |---|---|
 | [docs/event/build-plan.md](docs/event/build-plan.md) | What we build and how every part works: architecture, data, horizon method, UI, validation, build order |
+| [docs/event/agent-briefs.md](docs/event/agent-briefs.md) | Copy-paste prompts for Saturday's agents: shared preamble + step 0, tracks A, B, C1 (3D), C2 (screen) |
 | [docs/event/event-plan.md](docs/event/event-plan.md) | The weekend hour by hour: checkpoints, cut list |
 | [TASKS.md](TASKS.md) | Every task until submission, marked by who does it |
 | [docs/event/team.md](docs/event/team.md) | Your own checklist (one section per person) |

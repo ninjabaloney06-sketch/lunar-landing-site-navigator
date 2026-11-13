@@ -20,7 +20,7 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 - [ ] **Hosting account** (Vercel or Cloudflare Pages, free tier), nothing deployed before Saturday.
 - [ ] **Laptop offline-ready** — [docs/reference/setup.md](../reference/setup.md), Wi-Fi-off self-test.
 - [ ] **Walk the team through [build-plan.md](build-plan.md) (~30 min, Thu/Fri)** — everyone reads their sections first; agree the §9 defaults (observer height 2 m, Earth = any part of the disc, LT+S, mission planner, Nov 2026 – Dec 2030) or note objections for the 10:30 kickoff.
-- [ ] **Write the agent briefs for step 1 (§8.1)** — one per track (A ephemeris, B horizon, C frontend) as plain text in your own notes, not in the repo: exact paths, contract section, traps, scope fence, done-when checks. No code.
+- [x] **Write the agent briefs for step 1 (§8.1)** — done 13 Nov in [agent-briefs.md](agent-briefs.md) (plan text, no code; shared preamble + step 0, A, B, C1, C2). Read it once before Saturday; attach the two mockup PNGs from Downloads to C1 and C2.
 - [ ] **Check-in with the team** before the event: learning done, laptops ready, authorisations signed.
 - [ ] **Check actual submission requirements (13 Nov)** — form fields, media format and code-link requirement from the organiser/form; use guides if supplied. Separate from the completed challenge comparison. **13 Nov afternoon:** the 2026 Submission and Judging guides (due 13 Nov per the FAQ) were not on the Resources page yet; recheck Fri night and Sat 08:30. Bring Sarah's 12 Oct email (Betreuerin accepted) on your phone: the FAQ says under-18s need a parent or guardian.
 - [ ] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov (calendar 29 Oct).
