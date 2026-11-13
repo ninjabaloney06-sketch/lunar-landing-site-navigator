@@ -34,8 +34,9 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 | Sat 08:30 | Check in, table, power strips, Wi-Fi. Start the AI-use log (tool, what it did, who ran it). |
 | Sat 10:30 | **Kickoff (~30 min):** confirm [build-plan.md](build-plan.md) and its §9 decisions, name the demo owner. Then step 0: app skeleton, LICENSE, `CLPS_DATA` set on every laptop. You decide. |
 | Sat first 2 h | **Talk to mentors:** what would a judge challenge; someone with lunar/geodesy background for the validation plan; first names of minors in the submission? |
-| Sat 11:00 → 22:00 | **Track A + integration (step 1):** `ephemeris.py` (LT+S, MOON_ME only), `periods.py`, `export_fixtures.py`, `app/src/geometry/` (build plan §4.1, §4.4, §4.5). Hand scripts to Otto for review and to Leo for V1/V2; assign tasks in this file. First deploy by 20:00. |
-| Sat 22:30 | Wrap-up: what works, what gets cut; save morning queue and confirm venue sleep block with the Betreuer. No required human night shift. |
+| Sat 11:00 → 21:30 | **Track A + integration (step 1):** `ephemeris.py` (LT+S, MOON_ME only), `periods.py`, `export_fixtures.py`, `app/src/geometry/` (build plan §4.1, §4.4, §4.5). Hand scripts to Otto for review and to Leo for V1/V2; assign tasks in this file. First deploy by 20:00. |
+| Sat 21:40–22:00 | Handover to Otto + Bene: night queue to the orchestrator, what Otto may approve. **Sleep 22:00–01:00.** |
+| Sun 01:00–04:00 | Merge what Otto reviewed; start Sunday steps 2 and 2b with Leo while Otto + Bene sleep. |
 | Sun 07:30 → 12:00 | **Steps 2–7 in order** (build plan §8), each only after the previous passed the bug gate: integrate Bene's views, run step 5 (more sites) and step 7 (custom lat/long) with Leo. Core windows/summaries/comparison first. With Q + D run UX-01–05: original question ≤60 s, changed site/date ≤10 s, desktop + touch, signed out, map/data failure checks. Record evidence in docs/event/validation.md; S verifies numbers. **Core failures block 12:00 freeze; optional score/layout/map are cut first.** |
 | Sun 12:00 → 15:00 | Project page text (sources + licenses + AI-use description), slides or video (no faces, voices or names of minors), README. **Submit by 15:00** (local deadline 15:45). |
 | Sun 16:00 | Pitch together. |
@@ -92,11 +93,11 @@ The checks are done; you don't need to redo them. But you are the one who answer
 | Sat 10:30 | Kickoff: confirm or change the science defaults in [build-plan.md](build-plan.md) §9 (observer height, Earth visibility definition, LT+S). |
 | Sat 12:30 → 16:00 | **Validate the ephemeris:** you choose 10 sample points (sites and times, including hard cases: Sun on the horizon, Earth at its lowest). You pull the reference values from Horizons by hand; an agent runs our script for the same points and builds the comparison table in `docs/event/validation.md`. Target < 0.05°. You decide pass or fail and hand the reference values to Otto for the unit tests. **Checkpoint 16:00.** |
 | Sat → 20:00 | **V3, horizon geometry:** the synthetic cases (flat sphere → −0.087° for 2 m; one cone of known size) must match within 0.01°. Have the agent explain one real ray in plain words (720 directions, 150 km, curvature, edge truncation) and check it by hand with a calculator. |
-| Sat → 22:00 | **V4:** validate the sites against the PGDA illumination maps: an agent produces our percentages; you judge whether the comparison is like with like (period, disc definition) and whether the ranking matches. Gaps into `docs/event/validation.md`. |
-| Sat 22:00 | **Go / no-go call:** if the horizon masks are not validated, we cut to fewer sites or published data and label it. Your decision on the science. |
+| Sat → 21:30 | **V4:** validate the sites against the PGDA illumination maps: an agent produces our percentages; you judge whether the comparison is like with like (period, disc definition) and whether the ranking matches. Gaps into `docs/event/validation.md`. |
+| Sat 21:30 | **Go / no-go call:** if the horizon masks are not validated, we cut to fewer sites or published data and label it. Your decision on the science. |
 | Sun → 09:00 | **V5, window edges:** our sunrise/sunset/Earthrise/Earthset times vs a 1-minute brute force for 3 sites × 3 days, ≤ 1 min. Approve the wording of the power proxy (visible disc fraction, vertical tracking panel). |
 | Sun → 10:00 | **V8, landing window finder:** the browser finder vs a Python brute force for 3 sites; check one window by eye on the timeline. **V9, panel types:** one horizontal-panel value by calculator (sin of elevation). |
-| Sat → 22:00, Sun | **3D checks T14–T17** (build plan §5.4): the agent shows you the numbers; you compare with the horizon strip and your validation table. T14 red at 22:00 → the strip becomes the main view (stop rule). |
+| Sat → 21:30, Sun | **3D checks T14–T17** (build plan §5.4): the agent shows you the numbers; you compare with the horizon strip and your validation table. T14 red at 21:30 → the strip becomes the main view (stop rule). |
 | Sun → 11:30 | **Steps 5 and 7:** check every new site's source (step 5) and the coarse-vs-full horizon error table (V6) before custom lat/long ships (step 7). |
 | Sun before 12:00 | **V7: spot-check 5 values in the UI** against your Saturday validation table. Any mismatch blocks the freeze. |
 | Sun 16:00 | Pitch together; you answer the physics questions from the judges. |
@@ -129,7 +130,7 @@ You read the code line by line. Nothing an agent writes goes in without your rev
 | When | Task |
 |---|---|
 | Sat 10:30 | Kickoff: confirm the data contracts in [build-plan.md](build-plan.md) §3 are testable as written. |
-| Sat 11:00 → 22:00 | **Track B (step 1):** run the agent on `horizon.py`, `sites.py`, `coarse_dem.py`, `basemap.py` (build plan §4.2–4.3); tests T4–T8 first, then hand Leo V3/V4 by 20:00/22:00. |
+| Sat 11:00 → 21:30 | **Track B (step 1):** run the agent on `horizon.py`, `sites.py`, `coarse_dem.py`, `basemap.py` (build plan §4.2–4.3); tests T4–T8 first, then hand Leo V3/V4 by 20:00/21:30. |
 | Sat 11:00 → 16:00 | **Unit tests T1–T3 + UX-01:** geometry expectations from Leo; lunar observer/Sun/Earth metadata and az/el output checks. Reject Ohio/geocentre or RA/Dec-only reference results before validation. Review tests and ephemeris script; S signs reference setup. |
 | Sat afternoon/evening | **Review every agent-written script** (Track A's ephemeris and geometry too) before it is merged; T9 (TypeScript matches `fixtures.json`) must pass before the 20:00 deploy. |
 | Sun morning | Review `windows.py`; for each of steps 2–7 run the bug gate: known bugs fixed, tests green, then the next step may start. T10 (invalid input, failed load, map unavailable) before step 7 ships. |
@@ -169,7 +170,7 @@ You don't need to learn React or a chart library: the agents write the code, you
 |---|---|
 | Sat 10:30 | Kickoff: confirm the layout in [build-plan.md](build-plan.md) §5.1. Read [UX-01–05](../reference/existing-tools.md#product-follow-through--28-oct-2026). You decide the look. |
 | Sat 11:00 → | **Track C (step 1), UX-02/03 app shell:** `app/src/views/`, `data/`, `state` on `fixtures.json` until real data lands; obvious site/date controls, signed-out access, usable site list when map is unavailable, clear loading/error/invalid-input behavior. Show agents your references; use your data-viz checklist. |
-| Sat 11:00 → 22:00 | **Track C1, 3D (step 1, §5.4):** direct the 3D agent on `app/src/scene3d/`: globe lit by the real Sun, pins, Earth and Sun at true directions, site view v1 (horizon ring + Sun/Earth discs, eye level + orbit). After every agent loop, look at its 4 screenshots and give one precise fix. Approve the look; your approved shots become the golden images. |
+| Sat 11:00 → 21:30 | **Track C1, 3D (step 1, §5.4):** direct the 3D agent on `app/src/scene3d/`: globe lit by the real Sun, pins, Earth and Sun at true directions, site view v1 (horizon ring + Sun/Earth discs, eye level + orbit). After every agent loop, look at its 4 screenshots and give one precise fix. Approve the look; your approved shots become the golden images. |
 | Sat → 20:00 | **Numbers, panorama + polar sky views, timeline:** terrain outline, Sun and Earth tracks, solar elevation as a number. **Checkpoint 20:00: sky views with real ephemeris data.** |
 | Sun morning | **UX-04/05:** daily windows + numeric az/el for both bodies, touch-readable values, site/UTC/source labels; basic switching between two validated sites and two supported periods is required. |
 | Sat (step 1) | Site menu per build-plan §5.1 with coordinates under the site name and the "Your points" group (your request, 13 Nov); "Add a point" stays disabled until step 7 passes. |

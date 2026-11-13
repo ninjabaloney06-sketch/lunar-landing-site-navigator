@@ -89,14 +89,14 @@ Track B — terrain horizon (Q + agents, S validates):
 - [ ] `[AI]` — `app/public/data/sites.json` from `docs/reference/sources.md` (only checked entries, with source link per site).
 - [ ] `[AI]` — `scripts/horizon.py`: for a site, cast rays in 720 directions (0.5° steps) out to 300 km (build plan §4.2, changed 13 Nov) over the LOLA tiles; maximum terrain elevation angle including lunar curvature; vectorised with numpy; profiles cached as JSON.
 - [ ] `[AI+H]` **S** — Validate terrain/window results using compatible reference periods and visibility definitions; do not compare a 14-day Earth-centre result directly with 18.6-year any-disc averages. Check DEM frame/height scaling and sensitivity to horizon ray distance; published averages are a contextual cross-check unless definitions match. Document evidence and limitations in docs/event/validation.md (see data-guide.md, 28 Oct review).
-- [ ] `[H]` **All** — **Go / no-go 22:00:** if horizon masks are not validated, cut to fewer sites or published data and label it clearly, rather than show wrong numbers.
+- [ ] `[H]` **All** — **Go / no-go 21:30:** if horizon masks are not validated, cut to fewer sites or published data and label it clearly, rather than show wrong numbers.
 
 Track C — frontend (D + agents):
 - [ ] `[AI+H]` **D** — UX-02/03: app shell with visible site and supported-date controls, curated named lunar sites, labelled lat/lon and UTC; no account, hidden tool menu or output-column setup for the core answer. Use a site list if the map fails/is cut; a south-pole map must reach every offered site. Reject invalid/out-of-coverage selections, show loading/error/empty states, and never show stale results as the newly selected site/date. D reviews in browser.
 - [ ] `[AI+H]` **D** — Polar sky plot: horizon outline, Sun and Earth tracks. Isaac checks it against a known case. **Checkpoint 20:00: sky plot with real ephemeris data.**
 - [ ] `[AI+H]` `device` **D** — First public preview by the 20:00 checkpoint: deploy the current static build (hosting account from phase 2), with no login and no secrets (Q glances at the build first). Done when the URL opens in a private window on a phone and shows the sky plot. The Sunday deploy then only updates it. (winners P1)
 - [ ] `[H]` **Demo owner** — After each passed checkpoint (Sat 20:00, Sun 12:00), record a 10–20 s screen clip of the real app answering the spec question. Clips stay on the laptop, not in git (size rule). Done when at least one clip of real data exists before Sunday 12:00. (winners P6)
-- [ ] `[H]` **All** — 22:30 wrap-up: what works, what gets cut; save the morning queue. Confirm venue sleep hours with the Betreuer, at least 6 hours each. No required human night shift; see docs/event/event-plan.md. Tired people ship wrong numbers.
+- [ ] `[H]` **All** — 22:30 wrap-up: what works, what gets cut; save the morning queue. Sleep shifts (ninja, 13 Nov): Leo + Isaac 22:00–01:00, Otto + Bene 01:00–04:00; Otto + Bene attend this wrap-up; Dagny confirms. No required human night shift; see docs/event/event-plan.md. Tired people ship wrong numbers.
 
 ## Phase 5 — Sunday build: windows, views, deploy (Sun 07:30 → 12:00)
 
@@ -104,11 +104,11 @@ Track C — frontend (D + agents):
 - [ ] `[AI]` — Summaries: % time lit, % time Earth visible, longest darkness, longest comms blackout, overlapping windows. Export static JSON per site.
 - [ ] `[AI+H]` **D** — UX-04/05: daily timeline (lit / Earth visible / both), Sun + Earth together with numeric azimuth/elevation in degrees for the selected UTC time, and summaries visible without reading raw tables. Touch and mouse must both expose the values. Show selected site/coordinates, period, sources and terrain/model limitations beside the results.
 - [ ] `[AI+H]` **D + I** — Required basic comparison: switch between at least two validated sites for the same supported period, and two supported periods for the same site; keep result labels and numeric scales comparable. A list/select control is sufficient. This capability stays when score, side-by-side layout or map is cut; fewer than two supported sites/periods is a documented challenge gap, not a complete fallback.
-- [ ] `[AI+H]` **D** — 3D viewer as the main screen from step 1 (build plan §5.4): globe + site view v1 Saturday (T14, T16), time play (T17), terrain mesh + overlay (T15), polish step 6. Stop rule: T14 red at Sat 22:00 → horizon strip becomes the main view.
+- [ ] `[AI+H]` **D** — 3D viewer as the main screen from step 1 (build plan §5.4): globe + site view v1 Saturday (T14, T16), time play (T17), terrain mesh + overlay (T15), polish step 6. Stop rule: T14 red at Sat 21:30 → horizon strip becomes the main view.
 - [ ] `[AI+H]` **I + S** — Landing window finder (build plan §4.4, step 2b): site + earliest date + mission length + thresholds → next 5 landing windows or the nearest miss. Validated by V8 (Leo). Answers the challenge's "schedule slipped" scenario.
 - [ ] `[AI+H]` **D** — Panel-type toggle and "vs. Earth" card (step 3, V9); PSR layer on the map, PGDA 60 m inset per site, CSV export (step 4).
 - [ ] `[AI+H]` **S** — Optional power-and-comms score, explainable in one sentence and approved by S; only after required site/date comparison and UX-01–05 pass.
-- [ ] `[AI+H]` **D** — Optional side-by-side view of 2–3 validated sites, only if 20:00 and 22:00 checkpoints passed. Add a score only after S approves its formula; basic site/date comparison does not depend on this enhancement.
+- [ ] `[AI+H]` **D** — Optional side-by-side view of 2–3 validated sites, only if 20:00 and 21:30 checkpoints passed. Add a score only after S approves its formula; basic site/date comparison does not depend on this enhancement.
 - [ ] `[AI]` — Glossary in the app (horizon mask, DTE, libration, PSR) in plain language, from the primer.
 - [ ] `[AI+H]` **S** — Spot-check 5 values in the UI against the validated scripts. Any mismatch blocks the freeze.
 - [ ] `[AI+H]` **Q** — Security check before deploy: no secrets, keys or personal data in the repo or the build; dependencies pinned.

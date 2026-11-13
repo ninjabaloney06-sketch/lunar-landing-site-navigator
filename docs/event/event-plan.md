@@ -23,7 +23,7 @@ no app designs in here — those are decided at the event (prep rule).
   13:15 submission sprint, **14:30 submission checkpoint**, 15:00 pitch rehearsals, **15:45 deadline**,
   16:00 pitches + live judging, 17:30 deliberation, 18:00 awards.
 - Four checkpoints guard the build: Sat **16:00** (ephemeris validated), Sat **20:00** (sky plot with
-  real ephemeris), Sat **22:00** (horizon go/no-go), Sun **12:00** (feature freeze). Submission checkpoint:
+  real ephemeris), Sat **21:30** (horizon go/no-go), Sun **12:00** (feature freeze). Submission checkpoint:
   Sun **15:00** (form submitted).
 - Compliance during the build (decisions.md, "Official rules read"): keep the AI/SI-use log running
   from the first hour (tool, what it did, who ran it — the submission must describe it); cite every
@@ -37,7 +37,7 @@ Mapping from decisions.md ("Roles agreed and sleeping at the venue", 26 Oct): S 
 
 | Role | Owns | Person |
 |---|---|---|
-| **S** — science lead | coordinate frames, ephemeris + horizon validation (Horizons, PGDA), score formula, science call at 22:00, physics Q&A in pitch | L |
+| **S** — science lead | coordinate frames, ephemeris + horizon validation (Horizons, PGDA), score formula, science call at 21:30, physics Q&A in pitch | L |
 | **Q** — code checks | unit tests, review of agent-written scripts, security check before deploy; drives the Track B (horizon) agents on Saturday | O |
 | **D** — frontend + design | app shell, site picker, sky plot, timeline, comparison view, deploy | B |
 | **I** — Isaac | product, spec, integration, agent orchestration, submission form, pitch | Isaac |
@@ -50,7 +50,7 @@ reviews — S signs every number that reaches the UI.
 
 **Decided 26 Oct:** the whole team stays at the venue with Dagny Locher; everyone brings a sleeping bag and mat. This replaces the hostel plan. Sarah requires the accompanying adult to stay with the participants throughout, including overnight; she does not require two teammates to keep working.
 
-Proposed baseline for the team/Betreuer to confirm: all sleep 23:00–06:45, so everyone gets at least six hours. No deliverable or Sunday checkpoint depends on a human night shift. After the 22:30 wrap-up, save inputs, commits and the morning queue; the 07:30 phase-5 block resumes from there. If the team chooses shifts, preserve six hours per person and the adult's presence; do not rely on the earlier 2 h 45 sleep arrangement.
+**DECIDED by ninja, 13 Nov: sleep in two batches.** Leo + Isaac sleep **22:00–01:00**, Otto + Bene sleep **01:00–04:00** (Isaac and Leo concentrate badly after 22:00; Otto and Bene work well late). This replaces the 26 Oct six-hour baseline; ninja accepts the shorter sleep and plans to catch up after the event. Consequences in the timeline below: go/no-go moved to 21:30, handover 21:40–21:30, Otto and Bene take the official 22:30 wrap-up, Sunday work starts at 01:00. The Betreuerin (Dagny Locher) must confirm, since she stays with the team all night.
 
 ## Food and breaks
 
@@ -97,24 +97,26 @@ don't eat. Every block ends with the output committed so the next block builds o
 | 14:30–16:00 | Q writes geometry tests plus UX-01 observer/target/output regressions; S verifies the lunar reference metadata and 10 sample points against Horizons (< 0.05°), recording evidence in `docs/event/validation.md` | `horizon.py` runs end-to-end on one site; Earth phase + Sun–Earth separation output added to A | Sky plot frame: horizon outline rendering, placeholder tracks |
 | **16:00 — checkpoint 1** | **S: ephemeris validated?** Pass → real ephemeris JSON feeds the sky plot. Fail → pivot to a published-table subset, clearly labelled; I + S decide by 16:30, agents re-tasked. | geometry re-checked by S (curvature, ray length, Sun as 0.5° disk) | plug real ephemeris into the sky plot |
 | 16:00–18:00 | Sun–Earth separation + phase output finished; agents freeze A unless bugs surface | ray casting vectorised + cached for all candidate sites; performance pass | Sun/Earth tracks live in the sky plot |
-| 18:00 | All, I speaks | **Official 60-second stand-up:** what works, what the 22:00 call decides, one ask for mentors. Prepare the 3 sentences at 17:45. | | |
+| 18:00 | All, I speaks | **Official 60-second stand-up:** what works, what the 21:30 call decides, one ask for mentors. Prepare the 3 sentences at 17:45. | | |
 | 18:45–19:30 | Dinner, all four, rotating (venue schedule) | | |
-| 19:00–20:00 | A on standby for B/C integration questions | S validates horizon/window results with compatible periods and disc/centre definitions; long-term PGDA averages alone cannot validate a short window. Record evidence in `docs/event/validation.md`; Q reviews `horizon.py` | **20:00 — checkpoint 2: sky plot with real ephemeris data.** Isaac checks it against a known case. Pass (together with 22:00) → optional side-by-side view unlocked; basic site/date comparison remains required. Then D deploys a public no-login preview (private-window phone check) and the demo owner records a 10–20 s clip. |
-| 20:00–21:45 | Bugfix queue from C; A supports B | finish PGDA comparison; prepare the 22:00 evidence pack (validation tables) | polish sky plot; start timeline scaffolding |
-| 21:45–22:00 | All — pitch rehearsal 1 with a timer: demo story, what exists so far, what each judge question gets for an answer | | |
-| **22:00 — go/no-go** | **S makes the science call: are horizon masks validated?** Pass → full site set. Partial → fewer sites, labelled. Fail → published data, clearly labelled — wrong numbers never ship (decisions.md). Also fixes optional scope (side-by-side view needs 20:00 + 22:00 passed); fewer than two validated sites leaves an explicit challenge gap. | | |
-| 22:00–22:30 | All — day-1 wrap-up (venue schedule): what works, what gets cut (cut list below), Sunday block assignments and the saved morning queue | | |
-| 22:45 | Save work; prepare for sleep with the Betreuer. No required night shift (see sleep plan). | | |
+| 19:00–20:00 | A on standby for B/C integration questions | S validates horizon/window results with compatible periods and disc/centre definitions; long-term PGDA averages alone cannot validate a short window. Record evidence in `docs/event/validation.md`; Q reviews `horizon.py` | **20:00 — checkpoint 2: sky plot with real ephemeris data.** Isaac checks it against a known case. Pass (together with 21:30) → optional side-by-side view unlocked; basic site/date comparison remains required. Then D deploys a public no-login preview (private-window phone check) and the demo owner records a 10–20 s clip. |
+| 20:00–21:15 | Bugfix queue from C; A supports B | finish PGDA comparison; prepare the 21:30 evidence pack (validation tables) | polish sky plot; start timeline scaffolding |
+| 21:15–21:30 | All — pitch rehearsal 1 with a timer: demo story, what exists so far, what each judge question gets for an answer | | |
+| **21:30 — go/no-go** (moved from 22:00 on 13 Nov: Leo and Isaac sleep from 22:00) | **S makes the science call: are horizon masks validated?** Pass → full site set. Partial → fewer sites, labelled. Fail → published data, clearly labelled — wrong numbers never ship (decisions.md). Also fixes optional scope (side-by-side view needs 20:00 + 21:30 passed); fewer than two validated sites leaves an explicit challenge gap. T14 stop rule (build-plan §5.4) is decided here too. | | |
+| 21:40–22:00 | I + S → Q + D | **Handover:** Isaac gives the orchestrator the night queue and tells Otto what he may approve; Leo writes the open number checks for 01:00. |
+| 22:00–01:00 | **Q + D awake, I + S sleep** | Otto + Bene attend the official 22:30 day-1 wrap-up for the team, watch the orchestrator, Otto reviews finished branches, Bene approves or rejects screenshots. No merges, no deploys, no number sign-offs. |
+| 01:00–04:00 | **I + S awake, Q + D sleep** | Isaac merges what Otto reviewed; Leo signs the open checks; Sunday phase 5 (steps 2 and 2b) starts now instead of 07:30. |
+| 04:00 → | All awake | Sunday plan below, now with three extra hours of buffer. |
 
 ## Overnight — no required build work
 
-**Agents work overnight, humans sleep (added 13 Nov; Sarah, 12 Nov: "you can code at the event venue through the night").** Before 22:45, Isaac gives the orchestrator an overnight queue of gate-free work only, each on its own branch, **nothing merged before morning review**:
+**Agents work overnight, humans sleep (added 13 Nov; Sarah, 12 Nov: "you can code at the event venue through the night").** Before 22:00, Isaac gives the orchestrator an overnight queue of gate-free work only, each on its own branch, **nothing merged until Isaac is back at 01:00 and Otto has reviewed it**:
 - horizons, terrain tiles and textures for every remaining curated site (Track B, already-signed method);
 - 3D polish branch (step 6 items) and screenshot rounds against the reference images;
 - Playwright tests for UX-01–05 and T10, CSV export, README and submission-text drafts (Haiku).
-Not overnight: anything that needs Leo's sign-off to be meaningful, changes to the data contracts, merges, deploys. Laptops plugged in, sleep disabled, lid open. At 07:30 Isaac reads the overnight reports; Otto reviews, then merges in the usual way.
+Not overnight: anything that needs Leo's sign-off to be meaningful, changes to the data contracts, merges, deploys. Laptops plugged in, sleep disabled, lid open. Otto reviews branches during 22:00–01:00; Isaac reads the reports and merges at 01:00; whatever finishes 01:00–04:00 Otto reviews at 04:00.
 
-Save the morning queue before sleeping. Proposed sleep block 23:00–06:45, team/Betreuer to confirm. No unattended agent output is merged without Q's review and S's numeric sign-off. Resume phase 5 at 07:30; cut optional features if the morning queue is too large.
+Shift plan above (22:00–01:00 / 01:00–04:00). No unattended agent output is merged without Q's review and S's numeric sign-off. Resume phase 5 at 07:30; cut optional features if the morning queue is too large.
 
 ## Sunday — 07:30 to 12:00 (phase 5: windows, views, deploy)
 
@@ -153,8 +155,8 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 | When | Checkpoint | Owner | Pass | Fail |
 |---|---|---|---|---|
 | Sat 16:00 | Ephemeris validated: 10 sample points vs JPL Horizons, < 0.05°, table in `docs/event/validation.md` | S | Real ephemeris feeds the sky plot | Published-table subset, clearly labelled; I + S re-task agents by 16:30 |
-| Sat 20:00 | Sky plot runs on real ephemeris; Isaac checks against a known case | I (+S for the known case) | Optional side-by-side view unlocked (needs 22:00 too); basic comparison stays required | Debug until 21:30, then published-data subset, labelled |
-| Sat 22:00 | Horizon go/no-go: compatible reference definitions, DEM geometry and documented uncertainty | S (science call) | Validated site set | Fewer sites or published data, clearly labelled; a single site remains a challenge gap |
+| Sat 20:00 | Sky plot runs on real ephemeris; Isaac checks against a known case | I (+S for the known case) | Optional side-by-side view unlocked (needs 21:30 too); basic comparison stays required | Debug until 21:30, then published-data subset, labelled |
+| Sat 21:30 | Horizon go/no-go: compatible reference definitions, DEM geometry and documented uncertainty | S (science call) | Validated site set | Fewer sites or published data, clearly labelled; a single site remains a challenge gap |
 | Sun 12:00 | Feature freeze — gated by S's 5-value UI spot-check, UX-01–05 acceptance and Q's security check | S + Q | Freeze; bug fixes only | Numeric mismatch, core UX failure or security finding blocks freeze until fixed |
 | Sun 15:00 | Submission form clicked, screenshot saved | I | 45-min buffer before the deadline | Use the buffer to fix and re-submit; escalation at 15:30 latest |
 
@@ -172,7 +174,7 @@ Work strictly in order of importance and see how far we get. Two rules:
 | 1 | Core (required): Sun + Earth vs. terrain horizon in the sky plot, site and date selection, comparison of ≥ 2 sites and ≥ 2 date ranges | Sat 10:30 |
 | 2 | Time left before sunset / Earthset; solar elevation shown large; sunlight hours and Earth-visible windows as numbers | Step 1 passed the bug gate |
 | 3 | Time scrubber over one or more lunar days (form: inspiration #19); dates chosen to show different lunar days and seasons | Step 2 passed |
-| 4 | Side-by-side view; 2D south-pole map as site picker | Step 3 passed and horizon go at 22:00 |
+| 4 | Side-by-side view; 2D south-pole map as site picker | Step 3 passed and horizon go at 21:30 |
 | 5 | More curated sites beyond the south pole (Apollo, other countries), each with a validated horizon | Step 4 passed |
 | 6 | Light 3D view (one low-res lunar texture, no models, pixel ratio capped at 1) | Step 5 passed |
 | 7 | Custom lat/long input (needs a horizon computed on demand; label the accuracy) | Step 6 passed |
@@ -184,8 +186,8 @@ Team laptop model (ThinkPad X1 Carbon Gen 13: Core Ultra 7 256V, Arc 140V, 16 GB
 Triggers: a failed checkpoint, or the next block starting with the previous one unfinished.
 
 1. **Cut the score** (power-and-comms formula, score column). Trigger: timeline not working by Sun
-   10:30, or the 22:00 go/no-go failed. The demo stands without a number.
-2. **Cut the comparison view** (side-by-side 2–3 sites). Trigger: 20:00 or 22:00 checkpoint failed.
+   10:30, or the 21:30 go/no-go failed. The demo stands without a number.
+2. **Cut the comparison view** (side-by-side 2–3 sites). Trigger: 20:00 or 21:30 checkpoint failed.
    Keep basic switching between at least two validated sites and two supported date ranges. A single-site demo is an explicit challenge gap, not a complete replacement.
 3. **Cut the site map** (site picker map). Trigger: frontend behind schedule Sun ~11:00. A plain
    site list with sources replaces it.

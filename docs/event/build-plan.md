@@ -345,12 +345,12 @@ The risk with agent-written 3D is a pretty scene that is subtly wrong: a mirrore
 
 | Build step | 3D content | Gate |
 |---|---|---|
-| 1 (Sat) | Globe level: textured Moon lit by the real Sun direction, pins, Earth and Sun at true directions, orbit controls. Site level v1: far horizon ring from the mask + Sun/Earth discs, eye-level and orbit. Horizon strip in the details drawer. Runs on `fixtures.json` until real data lands. | T14, T16 by Sat 22:00 |
+| 1 (Sat) | Globe level: textured Moon lit by the real Sun direction, pins, Earth and Sun at true directions, orbit controls. Site level v1: far horizon ring from the mask + Sun/Earth discs, eye-level and orbit. Horizon strip in the details drawer. Runs on `fixtures.json` until real data lands. | T14, T16 by Sat 21:30 |
 | 3 | Time play animates every level | T17 |
 | 4 | Real terrain mesh per curated site, "% time lit" overlay, fly-in transitions, globe click → custom site | T15 |
 | 6 | Polish: system level, bloom, Earth atmosphere, oriented stars, shadows, golden images | Bene approves |
 
-**Stop rule:** if T14 is not green by Sat 22:00, the horizon strip becomes the main view and the globe stays as a site picker; the numbers never wait for the visuals.
+**Stop rule:** if T14 is not green by Sat 21:30, the horizon strip becomes the main view and the globe stays as a site picker; the numbers never wait for the visuals.
 
 ---
 
@@ -361,7 +361,7 @@ The risk with agent-written 3D is a pretty scene that is subtly wrong: a mirrore
 | V1 | 10 site/time points: our az/el vs JPL Horizons, observer = site on the Moon (body 301), targets Sun (10) and Earth (399), apparent, refraction off; settings screenshot attached | < 0.05° | Sat 16:00 |
 | V2 | Leo derives one row by hand (calculator): Sun elevation at the pole ≈ −subsolar latitude ([primer](../reference/primer.md)) | sign and size agree | Sat 16:00 |
 | V3 | Synthetic horizons: flat sphere → mask = curvature dip, −0.087° for 2 m **(derived: √(2h/R))**; one cone of known height and distance → its angle | < 0.01° | Sat 20:00 |
-| V4 | Real horizons: our % lit and % Earth visible over a full year, hourly, vs PGDA 18.6-year average maps at the site pixel. **Context only**, since the periods differ ([data guide review](../reference/data-guide.md#candidate-review--28-oct-2026)) | same ballpark; investigate > 15 points | Sat 22:00 |
+| V4 | Real horizons: our % lit and % Earth visible over a full year, hourly, vs PGDA 18.6-year average maps at the site pixel. **Context only**, since the periods differ ([data guide review](../reference/data-guide.md#candidate-review--28-oct-2026)) | same ballpark; investigate > 15 points | Sat 21:30 |
 | V5 | Window edges: bisection result vs 1-minute brute force on 3 sites × 3 days | ≤ 1 min | Sun 09:00 |
 | V6 | Coarse (400 m) vs full (20 m) horizon on all curated sites: max and median difference | reported, shown in UI | before step 7 ships |
 | V7 | 5 values read off the UI vs `windows.py` | exact to display precision | Sun 12:00 (freeze gate) |
@@ -396,7 +396,7 @@ Ships strictly in this order. A step is done only when its bugs are fixed and Le
 | Step | Contents | Owner | Target |
 |---|---|---|---|
 | 0 | Kickoff 10:30: confirm this plan, the 5 decisions in §9, demo owner; copy AI-use log template; app skeleton + LICENSE (Apache 2.0) | I | Sat 11:00 |
-| 1 | Core: §4.1, §4.2, `sites.py`, geometry + Numbers (sun elevation) + **3D globe and site view v1 (§5.4)** + horizon strip + Timeline (windows) + basic site/date switch for ≥ 2 sites and ≥ 2 periods; first deploy | Tracks A/B/C below | Sat 22:00 |
+| 1 | Core: §4.1, §4.2, `sites.py`, geometry + Numbers (sun elevation) + **3D globe and site view v1 (§5.4)** + horizon strip + Timeline (windows) + basic site/date switch for ≥ 2 sites and ≥ 2 periods; first deploy | Tracks A/B/C below | Sat 21:30 |
 | 2 | Sunset/Earthset countdown, large solar elevation, sunlight hours, Earth windows as numbers; UTC time field | D + I | Sun 08:30 |
 | 2b | **Landing window finder** (§4.4) + V8 — the answer to "the date slipped, what now?" | I + S | Sun 09:00 |
 | 3 | Scrubber with play speeds; periods presets from `periods.py` (seasons); panel-type toggle + "vs. Earth" card (V9) | D + I | Sun 09:30 |

@@ -12,11 +12,11 @@ Find the repo ~/Documents/clps-lunar-mission-browser and read AGENTS.md, docs/ev
 How to run them:
 - Each brief runs as a subagent with isolation "worktree" (its own branch, never the main checkout) and the model in the model table below. Pass the shared preamble + the full brief text verbatim, plus the two mockup PNGs from ~/Downloads for C1 and C2.
 - You are the integrator: read each subagent's report, re-run its done-checks yourself, look at its screenshots, then merge its branch into main with --no-ff. Never merge a branch whose checks you have not re-run.
-- Human gates stop you: V1/V2 (Leo, 16:00), V3 (20:00), V4 + horizon go/no-go (22:00), look approval (Bene), visible wording (me). At a gate, post the evidence in one message and wait for my "yes". Do not mark any V-check passed yourself.
+- Human gates stop you: V1/V2 (Leo, 16:00), V3 (20:00), V4 + horizon go/no-go (21:30), look approval (Bene), visible wording (me). At a gate, post the evidence in one message and wait for my "yes". Do not mark any V-check passed yourself.
 - Cost: Haiku for every task in the model table marked Haiku; Opus only where it says Opus; never Sonnet. Spawn a subagent only for an independent file set or a fresh-context review — never two subagents on the same files.
 - Pace: call get_usage (or /usage) every hour; if the 5-hour window passes 70 %, pause the lowest-priority track (order: C2 polish → B assets → C1 polish), never A or the merge queue.
-- Overnight (from ~22:45 until 07:30): keep working on the overnight queue in docs/event/event-plan.md ("Overnight" section) — branches only, no merges, no deploys, no gate items; write one morning report listing each branch, its checks and its screenshots.
-- Stop rules: build-plan §5.4 (T14 red at 22:00 → strip becomes main view) and the event-plan cut list. Feature freeze Sun 12:00.
+- Night shifts (ninja, 13 Nov): Isaac + Leo sleep 22:00–01:00, Otto + Bene 01:00–04:00. From 22:00 work the overnight queue in docs/event/event-plan.md — branches only, no merges, no deploys, no gate items; Otto may review, Bene may approve screenshots, only Isaac merges (from 01:00). Write one report per finished branch: checks, screenshots, open questions.
+- Stop rules: build-plan §5.4 (T14 red at 21:30 → strip becomes main view) and the event-plan cut list. Feature freeze Sun 12:00.
 ```
 
 ### Model table (cost: Haiku where the job is mechanical or checkable by a command)
@@ -169,7 +169,7 @@ DONE WHEN (paste outputs):
 - Every row of sites.json has source_url (check with a one-line python assertion, paste it).
 
 SCOPE FENCE: no TypeScript, no UI. Do not touch ephemeris files.
-HUMAN DECISION: Leo signs V3 (synthetic cases, by 20:00) and V4 (PGDA comparison, by 22:00). The 22:00 go/no-go on horizons is Leo's call, not yours.
+HUMAN DECISION: Leo signs V3 (synthetic cases, by 20:00) and V4 (PGDA comparison, by 21:30). The 21:30 go/no-go on horizons is Leo's call, not yours.
 ABORT: one site takes > 60 s or uses > 4 GB RAM → stop, report the numbers, do not lower the ray length or resolution on your own.
 ```
 
@@ -205,7 +205,7 @@ DONE WHEN (paste outputs):
 
 SCOPE FENCE: no HTML overlay, no text on screen, no data loading logic beyond reading files C2's data/ hands you. Stop and ask before adding any dependency.
 HUMAN DECISION: Bene approves the look; his approved screenshots become the golden images (app/e2e/golden/). You never approve your own look.
-ABORT (stop rule): if T14 is not green by Sat 22:00, stop; the horizon strip becomes the main view (build-plan §5.4). Report what fails.
+ABORT (stop rule): if T14 is not green by Sat 21:30, stop; the horizon strip becomes the main view (build-plan §5.4). Report what fails.
 ```
 
 ---

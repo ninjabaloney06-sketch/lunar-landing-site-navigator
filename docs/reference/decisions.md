@@ -232,3 +232,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 - **Capacity (ninja, 13 Nov):** one Claude Max 20x and one Max 5x plan (supersedes "O has two Claude Max plans", 26 Oct). Haiku for mechanical work, Opus for physics, horizon, 3D and visual review; never Sonnet (model table in agent-briefs.md).
 - **Checked 13 Nov 12:40:** the Claude account logged in on ninja's Mac reports plan **Pro** (weekly 45 % used, reset 13 Nov 19:00). Before Saturday, log the Max 20x account into the laptop that runs the orchestrator.
 
+## Sleep in two shifts (13 Nov 2026)
+
+**DECIDED by ninja, 13 Nov:** Leo + Isaac sleep 22:00–01:00, Otto + Bene 01:00–04:00. Reason (ninja): Isaac's and Leo's concentration drops after 22:00, Otto and Bene work well late; three hours is accepted, catch-up after the event. Replaces the six-hour baseline of 26 Oct. Plan changes: horizon go/no-go and T14 stop rule 22:00 → 21:30, pitch rehearsal 1 → 21:15, handover 21:40–22:00, Otto + Bene take the official 22:30 wrap-up, Sunday steps start 01:00. Open: Dagny Locher confirms (she stays with the team all night).
+
