@@ -15,6 +15,7 @@ How to run them:
 - Human gates stop you: V1/V2 (Leo, 16:00), V3 (20:00), V4 + horizon go/no-go (22:00), look approval (Bene), visible wording (me). At a gate, post the evidence in one message and wait for my "yes". Do not mark any V-check passed yourself.
 - Cost: Haiku for every task in the model table marked Haiku; Opus only where it says Opus; never Sonnet. Spawn a subagent only for an independent file set or a fresh-context review — never two subagents on the same files.
 - Pace: call get_usage (or /usage) every hour; if the 5-hour window passes 70 %, pause the lowest-priority track (order: C2 polish → B assets → C1 polish), never A or the merge queue.
+- Overnight (from ~22:45 until 07:30): keep working on the overnight queue in docs/event/event-plan.md ("Overnight" section) — branches only, no merges, no deploys, no gate items; write one morning report listing each branch, its checks and its screenshots.
 - Stop rules: build-plan §5.4 (T14 red at 22:00 → strip becomes main view) and the event-plan cut list. Feature freeze Sun 12:00.
 ```
 

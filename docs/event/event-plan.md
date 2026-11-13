@@ -108,6 +108,12 @@ don't eat. Every block ends with the output committed so the next block builds o
 
 ## Overnight — no required build work
 
+**Agents work overnight, humans sleep (added 13 Nov; Sarah, 12 Nov: "you can code at the event venue through the night").** Before 22:45, Isaac gives the orchestrator an overnight queue of gate-free work only, each on its own branch, **nothing merged before morning review**:
+- horizons, terrain tiles and textures for every remaining curated site (Track B, already-signed method);
+- 3D polish branch (step 6 items) and screenshot rounds against the reference images;
+- Playwright tests for UX-01–05 and T10, CSV export, README and submission-text drafts (Haiku).
+Not overnight: anything that needs Leo's sign-off to be meaningful, changes to the data contracts, merges, deploys. Laptops plugged in, sleep disabled, lid open. At 07:30 Isaac reads the overnight reports; Otto reviews, then merges in the usual way.
+
 Save the morning queue before sleeping. Proposed sleep block 23:00–06:45, team/Betreuer to confirm. No unattended agent output is merged without Q's review and S's numeric sign-off. Resume phase 5 at 07:30; cut optional features if the morning queue is too large.
 
 ## Sunday — 07:30 to 12:00 (phase 5: windows, views, deploy)
