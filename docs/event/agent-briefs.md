@@ -2,15 +2,46 @@
 
 Copy-paste prompts for the agents on Sat 14 Nov. Written 13 Nov from [build-plan.md](build-plan.md) (the spec) and ninja's mockup review (§5.1). Plan text only; nothing here is code. If a brief and the build plan disagree, the build plan wins; fix the brief.
 
-**How to use:** paste **the shared preamble + one brief** into a fresh Claude Code session (Opus 5.5 unless the brief says otherwise) opened in that brief's worktree. Order below = least operator attention first: start 0, then A and B, then C1 and C2 once step 0 is merged. One brief per session. Only Isaac merges to `main`.
+## Orchestrator prompt (Isaac drives every agent — 13 Nov)
 
-| Brief | Who drives | Model | Starts | Worktree / branch | Files it owns |
+Run this in **one** Claude Code session on the **Max 20x** account (check with `/usage` or the app's usage card first: it must say Max, not Pro). The Max 5x account runs a second session on the other laptop only when the orchestrator hands it a brief.
+
+```text
+Find the repo ~/Documents/clps-lunar-mission-browser and read AGENTS.md, docs/event/build-plan.md and docs/event/agent-briefs.md. Execute the briefs in this order: 0, then A + B + C1 + C2 in parallel. Follow my global rules (CLAUDE.md) and the brief table exactly.
+
+How to run them:
+- Each brief runs as a subagent with isolation "worktree" (its own branch, never the main checkout) and the model in the model table below. Pass the shared preamble + the full brief text verbatim, plus the two mockup PNGs from ~/Downloads for C1 and C2.
+- You are the integrator: read each subagent's report, re-run its done-checks yourself, look at its screenshots, then merge its branch into main with --no-ff. Never merge a branch whose checks you have not re-run.
+- Human gates stop you: V1/V2 (Leo, 16:00), V3 (20:00), V4 + horizon go/no-go (22:00), look approval (Bene), visible wording (me). At a gate, post the evidence in one message and wait for my "yes". Do not mark any V-check passed yourself.
+- Cost: Haiku for every task in the model table marked Haiku; Opus only where it says Opus; never Sonnet. Spawn a subagent only for an independent file set or a fresh-context review — never two subagents on the same files.
+- Pace: call get_usage (or /usage) every hour; if the 5-hour window passes 70 %, pause the lowest-priority track (order: C2 polish → B assets → C1 polish), never A or the merge queue.
+- Stop rules: build-plan §5.4 (T14 red at 22:00 → strip becomes main view) and the event-plan cut list. Feature freeze Sun 12:00.
+```
+
+### Model table (cost: Haiku where the job is mechanical or checkable by a command)
+
+| Task | Model | Why |
+|---|---|---|
+| Brief 0 scaffold, folder READMEs, sample JSON | Haiku | mechanical, fully checkable by build/test commands |
+| A: ephemeris.py, quaternions, geometry/, windows, finder, fixtures | Opus | physics and frames; errors are silent |
+| A: periods.py, answerSentence wording table | Haiku | small, rule-driven, tested by fixtures |
+| B: horizon.py + tests T5–T8, T13 | Opus | the risky algorithm |
+| B: sites.csv / sites.py (copy from sources.md), textures.py, terrain_tiles.py | Haiku | conversion scripts with size and count checks |
+| C1: scene, frames, camera, debug API, T14/T16/T17 | Opus | 3D correctness |
+| C1/C2: screenshot review against the reference images | Opus | visual judgement |
+| C2: layout, tokens, menu, timeline, drawer | Opus first pass, Haiku for follow-up fixes the reviewer names exactly | taste on the first pass, mechanics after |
+| CSV export, Playwright boilerplate, README, submission text drafts, logs | Haiku | mechanical |
+| Fresh-context review of each branch before merge | Opus | one reviewer per merge, not per file |
+
+**How to use (manual fallback if the orchestrator stalls):** paste **the shared preamble + one brief** into a fresh Claude Code session (Opus 5.5 unless the brief says otherwise) opened in that brief's worktree. Order below = least operator attention first: start 0, then A and B, then C1 and C2 once step 0 is merged. One brief per session. Only Isaac merges to `main`.
+
+| Brief | Reviewer (human) | Model | Starts | Worktree / branch | Files it owns |
 |---|---|---|---|---|---|
 | 0 Scaffold | Otto | Haiku 5.5 | Sat 11:00 | main checkout, branch `step0-scaffold` | everything it creates; nothing after merge |
-| A Ephemeris + geometry | Isaac | Opus 5.5 | after 0 merged | `../clps-wt/a`, `track-a` | `scripts/ephemeris.py`, `scripts/periods.py`, `scripts/export_fixtures.py`, `scripts/tests/test_ephemeris.py`, `app/src/geometry/`, `app/public/data/ephem/`, `app/public/data/periods.json`, `app/src/test/fixtures.json` |
-| B Horizon + assets | Otto | Opus 5.5 | after 0 merged | `../clps-wt/b`, `track-b` | `scripts/horizon.py`, `scripts/sites.py`, `scripts/sites.csv`, `scripts/textures.py`, `scripts/terrain_tiles.py`, `scripts/tests/test_horizon.py`, `app/public/data/sites.json`, `app/public/data/horizons/`, `app/public/data/terrain/`, `app/public/textures/` |
-| C1 3D scene | Bene | Opus 5.5 | after 0 merged | `../clps-wt/c1`, `track-c1` | `app/src/scene3d/`, `app/e2e/scene.spec.ts` |
-| C2 Screen UI | Bene (+ Isaac) | Opus 5.5 | after 0 merged | `../clps-wt/c2`, `track-c2` | `app/src/views/`, `app/src/data/`, `app/src/state.ts`, `app/src/App.tsx`, `app/src/styles/`, `app/e2e/ui.spec.ts` |
+| A Ephemeris + geometry | Leo (numbers), Otto (code) | Opus 5.5 | after 0 merged | `../clps-wt/a`, `track-a` | `scripts/ephemeris.py`, `scripts/periods.py`, `scripts/export_fixtures.py`, `scripts/tests/test_ephemeris.py`, `app/src/geometry/`, `app/public/data/ephem/`, `app/public/data/periods.json`, `app/src/test/fixtures.json` |
+| B Horizon + assets | Leo (numbers), Otto (code) | Opus 5.5 | after 0 merged | `../clps-wt/b`, `track-b` | `scripts/horizon.py`, `scripts/sites.py`, `scripts/sites.csv`, `scripts/textures.py`, `scripts/terrain_tiles.py`, `scripts/tests/test_horizon.py`, `app/public/data/sites.json`, `app/public/data/horizons/`, `app/public/data/terrain/`, `app/public/textures/` |
+| C1 3D scene | Bene (look), Leo (T14–T17) | Opus 5.5 | after 0 merged | `../clps-wt/c1`, `track-c1` | `app/src/scene3d/`, `app/e2e/scene.spec.ts` |
+| C2 Screen UI | Bene (look), Isaac (wording) | Opus 5.5 | after 0 merged | `../clps-wt/c2`, `track-c2` | `app/src/views/`, `app/src/data/`, `app/src/state.ts`, `app/src/App.tsx`, `app/src/styles/`, `app/e2e/ui.spec.ts` |
 
 Worktrees: `cd ~/Documents/clps-lunar-mission-browser && git worktree add ../clps-wt/a -b track-a` (same for b, c1, c2), after brief 0 is merged.
 

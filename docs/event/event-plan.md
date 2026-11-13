@@ -42,7 +42,7 @@ Mapping from decisions.md ("Roles agreed and sleeping at the venue", 26 Oct): S 
 | **D** — frontend + design | app shell, site picker, sky plot, timeline, comparison view, deploy | B |
 | **I** — Isaac | product, spec, integration, agent orchestration, submission form, pitch | Isaac |
 
-Agent capacity (decisions.md): Isaac's Claude account + O's two Claude Max plans → parallel agents on
+Agent capacity (decisions.md, updated 13 Nov): one Max 20x + one Max 5x plan, Isaac drives all agents via one orchestrator → parallel agents on
 separate worktrees, one file set per agent (AGENTS.md). Standing rule: agents write, a human runs and
 reviews — S signs every number that reaches the UI.
 

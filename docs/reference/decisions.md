@@ -226,3 +226,9 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 
 **DECIDED by ninja, 13 Nov:** "the most simple UI possible but with beautiful 3D", started "from the start", camera free to "move around … to see multiple angles"; bodies limited to what matters ("not like the full solar system but with the necessary planets and suns and moons"). Finder defaults confirmed and adjustable; finder ranks above the scrubber. Plan: [build-plan.md §5.1 and §5.4](../event/build-plan.md#54-the-3d-viewer-how-we-build-it-and-how-agents-build-it-without-seeing-it). Consequences: polar plot and 2D map dropped (globe replaces the map), horizon strip kept for exact values and as the no-WebGL fallback, first-load budget 1.5 → 5 MB, ephemeris gains two quaternions, tests T14–T17, stop rule at Sat 22:00 (T14 red → strip becomes the main view). Textures downloaded 13 Nov on ninja's Mac with ninja's approval ("yes, do now on this laptop"), see data-sources.md.
 
+## Agent driving and capacity (13 Nov 2026)
+
+- **Isaac drives every agent** (ninja, 13 Nov), through one orchestrator session that runs the briefs in [agent-briefs.md](../event/agent-briefs.md) as worktree-isolated subagents and merges after re-running each brief's checks. Otto, Bene and Leo review and sign; they do not drive agents.
+- **Capacity (ninja, 13 Nov):** one Claude Max 20x and one Max 5x plan (supersedes "O has two Claude Max plans", 26 Oct). Haiku for mechanical work, Opus for physics, horizon, 3D and visual review; never Sonnet (model table in agent-briefs.md).
+- **Checked 13 Nov 12:40:** the Claude account logged in on ninja's Mac reports plan **Pro** (weekly 45 % used, reset 13 Nov 19:00). Before Saturday, log the Max 20x account into the laptop that runs the orchestrator.
+
