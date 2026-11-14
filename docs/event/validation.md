@@ -4,14 +4,14 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 
 | ID | Check | Status | Signed by | Evidence |
 |---|---|---|---|---|
-| V1 | 10 site/time points vs JPL Horizons, < 0.05° | passed — reported by ninja in chat, 2026-11-14 15:56 ("V1 and V2 works out"); no written sign-off by Leo in the repo | reported by ninja | inputs below |
+| V1 | 10 site/time points vs JPL Horizons, < 0.05° | passed — reported by ninja in chat, 2026-11-14 15:56 ("V1 and V2 works out"); no written sign-off by Leo in the repo | reported by ninja | inputs below; AI recheck agrees: [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
 | V2 | One row by hand: Sun elevation at the pole ≈ −subsolar latitude | passed — reported by ninja in chat, 2026-11-14 15:56; no written sign-off by Leo in the repo | reported by ninja | inputs below |
 | Station check | Moon elevation at two stations vs Horizons (station as observer); IAU_EARTH approximation | open | — | inputs below |
-| V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open | — | — |
+| V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open; AI recomputed the flat-sphere value (−0.08132°), cone not rechecked | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
 | V4 | Real horizons vs PGDA averages (context) | open — needs S | — | AI comparison of 14 Nov: [V4 with stated bias](#v4-with-stated-bias-our-average-sunlight-against-the-published-average-illumination-maps) |
-| V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
+| V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open; AI recheck agrees for window edges (6 cases) and UI values (36 table values); coarse DEM, finder and panel types not rechecked | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
 | Horizon range | 150 km vs 300 km rays at three sites | open — needs S | — | [inputs and table](#horizon-range-check-150-km-against-300-km-rays) |
-| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35; horizons regenerated 17:47 on ninja's decision | open — needs S | — | [inputs, table, recommendation](#truncated-horizons) |
+| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35; horizons regenerated 17:47 on ninja's decision | open; AI recomputed all 18 regenerated horizons from the raw DEM with separate code, agree within 0.09° | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) ·  [inputs, table, recommendation](#truncated-horizons) |
 
 ## How Leo checks V1, V2 and the station check (now about 5 min)
 
@@ -383,6 +383,26 @@ File `diviner/dlre_prp_south.tab` (604,800,210 bytes, SHA-256 `393deaa5…a62d`;
 The ordering is identical, Site04 is the hottest in both, and its bound is within 4 % of the product. The lit fraction 10.2 % independently matches the Sun-visibility map (0.11). The bound runs high on steep walls and low on flat sites (no thermal inertia, no heat from surrounding terrain, sub-triangle slopes ignored); it is a plausibility check, not a thermal model. Note also in Site04's `thermal.limitations`.
 
 **Terms.** The .lbl and .xml carry no licence or usage terms. The product is public NASA PDS data; NASA SMD policy [SPD-41a](https://science.nasa.gov/researchers/science-data/science-information-policy/) requires SMD-funded scientific information to be "made publicly available". Required citation as given in the PDS catalogue (prpds.cat): "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018." Carried in every site's `thermal.terms`.
+
+## Independent recomputation by AI, 14 Nov 18:40, on ninja's instruction
+
+ninja, 14 Nov ~18:25: "validate everything by checking everything. leo cannot check the regenerated horizons, it's too much context. check for him." This section is that check. It was done by an AI session (Claude Code), not by Leo, and no row above is marked signed by S because of it. What makes it more than a rerun: the four scripts in `scripts/tools/independent_checks/` were written from the definitions only and share no code with `scripts/*.py` or `app/src/geometry/`. They use their own projection formula, their own ray stepping, their own frame arithmetic, and read the SPICE kernels and the raw DEMs directly.
+
+| # | What was compared | Independent side | Result |
+|---|---|---|---|
+| 1 | Sun and Earth azimuth/elevation from the shipped `ephem/*.json` (own ENU arithmetic), 10 site/time points 2026-12 … 2030-06 at Connecting Ridge, Malapert Massif, IM-1, Haworth; 20 values | JPL Horizons API, observer `coord@301` at the site, quantity 4, `AIRLESS`, fetched 14 Nov 18:27 (`horizons_positions.py`) | Every azimuth and elevation identical to the 0.001° Horizons prints. V1 tolerance is 0.05°. |
+| 2 | The 18 shipped horizon files (regenerated 17:47), 144 azimuths each (every 2.5°) | Own ray march on `LDEM_80S_20MPP_ADJ.TIF` (20 m, bilinear, to 20 km) and `LDEM_60S_120MPP_ADJ.TIF` (120 m, to 300 km), fixed 20 m / 100 m steps, own stereographic projection (`terrain_horizon.py`) | Site heights equal to 0.1 m at all 18. Largest difference per site between 0.006° and 0.087° (Haworth 0.087°, Faustini Rim A 0.086°, VIPER 0.080°); median per site ≤ 0.009°; no systematic offset (mean signed ≤ 0.006°). The largest differences are where the skyline is ground within 100 m of the lander, which is sensitive to the sampling scheme. |
+| 3 | IM-1, the 52 directions 8.5°–34° that changed at regeneration | Same script, every 0.5° | Largest difference 0.004°; the skyline there is terrain 35–40 km away, beyond the 20 m DEM, as the regeneration claimed. |
+| 4 | App table "All sites", mission dates 16–29 Aug 2027, all five stations: sunlit % and station coverage % for 18 sites (36 values), read from https://nasa.digi-works.org (main `411e3bb`) | Computed from the SPICE kernels at 1-minute steps (not the 30-minute ephemeris files), own station and line-of-sight arithmetic, shipped horizon masks (`sunlight_coverage.py`) | 35 of 36 identical to 0.1 %; Connecting Ridge coverage 98.1 % against 98.2 % in the app. |
+| 5 | Six answer sentences of the app at dates outside the presets and in the two screenshots | Time to the next change at 1-minute steps (`answer_edges.py`) | Malapert Massif 1 Jun 2030 00:00: dark 30.5 h more (app "31 more hours"), contact 88.1 h (app "3 more days"). Haworth 17 Feb 2029 06:30: dark to the end of the period (same), contact 126.3 h (app "5 more days"). Connecting Ridge 28 Aug 2027 11:30: sunlit 7.35 h more (app "7 more hours"); 19 Aug 2027 16:00: 218.9 h (app "9 more days"). |
+| 6 | Flat-sphere dip for 1.75 m | −acos(1737.4 / 1737.40175) | −0.08132°, as in `FLAT_DIP_DEG` and both test suites. |
+| 7 | Code tests on main `ed0fd9d` | rerun by this session | build exit 0, vitest 79 passed, pytest 206 passed with raw data, Playwright 74 passed and 1 skipped. |
+
+**Limits of this check, stated plainly.**
+- Rows 4 and 5 use the shipped horizon masks as input; their terrain side rests on rows 2 and 3.
+- The station frame is IAU_EARTH on both sides (no high-precision Earth orientation kernel in the data folder), so the "Station check" row above stays open.
+- Not rechecked: slope values, the PGDA comparison (V4), whole-year mode, the finder's ranking, the cone case of V3, coarse-DEM and panel-type checks, the mandatory site assessments.
+- Agreement between two computations shows they implement the same definitions on the same NASA data. Whether the definitions are the right ones (disc-fraction rule, 1.75 m eye height, station minimum elevations, 100 m slope baseline) is the science lead's call and was not judged here.
 
 ## Science checks of 14 Nov, 16:27–16:43 (AI, not validated)
 
