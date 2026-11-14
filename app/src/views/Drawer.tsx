@@ -1,5 +1,6 @@
-// Details drawer: horizon strip, stations, finder, comparison, site potential, export, and how this is
-// computed. Opened from the answer sentence, "Find better dates" or the footer link.
+// Details drawer: horizon strip, station states (chosen in the Mission panel), finder, comparison, site
+// potential, export, and how this is computed. Opened from the answer sentence, "Find better dates" or the
+// footer link.
 import { useEffect, useRef, useState } from 'react'
 import type { Sample, StationLos } from '../geometry'
 import type { ResultsState } from '../data/results'
@@ -29,7 +30,7 @@ interface Props {
   ids: string[]
   results: ResultsState
   atCursor: Sample | null // series sample at the cursor
-  onToggleStation(id: string): void
+  onChooseStations(): void // opens the Mission panel at its station checklist (one checklist, not two)
   onShowWindow(startMs: number, days: number, landingMs: number): void
   onSwitch(siteId: string, periodId: string): void
   onClose(): void
@@ -162,31 +163,32 @@ export function Drawer(p: Props) {
             </tr>
           </thead>
           <tbody>
-            {p.stations.map((s) => {
-              const on = p.ids.includes(s.id)
-              const l = atCursor?.stations[s.id]
-              return (
-                <tr key={s.id}>
-                  <td>
-                    <label className="check">
-                      <input type="checkbox" checked={on} disabled={on && p.ids.length === 1} onChange={() => p.onToggleStation(s.id)} />
-                      <span>
-                        {s.complex}
-                        <span className="th-sub">
-                          {s.name} · {s.network}
-                        </span>
+            {p.stations
+              .filter((s) => p.ids.includes(s.id))
+              .map((s) => {
+                const l = atCursor?.stations[s.id]
+                return (
+                  <tr key={s.id}>
+                    <td>
+                      {s.complex}
+                      <span className="th-sub">
+                        {s.name} · {s.network}
                       </span>
-                    </label>
-                  </td>
-                  <td>{ready ? losText(l) : '…'}</td>
-                  <td className="mono">{ready && l ? fmtDeg(l.el) : '…'}</td>
-                  <td className="mono">{ready && l ? fmtDeg(l.moonElAtStation) : '…'}</td>
-                </tr>
-              )
-            })}
+                    </td>
+                    <td>{ready ? losText(l) : '…'}</td>
+                    <td className="mono">{ready && l ? fmtDeg(l.el) : '…'}</td>
+                    <td className="mono">{ready && l ? fmtDeg(l.moonElAtStation) : '…'}</td>
+                  </tr>
+                )
+              })}
           </tbody>
         </table>
-        {p.ids.length === 1 && <p className="quiet">At least one station stays selected.</p>}
+        <p className="quiet drawer-note">
+          {p.ids.length} of {p.stations.length} stations selected.{' '}
+          <button type="button" className="link" onClick={p.onChooseStations}>
+            Choose ground stations
+          </button>
+        </p>
       </section>
 
       <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">

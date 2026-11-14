@@ -43,12 +43,15 @@
   text-decoration-color: var(--faint);
 }
 
+/* Focus keeps the global outline (index.css) and also lights the control like hover. */
 .mission:hover .mission-name,
+.mission:focus-visible .mission-name,
 .mission[aria-expanded='true'] .mission-name {
   text-decoration-color: var(--fg);
 }
 
 .mission:hover .icon,
+.mission:focus-visible .icon,
 .mission[aria-expanded='true'] .icon {
   color: var(--fg);
 }
@@ -82,5 +85,200 @@
   .mission .icon {
     width: var(--s-5);
     height: var(--s-5);
+  }
+}
+
+/* ---------- Mission panel: under the mission control, ends above the answer (desktop); full sheet on phones ---------- */
+
+.mission-panel {
+  width: min(440px, calc(100vw - var(--s-8)));
+  max-height: max(280px, calc(100dvh - 430px));
+  padding-bottom: var(--s-4);
+  overscroll-behavior: contain;
+}
+
+.mp-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4) 0;
+}
+
+.mp-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--s-8);
+  height: var(--s-8);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--s-5);
+  line-height: 1;
+  color: var(--muted);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.mp-close:hover,
+.mp-close:focus-visible {
+  border-color: var(--muted);
+  color: var(--fg);
+}
+
+.mp-close:active {
+  border-color: var(--fg);
+}
+
+.mp-title {
+  margin: 0;
+  font: 400 var(--t-display-sm) / 1.2 var(--font-serif);
+}
+
+.mp-fields {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-4) 0;
+}
+
+.mp-field {
+  display: grid;
+  grid-template-columns: var(--s-12) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.mp-dates {
+  grid-template-columns: var(--s-12) minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.mp-label {
+  color: var(--muted);
+}
+
+.mp-note,
+.mp-error {
+  margin: 0;
+  padding: 0 0 0 calc(var(--s-12) + var(--s-3));
+}
+
+.mp-sec {
+  margin: 0;
+  padding: var(--s-6) var(--s-4) 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* Rows and the search reach the panel edges, as in the site menu. */
+.mp-sec .menu-search,
+.mp-sec .menu-group,
+.mp-sec .menu-msg,
+.mp-sec .opt,
+.mp-sec .menu-add {
+  margin-left: calc(-1 * var(--s-4));
+  margin-right: calc(-1 * var(--s-4));
+  width: auto;
+}
+
+.mp-h {
+  float: left; /* a legend that sits in the fieldset like the other section headings */
+  width: 100%;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  font-size: var(--t-ui);
+  font-weight: 500;
+}
+
+.mp-h + * {
+  clear: both;
+}
+
+.mp-rule {
+  margin: 0 0 var(--s-2);
+}
+
+.mp-progress:empty {
+  padding: 0;
+}
+
+.mp-radio {
+  padding: var(--s-1) 0;
+}
+
+.mp-radio input {
+  accent-color: var(--fg);
+}
+
+.checklist li {
+  padding: var(--s-1) 0;
+}
+
+.mp-play {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-2);
+}
+
+.mp-play .quiet {
+  margin: 0;
+}
+
+.drawer-note {
+  margin: var(--s-3) 0 0;
+}
+
+/* Ranked site rows: rank, then name, label or group, then the values the row was ranked by. */
+.rank-row {
+  display: grid;
+  grid-template-columns: var(--s-5) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.rank-n {
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-align: right;
+}
+
+.rank-main {
+  min-width: 0;
+}
+
+.rank-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-3);
+  margin-top: var(--s-1);
+  font: 400 var(--t-small) / 1.5 var(--font-mono);
+  color: var(--muted);
+}
+
+.rank-facts .is-fail {
+  color: var(--fg);
+}
+
+.rank-facts a {
+  color: var(--muted);
+}
+
+.rank-facts a:hover,
+.rank-facts a:focus-visible {
+  color: var(--fg);
+}
+
+@media (max-width: 640px) {
+  .mission-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    width: auto;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-close {
+    transition: none;
   }
 }

@@ -14,6 +14,7 @@ interface Props {
   sunEl: number | null // null while results load: the label hides rather than show a stale number
   earthEl: number | null
   onUnavailable(): void
+  onPick(lat: number, lon: number): void // a click on the globe (scene contract: a pin reports its site's coordinates)
 }
 
 function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
@@ -26,9 +27,11 @@ function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
   el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`
 }
 
-export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable }: Props) {
+export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
+  const pick = useRef(onPick)
+  pick.current = onPick
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
@@ -44,6 +47,7 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
       return
     }
     handle.current = h
+    const offPick = h.onPick((lat, lon) => pick.current(lat, lon))
     let raf = 0
     const tick = () => {
       place(sun.current, h.project('sun'), have.current.sun)
@@ -54,6 +58,7 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
     raf = requestAnimationFrame(tick)
     return () => {
       cancelAnimationFrame(raf)
+      offPick()
       handle.current = null
       h.dispose()
     }

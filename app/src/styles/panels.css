@@ -96,19 +96,6 @@
   }
 }
 
-/* Site menu: search and "Add a point" stay put, only the list scrolls. */
-.site-menu {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.site-menu .menu-list {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-}
-
 .menu-search {
   padding: var(--s-3);
 }
