@@ -1,5 +1,5 @@
 // Details drawer: horizon strip, station states (chosen in the Mission panel), finder, comparison, site
-// potential, export, and how this is computed. Opened from the answer sentence, "Find better dates" or the
+// potential, export, how this is computed and the terms of use. Opened from the answer sentence, "Find better dates" or the
 // footer link.
 import { useEffect, useRef, useState } from 'react'
 import type { Sample, StationLos } from '../geometry'
@@ -10,6 +10,7 @@ import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { HorizonStrip } from './HorizonStrip'
+import { Terms } from './Terms'
 import { capital, fmtDateTime, fmtDeg } from './format'
 
 export interface ViewPeriod {
@@ -79,7 +80,9 @@ export function Drawer(p: Props) {
   const closeBtn = useRef<HTMLButtonElement>(null)
   const finderRef = useRef<HTMLElement>(null)
   const sourcesRef = useRef<HTMLElement>(null)
+  const termsRef = useRef<HTMLElement>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [terms, setTerms] = useState(false)
 
   useEffect(() => {
     closeBtn.current?.focus({ preventScroll: true })
@@ -89,6 +92,9 @@ export function Drawer(p: Props) {
     if (target) target.scrollIntoView({ block: 'start' })
     else panel.current?.scrollTo({ top: 0 })
   }, [section])
+  useEffect(() => {
+    if (terms) termsRef.current?.scrollIntoView({ block: 'start' })
+  }, [terms])
 
   const download = () => {
     const blob = new Blob([csv(site, period, results)], { type: 'text/csv' })
@@ -305,7 +311,14 @@ export function Drawer(p: Props) {
             station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
           </li>
         </ul>
+        <p className="quiet drawer-note">
+          <button type="button" className="link" aria-expanded={terms} aria-controls="terms" onClick={() => setTerms((t) => !t)}>
+            Terms of use
+          </button>
+        </p>
       </section>
+
+      {terms && <Terms ref={termsRef} />}
     </aside>
   )
 }

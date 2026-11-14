@@ -350,6 +350,24 @@
   color: var(--muted);
 }
 
+.terms p,
+.terms li {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.terms ul {
+  margin: 0 0 var(--s-2);
+  padding-left: var(--s-5);
+  color: var(--muted);
+}
+
+.terms strong {
+  font-weight: 500;
+  color: var(--fg);
+}
+
 /* ---------- horizon strip ---------- */
 
 .strip {
