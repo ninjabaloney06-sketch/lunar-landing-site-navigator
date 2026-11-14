@@ -6,7 +6,8 @@ import type { Summary } from '../geometry'
 import { useResults } from '../data/results'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, Station } from '../data/types'
-import { fmtHours, fmtPct, fmtRange } from './format'
+import { NOT_VALIDATED, VALIDATED } from '../data/validation'
+import { capital, fmtHours, fmtPct, fmtRange } from './format'
 
 interface Props {
   site: Site
@@ -17,7 +18,6 @@ interface Props {
   stations: Station[]
   ids: string[]
   current: ResultsState
-  sample: boolean
   onSwitch(siteId: string, periodId: string): void
 }
 
@@ -32,10 +32,11 @@ const ROWS: { label: string; get: (s: Summary) => string }[] = [
 function cell(st: ResultsState, get: (s: Summary) => string) {
   if (st.status === 'loading') return <span className="quiet">…</span>
   if (st.status === 'error') return <span className="is-error">error</span>
+  if (st.status === 'empty') return <span className="quiet">no data</span>
   return get(st.results.summary)
 }
 
-export function Compare({ site, periodId, periodLabel, sites, periods, stations, ids, current, sample, onSwitch }: Props) {
+export function Compare({ site, periodId, periodLabel, sites, periods, stations, ids, current, onSwitch }: Props) {
   const [otherSite, setOtherSite] = useState(site.id)
   // Default: the next named period (Shackleton Aug 2027 → Sep 2027, the required same-site comparison).
   const [otherPeriod, setOtherPeriod] = useState(() => {
@@ -73,7 +74,7 @@ export function Compare({ site, periodId, periodLabel, sites, periods, stations,
       <table className="tbl" data-testid="compare-table">
         <thead>
           <tr>
-            <th scope="col">{sample ? 'Sample values' : ''}</th>
+            <th scope="col">{VALIDATED ? '' : capital(NOT_VALIDATED)}</th>
             <th scope="col">
               {site.name}
               <span className="th-sub">{periodLabel}</span>

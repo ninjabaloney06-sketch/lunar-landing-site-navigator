@@ -2,9 +2,9 @@
 // Earth at the cursor. Exact values on hover or tap. Also the full fallback view when WebGL is unavailable.
 import { area, line, scaleLinear } from 'd3'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { maskAt } from '../geometry'
 import type { Sample } from '../geometry'
 import type { Horizon } from '../data/types'
-import { displayMask } from '../data/mask'
 import { fmtDeg } from './format'
 
 const EL_MIN = -2
@@ -43,7 +43,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
 
   const paths = useMemo(() => {
     const pts: [number, number][] = []
-    for (let az = 0; az <= 360; az += 0.5) pts.push([az, displayMask(horizon, az)])
+    for (let az = 0; az <= 360; az += 0.5) pts.push([az, maskAt(horizon, az)])
     const a = area<[number, number]>()
       .x((d) => x(d[0]))
       .y0(y(EL_MIN))
@@ -67,9 +67,20 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
       ]
     : []
 
+  // Hover: the terrain angle, how far away the blocking terrain is, and whether the search hit the DEM edge.
+  const terrainAt = (az: number) => {
+    const parts = [`terrain ${fmtDeg(maskAt(horizon, az), 2)}`]
+    if (horizon) {
+      const i = Math.round(az / horizon.az_step) % horizon.mask.length
+      const d = horizon.mask_dist_km[i]
+      if (Number.isFinite(d)) parts.push(`${d.toFixed(1)} km away`)
+      if (horizon.truncated.includes(i * horizon.az_step)) parts.push(`terrain data ends before ${horizon.ray_max_km} km`)
+    }
+    return parts.join(', ')
+  }
   const readout =
     hoverAz !== null
-      ? `Azimuth ${hoverAz.toFixed(1)}° · terrain ${fmtDeg(displayMask(horizon, hoverAz), 2)}`
+      ? `Azimuth ${hoverAz.toFixed(1)}° · ${terrainAt(hoverAz)}`
       : sample
         ? `Sun az ${sample.sun.az.toFixed(1)}°, el ${fmtDeg(sample.sun.el, 2)} · Earth az ${sample.earth.az.toFixed(1)}°, el ${fmtDeg(sample.earth.el, 2)}`
         : ''
@@ -102,14 +113,17 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
                 {width < 480 ? lab : `${lab} ${az}°`}
               </text>
             ))}
-            {bodies.map((b) => {
+            {bodies.map((b, i) => {
               const cx = x(b.az)
               const cy = y(b.el)
               const right = cx > width - 96
+              // Sun and Earth close together: the second label goes below its dot so the two never overlap.
+              const o = i > 0 ? bodies[0] : null
+              const below = !!o && Math.abs(x(o.az) - cx) < 96 && Math.abs(y(o.el) - cy) < 24
               return (
                 <g key={b.key} className={`strip-body strip-${b.key}`} data-testid={`strip-${b.key}`}>
                   <circle cx={cx} cy={cy} r={4} />
-                  <text x={right ? cx - 8 : cx + 8} y={cy - 8} textAnchor={right ? 'end' : 'start'}>
+                  <text x={right ? cx - 8 : cx + 8} y={below ? cy + 16 : cy - 8} textAnchor={right ? 'end' : 'start'}>
                     <tspan className="strip-body-name">{b.name}</tspan> <tspan className="strip-body-num">{fmtDeg(b.el)}</tspan>
                   </text>
                 </g>

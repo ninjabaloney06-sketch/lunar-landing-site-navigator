@@ -46,6 +46,11 @@ export function fmtCoords(lat: number, lon: number): string {
   return `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'} · ${Math.abs(lo).toFixed(2)}° ${lo < 0 ? 'W' : 'E'}`
 }
 
+/** First letter upper case: "Sample values — not validated" at the start of a sentence. */
+export function capital(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 export function fmtPct(v: number): string {
   return `${v.toFixed(1)} %`
 }

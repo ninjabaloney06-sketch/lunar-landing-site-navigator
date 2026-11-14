@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { FINDER_DEFAULTS, finder } from '../geometry'
 import type { FinderResult, FinderThresholds } from '../geometry'
 import { loadHorizon, loadMonthsFor } from '../data/load'
-import { isNotImplemented } from '../data/mask'
 import type { Site, Station } from '../data/types'
+import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { COVERAGE_END_MS, DAY_MS } from '../state'
-import { fmtDay, fmtHours, fmtPct, fmtRange, fmtShort } from './format'
+import { capital, fmtDay, fmtHours, fmtPct, fmtRange, fmtShort } from './format'
 
 const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: number }[] = [
   { key: 'missionDays', label: 'Mission length, days', min: 1, max: 60 },
@@ -24,13 +24,12 @@ interface Props {
   stations: Station[]
   ids: string[]
   fromMs: number
-  sample: boolean
   onShow(startMs: number, days: number, landingMs: number): void
 }
 
 type Run = { status: 'idle' } | { status: 'running' } | { status: 'done'; result: FinderResult; t: FinderThresholds } | { status: 'message'; text: string }
 
-export function Finder({ site, stations, ids, fromMs, sample, onShow }: Props) {
+export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
   const [values, setValues] = useState<Record<keyof FinderThresholds, string>>(
     () => Object.fromEntries(FIELDS.map((f) => [f.key, String(FINDER_DEFAULTS[f.key])])) as Record<keyof FinderThresholds, string>,
   )
@@ -63,7 +62,7 @@ export function Finder({ site, stations, ids, fromMs, sample, onShow }: Props) {
     } catch (err) {
       setRun({
         status: 'message',
-        text: isNotImplemented(err) ? 'The finder needs the geometry module, which is not in this build yet.' : `The finder failed: ${(err as Error).message}`,
+        text: `The finder failed: ${(err as Error).message}`,
       })
     }
   }
@@ -143,7 +142,7 @@ export function Finder({ site, stations, ids, fromMs, sample, onShow }: Props) {
               </tbody>
             </table>
           )}
-          {sample && <p className="quiet">Sample values: not validated yet.</p>}
+          {!VALIDATED && <p className="quiet">{capital(NOT_VALIDATED)}.</p>}
         </div>
       )}
     </div>

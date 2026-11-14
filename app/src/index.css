@@ -298,6 +298,12 @@ button.answer:hover .answer-line {
   min-height: 77px;
 }
 
+.answer.is-empty {
+  font: 400 var(--t-ui) / 1.45 var(--font-sans);
+  color: var(--muted);
+  min-height: 77px;
+}
+
 .timeline {
   display: grid;
   grid-template-columns: var(--s-16) minmax(0, 1fr);
@@ -464,7 +470,8 @@ button.answer:hover .answer-line {
   }
 
   .answer.is-loading,
-  .answer.is-error {
+  .answer.is-error,
+  .answer.is-empty {
     min-height: 58px;
   }
 

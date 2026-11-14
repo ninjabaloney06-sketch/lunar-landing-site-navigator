@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import type { Sample, StationLos } from '../geometry'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
+import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { HorizonStrip } from './HorizonStrip'
-import { fmtDateTime, fmtDeg } from './format'
+import { capital, fmtDateTime, fmtDeg } from './format'
 
 export interface ViewPeriod {
   id: string // period id or 'custom'
@@ -27,8 +28,7 @@ interface Props {
   stations: Station[]
   ids: string[]
   results: ResultsState
-  sample: Sample | null
-  isSample: boolean
+  atCursor: Sample | null // series sample at the cursor
   onToggleStation(id: string): void
   onShowWindow(startMs: number, days: number, landingMs: number): void
   onSwitch(siteId: string, periodId: string): void
@@ -51,10 +51,10 @@ function losText(l: StationLos | undefined): string {
   return 'blocked'
 }
 
-function csv(site: Site, period: ViewPeriod, r: ResultsState, isSample: boolean): string {
+function csv(site: Site, period: ViewPeriod, r: ResultsState): string {
   if (r.status !== 'ready') return ''
   const { sun, comms, summary } = r.results
-  const src = r.results.source === 'sample' ? 'sample (fake)' : isSample ? 'computed, not yet validated' : 'computed'
+  const src = VALIDATED ? 'computed' : `computed, ${NOT_VALIDATED}`
   const iso = (ms: number) => new Date(ms).toISOString()
   const lines = [
     `# ${site.name}; ${iso(period.startMs)} to ${iso(period.endMs)}; values: ${src}`,
@@ -73,7 +73,7 @@ function csv(site: Site, period: ViewPeriod, r: ResultsState, isSample: boolean)
 }
 
 export function Drawer(p: Props) {
-  const { section, site, period, results, sample, isSample } = p
+  const { section, site, period, results, atCursor } = p
   const panel = useRef<HTMLElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
   const finderRef = useRef<HTMLElement>(null)
@@ -90,7 +90,7 @@ export function Drawer(p: Props) {
   }, [section])
 
   const download = () => {
-    const blob = new Blob([csv(site, period, results, isSample)], { type: 'text/csv' })
+    const blob = new Blob([csv(site, period, results)], { type: 'text/csv' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `${site.id}_${new Date(period.startMs).toISOString().slice(0, 10)}.csv`
@@ -137,11 +137,13 @@ export function Drawer(p: Props) {
         </button>
       </header>
 
-      {isSample && <p className="msg sample-note">Sample values: the numbers in this view are not validated yet.</p>}
+      {!VALIDATED && <p className="msg sample-note">{capital(NOT_VALIDATED)}.</p>}
+      {results.status === 'empty' && <p className="msg">{results.message}</p>}
+      {results.status === 'error' && <p className="msg is-error">{results.error}</p>}
 
       <section className="drawer-sec" aria-labelledby="sec-horizon">
         <h3 id="sec-horizon">Horizon</h3>
-        <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={ready ? sample : null} height={168} />
+        <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={ready ? atCursor : null} height={168} />
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-stations">
@@ -162,15 +164,17 @@ export function Drawer(p: Props) {
           <tbody>
             {p.stations.map((s) => {
               const on = p.ids.includes(s.id)
-              const l = sample?.stations[s.id]
+              const l = atCursor?.stations[s.id]
               return (
                 <tr key={s.id}>
                   <td>
                     <label className="check">
                       <input type="checkbox" checked={on} disabled={on && p.ids.length === 1} onChange={() => p.onToggleStation(s.id)} />
                       <span>
-                        {s.name}
-                        <span className="th-sub">{s.network}</span>
+                        {s.complex}
+                        <span className="th-sub">
+                          {s.name} · {s.network}
+                        </span>
                       </span>
                     </label>
                   </td>
@@ -187,7 +191,7 @@ export function Drawer(p: Props) {
 
       <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
         <h3 id="sec-finder">Find better dates</h3>
-        <Finder site={site} stations={p.stations} ids={p.ids} fromMs={period.startMs} sample={isSample} onShow={p.onShowWindow} />
+        <Finder site={site} stations={p.stations} ids={p.ids} fromMs={period.startMs} onShow={p.onShowWindow} />
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-compare">
@@ -202,7 +206,6 @@ export function Drawer(p: Props) {
           stations={p.stations}
           ids={p.ids}
           current={results}
-          sample={isSample}
           onSwitch={p.onSwitch}
         />
       </section>
@@ -268,14 +271,13 @@ export function Drawer(p: Props) {
             <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/" target="_blank" rel="noreferrer">
               NAIF
             </a>
-            ), Moon body-fixed frame MOON_ME, every 30 minutes, UTC.
+            ), Moon body-fixed frame MOON_ME, every 30 minutes, UTC. Sunlit and contact windows start and end where
+            interpolation finds the change, to within about 10 seconds.
           </li>
           <li>
             Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
             station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
           </li>
-          {!site.horizon && <li>This site has no terrain horizon in this build yet; the horizon is drawn flat.</li>}
-          {ready && results.results.source === 'sample' && <li>This build shows invented sample values in place of computed ones.</li>}
         </ul>
       </section>
     </aside>

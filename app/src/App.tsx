@@ -2,9 +2,10 @@
 // (site name, date, Find better dates), the answer sentence, the timeline and one footer line.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
-import { makeLoadFrame, NUMBERS_VALIDATED, useResults } from './data/results'
+import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
+import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
 import {
   COVERAGE_END_MS,
@@ -63,8 +64,14 @@ export default function App() {
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 
-/** The answer slot while results load or fail: never the previous selection's sentence (UX-03). */
+/** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
+  if (state.status === 'empty')
+    return (
+      <p className="answer is-empty" data-testid="answer" data-state="empty" role="status">
+        {state.message}
+      </p>
+    )
   if (state.status === 'error')
     return (
       <p className="answer is-error" data-testid="answer" data-state="error" role="alert">
@@ -122,9 +129,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const results = useResults({ site, stations, ids, startMs: period.startMs, endMs: period.endMs })
   const ready = results.status === 'ready'
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
-  const sample = ready ? (results.results.series.samples[idx] ?? null) : null
+  const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
-  const isSample = !NUMBERS_VALIDATED || (ready && (results.results.source === 'sample' || !!answer?.sample))
 
   const deps = useMemo(() => ({ sites, loadFrame: makeLoadFrame(sites) }), [sites])
   const onUnavailable = useCallback(() => setWebgl(false), [])
@@ -192,8 +198,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const valueText = (() => {
     const parts = [fmtDateTime(cursor)]
-    if (sample && ready) {
-      parts.push(sample.sun.lit ? 'sunlit' : 'dark')
+    if (atCursor && ready) {
+      parts.push(atCursor.sun.lit ? 'sunlit' : 'dark')
       const c = results.results.coverage[idx]
       parts.push(c === 'covered' ? 'a selected station in line of sight' : c === 'unknown' ? 'comms unknown' : 'no selected station in line of sight')
     }
@@ -209,13 +215,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             siteId={site.id}
             utcMs={cursor}
             view={hs.view}
-            sunEl={sample ? sample.sun.el : null}
-            earthEl={sample ? sample.earth.el : null}
+            sunEl={atCursor ? atCursor.sun.el : null}
+            earthEl={atCursor ? atCursor.earth.el : null}
             onUnavailable={onUnavailable}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
-            <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={sample} height={220} className="strip-main" />
+            <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={atCursor} height={220} className="strip-main" />
             <p className="quiet">The 3D view needs WebGL, which this browser does not provide. The horizon strip shows the same sky.</p>
           </div>
         )}
@@ -297,11 +303,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             data-state="ready"
             data-site-id={site.id}
             data-period-id={period.id}
-            data-source={results.results.source}
             onClick={() => patch({ drawer: 'details' })}
           >
-            <span className="answer-line answer-sun">{answer.lines.sun}</span>
-            <span className="answer-line answer-comms">{answer.lines.comms}</span>
+            <span className="answer-line answer-sun">{answer.sun}</span>
+            <span className="answer-line answer-comms">{answer.comms}</span>
           </button>
         ) : (
           <AnswerPending state={results} siteName={site.name} />
@@ -322,9 +327,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               how this is computed
             </button>
           </p>
-          {isSample && (
+          {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
-              sample values
+              {NOT_VALIDATED}
             </p>
           )}
         </footer>
@@ -341,8 +346,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           stations={stations}
           ids={ids}
           results={results}
-          sample={sample}
-          isSample={isSample}
+          atCursor={atCursor}
           onToggleStation={toggleStation}
           onShowWindow={(startMs, days, landingMs) =>
             patch({ period: 'custom', from: dayStart(startMs), days, t: landingMs, drawer: null })

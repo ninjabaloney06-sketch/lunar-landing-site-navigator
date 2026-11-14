@@ -1,41 +1,23 @@
-// Results for one (site, period, station selection): the real geometry contract when it runs, otherwise the
-// clearly fake sample series (sampleSeries.ts). Every consumer reads `source` and shows "sample" for it.
+// Results for one (site, period, station selection), computed by Track A's geometry contract. There is no other
+// path: a missing ephemeris month or terrain horizon gives a plain "no data" state, never invented numbers.
 import { useEffect, useState } from 'react'
-import {
-  answerSentence,
-  answerState,
-  computeSeries,
-  coverage,
-  interpolate,
-  summarize,
-  windows,
-} from '../geometry'
+import { answerSentence, answerState, computeSeries, coverage, interpolate, summarize, windows } from '../geometry'
 import type { AnswerLines, CoverageState, Series, SiteGeo, Summary, Window } from '../geometry'
 import type { SceneFrame } from '../scene3d'
-import { loadHorizon, loadMonthsFor, loadEphem, loadTerrain, monthKey, MissingDataError } from './load'
-import { isNotImplemented } from './mask'
-import {
-  sampleAnswerState,
-  sampleBodyState,
-  sampleCoverage,
-  sampleSeries,
-  sampleSummary,
-  sampleWindows,
-} from './sampleSeries'
+import { loadEphem, loadHorizon, loadMonthsFor, loadTerrain, MissingDataError, monthKey } from './load'
 import type { Horizon, Site, Station } from './types'
 
-// Leo's V7 sign-off flips this. Until then every number on screen is labelled "sample" (preamble hard rule).
-export const NUMBERS_VALIDATED = false
+/** Data this build does not contain for the chosen site or dates. Shown as a plain message, not an error. */
+export class NoDataError extends Error {}
 
 export interface Results {
   key: string
-  source: 'real' | 'sample' // 'sample' = fake fallback series
   series: Series
   coverage: CoverageState[]
   sun: Window[]
   comms: Window[]
   summary: Summary
-  answerAt(utcMs: number): { lines: AnswerLines; sample: boolean }
+  answerAt(utcMs: number): AnswerLines
 }
 
 export interface ResultsInput {
@@ -50,23 +32,28 @@ export function resultsKey(i: ResultsInput): string {
   return `${i.site.id}|${i.startMs}|${i.endMs}|${i.ids.join(',')}`
 }
 
-const seriesCache = new Map<string, Promise<{ series: Series; real: boolean }>>()
+async function horizonOf(site: Site): Promise<Horizon> {
+  const missing = () => new NoDataError(`No terrain data for ${site.name} in this build.`)
+  if (!site.horizon) throw missing()
+  try {
+    return await loadHorizon(site.horizon)
+  } catch (e) {
+    throw e instanceof MissingDataError ? missing() : e
+  }
+}
 
-async function getSeries(site: Site, horizon: Horizon | null, stations: Station[], startMs: number, endMs: number) {
+// The series holds every station; a different selection reuses it and only recomputes coverage.
+const seriesCache = new Map<string, Promise<Series>>()
+
+function getSeries(site: Site, stations: Station[], startMs: number, endMs: number): Promise<Series> {
   const key = `${site.id}|${startMs}|${endMs}`
   let p = seriesCache.get(key)
   if (!p) {
     p = (async () => {
-      const months = await loadMonthsFor(startMs, endMs)
-      if (months) {
-        const geo: SiteGeo = { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
-        try {
-          return { series: computeSeries(months, geo, horizon, stations, startMs, endMs), real: true }
-        } catch (e) {
-          if (!isNotImplemented(e)) throw e
-        }
-      }
-      return { series: sampleSeries(site, horizon, stations, startMs, endMs), real: false }
+      const [horizon, months] = await Promise.all([horizonOf(site), loadMonthsFor(startMs, endMs)])
+      if (!months) throw new NoDataError('No data for these dates in this build.')
+      const geo: SiteGeo = { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
+      return computeSeries(months, geo, horizon, stations, startMs, endMs)
     })()
     seriesCache.set(key, p)
     p.catch(() => seriesCache.delete(key))
@@ -77,50 +64,22 @@ async function getSeries(site: Site, horizon: Horizon | null, stations: Station[
 
 export async function computeResults(input: ResultsInput): Promise<Results> {
   const { site, stations, ids, startMs, endMs } = input
-  const horizon = site.horizon ? await loadHorizon(site.horizon) : null
-  const { series, real } = await getSeries(site, horizon, stations, startMs, endMs)
-  const key = resultsKey(input)
-  if (real) {
-    try {
-      const r: Results = {
-        key,
-        source: 'real',
-        series,
-        coverage: coverage(series, ids),
-        sun: windows(series, 'sun'),
-        comms: windows(series, 'coverage', ids),
-        summary: summarize(series, ids),
-        answerAt(utcMs) {
-          try {
-            return { lines: answerSentence(answerState(series, ids, utcMs)), sample: false }
-          } catch (e) {
-            if (!isNotImplemented(e)) throw e
-            // answerState not in this build: Track A's wording over this UI's own reading of the series.
-            return { lines: answerSentence(sampleAnswerState(series, ids, utcMs)), sample: true }
-          }
-        },
-      }
-      return r
-    } catch (e) {
-      if (!isNotImplemented(e)) throw e
-    }
-  }
-  const fake = real ? sampleSeries(site, horizon, stations, startMs, endMs) : series
+  const series = await getSeries(site, stations, startMs, endMs)
   return {
-    key,
-    source: 'sample',
-    series: fake,
-    coverage: sampleCoverage(fake, ids),
-    sun: sampleWindows(fake, 'sun'),
-    comms: sampleWindows(fake, 'coverage', ids),
-    summary: sampleSummary(fake, ids),
-    answerAt: (utcMs) => ({ lines: answerSentence(sampleAnswerState(fake, ids, utcMs)), sample: true }),
+    key: resultsKey(input),
+    series,
+    coverage: coverage(series, ids),
+    sun: windows(series, 'sun'),
+    comms: windows(series, 'coverage', ids),
+    summary: summarize(series, ids),
+    answerAt: (utcMs) => answerSentence(answerState(series, ids, utcMs)),
   }
 }
 
 export type ResultsState =
   | { status: 'loading'; key: string }
   | { status: 'ready'; key: string; results: Results }
+  | { status: 'empty'; key: string; message: string }
   | { status: 'error'; key: string; error: string }
 
 /** Results for the current input. The state carries its key, and a state whose key differs from the
@@ -133,7 +92,9 @@ export function useResults(input: ResultsInput | null): ResultsState {
     let alive = true
     computeResults(input).then(
       (results) => alive && setState({ status: 'ready', key, results }),
-      (e: Error) => alive && setState({ status: 'error', key, error: e.message }),
+      (e: Error) =>
+        alive &&
+        setState(e instanceof NoDataError ? { status: 'empty', key, message: e.message } : { status: 'error', key, error: e.message }),
     )
     return () => {
       alive = false
@@ -144,30 +105,27 @@ export function useResults(input: ResultsInput | null): ResultsState {
 }
 
 /** SceneDeps.loadFrame for the app (scene contract): site, horizon, terrain tile and the body state at utcMs.
- *  Without an ephemeris month the frame carries the sample sky, matching the sample series. */
+ *  Rejects when the ephemeris does not cover utcMs; the scene then keeps no invented sky. */
 export function makeLoadFrame(sites: Site[]) {
   return async (siteId: string, utcMs: number): Promise<SceneFrame> => {
     const site = sites.find((s) => s.id === siteId)
     if (!site) throw new Error(`unknown site ${siteId}`)
-    const [horizon, terrain] = await Promise.all([site.horizon ? loadHorizon(site.horizon) : null, loadTerrain(site.id)])
     const d = new Date(utcMs)
     const keys = [monthKey(utcMs), monthKey(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))]
-    const months = (
-      await Promise.all(
-        keys.map((k) =>
-          loadEphem(k).catch((e) => {
-            if (e instanceof MissingDataError) return null
-            throw e
-          }),
-        ),
-      )
-    ).filter((m) => m !== null)
-    let state
-    try {
-      state = interpolate(months, utcMs)
-    } catch {
-      state = sampleBodyState(site, utcMs)
-    }
+    const optional = <T>(p: Promise<T>): Promise<T | null> =>
+      p.catch((e) => {
+        if (e instanceof MissingDataError) return null
+        throw e
+      })
+    const [horizon, terrain, months] = await Promise.all([
+      site.horizon ? optional(loadHorizon(site.horizon)) : Promise.resolve(null),
+      loadTerrain(site.id),
+      Promise.all(keys.map((k) => optional(loadEphem(k)))),
+    ])
+    const state = interpolate(
+      months.filter((m) => m !== null),
+      utcMs,
+    )
     return { site, horizon, terrain, state }
   }
 }

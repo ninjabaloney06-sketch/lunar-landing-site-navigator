@@ -31,8 +31,8 @@ export const STEP_MS = STEP_MIN * 60_000
 export const DAY_MS = 86_400_000
 export const DEFAULT_DAYS = 14
 
-// Demo question (spec.md): a fresh URL opens on it.
-export const DEFAULT_SITE_ID = 'shackleton-rim-site04'
+// Demo question: a fresh URL opens on it. Demo site is Connecting Ridge (ninja, 14 Nov); the period id is unchanged.
+export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
 const VIEWS: SceneLevel[] = ['globe', 'site', 'eye']
