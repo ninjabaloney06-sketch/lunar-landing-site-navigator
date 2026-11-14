@@ -15,7 +15,8 @@
 // In both, tile and skirt vertices are clamped to the mask sight line from the eye: the 80 m tile mesh may
 // overshoot the 20 m DEM the mask was computed from, and must never hide a body the mask shows.
 //
-// With extra levels (tile.levels includes 'far', levels.ts): fine 20 m ⊂ 80 m tile ⊂ mid 400 m ⊂ far 2 km, nested
+// With extra levels (tile.levels includes 'far', levels.ts): fine 20 m ⊂ 80 m tile ⊂ near 160 m (when given) ⊂
+// mid 400 m ⊂ far 2 km, nested
 // with square holes and zipper strips, real relief to ±300 km and no skirt. Site level draws the levels; eye level
 // draws the levels plus a crest strip on the mask (one short face per mask azimuth at its true distance, from the
 // terrain up to the mask sight line), so the silhouette from the eye is still the mask. Levels are clamped like
@@ -44,7 +45,7 @@ import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
 import { PinField, type PinItem } from './pins'
-import { heightAt, levelGrid, levelMesh, nestedLevels, normalsOf, place, sphereZ, stitch, type Level, type LevelGrid } from './levels'
+import { heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, type Level } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
 const NO_HORIZON_RADIUS_M = 200_000 // smooth-sphere ground when a site has no horizon file
@@ -112,9 +113,14 @@ function sphereNormals(g: BufferGeometry, rSite: number): BufferGeometry {
   return g
 }
 
-/** Bilinear tile height (m, relative to the site's ground) at ENU (x, y); null outside or on nodata. */
+/**
+ * Bilinear tile height (m, relative to the site's ground) at ENU (x, y); null outside or on nodata. The Int16
+ * values are in steps of meta.height_scale_m (the pipeline's 80 m files: whole metres, no scale; the south-cap
+ * 80 m grid: 0.25 m).
+ */
 function tileHeight(t: TerrainTile, x: number, y: number): number | null {
   const { size, spacing_m, nodata } = t.meta
+  const scale = t.meta.height_scale_m ?? 1
   const half = (size - 1) / 2
   const fj = x / spacing_m + half
   const fi = half - y / spacing_m
@@ -126,7 +132,7 @@ function tileHeight(t: TerrainTile, x: number, y: number): number | null {
   const h = t.heights
   const q = [h[i0 * size + j0], h[i0 * size + j0 + 1], h[(i0 + 1) * size + j0], h[(i0 + 1) * size + j0 + 1]]
   if (q.some((v) => v === nodata)) return null
-  return (q[0] * (1 - dj) + q[1] * dj) * (1 - di) + (q[2] * (1 - dj) + q[3] * dj) * di
+  return ((q[0] * (1 - dj) + q[1] * dj) * (1 - di) + (q[2] * (1 - dj) + q[3] * dj) * di) * scale
 }
 
 /** Tile height at the tile edge along unit ENU direction a: first valid sample walking inward up to 2 km. */
@@ -422,16 +428,17 @@ export class SiteWorld {
    */
   private addLevels(levels: Level[], rSite: number, line: SightLine | null) {
     this.levelNames = levels.map((l) => l.name)
-    const grids: LevelGrid[] = []
+    const grids = levels.map((l) =>
+      levelGrid(l, rSite, (p: Vector3, rho: number) => (!line ? Infinity : l.name === 'tile' ? line.belowAt(p, rho) : line.belowCell(p, rho, l.spacing))),
+    )
+    // Normals from the grids, blended across each rim band (levels.ts levelNormals): the shading meets at a border.
+    const normals = levelNormals(levels, grids)
     const full: BufferGeometry[] = []
     levels.forEach((l, li) => {
-      const clamp = (p: Vector3, rho: number) =>
-        !line ? Infinity : l.name === 'tile' ? line.belowAt(p, rho) : line.belowCell(p, rho, l.spacing)
-      const g = levelGrid(l, rSite, clamp)
+      const g = grids[li]
       const inner = li > 0 ? levels[li - 1].ext : null
-      const geo = levelMesh(g, 1, inner, 'touching')
+      const geo = levelMesh(g, 1, inner, 'touching', normals[li])
       this.addMesh(geo, levelMesh(g, PROXY_STRIDE, inner, 'inside'))
-      grids.push(g)
       full.push(geo)
     })
     for (let li = 1; li < levels.length; li++) {
@@ -494,6 +501,11 @@ export class SiteWorld {
     this.addMesh(g, undefined, 'eye')
   }
 
+  /** Test helper: the nested levels as built, finest first (name, samples a side, spacing and half-width in m). */
+  levelSpecs(): { name: string; size: number; spacing: number; ext: number }[] {
+    return (this.ground.levels ?? []).map((l) => ({ name: l.name, size: l.size, spacing: l.spacing, ext: l.ext }))
+  }
+
   /** Test helper: level names and triangle count of the terrain drawn at the current level. */
   info(): { levels: string[]; triangles: number } {
     let triangles = 0
@@ -517,6 +529,7 @@ export class SiteWorld {
 
   private addTile(t: TerrainTile, rSite: number, line: SightLine | null) {
     const { size, spacing_m, nodata } = t.meta
+    const scale = t.meta.height_scale_m ?? 1
     const half = (size - 1) / 2
     // Heights once (curvature applied, clamped to the mask sight line), then the full and the coarse mesh.
     const zGrid = new Float32Array(size * size)
@@ -529,7 +542,7 @@ export class SiteWorld {
         const hv = t.heights[i * size + j]
         const rho = Math.hypot(x, y)
         okGrid[i * size + j] = hv !== nodata && rho <= TILE_RADIUS_M ? 1 : 0
-        let z = sphereZ(rho, rSite, hv === nodata ? 0 : hv)
+        let z = sphereZ(rho, rSite, hv === nodata ? 0 : hv * scale)
         if (line && rho > 0) z = Math.min(z, line.belowAt(p.set(x, y, 0), rho))
         zGrid[i * size + j] = z
       }

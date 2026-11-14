@@ -34,6 +34,7 @@ import {
   siteVector,
   type BodyState,
 } from '../geometry'
+import { loadCap } from '../data/southcap'
 import { loadTextures } from './assets'
 import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
@@ -42,6 +43,7 @@ import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonO
 import { GlobeWorld } from './globe'
 import { POI_NEAR_KM, type PinItem } from './pins'
 import { SiteWorld } from './site'
+import { inPinRegion } from './region'
 import { Sky } from './sky'
 import { TopView } from './topview'
 
@@ -180,6 +182,7 @@ const DISSOLVE_FROM = 0.5
 const DISSOLVE_TO = 0.92
 const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the time cursor) is spread over this long
 const AWAIT_SITE_MS = 2000 // longest the fly to a just-picked site waits for that site's data
+const NEAR_CACHE = 6 // near terrain levels kept for sites visited before (0.5 MB each)
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
@@ -206,6 +209,19 @@ interface Pose {
 }
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2) // cubic, every flight
+
+/** The parts of three 0.170's OrbitControls that say whether update() has anything to apply (state −1 = idle). */
+interface OrbitInternals {
+  state: number
+  _sphericalDelta: { theta: number; phi: number; set(r: number, phi: number, theta: number): void }
+  _panOffset: Vector3
+  _scale: number
+}
+// An orbit glide ends once less than this is left of its turn, rad: 0.06 mm at the 60 km outer orbit.
+const ORBIT_REST = 1e-9
+// The space camera's floor (MOON_FLOOR_KM) is restored only when it is this far below it, km: setLength() itself
+// may land a unit in the last place under the floor, which must not count as a new violation every frame.
+const FLOOR_TOLERANCE_KM = 1e-9
 
 /** Throws when WebGL is unavailable; C2 then shows the horizon strip and the sentence. */
 export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle {
@@ -363,6 +379,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // ---------- free camera: look-around, dolly, eye-level zoom (controls.ts) ----------
 
   const moonSphere = new Sphere(new Vector3(), MOON_RADIUS_KM)
+  // The Moon's surface under a space-camera position, km from its centre: the cap's relief south of its edge
+  // (wave 3), the 1737.4 km sphere elsewhere.
+  const moonGround = (p: Vector3) => globe?.groundRadius(p) ?? MOON_RADIUS_KM
   const bodiesKm = () => (frame ? [v3(frame.state.earth_km), v3(frame.state.sun_km)] : [])
   const groundBelow = (p: Vector3) => site.groundZ(p.x, p.y)
 
@@ -390,12 +409,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     mode: 'dolly',
     surface(p) {
       const [e, s] = bodiesKm()
-      const moon = p.length() - MOON_RADIUS_KM
+      const moon = p.length() - moonGround(p)
       return e ? Math.min(moon, p.distanceTo(e) - EARTH_RADIUS_KM, p.distanceTo(s) - SUN_RADIUS_KM) : moon
     },
     allowed(p) {
       const [e, s] = bodiesKm()
-      if (p.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) return false
+      if (p.length() < moonGround(p) + MOON_FLOOR_KM) return false
       return !e || (p.distanceTo(e) >= EARTH_RADIUS_KM * BODY_FLOOR && p.distanceTo(s) >= SUN_RADIUS_KM * BODY_FLOOR)
     },
     // The Moon's limit is its orbit maximum, 20 000 km from its centre; Earth and the Sun get the same number of
@@ -431,9 +450,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
       return true
     }
-    if (level === 'globe' && free.globe.dist && globeCam.position.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) {
-      globeCam.position.setLength(MOON_RADIUS_KM + MOON_FLOOR_KM)
-      return true
+    if (level === 'globe' && free.globe.dist) {
+      const floor = moonGround(globeCam.position) + MOON_FLOOR_KM
+      if (globeCam.position.length() < floor - FLOOR_TOLERANCE_KM) {
+        globeCam.position.setLength(floor)
+        return true
+      }
     }
     return false
   }
@@ -561,6 +583,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
       placeMarkers()
       placePois()
+      requestNear()
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
     applyLights(siteChanged)
@@ -580,6 +603,62 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       descendToSite()
     }
     setControls()
+    markDirty()
+  }
+
+  // ---------- the near terrain level (wave 3) ----------
+
+  // A prepared site's files have no near level (160 m to ±40 km, between the 80 m tile and mid): it is built from
+  // the south-cap 80 m tiles (data/southcap.ts nearLevel) after the site is shown, and the terrain is built once
+  // more with it, never during a fly (then when the fly ends). The first picture never waits for it; without the
+  // cap data nothing changes. A custom point's cap terrain has the level already. In test mode it is fetched only
+  // after __scene.nearLevel(true), so every other test sees the same terrain on every run.
+  let nearOn = !testMode
+  let nearJob: Promise<void> = Promise.resolve()
+  let nearWaiting: TerrainTile | null = null
+  const nearCache = new Map<string, TerrainTile>()
+
+  function requestNear() {
+    const s = frame?.site
+    const t = frame?.terrain
+    if (!nearOn || !s || !t?.levels?.length || t.levels.some((l) => l.meta.level === 'near') || typeof t.meta.ground_m !== 'number' || !inPinRegion(s.lat)) return
+    const id = t.meta.site_id
+    const ground = t.meta.ground_m
+    const known = nearCache.get(id)
+    nearJob = (known ? Promise.resolve(known) : loadCap().then((c) => c.nearLevel(s.lat, s.lon, ground, id)))
+      .then((near) => {
+        if (!near || disposed) return
+        if (!known) {
+          nearCache.set(id, near)
+          if (nearCache.size > NEAR_CACHE) nearCache.delete(nearCache.keys().next().value as string)
+        }
+        // The site may have changed while the tiles came in.
+        if (builtFor?.site?.id !== s.id || builtFor.terrain?.meta.site_id !== id) return
+        const withNear: TerrainTile = { ...t, levels: [...(t.levels ?? []), near] }
+        if (fly) nearWaiting = withNear
+        else applyNear(withNear)
+      })
+      .catch(() => undefined)
+  }
+
+  /** The site's terrain once more, with the near level; what stands on it is placed again. */
+  function applyNear(t: TerrainTile) {
+    nearWaiting = null
+    if (!frame?.site || !builtFor || builtFor.terrain?.meta.site_id !== t.meta.site_id) return
+    site.build(frame.horizon, t, frame.site.elev_m)
+    builtFor = { ...builtFor, terrain: t }
+    placeMarkers()
+    placePois()
+    // A camera standing on the ground beyond the 80 m tile (after a walk) stands on the new ground.
+    if (stand && level === 'eye') {
+      const dz = site.groundZ(stand.x, stand.y) + site.eyeHeight - stand.z
+      if (dz !== 0) {
+        stand.z += dz
+        siteCam.position.z += dz
+        siteControls.target.z += dz
+        siteCam.updateMatrixWorld(true)
+      }
+    }
     markDirty()
   }
 
@@ -764,7 +843,19 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * and play out after the landing: it ends here. three 0.170 keeps it in OrbitControls' _sphericalDelta.
    */
   function stopGlide() {
-    for (const c of [siteControls, globeControls]) (c as unknown as { _sphericalDelta: { set(r: number, phi: number, theta: number): void } })._sphericalDelta.set(0, 0, 0)
+    for (const c of [siteControls, globeControls]) (c as unknown as OrbitInternals)._sphericalDelta.set(0, 0, 0)
+  }
+
+  /**
+   * True while OrbitControls has something to apply: a drag in progress, a glide left after one, a zoom or pan
+   * step. A glide whose remaining turn is below ORBIT_REST rad ends here (three 0.170 keeps it in _sphericalDelta
+   * and only ever shrinks it, so it would otherwise last for minutes of invisible steps).
+   */
+  function orbitBusy(c: OrbitControls): boolean {
+    const o = c as unknown as OrbitInternals
+    const d = o._sphericalDelta
+    if (o.state === -1 && (d.theta !== 0 || d.phi !== 0) && Math.abs(d.theta) < ORBIT_REST && Math.abs(d.phi) < ORBIT_REST) d.set(0, 0, 0)
+    return o.state !== -1 || d.theta !== 0 || d.phi !== 0 || o._scale !== 1 || o._panOffset.lengthSq() > 0 || c.autoRotate
   }
 
   /** k > 1: the remaining distance shrinks geometrically (long flights between bodies); 1: plain ease. */
@@ -937,6 +1028,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const done = fly.done
     fly = null
     done()
+    if (nearWaiting) applyNear(nearWaiting)
     setControls()
     markDirty()
   }
@@ -1318,7 +1410,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const ctl = inSpace() ? globeControls : siteControls
     // The orbit drag eases with the same time constant as the wheel and the look-around, whatever the frame rate.
     ctl.dampingFactor = easeShare(dtMs)
-    if (ctl.update()) markDirty()
+    // update() rebuilds the camera from its offset in spherical coordinates on every call, and that round trip
+    // moves a camera at rest by a unit in the last place now and then (F3): it runs only while there is input
+    // to apply. Every placement of a camera calls update() itself.
+    if (orbitBusy(ctl) && ctl.update()) markDirty()
     if (keepAboveGround()) markDirty()
   }
 
@@ -1432,6 +1527,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (disposed) return
     sky = new Sky(tex)
     globe = new GlobeWorld(tex)
+    // The cap mesh replaces the sphere's pole once its data are in (wave 3): draw again then.
+    globe.capReady.then(markDirty)
     topView = new TopView(tex)
     globe.setSites(deps.sites, null)
     globe.setMarkers(markers)
@@ -1441,6 +1538,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (pending) applyFrame(pending)
     pending = null
     raf = requestAnimationFrame(loop)
+    // Test mode: the globe a test sees is the same every run, with the cap if its data exist.
+    return testMode ? globe.capReady : undefined
   })
 
   function update(f: SceneFrame) {
@@ -1670,6 +1769,25 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         return p ? { x: p.x, y: p.y, z: site.groundZ(p.x, p.y) } : null
       },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
+      walkTo: (x, y) => walkTo(x, y),
+      capInfo: () => globe?.capInfo() ?? null,
+      globeHit(x, y) {
+        const r = canvas.getBoundingClientRect()
+        return globe && inSpace() ? globe.hitAt(toNdc(r.left + x, r.top + y), globeCam) : null
+      },
+      moonGround: (p) => moonGround(new Vector3(p[0], p[1], p[2])),
+      setCap(on) {
+        globe?.useCap(on)
+        markDirty()
+      },
+      subSolar: () => (frame ? latLonOf(v3(frame.state.sun_km)) : null),
+      nearLevel(on) {
+        nearOn = on
+        if (on) requestNear()
+        return nearJob
+      },
+      nearReady: () => nearJob,
+      levelSpecs: () => site.levelSpecs(),
       camera() {
         const cam = activeCam()
         cam.updateMatrixWorld(true)

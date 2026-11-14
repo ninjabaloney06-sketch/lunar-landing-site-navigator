@@ -103,4 +103,35 @@ describe('nested levels', () => {
     place(levels[2], 10_000, 0, 0, R, v)
     expect(v.toArray()).toEqual([10_000, 0, sphereZ(10_000, R, 0)]) // inside 20 km: unchanged placement
   })
+
+  it('nests a near level (160 m) between the 80 m tile and mid, and stitches all five watertight (wave 3)', () => {
+    const base = set()
+    const five = { ...base, levels: [...base.levels!, tile('near', 41, 160, plane, 0.25)] }
+    const levels = nestedLevels(five)!
+    expect(levels.map((l) => l.name)).toEqual(['fine', 'tile', 'near', 'mid', 'far'])
+    for (const [x, y] of [[2500, 0], [-3000, 1000], [0, -3150], [1900, 1900]]) {
+      const got = heightAt(levels, x, y)!
+      expect(Math.abs(got.h - plane(x, y)), `${x}, ${y}`).toBeLessThan(0.6)
+    }
+    expect(heightAt(levels, 2500, 0)!.li).toBe(2) // the near level answers between ±1960 and ±3200 m
+    const grids = levels.map((l) => levelGrid(l, R, () => Infinity))
+    const meshes = levels.map((l, li) => levelMesh(grids[li], 1, li > 0 ? levels[li - 1].ext : null, 'touching'))
+    for (let li = 1; li < levels.length; li++) {
+      const strip = stitch(grids[li - 1], normalsOf(meshes[li - 1]), grids[li], normalsOf(meshes[li]))
+      const idx = strip.index!.array
+      const edges = new Map<string, number>()
+      for (let t = 0; t < idx.length; t += 3) {
+        for (let e = 0; e < 3; e++) {
+          const a = idx[t + e]
+          const b = idx[t + ((e + 1) % 3)]
+          const k = a < b ? `${a}|${b}` : `${b}|${a}`
+          edges.set(k, (edges.get(k) ?? 0) + 1)
+        }
+      }
+      const once = [...edges.values()].filter((c) => c === 1).length
+      const o = levels[li]
+      const holeCells = 2 * Math.ceil(levels[li - 1].ext / o.spacing + o.half - 1e-6) - (o.size - 1)
+      expect(once, `${levels[li - 1].name} → ${o.name}`).toBe(4 * (levels[li - 1].size - 1) + 4 * holeCells)
+    }
+  })
 })

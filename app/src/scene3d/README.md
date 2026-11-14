@@ -55,3 +55,23 @@ when a fly starts or a camera is placed; each scene is drawn once before the fly
 first fly does not stall on uploads; the globe's site pins are rebuilt only for another list of sites.
 POI pins have a 1.5 px dark outline (pins.ts: three more instanced meshes); at site and eye level a left-click
 on a POI's pin is not a walk (the page keeps its info box open on it).
+Wave 3 (14 Nov evening):
+F3 camera at rest: OrbitControls.update() rebuilds the camera from spherical coordinates on every call, and the round
+trip moved a camera at rest by a unit in the last place (c4.spec.ts:210 once saw 9.09e-13 m). tick() calls it only
+while the controls have input to apply (index.ts orbitBusy); a glide below 1e-9 rad ends.
+F2 near level: 160 m to ±40 km (501 × 501) between the 80 m tile and mid, 2 × 2 means of the south-cap 80 m tiles
+(data/southcap.ts nearLevel), relative to the site's own ground_m. A prepared site's files have none: index.ts
+requestNear builds it after the site is shown and rebuilds the terrain once (after a fly, never during one); a custom
+point's cap terrain has it among its levels. 15–28 tiles (2.0–3.7 MB) per site. In test mode only after
+__scene.nearLevel(true); __scene.nearReady() resolves when the current site's job has ended. Level normals come from
+the grids and blend across each rim band like the heights (levels.ts levelNormals); data next to a nodata fill (im-1:
+the polar DEM ends 4 km north of the site) blend into the fill over the same band. tileHeight applies height_scale_m.
+F1 south polar cap on the globe: once data/southcap.ts loadCap() resolves, globe.ts swaps the sphere for
+globeWithoutCap() and adds capGeometry() (400 m relief, cap_color_2k.webp) south of 80° S; without the cap data the
+whole sphere stays, and the checker texture always shows the whole sphere. Within 120 km of the rim
+(southcap.ts RIM_SHADING_KM) the cap's normals fade into the normal the sphere's normal map gives there (three's
+cotangent frame reproduced in matchRimNormals), so 80° S does not show as a ring. Site pins, user points and POIs
+stand on the drawn relief (capSurfacePoint), the pin region's tint is mixed into the cap's own pixels by its shader
+(the overlay's 9 %, so it lies exactly on the relief; the boundary line stays at the rim, where the cap is on the
+sphere), picking and the right-click hit test both meshes, and the space camera's floor is 1 km above the relief. In test mode
+handle.ready waits for the cap, so every test sees the same globe.

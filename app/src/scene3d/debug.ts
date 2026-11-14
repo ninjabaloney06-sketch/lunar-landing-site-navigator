@@ -56,6 +56,15 @@ export interface DebugView {
   bodies(): { name: string; center: number[]; camera: number[] }[]
   projectMark(index: number): ScreenPoint | null
   skySize(b: 'sun' | 'earth'): number | null
+  walkTo(x: number, y: number): boolean
+  nearLevel(on: boolean): Promise<void>
+  nearReady(): Promise<void>
+  levelSpecs(): { name: string; size: number; spacing: number; ext: number }[]
+  capInfo(): { loaded: boolean; visible: boolean; vertices: number; northLat: number | null; sphereSouthLat: number; sphereFaces: number; tint: number } | null
+  globeHit(x: number, y: number): { point: number[]; mesh: 'cap' | 'sphere' } | null
+  moonGround(p: number[]): number
+  setCap(on: boolean): void
+  subSolar(): { lat: number; lon: number } | null
 }
 
 export interface SetViewOptions {
@@ -164,6 +173,24 @@ export function installDebug(v: DebugView) {
     bodies: () => v.bodies(),
     projectMark: (i: number) => v.projectMark(i),
     skySize: (b: 'sun' | 'earth') => v.skySize(b),
+    // F3: the walk a click on terrain starts, to the ENU point (x, y) in m, without a frame drawn in between (a
+    // test can read the camera before and after the next frame).
+    walkTo: (x: number, y: number) => v.walkTo(x, y),
+    // F2: the near terrain level (160 m to ±40 km from the south-cap 80 m tiles). Off in test mode until
+    // nearLevel(true), which also starts it for the current site; nearReady() resolves once the job for the
+    // current site has ended (the terrain rebuilt, or nothing to do); levelSpecs() lists the levels as built.
+    nearLevel: (on: boolean) => v.nearLevel(on),
+    nearReady: () => v.nearReady(),
+    levelSpecs: () => v.levelSpecs(),
+    // F1: the south polar cap on the globe (loaded, drawn, its vertex count, its edge, the pin region's tint
+    // mixed into it) and the southernmost latitude of the sphere's faces; the Moon point under a screen position with the mesh it is on (globe
+    // level); the radius (km) of the drawn surface under a MOON_ME point, the space camera's floor.
+    capInfo: () => v.capInfo(),
+    globeHit: (x: number, y: number) => v.globeHit(x, y),
+    moonGround: (p: number[]) => v.moonGround(p),
+    // The cap off and on again (before/after pictures), and the sub-solar point (planetocentric degrees).
+    setCap: (on: boolean) => v.setCap(on),
+    subSolar: () => v.subSolar(),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api
