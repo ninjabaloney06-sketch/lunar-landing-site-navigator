@@ -51,6 +51,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:45–13:55 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Integrator: merged C1 and C2, enabled the two label tests against the real scene and fixed their test URL, ran the step-1 checks on main, updated TASKS.md | app/e2e/ui.spec.ts; TASKS.md; BUILD_LOG.md | none | First attempt at the label test failed for a test reason (test=1 in the URL hash, not the query); app code was not changed. |
 
+| Sat 12:20–13:45 | Claude Code desktop app (account owner unconfirmed) | project operator | Web research in six parallel threads on NASA lunar south-pole data: programmes and candidate regions, illumination/Earth visibility/thermal, water ice and resources, science/astrobiology/hazards, landing windows, datasets and APIs | docs/reference/research/notes/ (reference only; not used by the app) | none | Not validated. Notes list their own gaps: several primary papers and NASA PDFs could not be opened; south-polar solstice dates and some region-centre coordinates are derived by the AI, not published; some 2026 programme status items rest on secondary sources. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
