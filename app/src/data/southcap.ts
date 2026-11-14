@@ -400,6 +400,21 @@ export class SouthCap {
     return Number.isNaN(h) ? null : h
   }
 
+  /** Height of the 400 m base at projected metres (bilinear); NaN outside the base raster. For the globe's cap mesh. */
+  heightXY(x: number, y: number): number {
+    return this.base.sample(x, y)
+  }
+
+  /** Half-width (m) of the base raster's square: the extent a cap texture in the same layout covers. */
+  get halfWidthM(): number {
+    return (this.base.width * this.base.spacing) / 2
+  }
+
+  /** Northern edge of the cap (degrees). */
+  get northLat(): number {
+    return this.meta.north_lat
+  }
+
   private far2k(): Grid {
     this.base2k ??= this.base.blockMeans(Math.round(FAR_GRID.spacing / this.base.spacing))
     return this.base2k

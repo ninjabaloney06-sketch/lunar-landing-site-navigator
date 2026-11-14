@@ -3,6 +3,7 @@
     python3 scripts/south_cap.py --plan                 # tile counts and sizes only, writes nothing
     python3 scripts/south_cap.py --sample im-1 connecting-ridge   # base + outer + the tiles around these sites
     python3 scripts/south_cap.py --full                 # base + outer + every tile of every level
+    python3 scripts/south_cap.py --texture              # app/public/textures/cap_color_2k.webp only
 
 Everything is in the DEM's own projection, read from the GeoTIFF (south polar stereographic on the 1737.4 km
 sphere, lon_0 = 0: +x toward 90 E, +y toward longitude 0), never from a label. Heights are plain DEM heights
@@ -22,6 +23,11 @@ x = x0_m + (c + 0.5) s, y = y0_m - (r + 0.5) s.
                 folder over its 200 MB ceiling). Tile (row, col) holds
                 samples [row*256, row*256+256) x [col*256, col*256+256) of the level's full grid; a tile with no
                 part south of the level's latitude limit is not written; samples past the DEM edge are nodata.
+
+--texture: the globe's colour map (NASA SVS CGI Moon Kit, lroc_color_poles_8k.tif: 8192 x 4096 equirectangular,
+no georeferencing in the file; longitude 0 at the image centre, row 0 = 90 N, as its 4k sibling the globe uses)
+resampled bilinearly into the base raster's square (+-304 km, row 0 = +y edge, col 0 = -x edge), 2048 x 2048.
+The source has about 1.3 km per pixel in latitude there, so the result is soft; it only removes the pole pinch.
 
 One pass over the 20 m DEM in strips of 1024 rows (one 80 m tile row), never the whole array in memory.
 Nothing here is validated by the science lead.
@@ -53,6 +59,11 @@ TILE_SCALE_M = 0.25       # Int16 unit of the tiles; holds +-8191 m (checked whi
 LEVELS = {"40": (2, -85.1), "80": (4, -80.0)}
 SAMPLE_RADIUS_M = 21_000.0  # --sample: tiles within this distance of a site (the 80 m tile's +-20 km)
 OUT = APP_DATA / "terrain" / "cap"
+TEXTURES = REPO / "app" / "public" / "textures"
+COLOR_NAME = "lroc_color_poles_8k.tif"
+COLOR_OUT = "cap_color_2k.webp"
+COLOR_SIZE = 2048
+CAP_HALF_M = 304_000.0  # half-width of the 20 m DEM's square (checked against the file in main)
 REGISTER = REPO / "docs" / "reference" / "data-sources.md"
 ORDER = "row-major; row 0 = +y edge (toward longitude 0); col 0 = -x edge (toward 90 W); little-endian Int16"
 SAMPLE_POSITION = ("sample (r, c) is the mean of the DEM pixels it covers, centred on "
@@ -175,14 +186,45 @@ def build_outer(path):
     return out, spacing, -OUTER_HALF_BLOCKS * spacing, OUTER_HALF_BLOCKS * spacing, crs
 
 
+def cap_color(src_path=None, size=COLOR_SIZE, half_m=CAP_HALF_M):
+    """RGB uint8 array (size, size, 3): the equirectangular colour map in the cap's stereographic layout."""
+    from scipy.ndimage import map_coordinates
+    src_path = src_path or data_root() / "textures" / COLOR_NAME
+    xs = ((np.arange(size) + 0.5) / size * 2 - 1) * half_m
+    x, y = np.meshgrid(xs, -xs)  # row 0 = +y edge, col 0 = -x edge
+    lat = -90.0 + 2.0 * np.degrees(np.arctan(np.hypot(x, y) / (2.0 * R_M)))  # inverse of rho_of_lat
+    lon = np.degrees(np.arctan2(x, y))
+    with rasterio.open(src_path) as ds:
+        ppd = ds.width / 360.0
+        if ds.height * 2 != ds.width or ds.count < 3:
+            raise SystemExit(f"{src_path}: not a 2:1 RGB equirectangular map")
+        r0 = int(math.floor((90.0 - lat.max()) * ppd)) - 2
+        rgb = ds.read([1, 2, 3], window=Window(0, r0, ds.width, ds.height - r0)).astype(np.float32)
+    row = np.clip((90.0 - lat) * ppd - 0.5 - r0, 0, rgb.shape[1] - 1)  # the last row stands for the pole itself
+    col = ((lon + 180.0) % 360.0) * ppd - 0.5
+    out = np.stack([map_coordinates(rgb[b], [row, col], order=1, mode="grid-wrap", prefilter=False)
+                    for b in range(3)], axis=-1)
+    return np.rint(np.clip(out, 0, 255)).astype(np.uint8)
+
+
+def write_texture():
+    from PIL import Image
+    out = TEXTURES / COLOR_OUT
+    Image.fromarray(cap_color(), "RGB").save(out, "WEBP", quality=88, method=6)
+    print(f"wrote {out.relative_to(REPO)}: {COLOR_SIZE} x {COLOR_SIZE}, {out.stat().st_size} bytes")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--plan", action="store_true", help="print tile counts and sizes, write nothing")
     g.add_argument("--sample", nargs="+", metavar="SITE", help="tiles around these site ids only")
+    g.add_argument("--texture", action="store_true", help="write the cap colour texture only")
     g.add_argument("--full", action="store_true",
                    help="every tile (about 190 MB: needs Isaac's approval, AGENTS.md)")
     args = ap.parse_args(argv)
+    if args.texture:
+        return write_texture()
     t_start = time.perf_counter()
     dem_path = data_root() / "lola" / DEM_NAME
     outer_path = data_root() / "lola" / FILL_DEM_NAME
@@ -199,6 +241,8 @@ def main(argv=None):
         if not (proj.get("proj") == "stere" and proj.get("lat_0") == -90 and proj.get("lon_0") == 0
                 and proj.get("R") == R_M):
             raise SystemExit(f"{dem_path}: unexpected projection {proj}")
+        if -x0 != CAP_HALF_M:
+            raise SystemExit(f"{dem_path}: half-width {-x0} m, CAP_HALF_M says {CAP_HALF_M}")
         print_plan(width, x0, y0)
         if args.plan:
             return

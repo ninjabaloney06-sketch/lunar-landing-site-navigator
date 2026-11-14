@@ -298,3 +298,57 @@ def test_samples_equal_the_raw_box_mean(meta, name):
             assert abs(got - want) <= info["height_scale_m"] / 2 + 1e-3
             checked += 1
     assert checked >= (4 if name == "40" else 6)
+
+
+# ---------- cap colour texture (south_cap.py --texture) ----------
+
+COLOR = REPO / "app" / "public" / "textures" / sc.COLOR_OUT
+COLOR_SRC = (_data_root() / "textures" / sc.COLOR_NAME) if _data_root() else None
+
+
+@needs_cap
+@pytest.mark.skipif(not COLOR.exists(), reason="cap texture not generated")
+def test_texture_orientation_against_the_relief(meta):
+    """The colour map has no georeferencing, so its layout is checked against the DEM: local brightness (minus
+    its 8 km mean) correlates with local height (crater floors are darker in the mosaic) only when the texture
+    lies in the base raster's layout; mirrored or swapped, the correlation vanishes."""
+    from PIL import Image
+    from scipy.ndimage import uniform_filter
+    im = Image.open(COLOR)
+    assert im.size == (sc.COLOR_SIZE, sc.COLOR_SIZE) and COLOR.stat().st_size < 3e6
+    n = meta["base"]["width"]
+    tex = np.asarray(im.convert("L").resize((n, n), Image.Resampling.BILINEAR)).astype(float)
+    base = raster(meta, "base").data
+    hp = base - uniform_filter(base, 20)
+    yy, xx = np.mgrid[0:n, 0:n]
+    inside = np.hypot(xx - (n - 1) / 2, yy - (n - 1) / 2) * meta["base"]["spacing_m"] < 300_000
+
+    def r(t):
+        return float(np.corrcoef((t - uniform_filter(t, 20))[inside], hp[inside])[0, 1])
+
+    built = r(tex)
+    others = {"mirrored x": r(tex[:, ::-1]), "mirrored y": r(tex[::-1]), "swapped": r(tex.T), "rotated 180": r(tex[::-1, ::-1])}
+    print(f"texture vs relief: as built r = {built:.3f}; " + ", ".join(f"{k} {v:+.3f}" for k, v in others.items()))
+    assert built > 0.08
+    assert all(abs(v) < 0.02 for v in others.values())
+
+
+@pytest.mark.skipif(not (COLOR_SRC and COLOR_SRC.exists()), reason="CLPS_DATA / colour map not available")
+def test_cap_color_samples_the_source_where_the_projection_says():
+    """Four points on the 85 S circle and the pole, read straight from the equirectangular source."""
+    import rasterio
+    size = 512
+    out = sc.cap_color(size=size).astype(float)
+    with rasterio.open(COLOR_SRC) as ds:
+        src = ds.read([1, 2, 3]).astype(float)
+        ppd = ds.width / 360.0
+    for lon in (0.0, 90.0, 180.0, -90.0, 37.0):
+        x, y = TO_XY.transform(lon, -85.0)
+        col, row = (x + sc.CAP_HALF_M) / (2 * sc.CAP_HALF_M) * size - 0.5, (sc.CAP_HALF_M - y) / (2 * sc.CAP_HALF_M) * size - 0.5
+        got = out[int(round(row)), int(round(col))]
+        sr, scol = int((90 + 85.0) * ppd), int(((lon + 180) % 360) * ppd) % src.shape[2]
+        want = src[:, sr - 3:sr + 4, :].take(range(scol - 6, scol + 7), axis=2, mode="wrap").mean(axis=(1, 2))
+        print(f"85 S, lon {lon}: texture {got}, source neighbourhood mean {np.round(want, 1)}")
+        assert np.abs(got - want).max() < 12  # same place in the map (8-bit colour, soft source)
+    pole = out[size // 2 - 1:size // 2 + 1, size // 2 - 1:size // 2 + 1].mean(axis=(0, 1))
+    assert np.abs(pole - src[:, -1, :].mean(axis=1)).max() < 12
