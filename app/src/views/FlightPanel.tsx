@@ -450,7 +450,7 @@ export function FlightPanel(p: FlightPanelProps) {
         </p>
         <p className="quiet flight-foot">
           Not modelled: the Moon's uneven gravity, winds, engine start-up and shut-down transients, the entry through Earth's atmosphere after Entry
-          Interface. Planning estimate, not validated flight dynamics.
+          Interface.
         </p>
         {plan && plan.sources.length > 0 && (
           <ul className="plain flight-sources">

@@ -662,9 +662,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           )}
           <footer className="foot">
             <p>Gravity of Earth, Moon and Sun · ephemeris JPL DE440 · drag to turn, scroll to zoom</p>
-            <p className="foot-sample" data-testid="flight-flag">
-              Planning estimate — not validated
-            </p>
           </footer>
         </div>
       )}
