@@ -1,5 +1,5 @@
-// Main screen (build-plan §5.1, Brief C2): the 3D scene with labels on its objects, three header controls
-// (site name, date, Find better dates), the answer sentence, the timeline and one footer line.
+// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, three header
+// controls (mission, date, Find better dates), the answer sentence, the timeline and one footer line.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
@@ -8,6 +8,7 @@ import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
 import {
+  cleanName,
   COVERAGE_END_MS,
   COVERAGE_START_MS,
   DAY_MS,
@@ -21,10 +22,13 @@ import { DateMenu } from './views/DateMenu'
 import { Drawer } from './views/Drawer'
 import type { ViewPeriod } from './views/Drawer'
 import { HorizonStrip } from './views/HorizonStrip'
+import { Icon } from './views/Icon'
+import { MissionPanel } from './views/MissionPanel'
 import { SceneView } from './views/SceneView'
-import { SiteMenu } from './views/SiteMenu'
 import { Timeline } from './views/Timeline'
-import { fmtCoords, fmtDateTime, fmtRange } from './views/format'
+import { fmtCoords, fmtDateTime, fmtDeg, fmtRange } from './views/format'
+import { SLOPE_BASELINE, slopeOf } from './views/slope'
+import './styles/mission.css'
 
 type Boot =
   | { status: 'loading' }
@@ -63,6 +67,7 @@ export default function App() {
 }
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
+const CONTEXT_DAYS = 3
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -87,13 +92,15 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
   const [hs, patch] = useHashState()
-  const [menu, setMenu] = useState<null | 'site' | 'date'>(null)
+  const [menu, setMenu] = useState<null | 'mission' | 'date'>(null)
+  const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [webgl, setWebgl] = useState(() => webglAvailable())
-  const siteBtn = useRef<HTMLButtonElement>(null)
+  const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  const missionName = hs.name ?? site.name
 
   const period: ViewPeriod = useMemo(() => {
     if (hs.period === 'custom' && hs.from !== null) {
@@ -128,6 +135,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const results = useResults({ site, stations, ids, startMs: period.startMs, endMs: period.endMs })
   const ready = results.status === 'ready'
+  // The timeline also shows CONTEXT_DAYS before and after the mission (clipped to the supported dates). Those
+  // windows come from their own series; the answer, the drawer and the ranking use the mission span only.
+  const ctxStart = Math.max(COVERAGE_START_MS, period.startMs - CONTEXT_DAYS * DAY_MS)
+  const ctxEnd = Math.min(COVERAGE_END_MS, period.endMs + CONTEXT_DAYS * DAY_MS)
+  const context = useResults({ site, stations, ids, startMs: ctxStart, endMs: ctxEnd })
+  const missionDays = Math.round((period.endMs - period.startMs) / DAY_MS)
+  const slope = slopeOf(site)
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
@@ -137,7 +151,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const closeMenu = useCallback((focus = false) => {
     setMenu((m) => {
-      if (focus) (m === 'date' ? dateBtn : siteBtn).current?.focus()
+      if (focus) (m === 'date' ? dateBtn : missionBtn).current?.focus()
       return null
     })
   }, [])
@@ -186,6 +200,30 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     patch({ st: next.length === stations.length ? null : next })
   }
 
+  // Mission dates from the panel: a span that equals a named period keeps its id (and its label in the date menu).
+  const setMissionDates = (startMs: number, days: number) => {
+    const endMs = startMs + days * DAY_MS
+    const named = periods.find((x) => Date.parse(x.start_utc) === startMs && Date.parse(x.end_utc) === endMs)
+    if (named) patch({ period: named.id, from: null, t: null })
+    else patch({ period: 'custom', from: startMs, days, t: null })
+  }
+
+  // A pin on the globe: the scene reports a pin within its pick radius as that site's own source coordinates.
+  // Any other point on the surface matches no site and is ignored (no arbitrary coordinates before step 7).
+  const onPick = useCallback(
+    (lat: number, lon: number) => {
+      const hit = sites.find((s) => Math.abs(s.lat - lat) < 1e-9 && Math.abs(s.lon - lon) < 1e-9)
+      if (hit) patch({ site: hit.id, view: 'site' })
+    },
+    [sites, patch],
+  )
+
+  const playMission = () => {
+    setMenu(null)
+    patch({ view: 'eye', t: period.startMs })
+    setPlaying(true)
+  }
+
   const openCustom = (ms: number) => {
     setMenu(null)
     if (ms >= period.startMs && ms < period.endMs) {
@@ -218,6 +256,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             sunEl={atCursor ? atCursor.sun.el : null}
             earthEl={atCursor ? atCursor.earth.el : null}
             onUnavailable={onUnavailable}
+            onPick={onPick}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -229,25 +268,36 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
       <header className="top">
         <div className="place">
-          <h1 className="site-h">
+          <h1 className="mission-h">
             <button
-              ref={siteBtn}
+              ref={missionBtn}
               type="button"
-              className="site-name"
-              data-testid="site-name"
-              data-site-id={site.id}
+              className="mission"
+              data-testid="mission"
               data-menu-trigger=""
               aria-haspopup="dialog"
-              aria-expanded={menu === 'site'}
-              onClick={() => setMenu(menu === 'site' ? null : 'site')}
+              aria-expanded={menu === 'mission'}
+              onClick={() => {
+                setPanelAtStations(false)
+                setMenu(menu === 'mission' ? null : 'mission')
+              }}
             >
-              {site.name}
+              <Icon name="rocket" />
+              <span className="mission-name">{missionName}</span>
             </button>
           </h1>
-          {site.label && <p className="site-label">{site.label}</p>}
-          <p className="coords mono" data-testid="coords">
-            {fmtCoords(site.lat, site.lon)}
+          <p className="site-line">
+            <span className="site-line-name" data-testid="site-name" data-site-id={site.id}>
+              {site.name}
+            </span>
+            <span className="site-line-sep" aria-hidden="true">
+              {' · '}
+            </span>
+            <span className="coords mono" data-testid="coords">
+              {fmtCoords(site.lat, site.lon)}
+            </span>
           </p>
+          {site.label && <p className="site-label">{site.label}</p>}
           <button
             ref={dateBtn}
             type="button"
@@ -261,16 +311,29 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           >
             {fmtDateTime(cursor)}
           </button>
-          {menu === 'site' && (
-            <SiteMenu
+          {menu === 'mission' && (
+            <MissionPanel
               sites={sites}
-              currentId={site.id}
+              stations={stations}
+              ids={ids}
+              site={site}
+              period={period}
+              name={hs.name}
+              goal={hs.goal}
               points={hs.pts}
+              focusStations={panelAtStations}
+              onName={(v) => patch({ name: cleanName(v) })}
+              onDates={setMissionDates}
+              onGoal={(goal) => patch({ goal })}
               onSelect={(id) => {
+                // Closes like the site menu did, so the flight and the new answer are seen; the ranking is kept,
+                // so reopening the panel shows it at once.
                 setMenu(null)
                 patch({ site: id, view: 'site' })
-                siteBtn.current?.focus()
+                missionBtn.current?.focus()
               }}
+              onToggleStation={toggleStation}
+              onPlay={playMission}
               onClose={closeMenuQuiet}
             />
           )}
@@ -295,6 +358,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
       </header>
 
       <div className="bottom">
+        {/* Only when the site fails the slope criterion; passing and unknown are stated in the Mission panel. */}
+        {slope.state === 'fail' && slope.deg !== null && (
+          <p className="slope-warning" data-testid="slope-warning">
+            <Icon name="warning" />
+            <span>
+              Landing not recommended: slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°
+            </span>
+          </p>
+        )}
         {ready && answer ? (
           <button
             type="button"
@@ -312,11 +384,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           <AnswerPending state={results} siteName={site.name} />
         )}
         <Timeline
-          startMs={period.startMs}
-          endMs={period.endMs}
+          startMs={ctxStart}
+          endMs={ctxEnd}
+          missionStartMs={period.startMs}
+          missionEndMs={period.endMs}
+          missionLabel={`${missionName}, ${missionDays} ${missionDays === 1 ? 'day' : 'days'}`}
           cursorMs={cursor}
-          sun={ready ? results.results.sun : null}
-          comms={ready ? results.results.comms : null}
+          sun={context.status === 'ready' ? context.results.sun : null}
+          comms={context.status === 'ready' ? context.results.comms : null}
           valueText={valueText}
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
@@ -347,7 +422,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           ids={ids}
           results={results}
           atCursor={atCursor}
-          onToggleStation={toggleStation}
+          onChooseStations={() => {
+            patch({ drawer: null })
+            setPanelAtStations(true)
+            setMenu('mission')
+          }}
           onShowWindow={(startMs, days, landingMs) =>
             patch({ period: 'custom', from: dayStart(startMs), days, t: landingMs, drawer: null })
           }

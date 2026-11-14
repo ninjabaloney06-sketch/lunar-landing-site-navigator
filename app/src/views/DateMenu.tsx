@@ -2,7 +2,7 @@
 // current period moves the cursor; any other time opens a 14-day period starting that day.
 import { useEffect, useRef, useState } from 'react'
 import type { Period } from '../data/types'
-import { COVERAGE_END_MS, COVERAGE_START_MS, isoMinute } from '../state'
+import { inCoverage, isoMinute, RANGE_ERROR } from '../state'
 
 interface Props {
   periods: Period[]
@@ -38,8 +38,8 @@ export function DateMenu({ periods, currentPeriodId, cursorMs, onPeriod, onCusto
       setError('Enter a date and a time, for example 2027-08-16 and 12:00.')
       return
     }
-    if (ms < COVERAGE_START_MS || ms >= COVERAGE_END_MS) {
-      setError('Dates from 1 November 2026 to 31 December 2030 (UTC) are supported.')
+    if (!inCoverage(ms)) {
+      setError(RANGE_ERROR)
       return
     }
     setError(null)

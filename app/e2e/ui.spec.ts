@@ -32,8 +32,9 @@ async function stationIds(page: Page): Promise<string[]> {
   return (await data<{ id: string }[]>(page, 'stations.json')).map((s) => s.id)
 }
 
+/** Header control 1 is the mission (rocket + name); it opens the site list. */
 async function chooseSite(page: Page, id: string) {
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   await page.locator(`#site-opt-${id}`).click()
 }
 
@@ -96,9 +97,9 @@ for (const vp of VIEWPORTS) {
     await expectMarker(page)
     await expect(page.locator('body')).not.toContainText('NaN')
     await noHorizontalScroll(page)
-    // All stations selected by default.
-    await page.getByTestId('answer').click()
-    await expect(page.getByTestId('drawer').getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
+    // All stations selected by default (the checklist lives in the Mission panel since Brief C3).
+    await page.getByTestId('mission').click()
+    await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
   })
 
   test(`UX-01/02: Sun and Earth labels on their objects at ${vp.width} px`, async ({ page }) => {
@@ -232,7 +233,7 @@ test('basic comparison: Connecting Ridge ↔ Malapert Massif, same period; Aug �
 test('UX-03: invalid coordinates are rejected with a message, never NaN', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   const search = page.getByRole('combobox', { name: 'Search a site or type coordinates' })
   const cases: [string, RegExp][] = [
     ['95 S, 10 E', /Latitude must be between 90° S and 90° N/],
@@ -258,7 +259,7 @@ test('UX-04: the site menu lists every site in sites.json, each with its label',
   const sites = await data<{ id: string; name: string; label: string | null }[]>(page, 'sites.json')
   await page.goto(`/#site=${MASSIF}&period=${AUG}`)
   await expectAnswer(page, MASSIF, AUG, 60_000)
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   await expect(page.getByRole('option')).toHaveCount(sites.length)
   for (const s of sites.filter((x) => x.label)) {
     await expect(page.locator(`#site-opt-${s.id}`)).toHaveAccessibleName(`${s.name} ${s.label}`)
@@ -364,13 +365,237 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
   const all = await stationIds(page)
-  await expect(drawer.getByRole('checkbox')).toHaveCount(all.length)
-  await expect(drawer.getByRole('checkbox', { checked: true })).toHaveCount(2)
-  await drawer.getByRole('checkbox', { name: /Goldstone/ }).check()
+  // The drawer shows the selected stations' states and links to the one checklist, in the Mission panel.
+  await expect(drawer.locator('table.stations tbody tr')).toHaveCount(2)
+  await drawer.getByRole('button', { name: 'Choose ground stations' }).click()
+  const panel = page.getByTestId('mission-panel')
+  await expect(panel.getByRole('checkbox')).toHaveCount(all.length)
+  await expect(panel.getByRole('checkbox', { checked: true })).toHaveCount(2)
+  await panel.getByRole('checkbox', { name: /Goldstone/ }).check()
   const sel = all.filter((id) => ['goldstone', 'madrid', 'canberra'].includes(id))
   // All stations selected is the default and leaves `st` out of the link.
   if (sel.length === all.length) await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('st=')
   else await expect.poll(() => page.evaluate(() => location.hash)).toContain(`st=${sel.join(',')}`)
+})
+
+// ---------- Mission layer (Brief C3) ----------
+
+test('(e) mission: the name defaults to the site name; a copied link restores name and goal', async ({ page }) => {
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('Connecting Ridge')
+  await expect(page.getByTestId('mission')).toHaveAccessibleName('Connecting Ridge')
+
+  await page.goto(`/#site=${MASSIF}&period=${SEP}&name=Ice%20survey%201&goal=light`)
+  await expectAnswer(page, MASSIF, SEP, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('Ice survey 1')
+  await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Ice+survey+1')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=light')
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  await expect(panel.getByLabel('Name', { exact: true })).toHaveValue('Ice survey 1')
+  await expect(panel.getByRole('radio', { name: 'Consistent light' })).toBeChecked()
+  // Editing the name in the panel changes the header and the link at once.
+  await panel.getByLabel('Name', { exact: true }).fill('Rim survey')
+  await expect(page.getByTestId('mission')).toHaveText('Rim survey')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Rim+survey')
+  await panel.getByRole('radio', { name: 'Water ice and volatiles' }).check()
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=water-ice')
+
+  // Invalid values fall back to the defaults, like every other key; names are cut to 40 characters.
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=biology&name=${'x'.repeat(45)}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('x'.repeat(40))
+  await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('goal=')
+})
+
+test('(f) mission: a name containing <script> renders as text', async ({ page }) => {
+  const name = '<script>window.__pwned=1</script>'
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&name=${encodeURIComponent(name)}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText(name)
+  expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined()
+  await expect(page.locator('header.top script')).toHaveCount(0)
+})
+
+/** summarize() for one site, period and all stations, computed in the page straight from geometry + data files. */
+async function summarizeInPage(page: Page, siteId: string, periodId: string): Promise<{ litPct: number; coveragePct: number }> {
+  return page.evaluate(`(async () => {
+    const g = await import('/src/geometry/index.ts')
+    const L = await import('/src/data/load.ts')
+    const [sites, stations, periods] = await Promise.all([L.loadSites(), L.loadStations(), L.loadPeriods()])
+    const site = sites.find((s) => s.id === ${JSON.stringify(siteId)})
+    const p = periods.find((x) => x.id === ${JSON.stringify(periodId)})
+    const startMs = Date.parse(p.start_utc), endMs = Date.parse(p.end_utc)
+    const [h, months] = await Promise.all([L.loadHorizon(site.horizon), L.loadMonthsFor(startMs, endMs)])
+    const series = g.computeSeries(months, { lat: site.lat, lon: site.lon, elev_m: site.elev_m }, h, stations, startMs, endMs)
+    const s = g.summarize(series, stations.map((x) => x.id))
+    return { litPct: s.litPct, coveragePct: s.coveragePct }
+  })()`)
+}
+
+test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; first row matches summarize()', async ({ page }) => {
+  const sites = await data<{ id: string }[]>(page, 'sites.json')
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  await expect(panel.getByLabel('Start', { exact: true })).toHaveValue('16 Aug 2027')
+  await expect(panel.getByLabel('End', { exact: true })).toHaveValue('29 Aug 2027')
+  // Start keeps the length (14 days), End sets it; 12–26 Sep 2027 is the named period shackleton-2027-09.
+  await panel.getByLabel('Start', { exact: true }).fill('12 Sep 2027')
+  await panel.getByLabel('Start', { exact: true }).press('Enter')
+  await expect(panel.getByLabel('End', { exact: true })).toHaveValue('25 Sep 2027')
+  await panel.getByLabel('End', { exact: true }).fill('26 Sep 2027')
+  await panel.getByLabel('End', { exact: true }).press('Enter')
+  await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', SEP)
+  await expectAnswer(page, RIDGE, SEP)
+  await panel.getByRole('radio', { name: 'Consistent light' }).check()
+  await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station coverage')
+
+  await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
+  const listed = await panel.locator('[data-group] [role=option]').evaluateAll((els) => els.map((e) => e.id.replace('site-opt-', '')))
+  expect(new Set(listed).size).toBe(listed.length)
+  expect([...listed].sort()).toEqual(sites.map((s) => s.id).sort())
+  for (const g of ['ranked', 'failed']) expect(await panel.locator(`[data-group=${g}] [role=option]`).count()).toBeGreaterThan(0)
+
+  const first = panel.locator('[data-group=ranked] [role=option]').first()
+  await expect(first).toHaveAttribute('data-rank', '1')
+  const id = (await first.getAttribute('id'))!.replace('site-opt-', '')
+  const ref = await summarizeInPage(page, id, SEP)
+  await expect(first.locator('[data-fact=lit]')).toHaveText(`lit ${ref.litPct.toFixed(1)} %`)
+  await expect(first.locator('[data-fact=comms]')).toHaveText(`comms ${ref.coveragePct.toFixed(1)} %`)
+  // A site above the slope limit says so and is never ranked.
+  await expect(panel.locator(`#site-opt-${SHACK} [data-fact=slope]`)).toHaveText('slope 31.8° — too steep')
+  await expect(panel.locator(`#site-opt-${SHACK}`)).toHaveAttribute('data-rank', '')
+  await expect(panel).not.toContainText(/optimal|safe to land/i)
+})
+
+test('panel: evidence goals show the evidence and say when station coverage decides', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=water-ice`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
+  const ranked = panel.locator('[data-group=ranked] [role=option]')
+  await expect(ranked.first().locator('[data-fact=evidence]')).toContainText(/^water ice: /)
+  // With today's data every site that passes the slope limit shares one water-ice tier: coverage orders them.
+  await expect(ranked.first().locator('[data-fact=then]')).toHaveText('then by station coverage')
+  await expect(panel).not.toContainText('NaN')
+})
+
+test('panel: invalid mission dates are rejected with a message', async ({ page }) => {
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  const start = panel.getByLabel('Start', { exact: true })
+  const end = panel.getByLabel('End', { exact: true })
+  await start.fill('soon')
+  await start.press('Enter')
+  await expect(panel.getByRole('alert')).toHaveText('Start: enter a date such as 16 Aug 2027.')
+  await start.fill('2035-01-01')
+  await start.press('Enter')
+  await expect(panel.getByRole('alert')).toHaveText('Dates from 1 November 2026 to 31 December 2030 (UTC) are supported.')
+  await start.fill('16 Aug 2027')
+  await start.press('Enter')
+  await end.fill('10 Aug 2027')
+  await end.press('Enter')
+  await expect(panel.getByRole('alert')).toHaveText('End is before Start.')
+  await end.fill('30 Nov 2027')
+  await end.press('Enter')
+  await expect(panel.getByRole('alert')).toHaveText('A mission can last at most 60 days.')
+  await end.fill('2027-08-20')
+  await end.press('Enter')
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+  await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'custom')
+  await expectAnswer(page, RIDGE, 'custom')
+  await expect(page.locator('body')).not.toContainText('NaN')
+})
+
+test('panel: Play mission goes to eye level at the mission start and plays', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&t=2027-08-22T06:00Z`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.getByTestId('mission').click()
+  await page.getByTestId('mission-panel').getByRole('button', { name: 'Play mission' }).click()
+  await expect(page.getByTestId('mission-panel')).toBeHidden()
+  await expect(page.getByTestId('date')).toHaveText(/^16 August 2027, \d\d:\d0 UTC$/)
+  await expect(page.getByTestId('date')).not.toHaveText('16 August 2027, 00:00 UTC')
+  await page.keyboard.press('Space') // pause; the link is written once the cursor rests
+  const paused = await page.getByTestId('date').innerText()
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=eye')
+  await expect(page.getByTestId('date')).toHaveText(paused)
+})
+
+test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Ridge (3.7°) does not', async ({ page }) => {
+  const sites = await data<{ id: string; slope_deg: number | null }[]>(page, 'sites.json')
+  expect(sites.find((s) => s.id === SHACK)!.slope_deg).toBe(31.8)
+  expect(sites.find((s) => s.id === RIDGE)!.slope_deg).toBe(3.7)
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('slope-warning')).toHaveCount(0)
+  await chooseSite(page, SHACK)
+  await expectAnswer(page, SHACK, AUG)
+  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
+  // The warning is text, not a control: the header still has 3 controls and the main screen 5.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(3)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
+  await chooseSite(page, RIDGE)
+  await expectAnswer(page, RIDGE, AUG)
+  await expect(page.getByTestId('slope-warning')).toHaveCount(0)
+})
+
+test('timeline: three dimmed context days each side, a bracket with the mission, a date moves the cursor to noon', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&name=Ridge%20ops`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expectTracks(page)
+  const slider = page.getByRole('slider')
+  await expect(slider).toHaveAttribute('aria-valuemin', String(Date.UTC(2027, 7, 16)))
+  await expect(slider).toHaveAttribute('aria-valuemax', String(Date.UTC(2027, 7, 30)))
+  const bracket = page.getByTestId('mission-bracket')
+  await expect(bracket).toHaveText('Ridge ops, 14 days')
+  // 13 Aug – 2 Sep shown (20 days): the mission starts 3/20 in and covers 14/20.
+  const s = (await slider.boundingBox())!
+  const b = (await bracket.boundingBox())!
+  expect(Math.abs((b.x - s.x) / s.width - 3 / 20)).toBeLessThan(0.005)
+  expect(Math.abs(b.width / s.width - 14 / 20)).toBeLessThan(0.005)
+  for (const id of ['track-sun', 'track-comms']) await expect(page.getByTestId(id).locator('.tl-veil')).toHaveCount(2)
+
+  const day = page.locator('.tl-tick.is-day').nth(1)
+  const label = await day.innerText() // e.g. "18 Aug"
+  await day.click()
+  await expect(page.getByTestId('date')).toHaveText(`${label.replace(/ (\w{3})$/, '')} August 2027, 12:00 UTC`)
+  // Dragging into the context days keeps the cursor inside the mission.
+  await page.mouse.click(s.x + 4, s.y + 10)
+  await expect(page.getByTestId('date')).toHaveText('16 August 2027, 00:00 UTC')
+})
+
+test('globe: clicking a site pin selects that site', async ({ page }) => {
+  type DebugScene = {
+    ready: Promise<void>
+    level(): string
+    setView(o: Record<string, unknown>): Promise<unknown>
+    projectPin(id: string): { x: number; y: number; visible: boolean } | null
+  }
+  const target = 'haworth' // far from every other pin
+  const site = (await data<{ id: string; lat: number; lon: number }[]>(page, 'sites.json')).find((s) => s.id === target)!
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`/?test=1${DEMO.slice(1)}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.waitForFunction(() => (window as unknown as { __scene?: DebugScene }).__scene !== undefined)
+  await page.evaluate(() => (window as unknown as { __scene: DebugScene }).__scene.ready)
+  await page.keyboard.press('Escape') // site level → globe
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: DebugScene }).__scene.level())).toBe('globe')
+  await page.waitForTimeout(1_800) // the 1.5 s fly-out
+  // Camera straight above the pin, so its head projects onto its foot point.
+  await page.evaluate(([lat, lon]) => (window as unknown as { __scene: DebugScene }).__scene.setView({ level: 'globe', el: lat, az: lon }), [site.lat, site.lon])
+  const pt = await page.evaluate((id) => (window as unknown as { __scene: DebugScene }).__scene.projectPin(id), target)
+  expect(pt?.visible).toBe(true)
+  await page.mouse.click(pt!.x, pt!.y)
+  await expectAnswer(page, target, AUG)
+  await expect(page.getByTestId('site-name')).toHaveText('Haworth')
+  await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('view=globe')
 })
 
 test('keys and drag move the cursor; space plays', async ({ page }) => {
@@ -398,7 +623,9 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.getByTestId('answer').click()
   const drawer = page.getByTestId('drawer')
   await expect(drawer.getByRole('heading', { name: 'Stations' })).toBeVisible()
-  await expect(drawer.getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
+  const n = (await stationIds(page)).length
+  await expect(drawer.locator('table.stations tbody tr')).toHaveCount(n)
+  await expect(drawer).toContainText(`${n} of ${n} stations selected.`)
   await expect(drawer).toContainText('not a guaranteed radio link')
   await expect(drawer.getByTestId('horizon-strip')).toBeVisible()
   await expect(drawer.getByRole('heading', { name: 'Site potential' })).toBeAttached()
@@ -438,10 +665,19 @@ for (const vp of [
     await page.evaluate(() => document.fonts.ready)
     const shot = (name: string) => page.screenshot({ path: `test-results/${name}-${vp.tag}.png`, animations: 'disabled' })
     await shot('main')
-    await page.getByTestId('site-name').click()
-    await expect(page.getByRole('option').first()).toBeVisible()
-    await shot('menu')
+    await page.getByTestId('mission').click()
+    const panel = page.getByTestId('mission-panel')
+    await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
+    await shot('panel')
+    await panel.getByRole('heading', { name: 'Landing site' }).evaluate((h) => h.scrollIntoView({ block: 'start' }))
+    await shot('panel-sites')
     await page.keyboard.press('Escape')
+    // A site that fails the slope limit: the warning line sits above the answer.
+    await chooseSite(page, SHACK)
+    await expectAnswer(page, SHACK, AUG)
+    await shot('main-steep')
+    await chooseSite(page, RIDGE)
+    await expectAnswer(page, RIDGE, AUG)
     await page.getByTestId('answer').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')

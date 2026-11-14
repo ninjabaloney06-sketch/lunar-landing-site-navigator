@@ -15,6 +15,7 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/newsreader": "5.3.0",
     "d3": "7.9.0",
+    "ionicons": "8.1.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "three": "0.170.0"
