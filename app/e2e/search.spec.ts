@@ -44,6 +44,20 @@ async function reference(page: Page, siteId: string, startMs: number, endMs: num
   })()`) as Promise<{ litPct: number; coveragePct: number }>
 }
 
+/** The same for a point of search-sites.json, with its own horizon file. */
+async function referencePoint(page: Page, id: string, startMs: number, endMs: number) {
+  return page.evaluate(`(async () => {
+    const g = await import('/src/geometry/index.ts')
+    const L = await import('/src/data/load.ts')
+    const [extra, stations] = await Promise.all([L.loadSearchSites(), L.loadStations()])
+    const site = extra.find((s) => s.id === ${JSON.stringify(id)})
+    const months = await L.loadMonthsFor(${startMs}, ${endMs})
+    const h = await L.loadHorizon(site.horizon)
+    const series = g.computeSeries(months, { lat: site.lat, lon: site.lon, elev_m: site.elev_m }, h, stations, ${startMs}, ${endMs})
+    return g.summarize(series, stations.map((x) => x.id))
+  })()`) as Promise<{ litPct: number; coveragePct: number }>
+}
+
 test.describe('search at 1440 × 900', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
@@ -140,6 +154,50 @@ test.describe('search at 1440 × 900', () => {
     await own.getByRole('button', { name: 'Show' }).click()
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=globe')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('poi=water,cold-trap,science')
+  })
+})
+
+test.describe('search on the real search-sites.json at 1440 × 900', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('every site and every point listed once, a point row equals summarize() for its own horizon file, and the time is measured', async ({ page }) => {
+    test.setTimeout(300_000)
+    const [pois, sites, extra] = await Promise.all([
+      data<Poi[]>(page, 'pois.json'),
+      data<SiteRef[]>(page, 'sites.json'),
+      data<(SiteRef & { name: string; poi_id: string })[]>(page, 'search-sites.json'),
+    ])
+    // The rows the code drops (geometry/poiSearch.searchCandidates): a point whose POI is not shown (outside the pin
+    // region), a point whose POI is one of the app's sites, an id listed before.
+    const shown = new Map(pois.filter((p) => p.lat <= PIN_REGION_NORTH_LAT).map((p) => [p.id, p]))
+    const siteIds = new Set(sites.map((s) => s.id))
+    const seen = new Set(siteIds)
+    const kept: string[] = []
+    for (const x of extra) {
+      const p = shown.get(x.poi_id)
+      if (!p || (p.siteId !== null && siteIds.has(p.siteId)) || seen.has(x.id)) continue
+      seen.add(x.id)
+      kept.push(x.id)
+    }
+    const expected = sites.length + kept.length
+    const { panel, ms } = await openSearch(page)
+    const note = `${sites.length} sites + ${extra.length} points − ${extra.length - kept.length} dropped = ${expected} places computed and ranked in ${ms} ms (mission dates, 14 days)`
+    test.info().annotations.push({ type: 'search time (real file)', description: note })
+    console.log(`search on the real file: ${note}`)
+    const items = panel.getByTestId('search-results').locator('li')
+    await expect(items).toHaveCount(expected)
+    expect((await items.evaluateAll((li) => li.map((x) => x.getAttribute('data-site-id')))).sort()).toEqual([...sites.map((s) => s.id), ...kept].sort())
+
+    // A named point: its Sunlit and Coverage are summarize() on its own horizon file; it offers "Show" only.
+    const id = kept.includes('poi-science-feat-shackleton') ? 'poi-science-feat-shackleton' : kept[0]
+    const point = extra.find((x) => x.id === id)!
+    const r = row(page, id)
+    await expect(r).toContainText(point.name)
+    const p = (await data<{ id: string; start_utc: string; end_utc: string }[]>(page, 'periods.json')).find((x) => x.id === AUG)!
+    const ref = await referencePoint(page, id, Date.parse(p.start_utc), Date.parse(p.end_utc))
+    await expect(r.locator('[data-col=lit] .mono')).toHaveText(`${ref.litPct.toFixed(1)} %`)
+    await expect(r.locator('[data-col=comms] .mono')).toHaveText(`${ref.coveragePct.toFixed(1)} %`)
+    await expect(r.getByRole('button')).toHaveText(['Show'])
   })
 })
 

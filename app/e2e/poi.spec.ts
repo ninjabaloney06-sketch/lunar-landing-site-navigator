@@ -3,8 +3,8 @@
 // "Add point here" outside the pin region. Run: PW_PORT=5182 npx playwright test e2e/poi.spec.ts --workers=1
 //
 // Expected sets are computed here from public/data/pois.json, sites.json and the PIN_REGION_NORTH_LAT constant,
-// never typed in. The scene draws no POI pins yet (setPois is the scene track's), so the tests read what the views
-// passed to setPois and stub named() through the views' test hook (window.__views, ?test=1 only).
+// never typed in. Most tests read what the views passed to setPois and stub named() through the views' test hook
+// (window.__views, ?test=1 only); "real POI pins" hovers a pin the scene draws, found through window.__scene.
 import { expect, test, type Page } from '@playwright/test'
 import { POI_GROUPS, type Poi } from '../src/data/pois'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
@@ -233,6 +233,52 @@ test.describe('POI layer at 1440 × 900', () => {
     await expect(page.getByTestId('scene-menu-note')).toHaveCount(0)
     await page.getByTestId('scene-menu').getByRole('menuitem', { name: 'Add point here' }).click()
     await expect.poll(() => hash(page)).toContain(`pts=${ground.lat.toFixed(4)},${ground.lon.toFixed(4)}`)
+  })
+})
+
+test.describe('real POI pins at 1440 × 900 (wave 3, E4: the scene draws them; no named() stub)', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('switched on at the globe, a hovered pin opens its info box with that POI\'s name and a source link', async ({ page }) => {
+    const [pois, sites] = await Promise.all([data<Poi[]>(page, 'pois.json'), data<{ id: string }[]>(page, 'sites.json')])
+    await openApp(page, `${DEMO}&view=globe`)
+    await page.getByTestId('poi-toggle').click()
+    await expect(page.getByTestId('poi-toggle')).toHaveAttribute('aria-pressed', 'true')
+    await expect.poll(async () => (await passed(page)).length).toBeGreaterThan(0)
+    // The globe from above the south pole, near enough for the pins to be drawn.
+    await page.evaluate(() => (window as unknown as { __scene: SceneDebug }).__scene.setView({ level: 'globe', el: -89, az: 0, dist: 3600 }))
+    // Screen positions through the scene's debug API: every drawn POI head and every site pin.
+    const ids = (await passed(page)).map((p) => p.id)
+    const heads = await page.evaluate(
+      ([ids, siteIds]) => {
+        const s = (window as unknown as { __scene: { projectPoi(id: string): { x: number; y: number; visible: boolean } | null; projectPin(id: string): { x: number; y: number; visible: boolean } | null } }).__scene
+        return {
+          pois: ids.map((id) => ({ id, p: s.projectPoi(id) })),
+          sites: siteIds.map((id) => s.projectPin(id)).filter((p) => p !== null),
+        }
+      },
+      [ids, sites.map((x) => x.id)] as const,
+    )
+    // A visible pin inside the stage, clear of the top bar and the timeline, and at least 40 px from every other
+    // pin, so the pointer can only name this one.
+    const on = heads.pois.filter((h) => h.p && h.p.visible && h.p.x > 80 && h.p.x < 1360 && h.p.y > 180 && h.p.y < 620)
+    const others = [...heads.pois.filter((h) => h.p && h.p.visible).map((h) => ({ id: h.id, ...h.p! })), ...heads.sites.map((p) => ({ id: '', ...p! }))]
+    const clear = on.find((h) => others.every((o) => o.id === h.id || Math.hypot(o.x - h.p!.x, o.y - h.p!.y) > 40))
+    expect(clear, `a drawn POI pin clear of the others (${on.length} on screen)`).toBeDefined()
+    const poi = pois.find((p) => p.id === clear!.id)!
+    await page.mouse.move(clear!.p!.x, clear!.p!.y)
+    const box = page.getByTestId('poi-info')
+    await expect(box).toBeVisible()
+    await expect(box).toHaveAttribute('data-poi-id', poi.id)
+    await expect(box).toHaveAttribute('data-pinned', 'false')
+    await expect(box.getByRole('heading', { name: poi.name })).toBeVisible()
+    await expect(box.getByRole('link').first()).toHaveAttribute('href', poi.sources[0])
+    await expect(box.getByRole('link').first()).toHaveAttribute('target', '_blank')
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: 'test-results/poi-real-pin-1440.png', animations: 'disabled' })
+    // Off the pin and away from the box: it goes.
+    await page.mouse.move(40, 760)
+    await expect(box).toBeHidden()
   })
 })
 

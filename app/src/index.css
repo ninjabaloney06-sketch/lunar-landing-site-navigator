@@ -160,6 +160,18 @@ a:hover {
   background: var(--faint);
 }
 
+.obj-box.is-below {
+  bottom: auto;
+  top: var(--s-3);
+  padding-bottom: 0;
+  padding-top: var(--s-6);
+}
+
+.obj-box.is-below .obj-tick {
+  bottom: auto;
+  top: var(--s-1);
+}
+
 .obj-site {
   position: absolute;
   left: 0;

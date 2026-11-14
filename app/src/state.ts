@@ -2,6 +2,7 @@
 // points, mission name, science goal and the points-of-interest layer. A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { parseCustomSiteId } from './data/customSite'
 import { POI_GROUPS } from './data/pois'
 import type { PoiGroup } from './data/pois'
 import type { ScienceGoal } from './geometry'
@@ -26,7 +27,7 @@ export interface UserPoint {
 export const MAX_POINTS = 26
 
 export interface HashState {
-  site: string | null // site id; null = default site
+  site: string | null // site id or custom site id (see "landing site" below); null = default site
   period: string | null // period id, 'custom', or null = default period
   from: number | null // custom period start, UTC ms
   days: number // custom period length
@@ -106,6 +107,18 @@ function parseTime(v: string | null): number | null {
   const ms = Date.parse(v)
   if (!Number.isFinite(ms) || ms < COVERAGE_START_MS || ms >= COVERAGE_END_MS) return null
   return ms
+}
+
+// ---------- landing site ----------
+// Link format: site=<id> for a site of sites.json (ID_RE, as every link before custom sites), or
+// site=cap:<lat>,<lon> for a custom landing site, latitude and longitude with exactly five decimals as
+// data/customSite.customSiteId writes them (e.g. site=cap:-85.50000,12.25000). The two forms cannot be confused
+// (ID_RE has no ':'), so every older link reads as before. A cap: value in another form, or outside the pin region,
+// is ignored (default site).
+
+function parseSite(v: string | null): string | null {
+  if (!v) return null
+  return ID_RE.test(v) || parseCustomSiteId(v) ? v : null
 }
 
 // ---------- points-of-interest layer ----------
@@ -208,8 +221,7 @@ export function removePoint(pts: UserPoint[], i: number): UserPoint[] {
 export function parseHash(hash: string): HashState {
   const p = new URLSearchParams(hash.replace(/^#/, ''))
   const s: HashState = { ...EMPTY_STATE, pts: [] }
-  const site = p.get('site')
-  if (site && ID_RE.test(site)) s.site = site
+  s.site = parseSite(p.get('site'))
   const period = p.get('period')
   if (period && ID_RE.test(period)) s.period = period
   s.from = parseTime(p.get('from'))

@@ -3,7 +3,9 @@
 // stations and goal by geometry/rankSites; every row shows the values it was ranked by. Grown from the C2 site
 // menu: its search, which also accepts typed coordinates. Typed coordinates can be added as a user point (Brief
 // C4 part 3): a name, a place and a role, never numbers. A user point has no horizon file, and nothing is
-// computed for it with a flat horizon or a neighbour's.
+// computed for it with a flat horizon or a neighbour's. Inside the pin region, typed coordinates and a user point
+// can instead become the landing site ("Set as landing site": a custom site, data/customSite.ts), whose numbers
+// are then computed like any site's.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Period, Site, Station } from '../data/types'
 import { MAX_MISSIONS, missionKey } from '../missions'
@@ -19,6 +21,9 @@ import { resolvePeriod } from './period'
 import { SLOPE_BASELINE, slopeOf } from './slope'
 import { StationChecklist } from './Stations'
 import { useSummaries } from './useSummaries'
+import { inPinRegion } from '../scene3d/region'
+import { CUSTOM_SITE_NAME, parseCustomSiteId } from '../data/customSite'
+import { SITE_REGION_TEXT } from './custom'
 import type { SummaryEntry } from './useSummaries'
 
 export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
@@ -82,6 +87,7 @@ interface Props {
   onLoadMission(m: MissionState): void
   onRemoveMission(key: string): void
   onAddPoint(lat: number, lon: number): void
+  onSetSite(lat: number, lon: number): void // makes the place a custom landing site (inside the pin region only)
   onPointName(i: number, name: string): void
   onPointRole(i: number, role: PointRole | null): void
   onPointSelect(i: number | null): void
@@ -333,7 +339,7 @@ export function MissionPanel(p: Props) {
             {p.missions.map((m) => {
               const key = missionKey(m)
               const name = m.name ?? DEFAULT_MISSION_NAME
-              const where = sites.find((s) => s.id === m.site)?.name ?? site.name
+              const where = sites.find((s) => s.id === m.site)?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : site.name)
               return (
                 <li key={key} className="ms-row" data-mission={key}>
                   <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
@@ -403,6 +409,26 @@ export function MissionPanel(p: Props) {
               <button type="button" className="link" data-testid="add-point" onClick={addTyped}>
                 Add point
               </button>
+            )}
+            <span className="quiet" aria-hidden="true">
+              {' · '}
+            </span>
+            {inPinRegion(coords.lat) ? (
+              <button
+                type="button"
+                className="link"
+                data-testid="set-site"
+                onClick={() => {
+                  setQuery('')
+                  p.onSetSite(coords.lat, coords.lon)
+                }}
+              >
+                Set as landing site
+              </button>
+            ) : (
+              <span className="quiet" data-testid="set-site-none">
+                {SITE_REGION_TEXT}
+              </span>
             )}
           </p>
         )}
@@ -490,6 +516,19 @@ export function MissionPanel(p: Props) {
                   <span className="pt-none" data-fact="none">
                     No terrain data for this point
                   </span>
+                  {inPinRegion(pt.lat) ? (
+                    <button
+                      type="button"
+                      className="link pt-land"
+                      data-testid="point-set-site"
+                      aria-label={`Set as landing site: ${name}`}
+                      onClick={() => p.onSetSite(pt.lat, pt.lon)}
+                    >
+                      Set as landing site
+                    </button>
+                  ) : (
+                    <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
+                  )}
                 </li>
               )
             })}

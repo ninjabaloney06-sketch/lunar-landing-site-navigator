@@ -455,6 +455,52 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
         </ul>
         <p>
+          <strong>Points of interest layer.</strong> The top-bar button "Points of interest" switches the layer on and
+          off. It is off by default, so a first visit shows the plain scene, and the link has no <Path>poi</Path>{' '}
+          setting until the layer is on. While it is on, a key under the top bar lists the six groups with their
+          colour, a checkbox per group and, once the data has loaded, the number of pins in each group. The data is
+          fetched the first time the layer or the search opens. In the link, <Path>poi=all</Path> means every group and{' '}
+          <Path>poi=none</Path> means on with no group. The key's note says "Hover or tap a pin to read about it."; with
+          no 3D view it says that no pins are drawn. Both end with "Only south of 80° S. From research notes, not
+          validated by the science lead."
+        </p>
+        <p>
+          A pin's info box: with a mouse it shows while the pointer is on the pin and stays while the pointer moves onto
+          it. A click on the pin, or a tap, keeps it open. A kept box closes with its "Close" button, <Key>Esc</Key>, a
+          press anywhere else, or a camera move away from it. It shows the group and coordinates, the name, the summary,
+          the record's facts, "Evidence", "Limitations", the caveat about research notes, and the source links, each
+          shown by its host name. A right-click outside the south cap gives "Points can be added only south of 80° S."
+        </p>
+        <p>
+          <strong>Search sites.</strong> The top-bar button "Search" opens the search panel. Its candidates are the
+          sites and the points of interest that have a horizon file. Until the points of interest are loaded, the panel
+          says "Loading the points of interest…". The defaults: the groups Water and volatiles, Permanent shadow and
+          Science features (Hazards, Landing sites and Sunlit points are off); "Within, km" 20 (the field accepts 1 to
+          200 km); "Must pass the 5° slope limit" on; "Rank by" Both. The search settings are not part of the link;
+          only <Path>drawer=search</Path> is.
+        </p>
+        <p>
+          Each row shows its rank once the list is ordered, "Best" for the first 3 rows (more when tied), the count of
+          each chosen group within the radius, Sunlit, Coverage and Slope ("— too steep" when it fails the limit). A
+          site row offers "Select". A point row offers "Show" only, which opens the globe with the point's group
+          switched on. A group's count is the number of its points within the radius (inclusive), measured along a
+          1737.4 km sphere; a candidate's own record is not counted.
+        </p>
+        <p>
+          The order: first the rows that meet the slope filter and have a value, by the number of chosen groups
+          covered, then by the number of points nearby, then by that value, the most first each time. For "Both" the
+          value is the sunlit percentage plus the coverage percentage; no other weighted score is used. Equal keys share
+          a rank (1, 1, 3). Then come the rows that meet the slope filter but have no data, then the rows that fail it.
+          With the slope filter off, every row counts as meeting it. Sunlit and Coverage are the values of the
+          comparison table for the mission dates; a place without a horizon file shows "no data". The list appears once
+          every row is computed; until then the panel shows "Computing X of N places for these dates…".
+        </p>
+        <p>
+          <strong>Documentation view.</strong> The footer link "Docs" opens this documentation as a panel (
+          <Path>drawer=docs</Path> in the link). It is loaded as a separate part of the app the first time it is
+          opened.
+        </p>
+        <p>
           <strong>Loading and missing data.</strong> While data loads, the answer line says so and the tracks stay
           empty. A site or date without data gives a plain "no data" message. The previous selection's values are never
           shown under a new selection.
@@ -493,6 +539,44 @@ export const DOC_SECTIONS: DocSection[] = [
         <p>
           There are 5 Earth antennas to choose from: three of the DSN and two of JAXA.
         </p>
+
+        <h4>Points of interest</h4>
+        <p>
+          The points of interest come from the research records in <Path>docs/POIs/</Path>: seven research files and{' '}
+          <Path>additional-sites.json</Path>, which adds researched points. Each file states its source, its coordinate
+          convention and its validation status.
+        </p>
+        <ul className="docs-list">
+          <li>
+            A record becomes a pin only if its geometry is a point and it has at least one source link. Regional
+            findings without coordinates are not pins.
+          </li>
+          <li>
+            There are six groups: Hazards, Water and volatiles, Permanent shadow, Sunlit points, Landing sites and Science
+            features. <Path>pgda-study-sites.json</Path> has names only and adds no point.
+          </li>
+          <li>
+            The name, category, summary, facts, evidence, limitations and sources are copied from each record by a fixed
+            mapping. Nothing is reworded.
+          </li>
+          <li>
+            Latitude is planetocentric, south negative; longitude is east-positive, from −180° to 180°. Where a source
+            names no frame, <Path>MOON_ME</Path> is assumed.
+          </li>
+          <li>
+            These are research notes, not validated by the science lead. Landing records carry the note that their
+            coordinates still need a check.
+          </li>
+          <li>
+            The app shows only points south of 80° S. On 14 Nov 2026 <Path>pois.json</Path> holds 206 records, of which
+            195 lie at or south of 80° S. By group: Landing sites 88, Permanent shadow 69, Sunlit points 18, Science
+            features 16, Water and volatiles 8, Hazards 7.
+          </li>
+          <li>
+            Each point that lies inside the 20 m model gets a terrain horizon, by the same method as the sites, and is
+            listed in <Path>search-sites.json</Path>. A point without a horizon file shows "no data" in the search.
+          </li>
+        </ul>
 
         <h4>Source list</h4>
         <p>

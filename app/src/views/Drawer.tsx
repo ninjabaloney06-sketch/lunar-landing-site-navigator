@@ -16,6 +16,9 @@ import { HorizonStrip } from './HorizonStrip'
 import { SiteTable } from './SiteTable'
 import { Terms } from './Terms'
 import { capital, fmtDateTime, fmtDeg } from './format'
+import { customTerrain } from '../data/customSite'
+import type { CapHorizon } from '../data/southcap'
+import { approxText } from './custom'
 
 export interface ViewPeriod {
   id: string // period id or 'custom'
@@ -27,6 +30,7 @@ export interface ViewPeriod {
 interface Props {
   section: DrawerSection
   site: Site
+  customHorizon: CapHorizon | null // a custom site's capHorizon result, once computed (null for a prepared site)
   period: ViewPeriod
   cursorMs: number
   sites: Site[]
@@ -69,10 +73,10 @@ function losText(l: StationLos | undefined): string {
   return 'blocked'
 }
 
-function csv(site: Site, period: ViewPeriod, r: ResultsState): string {
+function csv(site: Site, period: ViewPeriod, r: ResultsState, approx: string | null): string {
   if (r.status !== 'ready') return ''
   const { sun, comms, summary } = r.results
-  const src = VALIDATED ? 'computed' : `computed, ${NOT_VALIDATED}`
+  const src = (VALIDATED ? 'computed' : `computed, ${NOT_VALIDATED}`) + (approx ? `; ${approx}` : '')
   const iso = (ms: number) => new Date(ms).toISOString()
   const lines = [
     `# ${site.name}; ${iso(period.startMs)} to ${iso(period.endMs)}; values: ${src}`,
@@ -99,6 +103,22 @@ export function Drawer(p: Props) {
   const termsRef = useRef<HTMLElement>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [terms, setTerms] = useState(false)
+  const custom = site.group === 'custom'
+  const approx = p.customHorizon ? approxText(p.customHorizon.computed) : null
+  // A custom site's 3D terrain: which cap raster its grid was sampled from (capTerrain, shared with the scene).
+  const [mesh, setMesh] = useState<{ id: string; res: number } | null>(null)
+  useEffect(() => {
+    if (!custom) return
+    let alive = true
+    customTerrain(site.id).then(
+      (t) => alive && t && setMesh({ id: site.id, res: t.meta.cap.source_res_m }),
+      () => undefined,
+    )
+    return () => {
+      alive = false
+    }
+  }, [custom, site.id])
+  const meshRes = mesh && mesh.id === site.id ? mesh.res : null
 
   useEffect(() => {
     closeBtn.current?.focus({ preventScroll: true })
@@ -113,10 +133,11 @@ export function Drawer(p: Props) {
   }, [terms])
 
   const download = () => {
-    const blob = new Blob([csv(site, period, results)], { type: 'text/csv' })
+    const blob = new Blob([csv(site, period, results, approx)], { type: 'text/csv' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `${site.id}_${new Date(period.startMs).toISOString().slice(0, 10)}.csv`
+    // a custom site id ("cap:-85.50000,12.25000") has characters a file name cannot hold
+    a.download = `${site.id.replace(/[^a-z0-9.-]+/gi, '_')}_${new Date(period.startMs).toISOString().slice(0, 10)}.csv`
     // Firefox and Safari need the link in the document, and revoking the URL right after click() can cancel
     // the download there: revoke it a moment later.
     document.body.appendChild(a)
@@ -135,6 +156,16 @@ export function Drawer(p: Props) {
   }
 
   const ready = results.status === 'ready'
+  const truncated = ready && results.results.series.horizon && results.results.series.horizon.truncated.length > 0 && (
+    <>
+      {' '}
+      <strong data-testid="truncated-note">
+        At this site the model ends before 300 km in {results.results.series.horizon.truncated.length} of{' '}
+        {results.results.series.horizon.mask.length} directions, so distant terrain there is missing and
+        sunlight and Earth visibility in those directions may be overstated.
+      </strong>
+    </>
+  )
 
   return (
     <aside
@@ -165,6 +196,11 @@ export function Drawer(p: Props) {
       </header>
 
       {!VALIDATED && <p className="msg sample-note">{capital(NOT_VALIDATED)}.</p>}
+      {approx && (
+        <p className="msg" data-testid="drawer-approx-note">
+          {approx}.
+        </p>
+      )}
       {results.status === 'empty' && <p className="msg">{results.message}</p>}
       {results.status === 'error' && <p className="msg is-error">{results.error}</p>}
 
@@ -336,30 +372,50 @@ export function Drawer(p: Props) {
             Site: {site.source_url ? <a href={site.source_url} target="_blank" rel="noreferrer">{site.source_label}</a> : site.source_label}.
             Frame: {site.frame_note}.
           </li>
-          <li>
-            Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
-            beyond; the 3D scene uses an 80 m mesh (
-            <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
-              Barker et al. 2023
-            </a>
-            ,{' '}
-            <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
-              data
-            </a>
-            ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground. Where
-            that reaches past the edge of the 20 m model (about 80° S), a 120 m model from the same data set
-            continues it.
-            {ready && results.results.series.horizon && results.results.series.horizon.truncated.length > 0 && (
-              <>
-                {' '}
-                <strong data-testid="truncated-note">
-                  At this site the model ends before 300 km in {results.results.series.horizon.truncated.length} of{' '}
-                  {results.results.series.horizon.mask.length} directions, so distant terrain there is missing and
-                  sunlight and Earth visibility in those directions may be overstated.
-                </strong>
-              </>
-            )}
-          </li>
+          {custom ? (
+            // A custom site: every spacing and distance from the capHorizon record and the terrain's meta.cap.
+            <li data-testid="custom-terrain">
+              Terrain: box means of the LOLA south-pole elevation model (
+              <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
+                Barker et al. 2023
+              </a>
+              ,{' '}
+              <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
+                data
+              </a>
+              ), computed in this browser for the chosen place
+              {p.customHorizon ? (
+                <>
+                  : {p.customHorizon.computed.site_res_m} m at the site, up to {p.customHorizon.computed.near_res_m} m within{' '}
+                  {p.customHorizon.computed.rings.nearKm} km and {p.customHorizon.computed.far_res_m} m beyond
+                  {p.customHorizon.computed.outer_res_m !== null &&
+                    `; where the horizon reaches past the edge of the 20 m model, ${p.customHorizon.computed.outer_res_m} m means of the 120 m model continue it`}
+                  {meshRes !== null && `; the 3D scene's terrain is sampled from the ${meshRes} m data`}. The horizon is searched up
+                  to {p.customHorizon.ray_max_km} km in each direction for an eye {p.customHorizon.observer_height_m} m above the
+                  ground. {approx}.
+                </>
+              ) : (
+                '.'
+              )}
+              {truncated}
+            </li>
+          ) : (
+            <li>
+              Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
+              beyond; the 3D scene uses an 80 m mesh (
+              <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
+                Barker et al. 2023
+              </a>
+              ,{' '}
+              <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
+                data
+              </a>
+              ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground. Where
+              that reaches past the edge of the 20 m model (about 80° S), a 120 m model from the same data set
+              continues it.
+              {truncated}
+            </li>
+          )}
           <li>
             Sun and Earth: JPL DE440 ephemeris (
             <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/" target="_blank" rel="noreferrer">

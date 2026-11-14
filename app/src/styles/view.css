@@ -157,6 +157,20 @@
   color: var(--faint);
 }
 
+/* "Set as landing site" under a user point, or why it is not offered */
+.pt-land {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--t-small);
+}
+
+/* custom landing site: its slope and why its numbers are approximate, above the answer */
+.custom-note {
+  margin: 0 0 var(--s-3);
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
 .menu-msg .link {
   color: var(--fg);
 }

@@ -815,3 +815,80 @@ for (const vp of [
     await shot('drawer-sources')
   })
 }
+
+// ---------- wave 3, E3: the Moon label at the Earth and Sun viewpoints ----------
+
+type Pt = { x: number; y: number; visible: boolean }
+type MoonScene = {
+  ready: Promise<void>
+  goTo(v: string): Promise<boolean>
+  load(siteId: string, utc: number): Promise<void>
+  handle(): { labelPoint(n: string): Pt | null }
+}
+
+/** The label's anchor as SceneView placed it, beside labelPoint('moon'), after two frames. */
+const moonLabel = (page: Page) =>
+  page.evaluate(async () => {
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+    const p = (window as unknown as { __scene: MoonScene }).__scene.handle().labelPoint('moon')
+    const box = document.querySelector('[data-testid=label-moon]')!
+    const anchor = box.parentElement as HTMLElement
+    const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(anchor.style.transform)
+    return { p, hidden: anchor.hidden, at: m ? { x: Number(m[1]), y: Number(m[2]) } : null, text: box.textContent }
+  })
+
+test('Moon label: hidden at the globe, site and eye levels; at the Sun and Earth viewpoints it sits where labelPoint("moon") puts it', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`/?test=1#site=${RIDGE}&period=${AUG}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.waitForFunction(() => (window as unknown as { __scene?: unknown }).__scene !== undefined)
+  await page.evaluate(() => (window as unknown as { __scene: MoonScene }).__scene.ready)
+  // Site level, eye level and the globe: the scene gives no Moon anchor, the label is hidden.
+  for (const key of ['', 'e', 'Escape']) {
+    if (key) await page.keyboard.press(key)
+    const s = await moonLabel(page)
+    expect(s.p, `no anchor (${key || 'site'})`).toBeNull()
+    expect(s.hidden).toBe(true)
+  }
+  // Half-day steps over 17 days. Sun viewpoint chosen once, then the camera follows the Sun (the scene's own S8
+  // check): the Moon starts behind the camera and passes through the picture. Earth viewpoint chosen afresh at each
+  // step: the Moon is in the picture around 16–18 Aug 2027. Wherever labelPoint gives a visible point the label shows
+  // "Moon" there, and nowhere else.
+  const T0 = Date.parse('2027-08-03T00:00:00Z')
+  const seen: Record<string, number> = { sun: 0, earth: 0 }
+  const shot: Record<string, boolean> = {}
+  const at = (t: number) => page.evaluate((t) => (window as unknown as { __scene: MoonScene }).__scene.load('connecting-ridge', t), t)
+  const go = async (v: string) => expect(await page.evaluate((v) => (window as unknown as { __scene: MoonScene }).__scene.goTo(v), v)).toBe(true)
+  for (const vp of ['sun', 'earth']) {
+    await at(T0)
+    await go(vp)
+    for (let k = 0; k <= 34; k++) {
+      await at(T0 + k * 43_200_000)
+      if (vp === 'earth') await go(vp)
+      const s = await moonLabel(page)
+      if (s.p && s.p.visible) {
+        seen[vp]++
+        expect(s.hidden, `${vp} step ${k}: shown`).toBe(false)
+        expect(s.text).toBe('Moon')
+        expect(Math.abs(s.at!.x - s.p.x), `${vp} step ${k}: x`).toBeLessThan(0.11)
+        expect(Math.abs(s.at!.y - s.p.y), `${vp} step ${k}: y`).toBeLessThan(0.11)
+        await expect(page.getByTestId('label-moon')).toBeVisible()
+        // Seen from the Sun's side the Moon and Earth nearly coincide: their labels must not cover each other.
+        if (await page.getByTestId('label-earth').isVisible()) {
+          const [m, e] = [(await page.getByTestId('label-moon').boundingBox())!, (await page.getByTestId('label-earth').boundingBox())!]
+          const overlap = m.x < e.x + e.width && e.x < m.x + m.width && m.y < e.y + e.height && e.y < m.y + m.height
+          expect(overlap, `${vp} step ${k}: Moon and Earth labels apart`).toBe(false)
+        }
+        if (!shot[vp] && s.p.x > 200 && s.p.x < 1240) {
+          shot[vp] = true
+          await page.evaluate(() => document.fonts.ready)
+          await page.screenshot({ path: `test-results/moon-label-${vp}-1440.png`, animations: 'disabled' })
+        }
+      } else expect(s.hidden, `${vp} step ${k}: hidden`).toBe(true)
+    }
+  }
+  console.log(`Moon label: shown at ${seen.sun} of 35 steps at the Sun viewpoint, ${seen.earth} at the Earth viewpoint`)
+  expect(seen.sun).toBeGreaterThan(0)
+  expect(seen.earth).toBeGreaterThan(0)
+})
