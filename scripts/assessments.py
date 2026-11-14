@@ -11,6 +11,7 @@ lon_0 = 0 (see ILLUM_CRS_NOTE); those two maps are read with the DEM's CRS.
 """
 import json
 import math
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -506,7 +507,100 @@ def sourced_hazards(site, hazards):
     return out
 
 
-def thermal_block(site, psr, hazards):
+DIVINER_TAB = "diviner/dlre_prp_south.tab"
+DIVINER_URL = "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/"
+DIVINER_CITATION = ("Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, "
+                    "LRO-L-DLRE-5-PRP-V2.0, 2018 (citation as given in the PDS catalogue prpds.cat); "
+                    "method: Paige et al. 2010, Science 330 (cited in prpds.cat as p. 497)")
+PRP_CANDIDATE_KM = 3.0         # triangle centres searched for the containing triangle
+PRP_FIELDS = ("tri1_x", "tri1_y", "tri1_z", "tri2_x", "tri2_y", "tri2_z", "tri3_x", "tri3_y", "tri3_z",
+              "tri_clon", "tri_clat", "temp_avg", "temp_max")
+
+
+def read_pds4_table_spec(xml_path):
+    """Field name -> (1-based byte location, length, unit, description, invalid constants), plus
+    table offset and record length, read from the PDS4 label (namespace-agnostic)."""
+    import xml.etree.ElementTree as ET
+    tag = lambda e: e.tag.rsplit("}", 1)[-1]
+    root = ET.parse(xml_path).getroot()
+    table = next(e for e in root.iter() if tag(e) == "Table_Character")
+    get = lambda e, name: next((c for c in e.iter() if tag(c) == name), None)
+    spec = {"offset": int(get(table, "offset").text), "records": int(get(table, "records").text),
+            "record_length": int(get(table, "record_length").text), "fields": {}}
+    for f in (e for e in table.iter() if tag(e) == "Field_Character"):
+        sc = get(f, "Special_Constants")
+        inval = [float(c.text) for c in sc.iter() if tag(c) != "Special_Constants"] if sc is not None else []
+        unit = get(f, "unit")
+        spec["fields"][get(f, "name").text.strip()] = {
+            "location": int(get(f, "field_location").text), "length": int(get(f, "field_length").text),
+            "unit": unit.text.strip() if unit is not None else None,
+            "description": " ".join(get(f, "description").text.split()), "invalid": inval}
+    return spec
+
+
+class PRPMesh:
+    """Diviner polar resource product: triangle centres, vertices and temperatures."""
+
+    def __init__(self, spec, rows, tab_path=None):
+        self.spec, self.rows, self.tab_path = spec, rows, tab_path
+        self.n = rows.shape[0]
+        clat, clon = self.column("tri_clat"), self.column("tri_clon")
+        self.centre = _uvec(clat, clon)
+
+    @classmethod
+    def from_files(cls, tab_path, xml_path=None):
+        tab_path = Path(tab_path)
+        spec = read_pds4_table_spec(xml_path or tab_path.with_suffix(".xml"))
+        rl = spec["record_length"]
+        raw = np.memmap(tab_path, dtype=np.uint8, mode="r", offset=spec["offset"],
+                        shape=(spec["records"] * rl,))
+        return cls(spec, raw.reshape(spec["records"], rl), tab_path)
+
+    def column(self, name, idx=None):
+        f = self.spec["fields"][name]
+        r = self.rows if idx is None else self.rows[idx]
+        a = np.ascontiguousarray(r[:, f["location"] - 1:f["location"] - 1 + f["length"]])
+        v = a.view(f"S{f['length']}").ravel().astype(np.float64)
+        for c in f["invalid"]:
+            v[v == c] = np.nan
+        return v
+
+    def lookup(self, lat, lon, radius_km):
+        u = unit(lat, lon)
+        dist = R_KM * np.arctan2(np.linalg.norm(np.cross(self.centre, u), axis=-1), self.centre @ u)
+        cand = np.flatnonzero(dist <= PRP_CANDIDATE_KM)
+        nearest = int(np.argmin(dist))
+        out = {"nearest_idx": nearest, "nearest_km": float(dist[nearest]), "containing_idx": None,
+               "within_idx": np.flatnonzero(dist <= radius_km)}
+        if cand.size:
+            v = np.stack([np.stack([self.column(f"tri{i}_{c}", cand) for c in "xyz"], -1)
+                          for i in (1, 2, 3)], 1)                      # (n, 3 vertices, xyz) km
+            s = [np.einsum("ij,j->i", np.cross(v[:, i], v[:, (i + 1) % 3]), u) for i in range(3)]
+            inside = ((s[0] >= 0) & (s[1] >= 0) & (s[2] >= 0)) | ((s[0] <= 0) & (s[1] <= 0) & (s[2] <= 0))
+            if inside.any():
+                j = cand[np.flatnonzero(inside)]
+                out["containing_idx"] = int(j[np.argmin(dist[j])])
+        return out
+
+    def triangle_area_km2(self, idx):
+        v = np.stack([np.stack([self.column(f"tri{i}_{c}", [idx]) for c in "xyz"], -1)[0] for i in (1, 2, 3)])
+        return float(np.linalg.norm(np.cross(v[1] - v[0], v[2] - v[0])) / 2)
+
+
+SITE_THERMAL_NOTES = {
+    "shackleton-rim-site04": [
+        "Site-specific: annual maximum 319.6 K on a steep (~32 deg), intermittently lit inner wall "
+        "(average Sun visibility 0.11 in the 60 m map); annual mean 112.5 K. A sunward wall can be "
+        "hot at its annual maximum while cold on average; for Leo to confirm.",
+    ],
+}
+
+
+def _k(v):
+    return None if v is None or not np.isfinite(v) else round(float(v), 2)
+
+
+def thermal_block(site, psr, hazards, prp=None):
     vals = []
     if site["id"] == "im-2-intended":
         h = next(x for x in hazards if x["id"] == "terrain_landing_outcomes")
@@ -520,26 +614,76 @@ def thermal_block(site, psr, hazards):
         vals.append({"value_K_min_max_mean": named["temp_K_min_max_mean"],
                      "applies_to": f"PSR '{named['name']}' (Lemelin et al. 2021), not the landing site",
                      "caveat": named["caveat"], "source_url": named["source_url"]})
-    return {
-        "status": "unknown",
-        "reason": ("no site-specific temperature observation or validated thermal model for this site "
-                   "is on disk; illumination is not used as a temperature proxy"),
-        "min_temp_K": None, "max_temp_K": None, "temp_range_K": None,
-        "nearby_sourced_values": vals,
-        "source": None,
-        "method": "none: values are attached only where a sourced statement names a nearby area",
-        "limitations": [
-            "Sun visibility is not a temperature or thermal-stability result.",
-            "Needs Diviner polar temperature maps (download request pending) and S's method.",
-        ],
-    }
+    lim = [
+        "Model-fit values from the first Diviner mapping year (Paige et al. 2010 method), per the label: "
+        "temp_avg = annual average at 2 cm depth, temp_max = annual maximum at the surface.",
+        "Not an annual minimum, not a time series and not a value for the mission dates: thermal "
+        "stability over the mission period is NOT assessed.",
+        "One mesh triangle (about 0.1-0.2 km2, Kaguya-derived DEM) is larger than the 100 m landing "
+        "disk; sub-triangle slopes and shadows are averaged out.",
+        "Frame: label says Moon-centered (planetocentric, east-positive, R = 1737.4 km); "
+        "MOON_ME assumed, Leo to confirm.",
+        "temp_max_k minus temp_avg_k is not a temperature range (different depths and statistics); "
+        "no range is given.",
+        "The ice_depth column (model ice-stability depth) is not used; no ice is inferred.",
+        "Sun visibility is not used as a temperature proxy.",
+    ]
+    lim += SITE_THERMAL_NOTES.get(site["id"], [])
+    base = {"nearby_sourced_values": vals, "annual_min_temp_k": None,
+            "annual_min_reason": "not provided by this product",
+            "source": None, "method": None, "limitations": lim}
+    if prp is None:
+        return {**base, "status": "unknown", "reason": "Diviner PRP table not on disk",
+                "temp_avg_k": None, "temp_max_k": None}
+    fs = prp.spec["fields"]
+    base["source"] = f"{DIVINER_CITATION}; {DIVINER_URL}{prp.tab_path.name if prp.tab_path else ''}"
+    base["method"] = (
+        "site unit vector tested against the vertices of every mesh triangle whose centre is within "
+        f"{PRP_CANDIDATE_KM:.0f} km (great circle, R = {R_KM} km); values of the containing triangle; "
+        f"landing-disk statistics over triangle centres within {LANDING_RADIUS_M:.0f} m")
+    base["columns"] = {n: {"unit": fs[n]["unit"], "description": fs[n]["description"]}
+                       for n in ("temp_avg", "temp_max")}
+    lk = prp.lookup(site["lat"], site["lon"], LANDING_RADIUS_M / 1000.0)
+    ci = lk["containing_idx"]
+    if ci is None:
+        return {**base, "status": "unknown",
+                "reason": f"site not inside any mesh triangle (nearest centre {lk['nearest_km']:.3f} km): outside the mesh",
+                "nearest_triangle_centre_km": round(lk["nearest_km"], 3), "temp_avg_k": None, "temp_max_k": None}
+    ta, tm = prp.column("temp_avg", [ci])[0], prp.column("temp_max", [ci])[0]
+    clat, clon = prp.column("tri_clat", [ci])[0], prp.column("tri_clon", [ci])[0]
+    out = {**base,
+           "match": "mesh triangle containing the site",
+           "triangle_centre_lat": round(float(clat), 5), "triangle_centre_lon": round(float(clon), 5),
+           "distance_to_triangle_centre_km": round(float(gc_distance_km(site["lat"], site["lon"], clat, clon)), 3),
+           "triangle_area_km2": round(prp.triangle_area_km2(ci), 4),
+           "temp_avg_k": _k(ta), "temp_max_k": _k(tm)}
+    missing = [n for n, v in (("temp_avg_k", ta), ("temp_max_k", tm)) if not np.isfinite(v)]
+    if len(missing) == 2:
+        out.update(status="unknown", reason="both temperature values are fill values in the containing triangle")
+    else:
+        out["status"] = "sourced"
+        if missing:
+            out["reason"] = f"{', '.join(missing)} is a fill value (null)"
+    w = lk["within_idx"]
+    land = {"radius_m": LANDING_RADIUS_M, "n_triangle_centres": int(w.size)}
+    if w.size > 1:
+        for name in ("temp_avg", "temp_max"):
+            v = prp.column(name, w)
+            v = v[np.isfinite(v)]
+            land[f"{name}_k"] = ({"min": _k(v.min()), "median": _k(np.median(v)), "max": _k(v.max())}
+                                 if v.size else None)
+    else:
+        land["note"] = ("mesh is coarser than the landing area: at most one triangle centre lies within "
+                        f"{LANDING_RADIUS_M:.0f} m, so no landing-area statistics")
+    out["landing_area"] = land
+    return out
 
 
 # ---------------------------------------------------------------- run
 
 def sha_lookup(root):
     out = {}
-    for f in [root / "lola" / "SHA256SUMS.txt", root / "illumination" / "SHA256SUMS.txt"]:
+    for f in [root / d / "SHA256SUMS.txt" for d in ("lola", "illumination", "diviner")]:
         if f.exists():
             for line in f.read_text().splitlines():
                 if line.strip():
@@ -567,6 +711,8 @@ def build(root=None, sites=None):
     psr_items = json.loads((RESEARCH / "psr_and_ice.json").read_text())["items"]
     hazards = json.loads((RESEARCH / "hazards_and_science.json").read_text())["items"]
     shas = sha_lookup(root)
+    tab = root / DIVINER_TAB
+    prp = PRPMesh.from_files(tab) if tab.exists() else None
 
     out_sites = {}
     for s in sites:
@@ -575,12 +721,13 @@ def build(root=None, sites=None):
         slope, rough = slope_and_roughness(lat, lon, dem, grid, notes)
         rough["sourced_hazards"] = sourced_hazards(s, hazards)
         psr = psr_block(lat, lon, illum, dem5, dem20, psr_items)
-        thermal = thermal_block(s, psr, hazards)
+        thermal = thermal_block(s, psr, hazards, prp)
         out_sites[s["id"]] = {"slope": slope, "roughness": rough, "psr": psr, "thermal": thermal}
         nc = psr.get("nearest_cluster") or {}
         print(f"{s['id']}: dem {dem.res_m if dem else None} m, landing pass {slope['landing_slope_pass']}, "
               f"max {slope['landing_area'] and slope['landing_area'].get('max_slope_deg')} deg, "
-              f"rms {rough['rms_height_m']} m, nearest shadow {nc.get('distance_km')} km")
+              f"rms {rough['rms_height_m']} m, nearest shadow {nc.get('distance_km')} km, "
+              f"T avg/max {thermal['temp_avg_k']}/{thermal['temp_max_k']} K ({thermal['status']})")
 
     files = []
     for p, res in [DEM20, DEM5] + [(p, r) for p, r, _ in ILLUM_MAPS]:
@@ -588,6 +735,10 @@ def build(root=None, sites=None):
         data_name = fp.name if fp.suffix.lower() == ".tif" else fp.with_suffix(fp.suffix.replace("lbl", "img").replace("LBL", "IMG")).name
         files.append({"file": p, "pixel_m": res, "product_version": label_version(fp),
                       "sha256_data": shas.get(data_name.lower())})
+    if prp is not None:
+        files.append({"file": DIVINER_TAB, "pixel_m": None, "product_version": "LRO-L-DLRE-5-PRP-V2.0",
+                      "sha256_data": shas.get("dlre_prp_south.tab"),
+                      "note": "triangle mesh, 2,880,000 triangles, square to 80 S"})
     meta = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generator": "scripts/assessments.py (AI-built, not validated by S; code not checked by Q)",
@@ -611,7 +762,8 @@ def build(root=None, sites=None):
             "DEM: 5 m LOLA GDR where the 2 km disk lies inside it with <= 20 % nodata, else 20 m PGDA ADJ",
             "roughness: RMS height deviation from a least-squares plane over the 100 m landing disk",
             f"PSR: {SHADOW_WORDING}; finest map covering the site; " + ILLUM_CRS_NOTE,
-            "thermal: no temperature data on disk; not modelled from illumination",
+            "thermal: Diviner PRP (model-fit annual mean at 2 cm depth and annual maximum surface temperature) "
+            "of the mesh triangle containing the site; no minimum, no time series, mission-period stability not assessed",
         ],
         "status_values": {"computed": "derived here from the named raster", "sourced": "copied from a cited source",
                           "unknown": "data missing or insufficient; see reason"},
@@ -620,9 +772,10 @@ def build(root=None, sites=None):
 
 
 def main():
+    t0 = time.perf_counter()
     res = build()
     OUT_JSON.write_text(json.dumps(res, separators=(",", ":"), ensure_ascii=False) + "\n")
-    print(f"wrote {OUT_JSON} ({OUT_JSON.stat().st_size / 1024:.0f} KB, {len(res['sites'])} sites)")
+    print(f"wrote {OUT_JSON} ({OUT_JSON.stat().st_size / 1024:.0f} KB, {len(res['sites'])} sites) in {time.perf_counter() - t0:.1f} s")
 
 
 if __name__ == "__main__":

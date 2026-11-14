@@ -1,5 +1,6 @@
 """Tests for scripts/assessments.py on synthetic grids (no raw data needed)."""
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -177,3 +178,91 @@ def test_reproduces_sites_json_elev_and_point_slope(sid):
         assert abs(h5 - site["elev_m"]) <= 2.5       # different product (LOLA GDR 2017 vs PGDA ADJ 2023)
     else:
         print(f"{sid}: 20 m {h:.2f} m {s:.2f} deg; outside 5 m DEM; json {site['elev_m']} {site['slope_deg']}")
+
+
+# ---------------------------------------------------------------- Diviner PRP (thermal)
+
+PRP_COLS = list(A.PRP_FIELDS) + ["ice_depth"]
+W = 15  # field width; fields separated by ',' and rows ended by CRLF
+
+
+def _xyz(lat, lon):
+    return A.R_KM * A.unit(lat, lon)
+
+
+def write_prp(tmp_path, triangles):
+    """Tiny PRP-like table + PDS4-like label. triangles: list of (3 (lat, lon) vertices, t_avg, t_max)."""
+    rows = []
+    for verts, ta, tm in triangles:
+        xyz = [_xyz(*v) for v in verts]
+        c = sum(xyz) / 3
+        clat, clon = (float(x) for x in A.to_latlon(c / np.linalg.norm(c)))
+        vals = [*xyz[0], *xyz[1], *xyz[2], clon, clat, ta, tm, -999.0]
+        rows.append(",".join(f"{v:>{W - 1}.6f}" for v in vals) + ",\r\n")
+    rl = len(rows[0])
+    header = ",".join(f"{n:>{W - 1}}" for n in PRP_COLS).ljust(rl - 2) + "\r\n"
+    tab = tmp_path / "prp.tab"
+    tab.write_text(header + "".join(rows), newline="")
+    fields = "".join(
+        f"<Field_Character><name>{n}</name><field_location>{i * W + 1}</field_location>"
+        f"<field_length>{W - 1}</field_length><unit>K</unit><description>{n} test</description>"
+        + ("<Special_Constants><invalid_constant>-999</invalid_constant></Special_Constants>"
+           if n in ("temp_max", "ice_depth") else "")
+        + "</Field_Character>" for i, n in enumerate(PRP_COLS))
+    xml = (f"<Product><Table_Character><offset>{len(header)}</offset><records>{len(rows)}</records>"
+           f"<record_length>{rl}</record_length><Record_Character>{fields}</Record_Character>"
+           "</Table_Character></Product>")
+    (tmp_path / "prp.xml").write_text(xml)
+    return A.PRPMesh.from_files(tab, tmp_path / "prp.xml")
+
+
+SITE = {"id": "synthetic", "lat": -85.0, "lon": 0.0}
+TRI = [(-84.99, -0.2), (-84.99, 0.2), (-85.02, 0.0)]          # contains (-85.0, 0.0)
+TRI_FAR = [(-84.99, 0.3), (-84.99, 0.7), (-85.02, 0.5)]        # nearby, does not contain it
+
+
+def test_prp_point_inside_triangle(tmp_path):
+    prp = write_prp(tmp_path, [(TRI, 111.5, 222.25), (TRI_FAR, 50.0, 60.0)])
+    th = A.thermal_block(SITE, {}, [], prp)
+    assert th["status"] == "sourced" and th["match"] == "mesh triangle containing the site"
+    assert th["temp_avg_k"] == 111.5 and th["temp_max_k"] == 222.25
+    assert th["annual_min_temp_k"] is None and "temp_range_k" not in th
+    assert th["landing_area"]["n_triangle_centres"] <= 1 and "coarser" in th["landing_area"]["note"]
+    assert any("NOT assessed" in x for x in th["limitations"])
+
+
+def test_prp_point_outside_mesh_is_unknown(tmp_path):
+    prp = write_prp(tmp_path, [(TRI_FAR, 50.0, 60.0)])
+    th = A.thermal_block(SITE, {}, [], prp)
+    assert th["status"] == "unknown" and "outside the mesh" in th["reason"]
+    assert th["temp_avg_k"] is None and th["temp_max_k"] is None
+    far = A.thermal_block({"id": "x", "lat": -85.0, "lon": 90.0}, {}, [], prp)
+    assert far["status"] == "unknown"
+
+
+def test_prp_fill_value_is_null(tmp_path):
+    prp = write_prp(tmp_path, [(TRI, 111.5, -999.0)])
+    th = A.thermal_block(SITE, {}, [], prp)
+    assert th["temp_max_k"] is None and th["temp_avg_k"] == 111.5
+    assert th["status"] == "sourced" and "fill value" in th["reason"]
+
+
+def test_prp_missing_table_is_unknown():
+    th = A.thermal_block(SITE, {}, [], None)
+    assert th["status"] == "unknown" and th["temp_avg_k"] is None
+
+
+PRP_TAB = Path(__import__("os").environ.get("CLPS_DATA", "/nonexistent")) / A.DIVINER_TAB
+
+
+@pytest.mark.skipif(not PRP_TAB.exists(), reason="needs CLPS_DATA/diviner/dlre_prp_south.tab")
+def test_prp_reference_points():
+    """Product temp_max at sourced reference points (psr_and_ice.json / hazards_and_science.json)."""
+    prp = A.PRPMesh.from_files(PRP_TAB)
+    def tmax(lat, lon):
+        i = prp.lookup(lat, lon, 0.1)["containing_idx"]
+        return prp.column("temp_max", [i])[0]
+    assert abs(tmax(-87.28, 4.31) - 60.3) < 2.0       # Haworth LEND maximum, T_max 60.3 K
+    assert tmax(-87.5109, -2.2324) < 128.0            # Haworth PSR, Lemelin max 128 K
+    assert tmax(-89.66, 129.2) < 100.0                # Shackleton floor, ~88-90 K
+    assert tmax(-87.28, 4.31 + 180) > 150.0           # longitude flipped: clearly wrong place
