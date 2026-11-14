@@ -69,6 +69,9 @@ export interface ScreenPoint {
   visible: boolean // false when behind the camera, off screen or behind terrain
 }
 
+/** What project() and labelPoint() place a label for. */
+export type SceneLabel = 'sun' | 'earth' | 'site' | 'moon'
+
 /** Named camera positions (Brief C4 part 2). 'start' and 'end' are the user points holding that role. */
 export type Viewpoint = 'moon' | 'start' | 'end' | 'earth' | 'sun' | 'top'
 
@@ -109,7 +112,12 @@ export interface SceneHandle {
   ready: Promise<void>
   update(frame: SceneFrame): void
   setLevel(level: SceneLevel): void
-  project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null // 'site' = mast top, for the "Landing site" label
+  /**
+   * 'site' = mast top, for the "Landing site" label. 'moon' = the Moon's centre where the Moon is a body in the
+   * picture and not the ground under the camera (the Earth and Sun viewpoints: farther from it than the globe
+   * view goes); null at globe, site and eye level and in the top view, which names the Moon itself.
+   */
+  project(name: SceneLabel): ScreenPoint | null
   onCameraChange(cb: () => void): () => void
   onPick(cb: (lat: number, lon: number) => void): () => void
   dispose(): void
@@ -125,8 +133,8 @@ export interface SceneHandle {
   setMarkers(points: ScenePoint[]): void
   /** The site pin or user point under the pointer (hover, or the last tap), with its screen position. */
   named(): SceneName | null
-  /** project(), except that a Sun or Earth disc wider than 40 px is labelled at its top edge, not its centre. */
-  labelPoint(name: 'sun' | 'earth' | 'site'): ScreenPoint | null
+  /** project(), except that a Sun, Earth or Moon disc wider than 40 px is labelled at its top edge, not its centre. */
+  labelPoint(name: SceneLabel): ScreenPoint | null
   /** A right-click (or long press) on the scene. The browser's own menu is always suppressed. */
   onMenu(cb: (m: SceneMenu) => void): () => void
   /**
@@ -1049,7 +1057,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // C2 calls project() for three labels on every animation frame; the raycasts run once per view version.
   const projCache = new Map<string, { v: number; p: ScreenPoint | null }>()
-  function project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
+  function project(name: SceneLabel): ScreenPoint | null {
     const c = projCache.get(name)
     if (c && c.v === viewVersion) return c.p && { ...c.p }
     const p = projectNow(name)
@@ -1057,8 +1065,34 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return p && { ...p }
   }
 
-  function projectNow(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
+  /**
+   * True when another body lies on the line of sight from `from` (MOON_ME km) to the centre of `name`. The Moon
+   * counts as one only from space (withMoon): at site and eye level the terrain is what hides a body.
+   */
+  function covered(name: 'sun' | 'earth' | 'moon', from: Vector3, withMoon: boolean): boolean {
+    if (!frame) return false
+    const bodies: [string, Vector3, number][] = [
+      ['earth', v3(frame.state.earth_km), EARTH_RADIUS_KM],
+      ['sun', v3(frame.state.sun_km), SUN_RADIUS_KM],
+    ]
+    if (withMoon || name === 'moon') bodies.push(['moon', new Vector3(), MOON_RADIUS_KM * 0.9995])
+    const to = bodies.find((b) => b[0] === name)![1].clone().sub(from)
+    const len = to.length()
+    const ray = new Ray(from, to.normalize())
+    const hit = new Vector3()
+    return bodies.some(([n, c, r]) => n !== name && ray.intersectSphere(new Sphere(c, r), hit) !== null && hit.distanceTo(from) < len)
+  }
+
+  /** The Moon is a body in the picture, not the ground under the camera: beyond the farthest the globe view goes. */
+  const moonIsBody = () => inSpace() && !top && globeCam.position.length() > GLOBE_DIST_KM.max
+
+  function projectNow(name: SceneLabel): ScreenPoint | null {
     if (!sky || !frame || !globe) return null
+    if (name === 'moon') {
+      if (!moonIsBody()) return null
+      const sp = toScreen(new Vector3(), globeCam)
+      return { ...sp, visible: sp.visible && !covered('moon', globeCam.position, true) }
+    }
     if (name !== 'site') return projectSky(name)
     if (!frame.site || top) return null
     if (inSpace()) {
@@ -1087,11 +1121,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * Where the Sun or Earth label goes: the body's centre, as project() gives it, or the top of its disc once
    * the disc is wider than a label's tick (the top view, the Earth and Sun viewpoints, a zoomed-in lens).
    */
-  function labelPoint(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
+  function labelPoint(name: SceneLabel): ScreenPoint | null {
     const p = project(name)
     if (!p || !p.visible || name === 'site' || !sky) return p
     const cam = activeCam()
-    const r = top && topView ? topView.radiusPx(name) : sky.sizeRatio(name) * (size.y / 2) * cam.projectionMatrix.elements[5]
+    // Radius over distance: the sky layer's for the Sun and Earth, the Moon's own from the space camera.
+    const ratio = name === 'moon' ? MOON_RADIUS_KM / globeCam.position.length() : sky.sizeRatio(name)
+    const r = top && topView ? topView.radiusPx(name) : ratio * (size.y / 2) * cam.projectionMatrix.elements[5]
     return r > 20 ? { ...p, y: Math.max(p.y - r, 48) } : p
   }
 

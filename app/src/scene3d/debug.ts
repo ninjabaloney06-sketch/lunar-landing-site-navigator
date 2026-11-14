@@ -7,7 +7,7 @@
 //   utc:   ISO string or Unix ms. fov: vertical, degrees. texture: 'checker' (T16) | 'real'.
 
 import type { Site } from '../data/types'
-import type { SceneDeps, SceneFrame, SceneHandle, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
+import type { SceneDeps, SceneFrame, SceneHandle, SceneLabel, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
 import type { Vector3 } from 'three'
 
 export interface DebugView {
@@ -26,7 +26,7 @@ export interface DebugView {
   sunAzEl(): { az: number; el: number } | null
   earthAzEl(): { az: number; el: number } | null
   renderNow(): void
-  project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null
+  project(name: SceneLabel): ScreenPoint | null
   projectPin(siteId: string): ScreenPoint | null
   pinSurface(siteId: string): Vector3 | null
   setGlobeTexture(m: 'real' | 'checker'): void
@@ -95,7 +95,7 @@ export function installDebug(v: DebugView) {
       await nextFrame()
       return v.camera()
     },
-    project: (name: 'sun' | 'earth' | 'site') => v.project(name),
+    project: (name: SceneLabel) => v.project(name),
     camera: () => v.camera(),
     // test helpers (not part of the C2 contract)
     level: () => v.level,

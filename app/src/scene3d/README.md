@@ -43,3 +43,6 @@ viewpoints depending on the Moon's phase. A trackpad pinch (wheel + ctrlKey) zoo
 Body viewpoints over time (S7): after goTo('earth'|'sun') the camera and its orbit target move with the body's
 centre on every update(frame), so the body stays in place in the picture and the zoom is kept; any other
 viewpoint or level ends it.
+Moon label anchor (S8): project('moon') and labelPoint('moon') give the Moon's centre (top edge once its disc is
+wider than 40 px) where the camera is farther from the Moon than the globe view goes (20 000 km: the Earth and
+Sun viewpoints and the flights to them), visible: false off screen or behind Earth or the Sun; null elsewhere.

@@ -188,3 +188,143 @@ test.describe('S7: at the Sun and Earth viewpoints the camera stays with the bod
     expect((await bodyDist(page, 'sun')) / 695700, 'at the viewpoint distance').toBeCloseTo(5.5, 6)
   })
 })
+
+// ---------- S8, S9: expectations computed here from the camera and the bodies the scene reports ----------
+
+const RADIUS: Record<string, number> = { moon: 1737.4, earth: 6371.0, sun: 695700 }
+type V = number[]
+const sub = (a: V, b: V) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+/** v rotated by the inverse of the unit quaternion q = (x, y, z, w): world → camera axes. */
+function toCamera(v: V, q: V): V {
+  const [x, y, z, w] = [-q[0], -q[1], -q[2], q[3]]
+  const t = [2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])]
+  return [v[0] + w * t[0] + (y * t[2] - z * t[1]), v[1] + w * t[1] + (z * t[0] - x * t[2]), v[2] + w * t[2] + (x * t[1] - y * t[0])]
+}
+/** Pinhole projection of a MOON_ME point, with whether it is in front of the camera and inside the picture. */
+function pinhole(cam: Cam, p: V) {
+  const c = toCamera(sub(p, cam.position), cam.quaternion)
+  const t = Math.tan((cam.fov / 2) * (Math.PI / 180))
+  const x = ((c[0] / -c[2] / (t * (cam.width / cam.height)) + 1) / 2) * cam.width
+  const y = ((1 - c[1] / -c[2] / t) / 2) * cam.height
+  return { x, y, inView: c[2] < 0 && x >= 0 && x <= cam.width && y >= 0 && y <= cam.height }
+}
+/** Is the centre of `name` behind another body, seen from the camera? Segment against sphere. */
+function behind(name: string, bodies: Body[]): string | null {
+  const cam = bodies[0].camera
+  const target = bodies.find((b) => b.name === name)!.center
+  const d = sub(target, cam)
+  const len = Math.hypot(...d)
+  for (const b of bodies) {
+    if (b.name === name) continue
+    const oc = sub(b.center, cam)
+    const along = dot(oc, d) / len
+    if (along <= 0 || along >= len) continue
+    const miss = Math.sqrt(Math.max(dot(oc, oc) - along * along, 0))
+    if (miss < RADIUS[b.name] * 0.999) return b.name
+    if (miss < RADIUS[b.name] * 1.001) return 'edge'
+  }
+  return null
+}
+const snapshot = (page: Page) =>
+  page.evaluate(() => {
+    const s = (window as unknown as { __scene: Scene }).__scene
+    const h = s.handle()
+    return {
+      cam: s.camera(),
+      bodies: s.bodies(),
+      sun: h.project('sun'),
+      earth: h.project('earth'),
+      moon: h.project('moon'),
+      moonLabel: h.labelPoint('moon'),
+      sunLabel: h.labelPoint('sun'),
+    }
+  })
+
+test.describe('S8: the Moon has a label anchor where it is a body in the picture', () => {
+  test('null at globe, site and eye level and in the top view; at the Earth and Sun viewpoints the projected centre of the Moon', async ({ page }) => {
+    await open(page)
+    for (const level of ['globe', 'site', 'eye']) {
+      await setView(page, { site: SITE, utc: FULL_MOON, level })
+      const s = await snapshot(page)
+      expect(s.moon, `${level}: no Moon label`).toBeNull()
+      expect(s.moonLabel, `${level}: no Moon label`).toBeNull()
+    }
+    await setView(page, { site: SITE, utc: FULL_MOON, level: 'globe', el: -60, az: 20, dist: 20000 })
+    expect((await snapshot(page)).moon, 'the farthest globe view: still the globe').toBeNull()
+    await goTo(page, 'top')
+    expect(await scene(page, (s) => s.topView())).toBe(true)
+    expect((await snapshot(page)).moon, 'top view: it names the Moon itself').toBeNull()
+
+    // Sun viewpoint, then two weeks of half-day steps: the camera goes with the Sun (S7) and the Moon passes
+    // from behind the camera through the picture to behind the Sun.
+    const T0 = Date.parse('2027-08-03T00:00:00Z')
+    await setView(page, { site: SITE, utc: T0, level: 'globe' })
+    await goTo(page, 'sun')
+    let inPicture = 0
+    let offScreen = 0
+    let shot = false
+    for (let k = 0; k <= 34; k++) {
+      await load(page, T0 + (k * DAY) / 2)
+      const s = await snapshot(page)
+      expect(s.moon, 'the Moon has an anchor at the Sun viewpoint').not.toBeNull()
+      const want = pinhole(s.cam, [0, 0, 0])
+      const hid = behind('moon', s.bodies)
+      if (want.inView) {
+        expect(Math.hypot(s.moon!.x - want.x, s.moon!.y - want.y), `step ${k}: the Moon's centre on screen`).toBeLessThan(1)
+        if (hid !== 'edge') expect(s.moon!.visible, `step ${k}: ${hid ? `behind the ${hid}` : 'in the open'}`).toBe(hid === null)
+        if (hid === null) inPicture++
+        // At 150 million km the Moon is far smaller than a pixel: the label is at its centre.
+        if (s.moon!.visible) expect(s.moonLabel).toEqual(s.moon)
+        if (hid === null && !shot && want.x > 200 && want.x < 1080) {
+          shot = true
+          console.log(`S8: Sun viewpoint, step ${k}: Moon anchor at ${s.moon!.x.toFixed(1)}, ${s.moon!.y.toFixed(1)} px`)
+          await page.screenshot({ path: 'test-results/s8-sun-viewpoint-moon-in-picture.png' })
+        }
+      } else {
+        expect(s.moon!.visible, `step ${k}: outside the picture`).toBe(false)
+        offScreen++
+      }
+    }
+    console.log(`S8: Sun viewpoint over 17 days: Moon in the picture and in the open at ${inPicture} steps, outside the picture at ${offScreen}`)
+    expect(inPicture).toBeGreaterThan(2)
+    expect(offScreen).toBeGreaterThan(2)
+  })
+
+  test('a Moon disc wider than 40 px is labelled at its top edge: leaving the Moon for the Sun viewpoint', async ({ page }) => {
+    await open(page)
+    // Start between the Moon and the Sun, looking at the Moon: the flight to the Sun backs away from it, so the
+    // Moon stays in the middle of the picture while it shrinks. 2 ms steps of the test clock.
+    await setView(page, { site: SITE, utc: NEW_MOON, level: 'globe' })
+    const sun = (await scene(page, (s) => s.bodies())).find((b) => b.name === 'sun')!.center
+    const lat = (Math.asin(sun[2] / Math.hypot(...sun)) * 180) / Math.PI
+    const lon = (Math.atan2(sun[1], sun[0]) * 180) / Math.PI
+    await setView(page, { level: 'globe', el: lat, az: lon, dist: 6500 })
+    await scene(page, (s) => s.setAnimated(true))
+    expect(await scene(page, (s) => s.handle().goTo('sun'))).toBe(true)
+    let checked = 0
+    let sawNull = false
+    for (let i = 0; i < 40; i++) {
+      await scene(page, (s) => s.advance(2))
+      const s = await snapshot(page)
+      const d = Math.hypot(...s.cam.position)
+      if (d <= 20000) {
+        expect(s.moon, 'within the globe view\'s range: no Moon label yet').toBeNull()
+        sawNull = true
+        continue
+      }
+      expect(s.moon, `${d.toFixed(0)} km from the Moon: it has an anchor`).not.toBeNull()
+      const r = ((RADIUS.moon / d) * (s.cam.height / 2)) / Math.tan((s.cam.fov / 2) * (Math.PI / 180))
+      const want = pinhole(s.cam, [0, 0, 0])
+      expect(Math.hypot(s.moon!.x - want.x, s.moon!.y - want.y)).toBeLessThan(1)
+      expect(s.moon!.visible).toBe(true)
+      expect(s.moonLabel!.x).toBeCloseTo(s.moon!.x, 6)
+      if (r > 21) {
+        expect(s.moonLabel!.y, `disc radius ${r.toFixed(0)} px: the label sits on its top edge`).toBeCloseTo(Math.max(s.moon!.y - r, 48), 1)
+        checked++
+      } else if (r < 19) expect(s.moonLabel!.y, `disc radius ${r.toFixed(0)} px: the label sits on its centre`).toBeCloseTo(s.moon!.y, 6)
+    }
+    expect(sawNull).toBe(true)
+    expect(checked, 'frames with a Moon disc wider than 40 px').toBeGreaterThan(2)
+  })
+})
