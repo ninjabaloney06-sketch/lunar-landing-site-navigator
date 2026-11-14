@@ -109,6 +109,49 @@ const WIKI_BE7: SourceRef = {
   url: 'https://en.wikipedia.org/wiki/BE-7',
 }
 
+const ABTN_A11_SUMMARY: SourceRef = {
+  label: 'NASA SP-2000-4029, Apollo by the Numbers: Apollo 11 summary (time on the lunar surface)',
+  url: 'https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm',
+}
+const ABTN_A17_SUMMARY: SourceRef = {
+  label: 'NASA SP-2000-4029, Apollo by the Numbers: Apollo 17 summary (time on the lunar surface)',
+  url: 'https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_17a_Summary.htm',
+}
+const CSM_NEWS_REFERENCE_LM: SourceRef = {
+  label: 'North American Rockwell, Apollo Spacecraft News Reference: Lunar Module and SLA overview (p. 62, the original LM)',
+  url: 'https://apollojournals.org/alsj/CSM08_LM_&_SLA_Overview_pp61-68.pdf',
+}
+const APOLLO_PROGRAM_SUMMARY: SourceRef = {
+  label: 'NASA JSC-09423, Apollo Program Summary Report (April 1975), section 4.6.5.1 (the Extended LM)',
+  url: 'https://archive.org/stream/apolloprogramsum00unse/apolloprogramsum00unse_djvu.txt',
+}
+const HLS_IAC_2023: SourceRef = {
+  label: 'Watson-Morgan et al. (NASA), NASA Human Landing System, IAC-23-B3.1.10 (2023)',
+  url: 'https://ntrs.nasa.gov/api/citations/20230013222/downloads/DRAFT- IAC Final_Sept14.pdf',
+}
+const NASA_ARTEMIS_IV: SourceRef = {
+  label: 'NASA, Artemis IV mission page (the first crewed landing in the plan of 2026)',
+  url: 'https://www.nasa.gov/mission/artemis-iv/',
+}
+const NASA_BLUE_ORIGIN_SELECTION: SourceRef = {
+  label: 'NASA selects Blue Origin as second Artemis lunar lander provider (19 May 2023)',
+  url: 'https://www.nasa.gov/news-release/nasa-selects-blue-origin-as-second-artemis-lunar-lander-provider/',
+}
+
+// ---- Surface stays
+// Apollo by the Numbers, Apollo 11 summary: "The LM had been on the lunar surface for 21 hours 36 minutes 20.9 seconds."
+const APOLLO_11_STAY_DAYS = (21 + 36 / 60 + 20.9 / 3600) / 24
+// Apollo by the Numbers, Apollo 17 summary: "The LM had been on the lunar surface for 74 hours 59 minutes 40 seconds."
+// The longest of the programme (Apollo 15: 66 h 54 min 53.9 s; Apollo 16: 71 h 2 min 13 s, same source).
+const APOLLO_17_STAY_DAYS = (74 + 59 / 60 + 40 / 3600) / 24
+// NASA (Watson-Morgan et al., IAC-23-B3.1.10), the landing with the initial Starship lander: "Starship will then
+// descend to the lunar surface for an approximate 6.5 day stay". One revolution of the near-rectilinear halo orbit.
+const ARTEMIS_FIRST_STAY_DAYS = 6.5
+// The same paper, later missions: "use pre-placed habitats and rovers at the southern pole area to live for up to
+// 33 days"; and "the initial trips will last approximately one week while later trips to the lunar surface could
+// last nearly a month".
+const ARTEMIS_LATER_STAY_DAYS = 33
+
 export const SPACECRAFT: SpacecraftSpec[] = [
   {
     id: 'apollo-csm',
@@ -383,6 +426,17 @@ export const ARCHITECTURES: ArchitectureSpec[] = [
     note:
       'One Saturn V sends the Command and Service Module and the Lunar Module to low lunar orbit together. The Lunar Module lands, ' +
       'its Ascent Stage returns to the CSM in lunar orbit, and the CSM flies home.',
+    surfaceStay: {
+      defaultDays: APOLLO_11_STAY_DAYS,
+      maxDays: APOLLO_17_STAY_DAYS,
+      basis:
+        'Apollo 11 stayed 21 h 36 min; its Lunar Module was built for at most 35 hours on the Moon. The Extended Lunar Module of ' +
+        'Apollo 15 to 17 (a fifth battery, larger descent tanks) was built for up to 72 hours; Apollo 17 stayed 74 h 59 min 40 s, the longest of the programme.',
+      // Original LM, News Reference p. 62: "is designed to operate for 48 hours while separated from the CM, with a
+      // maximum stay time of 35 hours on the moon". Extended LM, Apollo Program Summary Report 4.6.5.1: "the first
+      // lunar module with the five-battery configuration for a lunar surface stay of up to 72 hours".
+      sources: [ABTN_A11_SUMMARY, ABTN_A17_SUMMARY, CSM_NEWS_REFERENCE_LM, APOLLO_PROGRAM_SUMMARY],
+    },
   },
   {
     id: 'artemis-starship',
@@ -394,6 +448,16 @@ export const ARCHITECTURES: ArchitectureSpec[] = [
     note:
       'SLS Block 1 sends Orion to a near-rectilinear halo orbit around the Moon. The Starship Human Landing System, launched and ' +
       'refilled separately, waits there, takes the crew to the surface and brings them back to Orion.',
+    surfaceStay: {
+      defaultDays: ARTEMIS_FIRST_STAY_DAYS,
+      maxDays: ARTEMIS_LATER_STAY_DAYS,
+      basis:
+        'NASA planned the first landing with Starship as a stay of about 6.5 days (two crew), one revolution of the halo orbit; ' +
+        'in the plan of 2026 the first landing is Artemis IV, "approximately a week near the South Pole". Later missions with four crew ' +
+        'and habitats placed beforehand are to stay up to 33 days.',
+      // NASA, Artemis IV: "spend approximately a week near the South Pole of the Moon"
+      sources: [HLS_IAC_2023, NASA_ARTEMIS_IV],
+    },
   },
   {
     id: 'artemis-blue-moon',
@@ -405,5 +469,15 @@ export const ARCHITECTURES: ArchitectureSpec[] = [
     note:
       'SLS Block 1B sends Orion to a near-rectilinear halo orbit around the Moon. Blue Moon Mark 2, launched separately, waits there, ' +
       'takes the crew to the surface and brings them back to Orion.',
+    surfaceStay: {
+      // No NASA or Blue Origin figure in days for this lander. NASA at its selection: "for about a weeklong trip to
+      // the Moon's South Pole region". The default is the 6.5 days of one halo-orbit revolution, as for Starship.
+      defaultDays: ARTEMIS_FIRST_STAY_DAYS,
+      maxDays: ARTEMIS_LATER_STAY_DAYS,
+      basis:
+        'NASA describes the Blue Moon landing as "about a weeklong trip to the Moon\'s South Pole region"; no stay in days is published for this lander. ' +
+        'One revolution of the halo orbit gives about 6.5 days. Later Artemis missions with habitats placed beforehand are to stay up to 33 days.',
+      sources: [NASA_BLUE_ORIGIN_SELECTION, HLS_IAC_2023],
+    },
   },
 ]

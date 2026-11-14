@@ -20,6 +20,12 @@ const LEAD_DAYS = 12
 const TAIL_DAYS = 16
 const UI_INTERVAL_MS = 66
 
+/** The surface stay a design starts with: its documented one, else three days for a design that meets in low
+ *  lunar orbit (Apollo's longest stays) and one revolution of the halo orbit for a design that meets there. */
+export function defaultSurfaceStayDays(a: ArchitectureSpec): number {
+  return a.surfaceStay?.defaultDays ?? (a.rendezvous === 'nrho' ? 6.5 : 3)
+}
+
 // One worker computes missions off the main thread. A new request replaces the one still running: its answer
 // would be for choices the user has already changed.
 let worker: Worker | null = null

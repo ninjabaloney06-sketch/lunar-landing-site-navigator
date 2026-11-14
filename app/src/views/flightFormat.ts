@@ -84,3 +84,33 @@ export const SPEEDS: { value: number; label: string }[] = [
 ]
 
 export const DEFAULT_SPEED = 14400
+
+/** "0.5 day", "1 day", "6.5 days", "13.0 days" with digits = 1 */
+export function fmtDays(v: number, digits?: number): string {
+  const s = digits === undefined ? String(v) : v.toFixed(digits)
+  return `${s} ${Number(s) === 1 ? 'day' : 'days'}`
+}
+
+/** A stage or engine name short enough for a label in the 3D view: a name followed by its abbreviation in
+ *  parentheses becomes the abbreviation, keeping the words in front that the abbreviation does not stand for.
+ *  "European Service Module (ESM), Orbital Maneuvering System Engine (OMS-E)" → "ESM, OMS-E";
+ *  "Starship Human Landing System (HLS)" → "Starship HLS". A parenthesis that is not the initials of the words
+ *  before it is dropped: "Blue Moon Mark 2 (MK2)" → "Blue Moon Mark 2". */
+export function shortStage(by: string): string {
+  return by.replace(/((?:[^\s,()]+ )+)\(([A-Za-z0-9-]{2,8})\)/g, (_all, before: string, abbr: string) => {
+    const words = before.trim().split(' ')
+    const letters = abbr.replace(/[^A-Za-z]/g, '').toUpperCase()
+    const tail = words.slice(-letters.length)
+    const initials = tail.map((w) => w[0].toUpperCase()).join('')
+    if (tail.length === letters.length && initials === letters) return [...words.slice(0, -letters.length), abbr].join(' ')
+    return words.join(' ')
+  })
+}
+
+/** The name of a burn on a label and on the scrubber: its abbreviation when the official term has one
+ *  ("Trans-Lunar Injection (TLI)" → "TLI"), otherwise the term itself when it is short, otherwise its short form. */
+export function burnName(e: { short: string; label: string }): string {
+  if (e.short && e.label.includes(`(${e.short})`)) return e.short
+  if (e.label.length <= 32) return e.label
+  return e.short || e.label
+}

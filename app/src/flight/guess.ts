@@ -55,6 +55,15 @@ export interface Guess {
   cost: number // km/s, what the search minimises
 }
 
+/** Shortest coast in the parking orbit before the injection: one revolution, so that the crew and the ground can
+ *  check the spacecraft before it leaves Earth. The injection point comes round once per revolution, so the
+ *  coast is between one and two revolutions. Flown: Apollo 11 "after 1.5 Earth orbits lasting 2 hours 38 minutes
+ *  23.73 seconds", Apollo 17 two revolutions (NASA SP-2000-4029, Apollo by the Numbers,
+ *  https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm ); Artemis I
+ *  "approximately one revolution in Earth orbit" before the injection (NASA, SLS update, ASCEND 2023,
+ *  https://ntrs.nasa.gov/api/citations/20230013280/downloads/Final%20-%20ASCEND%202023%20-%20SLS%20Update.pdf ). */
+export const MIN_PARKING_COAST_RAD = TWO_PI
+
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
 const mod2pi = (x: number) => ((x % TWO_PI) + TWO_PI) % TWO_PI
 
@@ -106,7 +115,7 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     if (dot(h, pole) < 0) h = scale(h, -1) // prograde launch
     P = rotateAbout(mHat, h, -tr.nuA)
     coastAngle = angleAbout(padHat, P, h) - g.ascentArcRad
-    while (coastAngle < 5 * DEG) coastAngle += TWO_PI
+    while (coastAngle < MIN_PARKING_COAST_RAD) coastAngle += TWO_PI
     tTli = Math.round(tL + ascentMs + (coastAngle / nPark) * 1000)
     tA = tTli + tr.T * 1000
   }

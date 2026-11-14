@@ -276,9 +276,18 @@ describe('whole mission by NRHO rendezvous: other choices', () => {
     expect(Math.abs(s.arrival - 428.5) / 428.5).toBeLessThan(0.1)
     // the site is far from the plane of the NRHO: the lander's transfers cost more than to the pole
     expect(s.landerDown).toBeGreaterThan(704.7 + 50)
-    // the lander cannot come back after 3 days: it stays one revolution, and the notes say so
-    expect(plan.facts.surfaceStayDays).toBeGreaterThan(6.0)
-    expect(plan.notes.some((n) => n.includes('Asked for 3 days'))).toBe(true)
+    // The lander cannot come back to the NRHO after 3 days. (Until the stay became adjustable this plan stayed a
+    // whole revolution, more than 6 days, and this test asserted that.) Now it lifts off after the 3 days asked
+    // (up to one revolution of the low orbit later, for the phasing) and waits in low lunar orbit for the
+    // NRHO's passage; the notes say so and how long.
+    expect(plan.facts.surfaceStayDays).toBeGreaterThanOrEqual(3)
+    expect(plan.facts.surfaceStayDays).toBeLessThan(3 + 2 / 24)
+    expect(plan.facts.surfaceStayAskedDays).toBe(3)
+    const stayNote = plan.notes.find((n) => n.includes('Asked for 3 days'))
+    expect(stayNote).toBeDefined()
+    expect(stayNote).toMatch(/waits \d\.\d\d days in low lunar orbit/)
+    const at = (id: string) => plan.events.find((e) => e.id === id)!.utcMs
+    expect(at('llo-departure') - at('llo-arrival')).toBeGreaterThan(3 * DAY_MS) // the wait is in the plan, not only in the note
     // the capsule leaves inside the window given; the cheap departure (5.3 days after the docking) is outside it
     const nrd = plan.events.find((e) => e.id === 'tei')!.utcMs
     expect(nrd).toBeGreaterThanOrEqual(plan.dockingMs + HOUR_MS)

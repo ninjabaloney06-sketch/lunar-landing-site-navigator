@@ -12,8 +12,8 @@ import { LAUNCH_VEHICLES } from './flight/launchVehicles'
 import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
 import { ARCHITECTURES, SPACECRAFT } from './flight/spacecraft'
 import type { LandingTarget, Launchpad } from './flight/types'
-import { webglAvailable } from './scene3d'
-import type { BodyPick, FlightFocus } from './scene3d'
+import { DEFAULT_LAYERS, webglAvailable } from './scene3d'
+import type { BodyPick, FlightFocus, FlightLayers } from './scene3d'
 import {
   cleanName,
   COVERAGE_END_MS,
@@ -39,7 +39,7 @@ import type { FlightScene } from './views/SceneView'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
-import { useFlight } from './views/useFlight'
+import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
 
 type Boot =
@@ -192,6 +192,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [site, siteMode, customSite],
   )
   const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
+  // The surface stay asked for belongs to a design: another design starts with its own default again.
+  const [stayChoice, setStayChoice] = useState<{ designId: string; days: number } | null>(null)
+  const stayDays = stayChoice && stayChoice.designId === architecture.id ? stayChoice.days : defaultSurfaceStayDays(architecture)
   const flight = useFlight({
     active: inFlight,
     pad,
@@ -201,16 +204,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     capsule: SPACECRAFT.find((v) => v.id === architecture.capsuleId)!,
     lander: SPACECRAFT.find((v) => v.id === architecture.landerId)!,
     earliestTouchdownMs: period.startMs,
-    surfaceStayDays: missionDays,
+    surfaceStayDays: stayDays,
     returnWindowDays,
     maxTransferDays: hs.tmax,
   })
+  const [layers, setLayers] = useState<FlightLayers>(DEFAULT_LAYERS)
   const [trueScale, setTrueScale] = useState(true)
   const [flightFocus, setFlightFocus] = useState<FlightFocus>('overview')
   const [flightViewKey, setFlightViewKey] = useState(0)
   const flightScene: FlightScene = useMemo(
-    () => ({ plan: flight.plan, trueScale, clock: flight.clock, focus: flightFocus, viewKey: flightViewKey, picking: picking !== null }),
-    [flight.plan, flight.clock, trueScale, flightFocus, flightViewKey, picking],
+    () => ({ plan: flight.plan, trueScale, clock: flight.clock, focus: flightFocus, viewKey: flightViewKey, picking: picking !== null, layers }),
+    [flight.plan, flight.clock, trueScale, flightFocus, flightViewKey, picking, layers],
   )
   // A click on Earth or the Moon while the panel waits for one: the launch point or the landing point.
   const onFlightPick = useCallback(
@@ -458,6 +462,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               architectures={ARCHITECTURES.map((a) => ({ id: a.id, name: a.name, note: a.note, available: true, unavailableReason: null }))}
               architectureId={architecture.id}
               onArchitecture={(id) => patch({ rocket: id === DEFAULT_ARCHITECTURE_ID ? null : id })}
+              rendezvous={architecture.rendezvous}
               pads={LAUNCHPADS}
               padId={pad.id}
               onPad={(id) => {
@@ -474,7 +479,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               }}
               onCustomSite={setCustomSite}
               earliestTouchdownMs={period.startMs}
-              surfaceStayDays={missionDays}
+              surfaceStayDays={stayDays}
+              onSurfaceStayDays={(days) => setStayChoice({ designId: architecture.id, days })}
+              surfaceStay={architecture.surfaceStay}
               returnWindowDays={returnWindowDays}
               onReturnWindowDays={setReturnWindowDays}
               maxTransferDays={hs.tmax}
@@ -550,6 +557,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               playing={flight.playing}
               speed={flight.speed}
               focus={flightFocus}
+              layers={layers}
+              onLayers={setLayers}
               onPlaying={flight.setPlaying}
               onSeek={flight.seek}
               onSpeed={flight.setSpeed}

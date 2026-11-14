@@ -1,6 +1,8 @@
-// Pure tests for the display magnification of flight.ts. No WebGL: only the magnify functions are exercised.
+// Pure tests for flight.ts: the display magnification, where the lander is drawn, which events get a burn marker
+// and the fade of the trail. No WebGL: only the exported functions are exercised.
 import { describe, expect, it } from 'vitest'
-import { EARTH_MAG, MOON_MAG, magnify, magnifyRadius, type Magnify } from './flight'
+import type { CraftId, MissionEvent, MissionLeg, MissionPlan } from '../flight/types'
+import { EARTH_MAG, MOON_MAG, flightBurns, landerPresence, magnify, magnifyRadius, trailFade, type Magnify } from './flight'
 
 const PRESETS: [string, Magnify][] = [
   ['earth', EARTH_MAG],
@@ -45,5 +47,68 @@ describe('magnify', () => {
 
   it('keeps the zero vector at zero', () => {
     for (const [, m] of PRESETS) expect(magnify([0, 0, 0], m)).toEqual([0, 0, 0])
+  })
+})
+
+// A plan reduced to what the helpers read: the capsule flies the whole time, the lander has its own leg from 40 to
+// 60, the first docking (a design whose lander waits at the Moon) is at 20, the burn for home at 80.
+const leg = (id: string, craft: CraftId, t0: number, t1: number, powered = false): MissionLeg => ({
+  id, label: id, craft, frame: 'moon', powered, track: { t: [t0, t1], p: [[0, 0, 0], [1, 0, 0]] },
+})
+const event = (id: string, utcMs: number, kind: 'burn' | 'event' = 'event'): MissionEvent => ({
+  id, short: id, label: id, utcMs, craft: 'capsule', kind, by: null, dvKms: null, propellantKg: null, durationS: null, massAfterKg: null,
+})
+const planOf = (events: MissionEvent[]) =>
+  ({ launchMs: 0, endMs: 100, dockingMs: 60, legs: [leg('coast', 'capsule', 0, 100), leg('sortie', 'lander', 40, 60)], events }) as unknown as MissionPlan
+
+describe('landerPresence', () => {
+  it('is apart exactly while the lander has its own leg', () => {
+    const plan = planOf([])
+    expect(landerPresence(plan, 39)).toBe('docked')
+    expect(landerPresence(plan, 40)).toBe('apart')
+    expect(landerPresence(plan, 60)).toBe('apart')
+    expect(landerPresence(plan, 61)).toBe('docked')
+  })
+
+  it('is absent before the first docking of a lander that waits at the Moon', () => {
+    const plan = planOf([event('nrho-docking', 20)])
+    expect(landerPresence(plan, 10)).toBe('absent')
+    expect(landerPresence(plan, 20)).toBe('docked')
+  })
+
+  it('is absent once the capsule has left for home', () => {
+    const plan = planOf([event('tei', 80, 'burn')])
+    expect(landerPresence(plan, 79)).toBe('docked')
+    expect(landerPresence(plan, 80)).toBe('absent')
+    expect(landerPresence(plan, 100)).toBe('absent')
+  })
+})
+
+describe('flightBurns', () => {
+  it('keeps the burns, in the plan order', () => {
+    const plan = planOf([event('tli', 5, 'burn'), event('nrho-docking', 20), event('tei', 80, 'burn')])
+    expect(flightBurns(plan).map((e) => e.id)).toEqual(['tli', 'tei'])
+  })
+})
+
+describe('trailFade', () => {
+  it('draws nothing ahead of the craft', () => {
+    expect(trailFade(-1, 3600)).toBe(0)
+    expect(trailFade(-1, null)).toBe(0)
+  })
+  it('falls smoothly from 1 at the craft to 0 at the end of the trail', () => {
+    expect(trailFade(0, 3600)).toBe(1)
+    expect(trailFade(1800, 3600)).toBeCloseTo(0.5, 12)
+    expect(trailFade(3600, 3600)).toBe(0)
+    expect(trailFade(7200, 3600)).toBe(0)
+    let prev = 1
+    for (let s = 60; s <= 3600; s += 60) {
+      const f = trailFade(s, 3600)
+      expect(f).toBeLessThan(prev)
+      prev = f
+    }
+  })
+  it('keeps everything flown when no length is set', () => {
+    expect(trailFade(1e9, null)).toBe(1)
   })
 })

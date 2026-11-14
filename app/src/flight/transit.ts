@@ -180,6 +180,8 @@ export function flyOutbound(inp: OutboundInput): OutboundResult {
     // The burn straddles the injection point: half of it before, half after.
     let coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
     while (coastS < 0) coastS += TWO_PI / nPark
+    // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
+    coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
     try {
       const coast = integrate(earth, { r: r0, v: v0, m: m0 }, inp.insertion.utcMs, { maxSeconds: coastS, maxStepS: 30 })
       const tIgnMs = inp.insertion.utcMs + coastS * 1000

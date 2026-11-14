@@ -10,6 +10,7 @@ import { planMission } from './mission'
 import type { MissionInput } from './mission'
 import { planMissionNrho } from './missionNrho'
 import { NrhoError } from './nrho'
+import { ARCHITECTURES } from './spacecraft'
 import { FlightPlanError } from './types'
 import type { MissionPlan } from './types'
 
@@ -27,7 +28,11 @@ export type PlanReply =
 /** Runs one request. Also used directly by the page when a worker cannot be started. */
 export function runPlan(req: PlanRequest): PlanReply {
   try {
-    const input: MissionInput = { ...req.input, ephem: makeFlightEphemeris(req.months) }
+    // The page sends the architecture by id and name; what its hardware supported on the surface (for the plan's
+    // note on a longer stay) is looked up here when the request does not carry it.
+    const known = ARCHITECTURES.find((a) => a.id === req.input.architecture.id)
+    const architecture = { ...req.input.architecture, surfaceStay: req.input.architecture.surfaceStay ?? known?.surfaceStay }
+    const input: MissionInput = { ...req.input, architecture, ephem: makeFlightEphemeris(req.months) }
     const { ephem: _ephem, ...plan } = req.rendezvous === 'nrho' ? planMissionNrho(input) : planMission(input)
     // Why an upper stage can come out short here when the real rocket flies the mission.
     const stages = req.input.launchVehicle.stages

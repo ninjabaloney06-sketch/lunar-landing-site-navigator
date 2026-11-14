@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SPEED, SPEEDS, fmtDayTime, fmtDuration, fmtElapsed, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
+import { DEFAULT_SPEED, SPEEDS, burnName, fmtDayTime, fmtDays, fmtDuration, fmtElapsed, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc, shortStage } from './flightFormat'
 
 describe('fmtKms', () => {
   it('uses two decimals, three below 0.1 km/s', () => {
@@ -96,5 +96,42 @@ describe('SPEEDS', () => {
     expect(SPEEDS.map((s) => s.value)).toEqual([1, 10, 60, 300, 900, 3600, 14400, 43200, 86400])
     expect(SPEEDS.some((s) => s.value === DEFAULT_SPEED)).toBe(true)
     expect(DEFAULT_SPEED).toBe(14400)
+  })
+})
+
+describe('fmtDays', () => {
+  it('uses the singular for exactly one day', () => {
+    expect(fmtDays(1)).toBe('1 day')
+    expect(fmtDays(0.5)).toBe('0.5 days')
+    expect(fmtDays(6.5)).toBe('6.5 days')
+    expect(fmtDays(12.97, 1)).toBe('13.0 days')
+  })
+})
+
+describe('shortStage', () => {
+  it('replaces a name by the abbreviation that follows it', () => {
+    expect(shortStage('European Service Module (ESM), Orbital Maneuvering System Engine (OMS-E)')).toBe('ESM, OMS-E')
+    expect(shortStage('Interim Cryogenic Propulsion Stage (ICPS), RL10B-2')).toBe('ICPS, RL10B-2')
+    expect(shortStage('Service Propulsion System (SPS) engine')).toBe('SPS engine')
+  })
+  it('keeps the words the abbreviation does not stand for', () => {
+    expect(shortStage('Starship Human Landing System (HLS)')).toBe('Starship HLS')
+    expect(shortStage('Apollo Lunar Module (LM)')).toBe('Apollo LM')
+  })
+  it('drops a parenthesis that is not the initials and leaves plain names alone', () => {
+    expect(shortStage('Blue Moon Mark 2 (MK2)')).toBe('Blue Moon Mark 2')
+    expect(shortStage('S-IVB')).toBe('S-IVB')
+    expect(shortStage('SLS Block 1')).toBe('SLS Block 1')
+  })
+})
+
+describe('burnName', () => {
+  it('prefers the abbreviation of the official term', () => {
+    expect(burnName({ short: 'TLI', label: 'Trans-Lunar Injection (TLI)' })).toBe('TLI')
+  })
+  it('uses a short term as it is and the short form of a long one', () => {
+    expect(burnName({ short: 'Lander', label: 'Lander NRHO departure burn' })).toBe('Lander NRHO departure burn')
+    expect(burnName({ short: 'Launch', label: 'Launch and ascent to Earth parking orbit' })).toBe('Launch')
+    expect(burnName({ short: 'Liftoff', label: 'Liftoff' })).toBe('Liftoff')
   })
 })

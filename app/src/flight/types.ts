@@ -235,6 +235,30 @@ export interface MissionFacts {
   returnDays: number // TEI ignition → Entry Interface
   entry: { speedKms: number; fpaDeg: number; latDeg: number; lonDeg: number }
   missionDays: number // liftoff → Entry Interface
+  /** Energy bookkeeping for comparison only (ideal.ts): a lower bound that no real mission can reach. */
+  ideal?: IdealEnergy
+  /** The surface stay the user asked for, days (surfaceStayDays above is the one flown). */
+  surfaceStayAskedDays?: number
+}
+
+/** What the trip would take at 100 % efficiency against what the planned mission's engines put out (ideal.ts).
+ *  Energies per kilogram are differences of E = ½v² − μ_Earth/r − μ_Moon/d in the Earth-centred, non-rotating
+ *  frame (1 MJ/kg = 1 km²/s²). Bookkeeping between states, not a trajectory. */
+export interface IdealEnergy {
+  /** Launchpad at rest on the turning Earth (liftoff) → landing point at rest on the Moon (touchdown): gain of E. */
+  outboundMjPerKg: number
+  /** Landing point at rest on the Moon (lunar liftoff) → the saddle between Moon and Earth (the L1 point, at
+   *  rest in the frame that turns with the Moon): gain of E. The only stretch of the way home that costs energy. */
+  returnClimbMjPerKg: number
+  /** Kinetic energy at Entry Interface of a body that falls from that saddle without an engine: E at the
+   *  saddle minus the potential at Entry Interface. Released on the way down; it has to be shed. */
+  returnReleasedMjPerKg: number
+  /** What the planned mission's engines put into their exhaust: Σ ½ · propellant · (g0 · Isp)² over every burn. */
+  missionJetEnergyMj: number
+  /** The mass that makes the whole round trip: the capsule at Entry Interface, kg. */
+  referenceMassKg: number
+  missionMjPerKg: number // missionJetEnergyMj / referenceMassKg
+  ratio: number // missionMjPerKg / (outboundMjPerKg + returnClimbMjPerKg)
 }
 
 export interface MissionPlan {

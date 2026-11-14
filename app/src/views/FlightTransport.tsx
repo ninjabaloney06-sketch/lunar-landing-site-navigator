@@ -1,10 +1,14 @@
-// Flight playback bar: play/pause, the mission elapsed time and phase, a scrubber with event ticks, what the
-// camera looks at, and the simulated speed. Shown at the bottom of the screen in place of the site timeline.
-// Presentational only: the playback clock and the camera live outside and are passed in.
+// Flight playback bar: play/pause, the mission elapsed time and phase, a scrubber on which every engine burn is
+// a block in the burn colour (as long as the burn lasts, never thinner than a few pixels) and the other key
+// events are thin ticks, what the camera looks at, the layer menu that chooses what the 3D view draws, and the
+// simulated speed. Shown at the bottom of the screen in place of the site timeline.
+// Presentational only: the playback clock, the camera and the layers live outside and are passed in.
 import { useEffect, useId, useRef, useState } from 'react'
 import '../styles/flight.css'
 import type { MissionPlan } from '../flight/types'
-import { DEFAULT_SPEED, SPEEDS, fmtElapsed, fmtKms, fmtUtc } from './flightFormat'
+import type { FlightLayers } from '../scene3d'
+import { DEFAULT_SPEED, SPEEDS, burnName, fmtDuration, fmtElapsed, fmtKms, fmtUtc } from './flightFormat'
+import { expand } from './flightGlossary'
 
 export type FlightFocus = 'overview' | 'earth' | 'moon' | 'capsule' | 'lander'
 
@@ -14,6 +18,8 @@ export interface FlightTransportProps {
   playing: boolean
   speed: number // simulated seconds per real second; one of SPEEDS
   focus: FlightFocus
+  layers: FlightLayers
+  onLayers(l: FlightLayers): void
   onPlaying(v: boolean): void
   onSeek(utcMs: number): void
   onSpeed(v: number): void
@@ -28,8 +34,8 @@ const FOCUS: { id: FlightFocus; label: string }[] = [
   { id: 'lander', label: 'Lander' },
 ]
 
-// Events that get a tick although no engine fires, and the ticks that carry a text. The other burns are plain
-// ticks: their name is in the tooltip and in the panel's table.
+// Events that get a tick although no engine fires, and the ticks that carry a text. The other burns are blocks
+// without a text: their name is in the tooltip, at the burn in the 3D view and in the panel's table.
 const MARKED = new Set(['touchdown', 'docking', 'ei'])
 const LABELLED = new Set(['tli', 'loi', 'touchdown', 'docking', 'tei', 'ei'])
 
@@ -39,6 +45,16 @@ const END_PHASE = 'Entry Interface'
 const CHAR_PX = 7.2
 const TEXT_GAP_PX = 4
 const FALLBACK_TRACK_PX = 600 // before the track has been measured
+const BURN_MIN_PX = 4 // most burns last seconds: a block is never thinner than this
+
+// How much flight the trail shows behind a craft; null = everything flown.
+const TRAILS: { value: number | null; label: string }[] = [
+  { value: 1, label: '1 hour' },
+  { value: 6, label: '6 hours' },
+  { value: 24, label: '1 day' },
+  { value: 72, label: '3 days' },
+  { value: null, label: 'Everything flown' },
+]
 
 /** The label of the capsule leg that contains timeMs. */
 function phaseAt(plan: MissionPlan, timeMs: number): string {
@@ -66,6 +82,85 @@ function textRows(ticks: { pct: number; text: string | null }[], trackPx: number
     return row
   })
 }
+
+// ---------- the layer menu ----------
+
+const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'trail'; label: string; hint: string }[] = [
+  { key: 'paths', label: 'Flight path lines', hint: 'the path of the capsule and of the lander' },
+  { key: 'burns', label: 'Engine burns', hint: 'a ring at each burn, a wide line while the engine fires, the glow of a firing craft' },
+  { key: 'burnNames', label: 'Burn names', hint: 'a name at each burn' },
+  { key: 'stageNames', label: 'Stage names', hint: 'the stage or engine that fires, at each burn' },
+  { key: 'trail', label: 'Path only behind the craft', hint: 'nothing is drawn ahead; the path fades out behind' },
+]
+
+function LayersMenu({ layers, onLayers }: { layers: FlightLayers; onLayers(l: FlightLayers): void }) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  const trailId = useId()
+
+  // A menu: a click anywhere else closes it, so it never stays open over the view.
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      const el = ref.current
+      if (el?.open && !el.contains(e.target as Node)) el.open = false
+    }
+    window.addEventListener('pointerdown', onDown)
+    return () => window.removeEventListener('pointerdown', onDown)
+  }, [])
+
+  const shown = LAYER_CHECKS.filter((c) => layers[c.key]).length
+  return (
+    <details
+      ref={ref}
+      className="flight-layers"
+      data-testid="flight-layers"
+      onKeyDown={(e) => {
+        const el = ref.current
+        if (e.key !== 'Escape' || !el?.open) return
+        e.stopPropagation() // Escape closes the menu, not the tab
+        el.open = false
+        el.querySelector('summary')?.focus()
+      }}
+    >
+      <summary className="btn">
+        Layers <span className="mono flight-layers-count">{`${shown}/${LAYER_CHECKS.length}`}</span>
+      </summary>
+      <div className="flight-layers-menu" role="group" aria-label="What the 3D view shows">
+        {LAYER_CHECKS.map((c) => (
+          <label key={c.key} className="check" title={c.hint}>
+            <input
+              type="checkbox"
+              checked={layers[c.key]}
+              data-testid={`layer-${c.key}`}
+              onChange={(e) => onLayers({ ...layers, [c.key]: e.target.checked })}
+            />
+            <span>{c.label}</span>
+          </label>
+        ))}
+        <div className="flight-trail">
+          <label htmlFor={trailId} className="quiet">
+            Trail length
+          </label>
+          <select
+            id={trailId}
+            className="field"
+            disabled={!layers.trail}
+            value={layers.trailHours === null ? 'all' : String(layers.trailHours)}
+            data-testid="layer-trail-length"
+            onChange={(e) => onLayers({ ...layers, trailHours: e.target.value === 'all' ? null : Number(e.target.value) })}
+          >
+            {TRAILS.map((t) => (
+              <option key={t.label} value={t.value === null ? 'all' : String(t.value)}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </details>
+  )
+}
+
+// ---------- the bar ----------
 
 export function FlightTransport(p: FlightTransportProps) {
   const { plan, timeMs, playing, speed, focus, onPlaying, onSeek, onSpeed, onFocus } = p
@@ -95,11 +190,17 @@ export function FlightTransport(p: FlightTransportProps) {
 
   const ticks = plan.events
     .filter((e) => e.kind === 'burn' || MARKED.has(e.id))
-    .map((e) => ({
-      event: e,
-      pct: Math.min(100, Math.max(0, ((e.utcMs - launchMs) / span) * 100)),
-      text: LABELLED.has(e.id) ? e.short : null,
-    }))
+    .map((e) => {
+      const name = e.kind === 'burn' ? burnName(e) : e.short
+      return {
+        event: e,
+        burn: e.kind === 'burn',
+        name,
+        pct: Math.min(100, Math.max(0, ((e.utcMs - launchMs) / span) * 100)),
+        widthPx: Math.max(BURN_MIN_PX, (((e.durationS ?? 0) * 1000) / span) * trackPx),
+        text: LABELLED.has(e.id) ? name : null,
+      }
+    })
   const rows = textRows(ticks, trackPx)
 
   const onPlay = () => {
@@ -138,22 +239,29 @@ export function FlightTransport(p: FlightTransportProps) {
 
         <div className="flight-track">
           <div ref={ticksRef} className="flight-ticks">
-            {ticks.map(({ event: e, pct, text }, i) => (
-              <button
-                key={`${i}-${e.id}`}
-                type="button"
-                className="flight-tick"
-                style={{ left: `${pct}%` }}
-                title={e.dvKms === null ? e.label : `${e.label}, ${fmtKms(e.dvKms)}`}
-                aria-label={`Go to ${e.label}`}
-                data-tick={e.id}
-                onClick={() => onSeek(e.utcMs)}
-              >
-                {text !== null && rows[i] !== null && (
-                  <span className={rows[i] === 1 ? 'flight-tick-text is-raised' : 'flight-tick-text'}>{text}</span>
-                )}
-              </button>
-            ))}
+            {ticks.map(({ event: e, burn, name, pct, widthPx, text }, i) => {
+              const long = expand(name)
+              const detail = [e.label, e.by, e.dvKms === null ? null : fmtKms(e.dvKms), burn && e.durationS !== null ? fmtDuration(e.durationS) : null]
+              return (
+                <button
+                  key={`${i}-${e.id}`}
+                  type="button"
+                  className={burn ? 'flight-tick is-burn' : 'flight-tick'}
+                  style={{ left: `${pct}%` }}
+                  title={detail.filter((x) => x).join(', ')}
+                  aria-label={`Go to ${e.label}`}
+                  data-tick={e.id}
+                  onClick={() => onSeek(e.utcMs)}
+                >
+                  {burn && <span className="flight-burn-span" style={{ width: `${widthPx.toFixed(1)}px` }} />}
+                  {text !== null && rows[i] !== null && (
+                    <span className={rows[i] === 1 ? 'flight-tick-text is-raised' : 'flight-tick-text'}>
+                      {long ? <abbr title={long}>{text}</abbr> : text}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
           <input
             type="range"
@@ -193,6 +301,8 @@ export function FlightTransport(p: FlightTransportProps) {
             ))}
           </div>
         </div>
+
+        <LayersMenu layers={p.layers} onLayers={p.onLayers} />
 
         <label className="flight-speed-field">
           <span className="quiet">Speed</span>

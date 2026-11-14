@@ -21,8 +21,10 @@
 //     and the Moon's place decide it, once a day) and then puts the NRHO's perilune 3.5 hours before the flyby.
 //     A real mission flies to an orbit whose phase is given and waits for a launch day that fits.
 //   - The lander can go down only when the NRHO passes the Moon, and come back only one or more revolutions
-//     (6.56 days) later. The touchdown follows the first perilune after the capsule's arrival; the surface stay
-//     is the asked one rounded to whole revolutions, less the few hours the transfers and the low orbit take.
+//     (6.56 days) later. The touchdown follows the first perilune after the capsule's arrival. The surface stay
+//     is the asked one: the lander lifts off when asked, climbs into the low orbit from which the way back
+//     starts, and waits there for the NRHO's next passage. Only a stay that ends within six hours after the last
+//     liftoff for a passage is cut short to that liftoff (6.5 days asked: 6.49 flown, and no week in orbit).
 //   - The way home is cheap once per revolution too: the capsule leaves at the cheapest instant of the allowed
 //     window (one revolution when the caller allows none).
 import { DAY_S, G0, MU_EARTH, MU_MOON, R_EARTH_EQ, R_MOON } from './astro'
@@ -31,6 +33,8 @@ import type { AscentResult } from './ascent'
 import { firstGuess } from './guess'
 import type { Guess, GuessInput } from './guess'
 import type { LaunchVehicleSpec, SpacecraftSpec, StageSpec } from './hardware'
+import { ascentBurns, idealEnergy } from './ideal'
+import type { JetBurn } from './ideal'
 import { LunarOpsError, planAscent, planDescent } from './lunar'
 import type { LunarEvent, OrbitState } from './lunar'
 import type { MissionInput } from './mission'
@@ -64,6 +68,24 @@ const DOCKED_BEFORE_DEPARTURE_MS = HOUR_MS
 /** The first docking is put this long after the NRHO insertion cut-off (an event only: the lander is taken to
  *  be where the capsule arrives). */
 const FIRST_DOCKING_AFTER_NRI_MS = 2 * HOUR_MS
+/** A stay that would end up to this long after the last liftoff for a passage of the NRHO is cut short to that
+ *  liftoff; a longer one is flown as asked and the lander waits in low lunar orbit for the next passage. */
+const STAY_SNAP_MS = 6 * HOUR_MS
+/** From touchdown to the last liftoff for the next passage: one revolution of the NRHO less about this much
+ *  (the sweep in anySite.test.ts: 6.44 to 6.49 days of 6.56). For choosing the passage only. */
+const STAY_SHORT_OF_REV_MS = 0.12 * DAY_S * 1000
+/** A lander that lifts off this long or more before the NRHO's passage waits in low orbit (its orbit plane is
+ *  then laid over the site at the liftoff, not at the passage). */
+const LOITER_FROM_MS = 6 * HOUR_MS
+/** NRHO to a 100 km polar low lunar orbit over the south pole, one way: 704.5 and 704.9 m/s nominal (Mahajan,
+ *  Condon, "HLS NRHO to Lunar Surface and Back Mission Design", NASA JSC, 2022, https://ntrs.nasa.gov/citations/20230002566 ). */
+const POLAR_TRANSFER_MS = 704.7
+/** The last liftoff for a passage of the NRHO comes about this long before it (4.3 hours to the start of the
+ *  way back, which begins minutes from the passage): for the note on the stays that need no wait. */
+const LAST_LIFTOFF_BEFORE_PASSAGE_DAYS = 0.19
+/** NASA: "The crew module can accommodate four crew members for up to 21 days",
+ *  https://www.nasa.gov/humans-in-space/orion-spacecraft/orion-overview/ */
+const ORION_CREW_DAYS = 21
 /** Flight-path angle at Entry Interface when the caller gives none: Artemis I, −5.66° (Rea, McNamara, Kane,
  *  "Orion Artemis I Entry Performance", https://ntrs.nasa.gov/citations/20240000024). */
 const ARTEMIS_ENTRY_FPA_DEG = -5.66
@@ -74,6 +96,11 @@ const NRHO_SOURCES: SourceRef[] = [
   { label: 'Lee: Gateway Destination Orbit Model, a Continuous 15 Year NRHO Reference Trajectory (NASA, 2019)', url: 'https://ntrs.nasa.gov/citations/20190030294' },
   { label: 'Rea, McNamara, Kane: Orion Artemis I Entry Performance (NASA JSC)', url: 'https://ntrs.nasa.gov/citations/20240000024' },
   { label: 'JPL Three-Body Periodic Orbits catalogue (first guess of the NRHO)', url: 'https://ssd.jpl.nasa.gov/tools/periodic_orbits.html' },
+  { label: 'NASA, Orion overview (crew of four for up to 21 days)', url: 'https://www.nasa.gov/humans-in-space/orion-spacecraft/orion-overview/' },
+  // "A loiter period of 3 to 4 revolutions in the LLO is completed to prepare for descent to the surface." (table 1: 6.58 h)
+  { label: 'Craig et al.: Human Landing System storable propellant architecture, mission design (NASA, AAS 20-592)', url: 'https://ntrs.nasa.gov/api/citations/20205004517/downloads/HLS%20Storable_paper.pdf' },
+  // "places the ICPS/Orion stack into a 16 × 975 nmi orbit (30 x 1806 km)"; "The ICPS performs a Perigee Raise Maneuver"
+  { label: 'Artemis I Trajectory Design and Optimization (NASA, AAS 20-649)', url: 'https://ntrs.nasa.gov/api/citations/20205005150/downloads/AAS20649_Artemis1_Trajectory_Design_Optimization.pdf' },
 ]
 
 const massOf = (m: StageSpec) => m.dryKg + m.propellantKg
@@ -222,6 +249,8 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
     // The burn straddles the injection point: half of it before, half after.
     let coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
     while (coastS < 0) coastS += TWO_PI / nPark
+    // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
+    coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
     try {
       const coast = integrate(earth, { r: r0, v: v0, m: m0 }, inp.insertion.utcMs, { maxSeconds: coastS, maxStepS: 30 })
       const tIgnMs = inp.insertion.utcMs + coastS * 1000
@@ -352,8 +381,10 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   const descentEngine = engineOf(lander, descentElement).use
   const ascentEngine = engineOf(lander, lander.modules.find((m) => m.engine)).use
   const notes: string[] = []
-  // whole revolutions of the NRHO between the lander's two passages of the Moon
-  const surfaceRevs = Math.max(1, Math.round((inp.surfaceStayDays * DAY_S) / NRHO_PERIOD_S))
+  // whole revolutions of the NRHO between the lander's two passages of the Moon: the first passage that the
+  // asked stay (less the six hours by which a stay may be cut short) still reaches
+  const stayMs = inp.surfaceStayDays * DAY_S * 1000
+  const surfaceRevs = Math.max(1, Math.ceil((stayMs - STAY_SNAP_MS + STAY_SHORT_OF_REV_MS) / PERIOD_MS))
   const windowDays = inp.returnWindowDays > 0 ? inp.returnWindowDays : NRHO_PERIOD_S / DAY_S
 
   // ---- 1. How long and how far the ascent goes: one flight due east from this latitude.
@@ -505,7 +536,6 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   const lloPeriodS = TWO_PI * Math.sqrt((R_MOON + lloAltKm) ** 3 / MU_MOON)
   // the low orbit's plane contains the site when the lander comes down, and again when it lifts off
   const siteDown = siteDirection(ephem, target.latDeg, target.lonDeg, plannedTouchdownMs)
-  const siteUp = siteDirection(ephem, target.latDeg, target.lonDeg, upPeriluneMs - 2.5 * HOUR_MS)
 
   /** The state `hours` before a state on a ballistic path (the field run backwards). */
   const earlier = (s: OrbitState, hours: number): OrbitState => {
@@ -533,6 +563,12 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     // point. The departure burn's length depends on the mass the ascent leaves, so the two are solved in turn.
     const liftoffKg = twoStage ? massOf(ascentElement) : descent.massAtTouchdownKg
     const onBoard = twoStage ? undefined : descent.propellantLeftKg
+    // When to lift off: when the stay asked for ends. If that is hours before the NRHO's passage, the lander
+    // waits in the low orbit, whose plane is then the one over the site at that liftoff (the Moon turns under a
+    // low orbit by 13.2° per day; where the plane lies changes what the way back costs, not whether it exists).
+    const askedLiftoffMs = descent.touchdownMs + stayMs
+    const waits = askedLiftoffMs < upPeriluneMs - LOITER_FROM_MS
+    const siteUp = siteDirection(ephem, target.latDeg, target.lonDeg, waits ? askedLiftoffMs : upPeriluneMs - 2.5 * HOUR_MS)
     const back = (massKg: number) =>
       lloToNrho({ nrho, arriveMs: backOnNrhoMs, siteDir: siteUp, thrustN: ascentEngine.thrustN, ispS: ascentEngine.ispS, massKg, lloAltKm })
     let up = back(liftoffKg * Math.exp(-1900 / (G0 * ascentEngine.ispS)))
@@ -540,9 +576,9 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     let meet: OrbitState = up.start
     for (let pass = 0; pass < passes; pass++) {
       const from = up.start
-      meet = earlier({ utcMs: from.utcMs, r: from.r, v: from.v }, 7)
       // liftoff opportunities come once per revolution of the low orbit; ascent and rendezvous take about two hours
-      let earliestMs = from.utcMs - 4.3 * HOUR_MS
+      let earliestMs = Math.min(from.utcMs - 4.3 * HOUR_MS, waits ? askedLiftoffMs : Infinity)
+      meet = earlier({ utcMs: from.utcMs, r: from.r, v: from.v }, (from.utcMs - earliestMs) / HOUR_MS + 2.7)
       for (let again = 0; again < 3; again++) {
         climb = planAscent({
           field, site, earliestMs, target: meet, lander, massKg: liftoffKg, propellantKg: onBoard,
@@ -555,7 +591,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       up = back(climb.massAtDockingKg)
     }
     if (!climb) throw new FlightPlanError('The lander ascent was not planned.')
-    return { down, lowOrbit, descent, climb, meet, up, usedKg: startKg - up.end.massKg - (twoStage ? massOf(descentElement) : 0) }
+    return { down, lowOrbit, descent, climb, meet, up, waits, usedKg: startKg - up.end.massKg - (twoStage ? massOf(descentElement) : 0) }
   }
   let landerStartKg = totalMass(lander)
   let flownSortie: ReturnType<typeof sortie>
@@ -765,6 +801,10 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
 
   // ---- 10. Facts and notes.
   const stayDays = (climb.liftoffMs - touchdownMs) / (DAY_S * 1000)
+  const waitDays = (up.path.t[0] - climb.dockingMs) / (DAY_S * 1000)
+  // stays that end with the last liftoff for a passage
+  const noWait = (revs: number) => (upPeriluneMs + (revs - surfaceRevs) * PERIOD_MS - touchdownMs) / (DAY_S * 1000) - LAST_LIFTOFF_BEFORE_PASSAGE_DAYS
+  const noWaitStays = [1, 2, 3].map((k) => noWait(k).toFixed(1)).join(', ') + ' days'
   const revsFlown = nrho.revolutions.filter((r) => r.periluneMs + r.periodS * 1000 > nriEndMs && r.periluneMs < home.path.t[0])
   const mean = (f: (r: (typeof revsFlown)[number]) => number) => revsFlown.reduce((s, r) => s + f(r), 0) / Math.max(1, revsFlown.length)
   const atDeparture = nrho.stateAt(home.path.t[0])
@@ -783,11 +823,42 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     'On the NRHO the capsule is taken to follow the reference orbit, which its arrival meets to within 20 m and 2 cm/s; the small burns ' +
       'that hold a real spacecraft on this unstable orbit (station keeping) are not flown.',
     `The first docking, ${(FIRST_DOCKING_AFTER_NRI_MS / HOUR_MS).toFixed(0)} hours after the NRHO insertion, is an event only: no rendezvous ` +
-      'is flown, the lander is taken to be where the capsule arrives. Until it undocks the lander is shown with the capsule, also before ' +
-      'that docking.',
+      'is flown, the lander is taken to be where the capsule arrives. The lander is shown from that docking on ' +
+      'and no longer after the capsule leaves for Earth.',
     `The lander can leave for the surface and come back only when the NRHO passes the Moon, every ${periodDays} days. ` +
-      `Asked for ${inp.surfaceStayDays} days on the surface, it stays ${stayDays.toFixed(2)} days: ${surfaceRevs} revolution${surfaceRevs > 1 ? 's' : ''} ` +
-      'of the NRHO less the time in low lunar orbit before the descent and after the ascent.',
+      `Asked for ${Number(inp.surfaceStayDays.toFixed(2))} days on the surface, it stays ${stayDays.toFixed(2)} days` +
+      (flownSortie.waits
+        ? ` and then waits ${waitDays.toFixed(2)} days in low lunar orbit for the passage of the NRHO that takes it back ` +
+          `(${surfaceRevs} revolution${surfaceRevs > 1 ? 's' : ''} after the one that brought it down). NASA plans the stay so that there is no such wait: ` +
+          `about 6.5 days, one revolution. Without a wait this landing point allows stays of ${noWaitStays}, and so on every ${periodDays} days.`
+        : `: ${surfaceRevs} revolution${surfaceRevs > 1 ? 's' : ''} of the NRHO less the time in low lunar orbit before the descent and after the ascent, ` +
+          'the longest stay that this passage of the NRHO allows.' +
+          (Math.abs(stayDays - inp.surfaceStayDays) > 0.005 ? ' A longer stay would end with days of waiting in low lunar orbit for the next passage.' : '')),
+  )
+  // What limits the choice of landing point in this design is not reach but cost: the NRHO passes over the poles,
+  // and a low orbit over a point far from them lies across its path.
+  const transfersMs = (down.dvKms + up.dvKms) * 1000
+  if (transfersMs > 2 * POLAR_TRANSFER_MS + 100) {
+    notes.push(
+      `The NRHO passes over the Moon's poles. A low orbit over this landing point lies across its path, so the lander's two transfers between the NRHO and the low orbit cost ` +
+        `${transfersMs.toFixed(0)} m/s together, against about ${(2 * POLAR_TRANSFER_MS).toFixed(0)} m/s to a point at the south pole. Every landing point can be reached; this is what the others cost.`,
+    )
+  }
+  const limit = inp.architecture.surfaceStay
+  if (limit && limit.maxDays !== null && inp.surfaceStayDays > limit.maxDays + 1e-9) {
+    notes.push(`A stay of ${Number(inp.surfaceStayDays.toFixed(2))} days is longer than what is planned for this hardware (${limit.maxDays} days). ${limit.basis} The plan is flown as asked; consumables and power on the surface are not modelled.`)
+  }
+  const missionDays = (endMs - liftoffMs) / (DAY_S * 1000)
+  if (missionDays > ORION_CREW_DAYS && (surfaceRevs > 1 || flownSortie.waits)) {
+    notes.push(
+      `The capsule's crew is away from Earth for ${missionDays.toFixed(1)} days. NASA gives Orion ${ORION_CREW_DAYS} days with a crew of four on its own supplies; ` +
+        'how a longer mission is supplied (from the lander, from a station on the NRHO) is not modelled.',
+    )
+  }
+  const lowOrbitH = (touchdownMs - lowOrbit.utcMs) / HOUR_MS
+  notes.push(
+    `In low lunar orbit the lander starts down as soon as the geometry allows, ${lowOrbitH.toFixed(1)} hours after its insertion; a NASA reference design waits 3 to 4 revolutions there (6.6 hours) to prepare. ` +
+      `The parking orbit at Earth is a ${parkingAltKm} km circle left after one to two revolutions; Artemis I was put into 30 × 1,806 km by the core stage and raised its perigee before the injection.`,
   )
   if (!twoStage) {
     notes.push(
@@ -824,12 +895,25 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     )
   }
 
+  // Every burn of the plan with its engine, for the energy comparison (ideal.ts). The lander's own launches and
+  // its flight to the NRHO are not part of this plan and not in the sum.
+  const burns: JetBurn[] = [
+    ...ascentBurns(lv, ascent),
+    { propellantKg: tliEvent.propellantKg ?? 0, ispS: tliEngine.ispVacS },
+    { propellantKg: capsuleUsedKg, ispS: capsuleEngine.use.ispS },
+    ...(twoStage
+      ? [
+          { propellantKg: landerStartKg - descent.massAtTouchdownKg, ispS: descentEngine.ispS },
+          { propellantKg: massOf(ascentElement) - up.end.massKg, ispS: ascentEngine.ispS },
+        ]
+      : [{ propellantKg: flownSortie.usedKg, ispS: descentEngine.ispS }]),
+  ]
   const park = apsides(MU_EARTH, ascent.insertion.r, ascent.insertion.v)
   const east = unit(cross(guess.pole, guess.padHat))
   const vHat = cross(guess.planeNormal, guess.padHat)
   const az = Math.atan2(dot(vHat, east), dot(vHat, cross(guess.padHat, east))) / DEG
   const sources: SourceRef[] = []
-  for (const s of [...lv.sources, ...lv.stages.flatMap((x) => x.sources), ...capsule.sources, ...lander.sources, pad.source, ...NRHO_SOURCES]) {
+  for (const s of [...lv.sources, ...lv.stages.flatMap((x) => x.sources), ...capsule.sources, ...lander.sources, pad.source, ...NRHO_SOURCES, ...(limit?.sources ?? [])]) {
     if (s.url && !sources.some((x) => x.url === s.url)) sources.push(s)
   }
   return {
@@ -863,7 +947,12 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       returnPlaneOffDeg: Math.asin(Math.min(1, Math.abs(dot(departureNormal, moonVel)))) / DEG,
       returnDays: home.returnDays,
       entry: { speedKms: home.entry.speedKms, fpaDeg: home.entry.fpaDeg, latDeg: home.entry.latDeg, lonDeg: home.entry.lonDeg },
-      missionDays: (endMs - liftoffMs) / (DAY_S * 1000),
+      missionDays,
+      ideal: idealEnergy({
+        ephem, pad, target, launchMs: liftoffMs, touchdownMs, lunarLiftoffMs: climb.liftoffMs, entryAltKm: inp.entryAltKm ?? 121.92, burns,
+        referenceMassKg: home.end.massKg,
+      }),
+      surfaceStayAskedDays: inp.surfaceStayDays,
     },
     notes,
     sources,

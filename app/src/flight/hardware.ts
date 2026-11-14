@@ -71,4 +71,7 @@ export interface ArchitectureSpec {
    *  'nrho': near-rectilinear halo orbit, the lander is already waiting there (Artemis). */
   rendezvous: 'llo' | 'nrho'
   note: string
+  /** How long this design stays on the surface: the stay a fresh plan starts with, the longest the hardware
+   *  supported or is planned for (null when no limit is documented), and where those numbers come from. */
+  surfaceStay?: { defaultDays: number; maxDays: number | null; basis: string; sources: SourceRef[] }
 }
