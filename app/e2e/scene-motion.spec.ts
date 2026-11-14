@@ -406,3 +406,66 @@ test.describe('S3: the fly between the globe and the site is one continuous move
     await page.screenshot({ path: 'test-results/s3-fly-arrived-site.png' })
   })
 })
+
+// ---------- F3 (wave 3): a camera that has arrived is at rest ----------
+
+test.describe('F3: the camera is exactly at rest once a walk or a fly has ended', () => {
+  /** Every camera read after the first is the first, to the last bit. */
+  const still = (cams: Cam[], label: string) => {
+    for (let i = 1; i < cams.length; i++) {
+      expect(cams[i].position, `${label}: position on frame ${i}`).toEqual(cams[0].position)
+      expect(cams[i].quaternion, `${label}: orientation on frame ${i}`).toEqual(cams[0].quaternion)
+    }
+  }
+  const terrainAt = (page: Page, x: number, y: number) =>
+    page.evaluate(([x, y]) => (window as unknown as { __scene: { terrainAt(x: number, y: number): { x: number; y: number; z: number } | null } }).__scene.terrainAt(x, y), [x, y] as const)
+
+  test('after a walk (test mode and eased), the fly down to the site and the fly back up: 30 frames read the same camera', async ({ page }) => {
+    test.setTimeout(300_000)
+    await open(page)
+    await setView(page, { ...RIDGE, level: 'site' })
+    // A walk as in c4.spec.ts "app: a left-click on terrain moves the camera" (where two reads once differed by
+    // 9.09e-13 m), to the terrain under a screen point beside the site; the camera is read in the same task as the
+    // walk, before any frame, and after each of the next 30 frames.
+    const spot = (await terrainAt(page, 780, 430))!
+    expect(spot, 'terrain under the point').not.toBeNull()
+    const reads = await page.evaluate(([x, y, frame]) => {
+      const s = (window as unknown as { __scene: Scene & { walkTo(x: number, y: number): boolean } }).__scene
+      if (!s.walkTo(x, y)) return []
+      const out = [s.camera()]
+      for (let i = 0; i < 30; i++) {
+        s.advance(frame)
+        out.push(s.camera())
+      }
+      return out
+    }, [spot.x, spot.y, FRAME] as const)
+    expect(reads.length, 'the walk happened').toBe(31)
+    expect(reads[0].level).toBe('eye')
+    expect(Math.max(...reads[0].position.map(Math.abs)), 'coordinates of thousands of metres, where one unit in the last place is about 1e-12 m').toBeGreaterThan(1000)
+    still(reads, 'walk without easing')
+    // A click does the same.
+    await page.mouse.click(780, 430)
+    await frames(page)
+    expect((await camera(page)).level).toBe('eye')
+    still([await camera(page), ...(await advance(page, 30))], 'walk by a click')
+
+    // The same with the easing on: the walk flies, then rests.
+    await scene(page, (s) => s.setAnimated(true))
+    expect(await terrainAt(page, 640, 600), 'ground ahead').not.toBeNull()
+    await page.mouse.click(640, 600)
+    await frames(page)
+    expect(await scene(page, (s) => s.flying()), 'the eased walk flies').toBe(true)
+    await runFly(page)
+    still(await advance(page, 30), 'eased walk')
+
+    // Up to the globe and down to the site again (the fly between the scenes), each ending at rest.
+    await scene(page, (s) => s.handle().setLevel('globe'))
+    await runFly(page)
+    expect(await scene(page, (s) => s.level())).toBe('globe')
+    still(await advance(page, 30), 'fly site → globe')
+    await scene(page, (s) => s.handle().setLevel('site'))
+    await runFly(page)
+    expect(await scene(page, (s) => s.level())).toBe('site')
+    still(await advance(page, 30), 'fly globe → site')
+  })
+})

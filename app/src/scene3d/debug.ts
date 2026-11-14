@@ -56,6 +56,7 @@ export interface DebugView {
   bodies(): { name: string; center: number[]; camera: number[] }[]
   projectMark(index: number): ScreenPoint | null
   skySize(b: 'sun' | 'earth'): number | null
+  walkTo(x: number, y: number): boolean
 }
 
 export interface SetViewOptions {
@@ -164,6 +165,9 @@ export function installDebug(v: DebugView) {
     bodies: () => v.bodies(),
     projectMark: (i: number) => v.projectMark(i),
     skySize: (b: 'sun' | 'earth') => v.skySize(b),
+    // F3: the walk a click on terrain starts, to the ENU point (x, y) in m, without a frame drawn in between (a
+    // test can read the camera before and after the next frame).
+    walkTo: (x: number, y: number) => v.walkTo(x, y),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api

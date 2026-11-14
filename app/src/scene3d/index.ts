@@ -207,6 +207,19 @@ interface Pose {
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2) // cubic, every flight
 
+/** The parts of three 0.170's OrbitControls that say whether update() has anything to apply (state −1 = idle). */
+interface OrbitInternals {
+  state: number
+  _sphericalDelta: { theta: number; phi: number; set(r: number, phi: number, theta: number): void }
+  _panOffset: Vector3
+  _scale: number
+}
+// An orbit glide ends once less than this is left of its turn, rad: 0.06 mm at the 60 km outer orbit.
+const ORBIT_REST = 1e-9
+// The space camera's floor (MOON_FLOOR_KM) is restored only when it is this far below it, km: setLength() itself
+// may land a unit in the last place under the floor, which must not count as a new violation every frame.
+const FLOOR_TOLERANCE_KM = 1e-9
+
 /** Throws when WebGL is unavailable; C2 then shows the horizon strip and the sentence. */
 export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle {
   if (!webglAvailable()) throw new Error('WebGL is not available')
@@ -431,7 +444,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
       return true
     }
-    if (level === 'globe' && free.globe.dist && globeCam.position.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) {
+    if (level === 'globe' && free.globe.dist && globeCam.position.length() < MOON_RADIUS_KM + MOON_FLOOR_KM - FLOOR_TOLERANCE_KM) {
       globeCam.position.setLength(MOON_RADIUS_KM + MOON_FLOOR_KM)
       return true
     }
@@ -764,7 +777,19 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * and play out after the landing: it ends here. three 0.170 keeps it in OrbitControls' _sphericalDelta.
    */
   function stopGlide() {
-    for (const c of [siteControls, globeControls]) (c as unknown as { _sphericalDelta: { set(r: number, phi: number, theta: number): void } })._sphericalDelta.set(0, 0, 0)
+    for (const c of [siteControls, globeControls]) (c as unknown as OrbitInternals)._sphericalDelta.set(0, 0, 0)
+  }
+
+  /**
+   * True while OrbitControls has something to apply: a drag in progress, a glide left after one, a zoom or pan
+   * step. A glide whose remaining turn is below ORBIT_REST rad ends here (three 0.170 keeps it in _sphericalDelta
+   * and only ever shrinks it, so it would otherwise last for minutes of invisible steps).
+   */
+  function orbitBusy(c: OrbitControls): boolean {
+    const o = c as unknown as OrbitInternals
+    const d = o._sphericalDelta
+    if (o.state === -1 && (d.theta !== 0 || d.phi !== 0) && Math.abs(d.theta) < ORBIT_REST && Math.abs(d.phi) < ORBIT_REST) d.set(0, 0, 0)
+    return o.state !== -1 || d.theta !== 0 || d.phi !== 0 || o._scale !== 1 || o._panOffset.lengthSq() > 0 || c.autoRotate
   }
 
   /** k > 1: the remaining distance shrinks geometrically (long flights between bodies); 1: plain ease. */
@@ -1318,7 +1343,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const ctl = inSpace() ? globeControls : siteControls
     // The orbit drag eases with the same time constant as the wheel and the look-around, whatever the frame rate.
     ctl.dampingFactor = easeShare(dtMs)
-    if (ctl.update()) markDirty()
+    // update() rebuilds the camera from its offset in spherical coordinates on every call, and that round trip
+    // moves a camera at rest by a unit in the last place now and then (F3): it runs only while there is input
+    // to apply. Every placement of a camera calls update() itself.
+    if (orbitBusy(ctl) && ctl.update()) markDirty()
     if (keepAboveGround()) markDirty()
   }
 
@@ -1670,6 +1698,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         return p ? { x: p.x, y: p.y, z: site.groundZ(p.x, p.y) } : null
       },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
+      walkTo: (x, y) => walkTo(x, y),
       camera() {
         const cam = activeCam()
         cam.updateMatrixWorld(true)
