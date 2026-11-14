@@ -297,7 +297,7 @@ Isaac: read the agent's final message, check the pasted done-outputs, look at th
 
 ## Step 2-UI — Mission layer and science goals (plan + Brief C3, written 14 Nov 14:00)
 
-**Status: proposal. Not started. Needs ninja's yes and Bene's look at the plan before an agent runs it.** Sources: the four paper pages IMG_2339–2342 (copies in git-ignored `private/notes-14nov/`), the jury answers and kickoff transcript (decisions.md), ninja's instruction of 14 Nov ("prioritise points of interest for scientists; POIs can be water, places where bacteria could grow, consistent light, anything"), build-plan §5.1 and handoff D4.
+**Status: plan approved by ninja, 14 Nov ~14:20. Not started.** Still open before an agent runs parts 2–4: Bene's look at the plan, the three wording choices below, and the track-c1 / track-c2 merges. Sources: the four paper pages IMG_2339–2342 (copies in git-ignored `private/notes-14nov/`), the jury answers and kickoff transcript (decisions.md), ninja's instruction of 14 Nov ("prioritise points of interest for scientists; POIs can be water, places where bacteria could grow, consistent light, anything"), build-plan §5.1 and handoff D4.
 
 ### What the paper asks for, and what is taken
 
@@ -363,7 +363,7 @@ Evidence tiers, best first: direct measurement, remote observation, modeled cond
 
 ### Wording and decisions only ninja can make (before the agent starts)
 
-1. Yes or no to this plan (it replaces the paper dialog with a panel and drops launch location, rocket flight and the empty start state).
+1. ~~Yes or no to this plan~~ — **yes** (ninja, 14 Nov): panel instead of the paper dialog; launch location, rocket flight and the empty start state are dropped.
 2. Track labels: "Light / Comms" (paper) or keep "Sun / Comms".
 3. Date display in the panel: "16 Aug 2027" (recommended, cannot be misread) or the paper's MM.DD.YYYY, or DD.MM.YYYY. Data and URL stay ISO 8601 UTC.
 4. Icons: add the `ionicons` package (exact pin, MIT, one rocket and one warning outline) — a new dependency needs your yes. Without it the control reads "Mission" as text.
