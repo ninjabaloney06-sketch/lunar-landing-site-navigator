@@ -133,3 +133,58 @@ test.describe('S6: the zoom works in both directions at every viewpoint', () => 
     await page.screenshot({ path: 'test-results/s6-site-after-trackpad-zoom.png' })
   })
 })
+
+test.describe('S7: at the Sun and Earth viewpoints the camera stays with the body while the time changes', () => {
+  const T0 = Date.parse('2027-08-10T00:00:00Z')
+
+  test('14 days in daily steps: the body stays within 1 px of where it was, at the zoom the user chose', async ({ page }) => {
+    await open(page)
+    for (const vp of ['sun', 'earth']) {
+      await setView(page, { site: SITE, utc: T0, level: 'globe' })
+      await goTo(page, vp)
+      await trackpad(page, -3, 40) // the user's zoom
+      const p0 = (await page.evaluate((vp) => (window as unknown as { __scene: Scene }).__scene.handle().project(vp), vp))!
+      const d0 = await bodyDist(page, vp)
+      expect(Math.hypot(p0.x - 640, p0.y - 360), `${vp}: centred to begin with`).toBeLessThan(1)
+      let worst = 0
+      let moved = 0
+      const c0 = (await scene(page, (s) => s.bodies())).find((b) => b.name === vp)!.center
+      for (let day = 1; day <= 14; day++) {
+        await load(page, T0 + day * DAY)
+        const p = (await page.evaluate((vp) => (window as unknown as { __scene: Scene }).__scene.handle().project(vp), vp))!
+        worst = Math.max(worst, Math.hypot(p.x - p0.x, p.y - p0.y))
+        expect(Math.hypot(p.x - p0.x, p.y - p0.y), `${vp}, day ${day}: still where it was in the picture`).toBeLessThan(1)
+        expect(Math.abs((await bodyDist(page, vp)) - d0) / d0, `${vp}, day ${day}: the zoom is kept`).toBeLessThan(1e-9)
+        moved = dist((await scene(page, (s) => s.bodies())).find((b) => b.name === vp)!.center, c0)
+      }
+      console.log(`S7 ${vp}: over 14 days its centre moved ${moved.toFixed(0)} km in the Moon's frame; on screen it stayed within ${worst.toFixed(3)} px`)
+      expect(moved, `${vp}: the body did move`).toBeGreaterThan(vp === 'sun' ? 1e8 : 1e3)
+      await page.screenshot({ path: `test-results/s7-${vp}-viewpoint-after-14-days.png` })
+      // Leaving the viewpoint ends it: a new time no longer moves the camera.
+      await goTo(page, 'moon')
+      const cam = (await scene(page, (s) => s.camera())).position
+      await load(page, T0 + 20 * DAY)
+      expect(dist((await scene(page, (s) => s.camera())).position, cam), 'at the Moon viewpoint the camera stays').toBe(0)
+    }
+  })
+
+  test('the time changes during the flight to the Sun: it arrives on the Sun where it is now', async ({ page }) => {
+    await open(page)
+    await setView(page, { site: SITE, utc: T0, level: 'globe' })
+    await scene(page, (s) => s.setAnimated(true))
+    expect(await scene(page, (s) => s.handle().goTo('sun'))).toBe(true)
+    await page.evaluate(() => {
+      const s = (window as unknown as { __scene: Scene }).__scene
+      for (let i = 0; i < 30; i++) s.advance(1000 / 60)
+    })
+    await load(page, T0 + 3 * DAY)
+    await page.evaluate(() => {
+      const s = (window as unknown as { __scene: Scene }).__scene
+      for (let i = 0; i < 200 && s.flying(); i++) s.advance(1000 / 60)
+    })
+    expect(await scene(page, (s) => s.flying())).toBe(false)
+    const p = (await scene(page, (s) => s.handle().project('sun')))!
+    expect(Math.hypot(p.x - 640, p.y - 360), 'the Sun is in the middle of the picture').toBeLessThan(1)
+    expect((await bodyDist(page, 'sun')) / 695700, 'at the viewpoint distance').toBeCloseTo(5.5, 6)
+  })
+})

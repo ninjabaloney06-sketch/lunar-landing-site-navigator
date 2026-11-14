@@ -40,3 +40,6 @@ constant's latitude (globe.ts buildRegion). Picking is unchanged; the views deci
 Zoom limits (S6): the wheel's outer limit is around the nearest body (20 000 km from the Moon's centre, the same
 11.5 radii for Earth and the Sun), not around the scene origin, which blocked one direction at the Earth and Sun
 viewpoints depending on the Moon's phase. A trackpad pinch (wheel + ctrlKey) zooms by e^(−deltaY/100).
+Body viewpoints over time (S7): after goTo('earth'|'sun') the camera and its orbit target move with the body's
+centre on every update(frame), so the body stays in place in the picture and the zoom is kept; any other
+viewpoint or level ends it.

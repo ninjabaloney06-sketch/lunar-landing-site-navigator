@@ -265,6 +265,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let enuToMe = new Quaternion()
   let meToEnu = new Quaternion()
   let fly: Fly | null = null
+  // The Earth or Sun viewpoint (S7): the body the camera is with and where its centre was when the camera was
+  // last moved with it. `dest` is the end of the flight to it while that flight runs.
+  let follow: { body: 'earth' | 'sun'; at: Vector3; dest: { p: Vector3; target: Vector3 } | null } | null = null
   // Where the eye-level camera stands after a walk (ENU m, eye point); null = on the landing site.
   let stand: Vector3 | null = null
   let dirty = true
@@ -513,6 +516,21 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const retarget = siteChanged && f.site !== null && fly?.site?.toSite === true && fly.site.mix === 0
     if (siteChanged && fly?.site && !retarget) finishFly()
     frame = f
+    if (follow) {
+      // The body has moved with the time: the camera and what it orbits move by the same step, so the body
+      // stays where it is in the picture and the user's zoom and direction are kept.
+      const c = v3(follow.body === 'earth' ? f.state.earth_km : f.state.sun_km)
+      const step = c.clone().sub(follow.at)
+      follow.at.copy(c)
+      if (follow.dest) {
+        follow.dest.p.add(step)
+        follow.dest.target.add(step)
+      } else {
+        globeCam.position.add(step)
+        globeControls.target.add(step)
+        globeCam.updateMatrixWorld(true)
+      }
+    }
     if (f.site) {
       siteKm = v3(siteVector(f.site.lat, f.site.lon, (f.site.elev_m ?? 0) / 1000))
       enuToMe = enuToMeQuat(enuBasis(f.site.lat, f.site.lon))
@@ -622,6 +640,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function placeSiteCam(az: number, el: number, distKm: number) {
     viewVersion++
     free.site = { dist: false, look: false }
+    follow = null
     stand = null
     setTop(false)
     resetZoom()
@@ -635,6 +654,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function placeEyeCam(az: number, el: number, at: Vector3 | null = null) {
     viewVersion++
     free.site = { dist: false, look: false }
+    follow = null
     setTop(false)
     stand = at
     const eye = at ?? new Vector3(0, 0, site.eyeHeight)
@@ -679,6 +699,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function setGlobeView(lat?: number, lon?: number, distKm?: number) {
     free.globe = { dist: false, look: false }
+    follow = null
     setTop(false)
     setControls()
     const sunLon = frame ? latLonOf(v3(frame.state.sun_km)).lon : 0
@@ -697,8 +718,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * of its centre. The sky layer draws both bodies at their true direction and angular size from wherever
    * the camera is, so nothing is added to the scene.
    */
-  function setBodyView(centerKm: Vector3, radiusKm: number, from: Vector3) {
+  function setBodyView(body: 'earth' | 'sun', centerKm: Vector3, radiusKm: number, from: Vector3) {
     free.globe = { dist: true, look: true } // not on the orbit around the Moon: the distance limits do not apply
+    follow = { body, at: centerKm.clone(), dest: null }
     setTop(false)
     setControls()
     // Farther back on a narrow screen, so the disc keeps a margin at the sides.
@@ -894,7 +916,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (animate) {
       const to = { p: globeCam.position.clone(), q: globeCam.quaternion.clone() }
       const target = globeControls.target.clone()
+      if (follow) follow.dest = { p: to.p, target }
       const arrive = () => {
+        if (follow) follow.dest = null
         globeCam.position.copy(to.p)
         globeControls.target.copy(target)
         globeCam.lookAt(target)
@@ -941,6 +965,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       level = 'globe'
       wanted = null
       stand = null
+      follow = null
       setTop(true)
       setControls()
       if (was !== 'globe') emitLevel('globe')
@@ -953,10 +978,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       const earth = v3(state.earth_km)
       const toSun = v3(state.sun_km).sub(earth).normalize()
       const toMoon = earth.clone().negate().normalize()
-      flyInSpace(() => setBodyView(earth, EARTH_RADIUS_KM, toSun.addScaledVector(toMoon, 0.6).normalize()), animate)
+      flyInSpace(() => setBodyView('earth', earth, EARTH_RADIUS_KM, toSun.addScaledVector(toMoon, 0.6).normalize()), animate)
     } else {
       const sun = v3(state.sun_km)
-      flyInSpace(() => setBodyView(sun, SUN_RADIUS_KM, sun.clone().negate().normalize()), animate) // from the Moon's side
+      flyInSpace(() => setBodyView('sun', sun, SUN_RADIUS_KM, sun.clone().negate().normalize()), animate) // from the Moon's side
     }
     return true
   }
