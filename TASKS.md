@@ -149,11 +149,11 @@ Track C — frontend (D + agents):
 - [ ] `[H]` **All** — Rehearse the pitch twice with a timer. Live demo, with the screen recording and an offline build as backup. Before the second rehearsal, someone outside the team (the Betreuerin or a mentor) watches the demo once with no context. Done when they can repeat the problem and the app's answer in their own words; if not, fix the first 10 seconds. (winners P6)
 - [ ] `[H]` **I** — Pitch to the local judges (from 16:00). Stay within the time slot.
 
-- [ ] `[AI+H]` `L2·Opus` **S** — PARKED until after the 12:00 freeze (ninja, 14 Nov; Leo's idea): if submission and pitch work leave time, assess whether a sourced, labelled rough energy/Δv comparison between landing sites is feasible for a chosen Earth launch site and sample payload. Identify assumptions, site-dependent effects, uncertainty and validation needs; do not claim 100% accuracy. Research only during the freeze: no new feature in the submission. Build plan §1 excludes trajectories from the core.
+- [ ] `[AI+H]` `L2·Opus` **S** — PARKED until after the 12:00 freeze (ninja, 14 Nov; Leo's idea): if submission and pitch work leave time, assess a comparison for a selected Earth launch point, lunar site and payload: ideal physical energy at explicitly labelled 100% efficiency, an info button showing the calculation, and a route with its required burns. Do not use SLS performance or fuel-efficiency data. Define the model, reference frame, assumptions, site-dependent effects, uncertainty and validation; determine whether an optimal route can be supported before calling it "most efficient". Research only during the freeze: no new feature in the submission. Build plan §1 excludes trajectories from the core.
 
 ## Phase 7 — After the event
 
-- [ ] `[AI+H]` `L2·Opus` **I + S** — Decide whether to pursue Leo's energy/Δv comparison, using the phase-6 assessment if completed. Any implementation needs sourced inputs, explicit assumptions and limitations, and S's validation; it is not part of the event submission.
+- [ ] `[AI+H]` `L2·Opus` **I + S** — Decide whether to pursue Leo's ideal-energy, calculation-detail and route/burn comparison, using the phase-6 assessment if completed. Any implementation needs sourced inputs, explicit assumptions and limitations, and S's validation; it is not part of the event submission.
 - [ ] `[H]` **All** — Collect judge and mentor feedback while it is fresh.
 - [ ] `[AI+H]` `L1·Haiku` **I** — Short retrospective: what worked, what to change next time.
 - [ ] `[AI]` `L1·Haiku` — Clean up the repo: remove secrets, add screenshots, check the license.

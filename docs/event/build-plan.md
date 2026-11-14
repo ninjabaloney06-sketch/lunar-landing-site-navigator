@@ -14,7 +14,7 @@ A static web app. Pick a landing site (curated list, map click, or typed lat/lon
 
 **What the app does not do:** route or traverse planning, landing trajectories, atmospheric refraction (the Moon has none), thermal modelling, ground-station (DSN) coverage on Earth. The last two are stated in the limits footer.
 
-**Leo's energy comparison:** parked until after the 12:00 freeze (ninja, 14 Nov). If time permits, S may assess a sourced rough launch-to-site energy/Δv estimate, its assumptions and validation needs; it is not a feature for the submission. Decide whether to pursue it after the event. No estimate may be presented as 100% accurate.
+**Leo's energy comparison:** parked until after the 12:00 freeze (ninja, 14 Nov). If time permits, S may assess ideal payload energy at explicitly labelled 100% efficiency, an accessible calculation breakdown, and a route with required burns. Use no SLS performance or efficiency data. Define the model, assumptions and validation before claiming any route is most efficient; 100% efficiency is an assumption, not a claim of 100% accuracy. It is not a feature for the submission; decide whether to pursue it after the event.
 
 ---
 

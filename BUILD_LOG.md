@@ -75,3 +75,4 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Codex model per task in TASKS.md: Astra reviews L4, Sol tests/harness, Terra scripts/security, Luna README
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · TASKS.md level table now lists Claude + Codex model per level; tags model-only (account by Isaac); 4 more Codex tasks; Qwen-flash-next rule for checked drafts
 - 2026-11-14 · AI (Codex, device: ninja's Mac / Guest123) · Aligned phases and event/build plans with Leo's parked energy comparison and the feature freeze.
+- 2026-11-14 · AI (Codex, device: ninja's Mac / Guest123) · Incorporated Leo's 100%-efficiency payload energy, calculation details and route/burn request into the parked assessment.
