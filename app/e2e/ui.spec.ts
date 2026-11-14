@@ -411,6 +411,24 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   else await expect.poll(() => page.evaluate(() => location.hash)).toContain(`st=${sel.join(',')}`)
 })
 
+test('the drawer\'s "Terms of use" link opens the approved terms next to the sources', async ({ page }) => {
+  await page.goto(`${DEMO}&drawer=details`)
+  const drawer = page.getByTestId('drawer')
+  await expect(drawer).toBeVisible()
+  const link = drawer.getByRole('button', { name: 'Terms of use' })
+  await expect(link).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByTestId('terms')).toHaveCount(0)
+  await link.click()
+  const terms = page.getByTestId('terms')
+  await expect(link).toHaveAttribute('aria-expanded', 'true')
+  await expect(terms.getByRole('heading', { name: 'Terms of use' })).toBeVisible()
+  await expect(terms).toContainText('This app is not made, endorsed or reviewed by NASA or ESA.')
+  await expect(terms).toContainText('Team SFZ | MEXG, via the NASA Space Apps Challenge 2026 project page.')
+  await expect(terms).toBeInViewport()
+  await link.click()
+  await expect(page.getByTestId('terms')).toHaveCount(0)
+})
+
 // ---------- Mission layer (Brief C3) ----------
 
 test('(e) mission: the name defaults to "Mission 1" and the goal to Consistent light; a copied link restores name and goal', async ({ page }) => {
