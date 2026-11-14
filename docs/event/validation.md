@@ -4,8 +4,8 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 
 | ID | Check | Status | Signed by | Evidence |
 |---|---|---|---|---|
-| V1 | 10 site/time points vs JPL Horizons, < 0.05° | open | — | inputs below |
-| V2 | One row by hand: Sun elevation at the pole ≈ −subsolar latitude | open | — | inputs below |
+| V1 | 10 site/time points vs JPL Horizons, < 0.05° | passed — reported by ninja in chat, 2026-11-14 15:56 ("V1 and V2 works out"); no written sign-off by Leo in the repo | reported by ninja | inputs below |
+| V2 | One row by hand: Sun elevation at the pole ≈ −subsolar latitude | passed — reported by ninja in chat, 2026-11-14 15:56; no written sign-off by Leo in the repo | reported by ninja | inputs below |
 | Station check | Moon elevation at two stations vs Horizons (station as observer); IAU_EARTH approximation | open | — | inputs below |
 | V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open | — | — |
 | V4 | Real horizons vs PGDA averages (context) | open | — | — |
