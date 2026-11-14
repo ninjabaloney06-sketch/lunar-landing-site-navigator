@@ -1,14 +1,15 @@
 // Mission panel (Step 2-UI; paper pages 2340–2342): the paper's field order — Name, Start, End, Science goal,
 // Landing site, Ground stations, Play mission. The landing sites are ranked for this mission's own dates,
 // stations and goal by geometry/rankSites; every row shows the values it was ranked by. Grown from the C2 site
-// menu: its search, which also accepts typed coordinates, and the disabled "Add a point" row stay (arbitrary
-// points wait for the step-7 terrain checks: never flat-horizon numbers at the pole).
+// menu: its search, which also accepts typed coordinates. Typed coordinates can be added as a user point (Brief
+// C4 part 3): a name, a place and a role, never numbers. A user point has no horizon file, and nothing is
+// computed for it with a flat horizon or a neighbour's.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Site, Station } from '../data/types'
 import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
-import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, NAME_MAX, RANGE_ERROR, COVERAGE_END_MS } from '../state'
-import type { UserPoint } from '../state'
+import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
+import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
 import { SLOPE_BASELINE, slopeOf } from './slope'
@@ -59,6 +60,7 @@ interface Props {
   name: string | null // null = the site's name
   goal: ScienceGoal
   points: UserPoint[]
+  selectedPoint: number | null // highlighted here and on the scene
   focusStations: boolean // opened from the drawer's "Choose ground stations"
   onName(name: string): void
   onDates(startMs: number, days: number): void
@@ -67,6 +69,11 @@ interface Props {
   onToggleStation(id: string): void
   onPlay(): void
   onClose(): void
+  onAddPoint(lat: number, lon: number): void
+  onPointName(i: number, name: string): void
+  onPointRole(i: number, role: PointRole | null): void
+  onPointSelect(i: number | null): void
+  onPointDelete(i: number): void
 }
 
 interface Row {
@@ -85,6 +92,7 @@ export function MissionPanel(p: Props) {
   const [endDraft, setEndDraft] = useState<string | null>(null)
   const [dateError, setDateError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [pointDraft, setPointDraft] = useState<{ i: number; text: string } | null>(null) // the name being typed
   const [activeId, setActiveId] = useState<string | null>(site.id) // keyboard row; null = first row (after typing)
 
   useEffect(() => {
@@ -159,6 +167,13 @@ export function MissionPanel(p: Props) {
     if (flat.length) setActiveId(flat[(activeIdx + d + flat.length) % flat.length].site.id)
   }
 
+  const full = p.points.length >= MAX_POINTS
+  const addTyped = () => {
+    if (coords.kind !== 'ok' || full) return
+    p.onAddPoint(coords.lat, coords.lon)
+    setQuery('')
+  }
+
   const onSearchKey = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -169,6 +184,9 @@ export function MissionPanel(p: Props) {
     } else if (e.key === 'Enter' && coords.kind === 'none' && flat[activeIdx]) {
       e.preventDefault()
       p.onSelect(flat[activeIdx].site.id)
+    } else if (e.key === 'Enter' && coords.kind === 'ok') {
+      e.preventDefault()
+      addTyped()
     }
   }
 
@@ -323,7 +341,14 @@ export function MissionPanel(p: Props) {
         )}
         {coords.kind === 'ok' && (
           <p className="menu-msg" role="status">
-            <span className="mono">{fmtCoords(coords.lat, coords.lon)}</span>: adding points is coming after terrain checks.
+            <span className="mono">{fmtCoords(coords.lat, coords.lon)}</span>{' '}
+            {full ? (
+              `At most ${MAX_POINTS} points.`
+            ) : (
+              <button type="button" className="link" data-testid="add-point" onClick={addTyped}>
+                Add point
+              </button>
+            )}
           </p>
         )}
         <p className="menu-msg is-quiet mp-progress" aria-live="polite">
@@ -352,20 +377,70 @@ export function MissionPanel(p: Props) {
             </div>
           ))}
           {coords.kind === 'none' && q && flat.length === 0 && <p className="menu-msg">No site matches “{query.trim()}”.</p>}
-          <div role="group" aria-label="Your points">
-            <div className="menu-group">Your points</div>
-            {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
-            {p.points.map((pt, i) => (
-              <div key={i} className="opt is-disabled" role="option" aria-selected="false" aria-disabled="true">
-                <span className="opt-name">Point {String.fromCharCode(65 + i)}</span>
-                <span className="opt-meta mono">{fmtCoords(pt.lat, pt.lon)}</span>
-              </div>
-            ))}
+        </div>
+        <div role="group" aria-labelledby="mp-points" data-testid="points">
+          <div id="mp-points" className="menu-group">
+            Your points
           </div>
+          {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
+          <ul className="plain">
+            {p.points.map((pt, i) => {
+              const name = pointName(pt, i)
+              const selected = p.selectedPoint === i
+              return (
+                <li key={i} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point" data-role={pt.role ?? ''}>
+                  <input
+                    className="field pt-name"
+                    type="text"
+                    aria-label={`Name of ${name}`}
+                    maxLength={NAME_MAX}
+                    value={pointDraft?.i === i ? pointDraft.text : name}
+                    onChange={(e) => {
+                      setPointDraft({ i, text: e.target.value })
+                      p.onPointName(i, e.target.value)
+                    }}
+                    onBlur={() => setPointDraft(null)}
+                  />
+                  <select
+                    className="field pt-role"
+                    aria-label={`Role of ${name}`}
+                    value={pt.role ?? ''}
+                    onChange={(e) => p.onPointRole(i, e.target.value === '' ? null : (e.target.value as PointRole))}
+                  >
+                    <option value="">No role</option>
+                    <option value="start">Start</option>
+                    <option value="end">End</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="mp-close pt-del"
+                    aria-label={`Delete ${name}`}
+                    onClick={() => {
+                      setPointDraft(null)
+                      p.onPointDelete(i)
+                    }}
+                  >
+                    ×
+                  </button>
+                  <button
+                    type="button"
+                    className="pt-select mono"
+                    aria-pressed={selected}
+                    aria-label={`Select ${name}, ${fmtCoords(pt.lat, pt.lon)}`}
+                    onClick={() => p.onPointSelect(selected ? null : i)}
+                  >
+                    {fmtCoords(pt.lat, pt.lon)}
+                  </button>
+                  <span className="pt-none" data-fact="none">
+                    No terrain data for this point
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
         </div>
         <button className="menu-add" type="button" disabled>
-          Add a point: click the terrain, or type coordinates above
-          <span className="menu-add-note">coming after terrain checks</span>
+          Add a point: type coordinates above, or right-click the Moon
         </button>
       </section>
 

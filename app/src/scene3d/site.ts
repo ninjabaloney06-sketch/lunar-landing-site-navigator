@@ -35,6 +35,7 @@ import {
   PerspectiveCamera,
   Raycaster,
   Scene,
+  Vector2,
   Vector3,
   type Object3D,
 } from 'three'
@@ -52,6 +53,16 @@ const SKIRT_SMOOTH_DEG = 20
 const MAST_PER_DIST = 1.6 / 17 // 1.6 km tall at the default 17 km distance
 const CROSS_PER_DIST = 0.035
 const MAST_WIDTH_PX = 1.6
+const MARK_LEN_PX = 22 // user points inside the 80 m tile: a short stem with a square head
+const MARK_HEAD_PX = 3
+
+/** A user point in the site scene: its name and the terrain point it stands on (ENU m). */
+export interface SiteMarker {
+  index: number
+  name: string
+  ground: Vector3
+  selected: boolean
+}
 
 // MeshStandardMaterial family (roughness 1, metalness 0) with the specular lobe off: at grazing view and light
 // angles (low polar Sun, camera looking toward it) three's GGX specular reaches ~10× the diffuse term and turns
@@ -177,6 +188,8 @@ export class SiteWorld {
   private eyeMode = false
   private levelNames: string[] = []
   private readonly marker = new Group()
+  private readonly marks = new Group()
+  private markList: { m: SiteMarker; stem: Mesh; head: Mesh }[] = []
   private readonly mast: Mesh
   private readonly cross: Mesh[]
   private readonly sunLight = new DirectionalLight(0xfff4e6, SUN_INTENSITY)
@@ -186,9 +199,12 @@ export class SiteWorld {
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
   private mastHeight = 1600
   readonly eyeHeight = OBSERVER_HEIGHT_M // spec: 1.75 m above the ground
+  // What groundZ reads: the data the terrain was built from.
+  private ground: { levels: Level[] | null; tile: TerrainTile | null; rSite: number } = { levels: null, tile: null, rSite: MOON_RADIUS_KM * 1000 }
+  private readonly tmp = new Vector3()
 
   constructor() {
-    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker)
+    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker, this.marks)
     this.scene.add(this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
     this.setEyeMode(false)
     const mk = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
@@ -212,6 +228,7 @@ export class SiteWorld {
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
     const levels = tile ? nestedLevels(tile) : null
+    this.ground = { levels, tile, rSite }
     if (levels) {
       // Nested levels reach ±300 km: no skirt, no ring ground; at eye level only the crest strip on the mask.
       this.addLevels(levels, rSite, line)
@@ -555,8 +572,10 @@ export class SiteWorld {
   }
 
   /** Keeps the mast and cross a constant on-screen thickness; hides them at eye level. */
-  updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean) {
+  updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean, cross = show) {
     this.marker.visible = show
+    // The ground cross is drawn through the terrain for the view from above; standing on the ground it would float.
+    for (const c of this.cross) c.visible = cross
     const dist = cam.position.length()
     const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
     this.mastHeight = MAST_PER_DIST * dist
@@ -567,8 +586,96 @@ export class SiteWorld {
     this.cross[1].scale.set(w, arm, w)
   }
 
+  setMarkers(markers: SiteMarker[]) {
+    for (const c of [...this.marks.children]) this.marks.remove(c)
+    const mat = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
+    this.markList = markers.map((m) => {
+      const stem = new Mesh(new BoxGeometry(1, 1, 1).translate(0, 0, 0.5), mat)
+      const head = new Mesh(new BoxGeometry(2, 2, 2), mat)
+      stem.position.copy(m.ground)
+      this.marks.add(stem, head)
+      return { m, stem, head }
+    })
+  }
+
+  /** Constant on-screen size for the user points, like the mast. */
+  updateMarks(cam: PerspectiveCamera, heightPx: number) {
+    for (const k of this.markList) {
+      const dist = Math.max(cam.position.distanceTo(k.m.ground), 1)
+      const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
+      const len = MARK_LEN_PX * perPx
+      k.stem.scale.set(MAST_WIDTH_PX * perPx, MAST_WIDTH_PX * perPx, len)
+      k.head.position.copy(k.m.ground).setZ(k.m.ground.z + len)
+      k.head.scale.setScalar(MARK_HEAD_PX * perPx * (k.m.selected ? 1.4 : 1))
+    }
+  }
+
+  /** Head position (ENU m) of the marker for user point `index`, if it is drawn here. */
+  markTop(index: number): Vector3 | null {
+    return this.markList.find((k) => k.m.index === index)?.head.position.clone() ?? null
+  }
+
+  /** Index of the user point whose head is within 10 px of the pointer and not behind terrain. */
+  markAt(ndc: Vector2, cam: PerspectiveCamera, widthPx: number, heightPx: number): number | null {
+    let best: number | null = null
+    let bestD = 10
+    for (const k of this.markList) {
+      const dir = k.head.position.clone().sub(cam.position)
+      const len = dir.length()
+      if (this.occluded(cam.position, dir.normalize(), len - 1)) continue
+      const q = k.head.position.clone().project(cam)
+      if (q.z > 1) continue
+      const d = Math.hypot(((q.x - ndc.x) / 2) * widthPx, ((q.y - ndc.y) / 2) * heightPx)
+      if (d < bestD) {
+        bestD = d
+        best = k.m.index
+      }
+    }
+    return best
+  }
+
   mastTop(): Vector3 {
     return new Vector3(0, 0, this.mastHeight)
+  }
+
+  /**
+   * Terrain height (m, ENU z) under the ENU point (x, y), from the data the meshes are built from: the nested
+   * levels, or the 80 m tile inside its radius, and the smooth sphere through the site where neither has data.
+   * The drawn meshes are clamped to the mask sight line, so they are never above this height.
+   */
+  groundZ(x: number, y: number): number {
+    const { levels, tile, rSite } = this.ground
+    const rho = Math.hypot(x, y)
+    if (levels) {
+      const f = heightAt(levels, x, y)
+      if (f) return place(levels[f.li], x, y, f.h, rSite, this.tmp).z
+    } else if (tile && rho <= TILE_RADIUS_M) {
+      const h = tileHeight(tile, x, y)
+      if (h !== null) return sphereZ(rho, rSite, h)
+    }
+    return sphereZ(rho, rSite)
+  }
+
+  /** True when the 80 m tile (or a finer level) has terrain data under the ENU point (x, y). */
+  covers(x: number, y: number): boolean {
+    const { tile } = this.ground
+    return tile !== null && Math.hypot(x, y) <= TILE_RADIUS_M && tileHeight(tile, x, y) !== null
+  }
+
+  /** Terrain point under a screen position (normalised device coordinates) at the current level, or null. */
+  pick(ndc: Vector2, cam: PerspectiveCamera): Vector3 | null {
+    this.raycaster.setFromCamera(ndc, cam)
+    this.raycaster.far = Infinity
+    const targets = [...this.rays.both, ...(this.eyeMode ? this.rays.eye : this.rays.orbit)]
+    return this.raycaster.intersectObjects(targets, false)[0]?.point ?? null
+  }
+
+  /** First terrain point along unit `dir` from `from` (ENU m) at the current level, or null. */
+  hit(from: Vector3, dir: Vector3): Vector3 | null {
+    this.raycaster.set(from, dir)
+    this.raycaster.far = Infinity
+    const targets = [...this.rays.both, ...(this.eyeMode ? this.rays.eye : this.rays.orbit)]
+    return this.raycaster.intersectObjects(targets, false)[0]?.point ?? null
   }
 
   /** True when terrain blocks the segment from `from` along unit `dir` before `maxDist` (m). */

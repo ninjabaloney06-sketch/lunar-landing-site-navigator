@@ -6,6 +6,8 @@ import type { Sample, StationLos } from '../geometry'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
+import { TOP_VIEW } from '../scene3d'
+import { SPEEDS_H_PER_S } from '../state'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
@@ -34,8 +36,13 @@ interface Props {
   onChooseStations(): void // opens the Mission panel at its station checklist (one checklist, not two)
   onShowWindow(startMs: number, days: number, landingMs: number): void
   onSwitch(siteId: string, periodId: string): void
+  speed: number // Simulate: hours of mission time per second
+  onSpeed(hoursPerSecond: number): void
+  onReset(): void // cursor back to the first mission step
   onClose(): void
 }
+
+const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
 
 const CATEGORY: Record<SitePotential['category'], string> = {
   'water-ice': 'Water ice',
@@ -251,6 +258,26 @@ export function Drawer(p: Props) {
         </ul>
       </section>
 
+      <section className="drawer-sec" aria-labelledby="sec-simulation">
+        <h3 id="sec-simulation">Simulation</h3>
+        <p className="quiet">Simulate, beside the timeline, plays the mission from the cursor to its last day. Space pauses.</p>
+        <div className="row">
+          <label className="row sim-speed">
+            <span className="quiet">Speed</span>
+            <select className="field" data-testid="speed" value={p.speed} onChange={(e) => p.onSpeed(Number(e.target.value))}>
+              {SPEEDS_H_PER_S.map((h) => (
+                <option key={h} value={h}>
+                  {speedLabel(h)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="btn" type="button" onClick={p.onReset}>
+            Reset to start
+          </button>
+        </div>
+      </section>
+
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
         <div className="row">
@@ -309,6 +336,14 @@ export function Drawer(p: Props) {
           <li>
             Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
             station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
+          </li>
+          <li data-testid="views-note">
+            Views: walking, zooming and the viewpoints in the View menu move the camera only. The site, the dates, the
+            Sun and Earth labels and the answer always describe the landing site. Solar system — top view looks down the
+            +z axis of the Moon body-fixed frame (MOON_ME), from above the Moon's north pole, with 0° longitude to the
+            right. It is not to scale: the Earth is drawn {TOP_VIEW.dist.earth} and the Sun {TOP_VIEW.dist.sun} Moon
+            radii from the Moon, and the sizes of the three are not in proportion. The directions from the Moon to the
+            Earth and to the Sun are the computed ones.
           </li>
         </ul>
         <p className="quiet drawer-note">

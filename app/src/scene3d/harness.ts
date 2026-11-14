@@ -55,6 +55,7 @@ window.addEventListener('keydown', (e) => {
   const next = e.key === 'e' || e.key === 'E' ? (level === 'site' ? 'eye' : null) : e.key === 'Escape' ? ({ eye: 'site', site: 'globe', globe: null } as const)[level] : null
   if (next) handle.setLevel((level = next))
 })
+handle.onLevel((l) => (level = l)) // a walk ends at eye level
 const siteId = params.get('site')
 if (siteId) {
   const utc = Date.parse(params.get('utc') ?? '2027-08-16T12:00:00Z') // demo time

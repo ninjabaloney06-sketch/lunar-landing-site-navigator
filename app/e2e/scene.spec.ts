@@ -421,3 +421,81 @@ test.describe('screenshots (1440 × 900)', () => {
     }
   })
 })
+
+test.describe('eye-level zoom (Brief C4 part 1, notebook note 11)', () => {
+  test('T14 at every zoom step: the wheel narrows the lens, Sun and Earth stay on the pinhole projection within 1 px', async ({ page }) => {
+    // 44 poses with a screenshot each on software GL: about 80 s alone, over 3 min when the whole suite runs in parallel.
+    test.setTimeout(600_000)
+    await open(page)
+    const W = 1280
+    const H = 720
+    // T14's case: Sun and Earth both ≥ 1.5° above the real im-1 mask.
+    const site = siteById('im-1')
+    const hz = horizonOf(site)
+    const t = findTime('2027-08-01T00:00:00Z', '2027-09-01T00:00:00Z', (ms) => {
+      const s = body(site, ms, 'sun')
+      const e = body(site, ms, 'earth')
+      return s.el - maskAt(hz, s.az) > 1.5 && e.el - maskAt(hz, e.az) > 1.5 && azDiff(s.az, e.az) < 25 && s.el < 12 && e.el < 12
+    })
+    expect(t).not.toBeNull()
+    const utc = new Date(t!).toISOString()
+    const sun = body(site, utc, 'sun')
+    const earth = body(site, utc, 'earth')
+    const sunRadiusDeg = angRadiusDeg(SUN_RADIUS_KM, sun.dist_km)
+    const frames = () => page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))))
+    // Aim at each body in turn, then zoom in one wheel notch at a time from 54° to the narrowest lens.
+    for (const [aim, target] of [
+      ['sun', sun],
+      ['earth', earth],
+    ] as const) {
+      await setView(page, { site: site.id, utc, level: 'eye', az: target.az, el: target.el, fov: 54 })
+      const size0 = await call<number>(page, 'skySize', 'sun')
+      let fov = 54
+      let steps = 0
+      for (;;) {
+        const cam = await call<{ fov: number; position: number[] }>(page, 'camera')
+        expect(Math.hypot(cam.position[0], cam.position[1]), 'the camera stays at the site').toBeLessThan(1e-9)
+        expect(cam.position[2]).toBeCloseTo(1.75, 9)
+        for (const [name, b] of [
+          ['sun', sun],
+          ['earth', earth],
+        ] as const) {
+          const want = pinhole(target.az, target.el, cam.fov, W, H, b.dirEnu)
+          const got = (await project(page, name))!
+          const inFrame = dot(b.dirEnu, dirAzEl(target.az, target.el)) > 0 && want.x >= 0 && want.x <= W && want.y >= 0 && want.y <= H
+          expect(got.visible, `${name} visible = in frame, aimed at ${aim}, fov ${cam.fov.toFixed(2)}`).toBe(inFrame)
+          if (inFrame) {
+            expect(Math.abs(got.x - want.x), `${name} x, aimed at ${aim}, fov ${cam.fov.toFixed(2)}`).toBeLessThan(1)
+            expect(Math.abs(got.y - want.y), `${name} y, aimed at ${aim}, fov ${cam.fov.toFixed(2)}`).toBeLessThan(1)
+          }
+        }
+        // The bodies are not scaled: the drawn Sun keeps its computed angular radius, so its disc on screen is
+        // that radius through the current lens.
+        expect(await call<number>(page, 'skySize', 'sun')).toBe(size0)
+        if (aim === 'sun') {
+          const rPx = (Math.tan(sunRadiusDeg * D2R) * (H / 2)) / Math.tan((cam.fov / 2) * D2R)
+          const png = await pixels(page)
+          const c = brightCentroid(png, W / 2, H / 2, rPx + 2, 200)
+          expect(c, 'Sun disc rendered').not.toBeNull()
+          expect(Math.abs(c!.x - W / 2), `rendered Sun x at fov ${cam.fov.toFixed(2)}`).toBeLessThan(1)
+          expect(Math.abs(c!.y - H / 2), `rendered Sun y at fov ${cam.fov.toFixed(2)}`).toBeLessThan(1)
+          // Saturated pixels on the row through the centre: the disc's diameter, within 2.5 px.
+          let width = 0
+          for (let x = 0; x < W; x++) if (lum(png, x, H / 2) > 250) width++
+          console.log(`T14 zoom: fov ${cam.fov.toFixed(2)}°, Sun disc ${(2 * rPx).toFixed(1)} px expected, ${width} px saturated on the centre row`)
+          expect(Math.abs(width - 2 * rPx), `Sun disc width at fov ${cam.fov.toFixed(2)}`).toBeLessThan(2.5)
+        }
+        if (cam.fov <= 4) break
+        await page.mouse.move(W / 2, H / 2)
+        await page.mouse.wheel(0, -100)
+        await frames()
+        const next = await call<{ fov: number }>(page, 'camera')
+        expect(next.fov, 'one notch narrows the lens').toBeLessThan(fov)
+        fov = next.fov
+        steps++
+      }
+      console.log(`T14 zoom, aimed at ${aim}: ${steps} wheel steps from 54° to ${fov}°`)
+      expect(steps).toBeGreaterThan(10)
+    }
+  })
+})

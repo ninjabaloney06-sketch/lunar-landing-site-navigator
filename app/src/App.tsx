@@ -7,7 +7,9 @@ import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
+import type { SceneLevel, ScenePoint, Viewpoint } from './scene3d'
 import {
+  addPoint,
   cleanName,
   COVERAGE_END_MS,
   COVERAGE_START_MS,
@@ -15,7 +17,13 @@ import {
   DEFAULT_DAYS,
   DEFAULT_PERIOD_ID,
   DEFAULT_MISSION_NAME,
+  DEFAULT_SPEED_H_PER_S,
   DEFAULT_SITE_ID,
+  MAX_POINTS,
+  pointName,
+  removePoint,
+  renamePoint,
+  setPointRole,
   STEP_MS,
   useHashState,
 } from './state'
@@ -25,11 +33,15 @@ import type { ViewPeriod } from './views/Drawer'
 import { HorizonStrip } from './views/HorizonStrip'
 import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
-import { SceneView } from './views/SceneView'
+import { SceneView, viewpointItems } from './views/SceneView'
+import type { SceneApi } from './views/SceneView'
+import { ViewMenu } from './views/ViewMenu'
+import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
+import './styles/view.css'
 
 type Boot =
   | { status: 'loading' }
@@ -93,12 +105,23 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
   const [hs, patch] = useHashState()
-  const [menu, setMenu] = useState<null | 'mission' | 'date'>(null)
+  const [menu, setMenu] = useState<null | 'mission' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
   const [webgl, setWebgl] = useState(() => webglAvailable())
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
+  const viewBtn = useRef<HTMLButtonElement>(null)
+  const scene = useRef<SceneApi | null>(null)
+  const [topView, setTopView] = useState(false)
+  const [selPoint, setSelPoint] = useState<number | null>(null) // user point highlighted in the panel and the scene
+  // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
+  const menuOpen = useRef(false)
+  menuOpen.current = menu !== null
+  const menuClosedAt = useRef(0)
+  const clickGuard = useCallback(() => !menuOpen.current && performance.now() - menuClosedAt.current > 400, [])
+  const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
@@ -154,23 +177,46 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const onUnavailable = useCallback(() => setWebgl(false), [])
 
   const closeMenu = useCallback((focus = false) => {
+    menuClosedAt.current = performance.now()
     setMenu((m) => {
-      if (focus) (m === 'date' ? dateBtn : missionBtn).current?.focus()
+      if (focus) (m === 'date' ? dateBtn : m === 'view' ? viewBtn : missionBtn).current?.focus()
       return null
     })
   }, [])
   const closeMenuQuiet = useCallback(() => closeMenu(false), [closeMenu])
 
-  // Play: one 30-minute step every 50 ms until the period ends.
+  // Simulate: the cursor follows the real clock (elapsed time × speed), on the 30-minute grid, until the
+  // period's last step. A timer that reads the clock, so a throttled tab plays at the same pace, in fewer steps.
+  const cursorNow = useRef(cursor)
+  cursorNow.current = cursor
   useEffect(() => {
     if (!playing) return
-    if (cursor >= lastStep) {
+    if (cursorNow.current >= lastStep) {
       setPlaying(false)
       return
     }
-    const id = window.setTimeout(() => patch({ t: cursor + STEP_MS }), 50)
-    return () => window.clearTimeout(id)
-  }, [playing, cursor, lastStep, patch])
+    let from = cursorNow.current // mission time and
+    let t0 = performance.now() // real time where the run is anchored
+    let shown = from
+    let before = from // the cursor before the last step this timer made
+    const id = window.setInterval(() => {
+      // Scrubbed or stepped by the user meanwhile: go on from there.
+      const c = cursorNow.current
+      if (c !== shown && c !== before) {
+        from = shown = before = c
+        t0 = performance.now()
+      }
+      const elapsed = (performance.now() - t0) * speed * 3600 // ms of mission time
+      const next = Math.min(lastStep, from + Math.floor(elapsed / STEP_MS) * STEP_MS)
+      if (next !== shown) {
+        before = shown
+        shown = next
+        patch({ t: next })
+      }
+      if (next >= lastStep) setPlaying(false)
+    }, 40)
+    return () => window.clearInterval(id)
+  }, [playing, speed, lastStep, patch])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -222,6 +268,40 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [sites, patch],
   )
 
+  // User points as the scene draws them: places only, nothing is computed for them.
+  const scenePoints: ScenePoint[] = useMemo(
+    () => hs.pts.map((p, i) => ({ name: pointName(p, i), lat: p.lat, lon: p.lon, role: p.role, selected: i === selPoint })),
+    [hs.pts, selPoint],
+  )
+  const addUserPoint = useCallback(
+    (lat: number, lon: number) => {
+      const next = addPoint(hs.pts, lat, lon)
+      if (!next) return
+      patch({ pts: next })
+      setSelPoint(next.length - 1)
+    },
+    [hs.pts, patch],
+  )
+
+  // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
+  // globe), then the six viewpoints of the right-click menu.
+  const goLevel = (view: SceneLevel) => {
+    if (hs.view === view) scene.current?.setLevel(view)
+    else patch({ view })
+  }
+  const viewItems: ViewItem[] = [
+    { id: 'site', label: 'Landing site', current: !topView && hs.view === 'site', onSelect: () => goLevel('site') },
+    { id: 'eye', label: 'Eye level', current: !topView && hs.view === 'eye', onSelect: () => goLevel('eye') },
+    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
+  ]
+
+  // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
+  const toggleSimulate = () => {
+    if (playing) return setPlaying(false)
+    if (cursor >= lastStep) patch({ t: period.startMs })
+    setPlaying(true)
+  }
+
   const playMission = () => {
     setMenu(null)
     patch({ view: 'eye', t: period.startMs })
@@ -261,6 +341,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             earthEl={atCursor ? atCursor.earth.el : null}
             onUnavailable={onUnavailable}
             onPick={onPick}
+            onLevel={onLevel}
+            clickGuard={clickGuard}
+            points={scenePoints}
+            api={scene}
+            onTopView={setTopView}
+            canAddPoint={hs.pts.length < MAX_POINTS}
+            onAddPoint={addUserPoint}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -325,6 +412,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               name={hs.name}
               goal={hs.goal}
               points={hs.pts}
+              selectedPoint={selPoint}
+              onAddPoint={addUserPoint}
+              onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
+              onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
+              onPointSelect={setSelPoint}
+              onPointDelete={(i) => {
+                patch({ pts: removePoint(hs.pts, i) })
+                setSelPoint(null)
+              }}
               focusStations={panelAtStations}
               onName={(v) => patch({ name: cleanName(v) })}
               onDates={setMissionDates}
@@ -406,6 +502,35 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           sun={context.status === 'ready' ? context.results.sun : null}
           comms={context.status === 'ready' ? context.results.comms : null}
           valueText={valueText}
+          tools={
+            <>
+              {topView && (
+                <span className="tl-note" data-testid="not-to-scale">
+                  Not to scale
+                </span>
+              )}
+              {webgl && (
+                <span className="tool-wrap">
+                  <button
+                    ref={viewBtn}
+                    type="button"
+                    className="tool"
+                    data-testid="view"
+                    data-menu-trigger=""
+                    aria-haspopup="menu"
+                    aria-expanded={menu === 'view'}
+                    onClick={() => setMenu(menu === 'view' ? null : 'view')}
+                  >
+                    View
+                  </button>
+                  {menu === 'view' && <ViewMenu label="View" testId="view-menu" className="is-anchored" items={viewItems} onClose={closeMenu} />}
+                </span>
+              )}
+              <button type="button" className="tool" data-testid="simulate" aria-pressed={playing} onClick={toggleSimulate}>
+                {playing ? 'Pause' : 'Simulate'}
+              </button>
+            </>
+          }
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
         <footer className="foot">
@@ -445,6 +570,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
           }
           onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
+          speed={speed}
+          onSpeed={setSpeed}
+          onReset={() => {
+            setPlaying(false)
+            patch({ t: period.startMs })
+          }}
           onClose={() => patch({ drawer: null })}
         />
       )}

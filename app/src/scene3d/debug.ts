@@ -7,7 +7,7 @@
 //   utc:   ISO string or Unix ms. fov: vertical, degrees. texture: 'checker' (T16) | 'real'.
 
 import type { Site } from '../data/types'
-import type { SceneDeps, SceneFrame, SceneLevel, ScreenPoint } from './index'
+import type { SceneDeps, SceneFrame, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
 import type { Vector3 } from 'three'
 
 export interface DebugView {
@@ -35,6 +35,15 @@ export interface DebugView {
   terrainInfo(): { levels: string[]; triangles: number }
   setFlat(on: boolean): void
   renderInfo(): { calls: number; triangles: number }
+  surfaceDist(): number
+  terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
+  goTo(v: Viewpoint): boolean
+  topView(): boolean
+  named(): SceneName | null
+  surfaceAt(x: number, y: number): { lat: number; lon: number } | null
+  bodies(): { name: string; center: number[]; camera: number[] }[]
+  projectMark(index: number): ScreenPoint | null
+  skySize(b: 'sun' | 'earth'): number | null
 }
 
 export interface SetViewOptions {
@@ -93,6 +102,27 @@ export function installDebug(v: DebugView) {
       await nextFrame()
     },
     renderInfo: () => v.renderInfo(),
+    // Brief C4: distance from the camera to the nearest surface (m at site and eye level, km in space), and a
+    // sky body's drawn radius over its drawn distance (must not change with the eye-level zoom).
+    surfaceDist: () => v.surfaceDist(),
+    // Terrain point (ENU m, z = ground height) under a screen position at site or eye level: where a click walks to.
+    terrainAt: (x: number, y: number) => v.terrainAt(x, y),
+    // Viewpoints without the fly, the top-view flag, the name label's data, the Moon point under a screen
+    // position, each body's centre with the camera in the same frame and unit (MOON_ME km, or the top view's
+    // display units), and a user point's marker on screen.
+    goTo: async (vp: Viewpoint) => {
+      const ok = v.goTo(vp)
+      v.renderNow()
+      await nextFrame()
+      await nextFrame()
+      return ok
+    },
+    topView: () => v.topView(),
+    named: () => v.named(),
+    surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),
+    bodies: () => v.bodies(),
+    projectMark: (i: number) => v.projectMark(i),
+    skySize: (b: 'sun' | 'earth') => v.skySize(b),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api

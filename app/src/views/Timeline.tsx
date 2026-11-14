@@ -22,6 +22,7 @@ interface Props {
   comms: Window[] | null
   valueText: string
   answer: ReactNode // the answer line or its loading / empty / error state
+  tools?: ReactNode // quiet text controls at the right end above the answer (View, Simulate)
   onScrub(ms: number): void
 }
 
@@ -43,7 +44,7 @@ function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number;
   )
 }
 
-export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, onScrub }: Props) {
+export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, tools, onScrub }: Props) {
   const body = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const dragging = useRef(false)
@@ -85,6 +86,7 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
 
   return (
     <div className="timeline">
+      {tools && <div className="tl-tools">{tools}</div>}
       <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
         <span>Light</span>
