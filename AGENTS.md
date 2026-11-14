@@ -29,6 +29,7 @@ A device agent states which machine it is on (`data computer`, `Isaac's laptop`,
 
 ## Finishing a task
 
+- Log each AI task or session whose output is used in the project in `docs/event/ai-use-log.md`, using [the AI-use log template](docs/event/ai-use-log-template.md). If the log does not exist, create it from the template. Record local time, tool and account owner, operator, task/files, where the output is used, human checker and errors or rejected output. Write `none` when no human has checked it; do not invent missing details. Update the entry when a human check happens. Coordinate shared log edits so agents do not write the file simultaneously; if it is occupied, hand the entry to the log owner.
 - Tick the box in TASKS.md only for `[AI]` tasks that are fully done and verified (tests pass, output exists).
 - Add one line to [BUILD_LOG.md](BUILD_LOG.md). No line = not done.
 - Commit with a clear message; push to `main`. Commit email must be the account's noreply address (check `git config user.email`).
