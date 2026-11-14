@@ -256,3 +256,80 @@ utc                             goldstone                 madrid               c
 - **Consequence (Track B, re-run by the integrator).** In the LOLA DEM that centre point lies about 1.8 km inside the rim crest, on the inner wall: elevation 771 m, slope 31.8°, horizon mask 0.08° … 32.0° (peak at azimuth 87.5°). The Sun reaches about 0.1° there on 16 Aug 2027, so the spec demo question (Shackleton Rim, 16–29 Aug 2027) answers "dark" for this exact point. The number is correct for the point; the point is a region centre.
 - **Decided (ninja, 14 Nov ~13:15): the demo site is Connecting Ridge** (spec.md). Preview, 10-min steps, Track B horizons, 3 DSN stations, not validated: Connecting Ridge 16–29 Aug 2027 lit 91 %, covered 98 %; 12–26 Sep 2027 lit 100 %, covered 96 %; Site04 centre lit 0 % and covered 0 % in both.
 - Earlier open decision, now closed: keep the region centre and label it as such, or use a sourced point on lit ground for the demo. The Data Book itself names one: landing location CR1 at 89.468° S, 222.6° E on the Shackleton–de Gerlache connecting ridge (section 7.3.3, p. 46; also Figure caption p. 38).
+
+## Mandatory site assessments — method and evidence (AI, not validated)
+
+Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 113 KB). **Not validated by S; code not checked by Q.** Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
+
+### Data and method
+
+| Block | Data | Method | Detection limit / scope |
+|---|---|---|---|
+| Slope | `ldem_875s_5m.img` (LOLA PDS GDR V2.0, 2017, 5 m, 87.5–90° S; height = DN × 0.5 m from the `.lbl`) where the whole 2 km disk is inside it with ≤ 20 % nodata (8 sites), else `LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, 20 m) (10 sites) | Per-pixel slope by central differences over 2 px (baseline 10 m / 40 m), gradient × polar stereographic scale factor at the site; median, max, % ≤ 5.0°, % < 20.0° over a 100 m (landing) and 2 km (exploration) radius disk. Slopes rounded to 0.01° before comparison. | Landing pass rule (AI proposal): **every** valid pixel in the 100 m disk ≤ 5.0°. Not the 100 m point slope of `sites.json`. |
+| Roughness | same DEM as slope | RMS height deviation from a least-squares plane over the 100 m disk ([Shepard et al. 2001](https://doi.org/10.1029/2000JE001429)) | Features < ~2 px (10 m / 40 m), including all boulders, not resolved: `obstacles` is `"unknown"` everywhere. Sourced site hazards from `hazards_and_science.json` attached by explicit match (IM-1, IM-2, Site04 boulders, narrow-rim statement for de Gerlache / Nobile / Connecting Ridge / Malapert) or scarp ≤ 50 km. |
+| Shadow / access | `avgvisib_85s_060m_201608` (60 m) where it covers the site (16 sites), else `AVGVISIB_75S_120M_201608` (120 m) (nobile-rim-2, amundsen-rim, im-1); [Mazarico et al. 2011](https://doi.org/10.1016/j.icarus.2010.10.030) | "Zero average Sun visibility in the Mazarico et al. model map" = DN exactly 0, not the LROC PSR Atlas. 8-connected clusters ≥ 0.1 km², 50 km search; great-circle distance and bearing to the nearest cluster pixel centre; cluster area within 5/10/15 km; straight line to that pixel sampled every DEM pixel, slope over 2 px. | Labelled "straight-line terrain check, not a route". Named PSR only if exactly one LROC PSR Atlas coordinate falls in the cluster. No ice is stated or implied. |
+| Thermal | none on disk | Not modelled from illumination. Sourced nearby values attached where a source names a nearby area. | All 18 `"unknown"`. |
+
+**Projection finding (Leo to confirm).** The 60 m and 240 m Sun-visibility labels state `CENTER_LONGITUDE = 180`; the 120 m label and both DEMs state 0. Read as labelled (lon_0 = 180, as GDAL parses it), the 60 m map correlates with the 120 m map at r = −0.05 and with LOLA elevation at r = −0.02 (4000 random points, 85.5–89.5° S). Read with lon_0 = 0 the correlations are 0.98 and 0.27 (120 m map vs elevation: 0.28; 240 m map with lon_0 = 0: 0.28). The pipeline reads the 60 m and 240 m maps with the DEM's CRS (lon_0 = 0). Independent check: the cluster next to Site04 measures 234.4 km² in the 60 m map; the [LROC PSR Atlas](https://lroc.im-ldi.com/atlases/psr/list) lists Shackleton at 233.7 km² (via `psr_and_ice.json`).
+
+### Reading check: reproduction of `sites.json` (test `test_reproduces_sites_json_elev_and_point_slope`)
+
+Heights and the 100 m point slope (horizon.py method: ±50 m great-circle points, bilinear) read through `assessments.Raster`:
+
+| Site | sites.json elev / slope | 20 m DEM | 5 m DEM | Within 1 m / 0.5°? |
+|---|---|---|---|---|
+| connecting-ridge | 1944.6 m / 3.7° | 1944.58 m / 3.74° | 1943.57 m / 4.13° | 20 m yes; 5 m yes (−1.03 m, +0.43°) |
+| haworth | 1550.9 m / 11.1° | 1550.87 m / 11.05° | outside 5 m coverage | 20 m yes |
+| shackleton-rim-site04 | 770.9 m / 31.8° | 770.91 m / 31.79° | 768.86 m / 32.78° | 20 m yes; **5 m no (−2.05 m, +0.98°)** |
+
+The 20 m reading reproduces all three. The 5 m product differs from the 20 m product (LOLA GDR 2017 vs PGDA ADJ 2023), not from a misread: over 6 × 6 km windows the 5 m DEM averaged to 20 m has zero best-fit pixel shift and median offset −0.23 m (Site04), −0.44 m (Connecting Ridge), −0.26 m (de Gerlache Rim 1), RMS 2.3 / 1.4 / 1.0 m. Site04's point is on a 32° wall, where 2 m of height is about 3 m of horizontal offset. Leo decides whether the 5 m product is acceptable for the 8 sites it covers.
+
+### Reference case: Shackleton Rim Site04
+
+5 m DEM. Landing disk (100 m): median 33.10°, max 55.91°, 0 % ≤ 5°, **`landing_slope_pass` false**. Exploration disk (2 km): 12.32 % < 20°. RMS 2.28 m. Average Sun visibility at the site pixel 0.110 (60 m map; 0.115 in the 120 m map), so the site pixel itself is not zero-visibility; the nearest zero-visibility cluster (Shackleton, 234.4 km²) is **0.79 km** away at bearing 261°, straight-line max slope 50.09°, 2.5 % of the line < 20°. Zero-visibility area within 5 / 10 / 15 km: 27.3 / 109.9 / 217.4 km².
+
+### Results (all 18, not validated)
+
+| Site | DEM | Landing pass | Landing median / max ° | % ≤ 5° | 2 km % < 20° | RMS m | Nearest shadow km (bearing °) | Line max ° / % < 20° |
+|---|---|---|---|---|---|---|---|---|
+| haworth | 20 m | fail | 9.96 / 14.07 | 0.0 | 99.99 | 1.02 | 1.87 (64) | 14.13 / 100 |
+| malapert-massif | 20 m | fail | 4.10 / 8.73 | 69.2 | 98.09 | 1.43 | 6.53 (106) | 16.51 / 100 |
+| nobile-rim-1 | 20 m | fail | 16.17 / 20.96 | 0.0 | 81.61 | 1.36 | 1.86 (61) | 29.22 / 54.3 |
+| nobile-rim-2 | 20 m | fail | 5.52 / 9.18 | 37.7 | 99.98 | 0.77 | 4.96 (337) | 18.54 / 100 |
+| de-gerlache-rim-2 | 5 m | fail | 11.98 / 27.24 | 2.1 | 95.44 | 1.13 | 7.56 (83) | 42.26 / 83.1 |
+| amundsen-rim | 20 m | fail | 5.95 / 13.90 | 35.4 | 96.73 | 2.51 | 2.47 (205) | 19.94 / 100 |
+| connecting-ridge-extension | 5 m | fail | 12.61 / 25.38 | 0.2 | 97.03 | 1.33 | 8.69 (131) | 63.83 / 86.4 |
+| faustini-rim-a | 5 m | fail | 6.38 / 16.92 | 33.2 | 98.06 | 1.49 | 2.66 (202) | 39.28 / 98.3 |
+| leibnitz-beta-plateau | 20 m | fail | 7.74 / 13.74 | 3.8 | 99.44 | 0.71 | 1.59 (285) | 21.19 / 97.5 |
+| peak-near-shackleton | 5 m | fail | 2.86 / 10.22 | 79.3 | 95.08 | 1.03 | 4.31 (164) | 38.56 / 97.1 |
+| de-gerlache-rim-1 | 5 m | fail | 16.70 / 33.10 | 0.2 | 92.73 | 0.83 | 5.39 (18) | 27.72 / 86.6 |
+| de-gerlache-kocher-massif | 20 m | fail | 9.75 / 15.03 | 12.7 | 87.89 | 3.00 | 5.13 (337) | 19.09 / 100 |
+| malapert-site23 | 20 m | fail | 4.96 / 8.71 | 53.8 | 95.85 | 1.76 | 6.37 (103) | 28.10 / 97.5 |
+| shackleton-rim-site04 | 5 m | fail | 33.10 / 55.91 | 0.0 | 12.32 | 2.28 | 0.79 (261) | 50.09 / 2.5 |
+| connecting-ridge | 5 m | fail | 4.04 / 24.75 | 54.9 | 82.29 | 1.21 | 2.82 (351) | 28.35 / 94.9 |
+| im-1 | 20 m | fail | 12.04 / 14.42 | 0.0 | 99.89 | 0.92 | 4.67 (72) | 24.12 / 80.9 |
+| im-2-intended | 20 m | **pass** | 1.44 / 3.60 | 100.0 | 99.77 | 0.37 | 2.13 (242) | 22.47 / 98.2 |
+| viper-mons-mouton | 20 m | fail | 8.74 / 15.67 | 8.9 | 99.45 | 1.10 | 1.04 (277) | 20.19 / 98.1 |
+
+17 of 18 fail the strict all-pixels rule, mostly because of single steep pixels at a 10–40 m baseline (see median and % ≤ 5°). That is a property of the proposed rule, not a finding about the sites; Leo sets the rule. IM-1 failing (median 12.0°) is consistent with the sourced IM-1 outcome (12° slope, tipped), attached in its roughness block.
+
+### Every `unknown`
+
+- `thermal.status`: all 18 sites (no temperature data on disk). Nearby sourced values attached: im-2-intended (~100 K in the ~20 m crater where IM-2 came to rest, 0.37 km from the site point; not the site).
+- `roughness.obstacles`: all 18 sites, by design (below detection limit).
+- `psr.nearest_cluster.named_psr`: null for 17 sites (no LROC Atlas coordinate inside the nearest cluster); only Site04 → Shackleton.
+- No slope, roughness or shadow block is `unknown`; no site is outside coverage; no area exceeds 20 % nodata.
+
+### Open for Leo (S) and Otto (Q)
+
+1. Landing area radius (100 m) and pass rule (all pixels ≤ 5° vs a percentile or % ≤ 5°), and the slope baseline (2 px vs 100 m).
+2. Minimum zero-visibility cluster area (0.1 km²) and 50 km search radius.
+3. Whether RMS height from a plane at DEM scale is acceptable as the roughness measure.
+4. The lon_0 = 0 reading of the 60 m / 240 m Sun-visibility maps (above).
+5. Use of the 5 m LOLA GDR for 8 sites given the Site04 difference (above).
+6. Site04 boulder statement matched by site number ("site 004") — confirm it is the Data Book Site04.
+7. Thermal: Diviner download pending ninja's yes (below).
+
+### Diviner product (not downloaded)
+
+Best single product for the south pole: **Diviner Polar Resource Product (PRP), south**, `LRO-L-DLRE-5-PRP-V2.0` (Paige et al. 2018, model fits to the first mapping year; method Paige et al. 2010, Science 330, 497), in [urn-nasa-pds-lro_diviner_derived1/data_derived_prp/](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/): `dlre_prp_south.tab` 604,800,210 bytes, `dlre_prp_south.lbl` 2,167 bytes, `dlre_prp_south.xml` 14,561 bytes (HEAD, 14 Nov). ASCII table, 2,880,000 triangles of a Kaguya-derived polar mesh (square to 80° S, about 0.13 km² per triangle), columns: triangle vertices and centre lat/lon, `temp_avg` (annual mean at 2 cm depth, K), `temp_max` (annual maximum surface temperature, K), `ice_depth` (model). Gives annual mean and maximum per site, not a minimum or a time series. Time-resolved alternative: Williams 2022 seasonal Polar Cumulative Products (observed bolometric temperature, 240 m bins, 2009–2020; Schorghofer and Williams 2020, [doi:10.3847/PSJ/abb6ff](https://doi.org/10.3847/PSJ/abb6ff)) in [data_derived_pcp/seasonal/slon/pols/](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_pcp/seasonal/slon/pols/): 144 files, 30.7 GB in total; one season bin (24 files) is about 5.1 GB. Terms: public NASA PDS data; the PRP catalogue gives the citation "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018"; no licence file seen in the bundle.
