@@ -11,7 +11,7 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 | V4 | Real horizons vs PGDA averages (context) | open — needs S | — | AI comparison of 14 Nov: [V4 with stated bias](#v4-with-stated-bias-our-average-sunlight-against-the-published-average-illumination-maps) |
 | V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
 | Horizon range | 150 km vs 300 km rays at three sites | open — needs S | — | [inputs and table](#horizon-range-check-150-km-against-300-km-rays) |
-| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35 | open — needs S | — | [inputs, table, recommendation](#truncated-horizons) |
+| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35; horizons regenerated 17:47 on ninja's decision | open — needs S | — | [inputs, table, recommendation](#truncated-horizons) |
 
 ## How Leo checks V1, V2 and the station check (now about 5 min)
 
@@ -414,6 +414,8 @@ For Leo: accept 300 km, or name a site and direction to test at a longer range.
 ### Truncated horizons
 
 **Status: open — needs S (Leo).** Computed by AI, not validated.
+
+> **Update 14 Nov 18:03: the pipeline now does this (ninja's decision, "Yes, regenerate"; not checked by Leo).** `scripts/horizon.py` reads every ray sample outside the 20 m DEM from `LDEM_60S_120MPP_ADJ.TIF`, and the 18 files in `app/public/data/horizons/` were regenerated at 17:47 (`horizon.py --all`, 0.9–1.1 s per site). Compared with the files before: 17 sites have the same `mask` and `mask_dist_km` in all 720 directions; `im-1.json` differs in 53 directions (52 by more than 0.01°, largest +1.0699° at azimuth 19.5°); every `truncated` list is empty; `elev_m` and `slope_deg` are unchanged; each `dem` field names the second file. The regenerated masks equal the analysis results of the 17:35 update below in every direction. Tests after the change: pytest 206 passed (184 passed, 22 skipped without `CLPS_DATA`), vitest 76 passed, Playwright 62 passed and 1 skipped (two timing failures under load passed on rerun). The tables in this section describe the files as they were before 17:47; `sci_checks.py truncated` now reports no truncated direction.
 
 > **Update 14 Nov 17:35: recomputed with the 60° S DEM (AI, not validated; status stays open — needs S).** ninja approved the download named below ("Yes, download"); it finished at 17:23 ([data-sources.md](../reference/data-sources.md)). The text after this update is the earlier analysis and is kept as written. The estimate from the global grid is confirmed, and IM-1 is now settled.
 

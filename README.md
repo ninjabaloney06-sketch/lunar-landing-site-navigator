@@ -82,9 +82,9 @@ python -m pip install -r scripts/requirements.lock.txt
 python -m pytest scripts/tests -q
 ```
 
-Without raw data the tests that need it are skipped (175 passed, 20 skipped). With `CLPS_DATA` set, all run (195 passed).
+Without raw data the tests that need it are skipped (184 passed, 22 skipped). With `CLPS_DATA` set, all run (206 passed).
 
-To regenerate data, download the raw files listed in [docs/reference/data-sources.md](docs/reference/data-sources.md) (about 5.8 GB; URL, size and SHA-256 per file) into one folder with the sub-folders `spice/`, `lola/`, `illumination/`, `diviner/` and `textures/`, as in the register's "Path under root" column. Then:
+To regenerate data, download the raw files listed in [docs/reference/data-sources.md](docs/reference/data-sources.md) (about 6.6 GB; URL, size and SHA-256 per file) into one folder with the sub-folders `spice/`, `lola/`, `illumination/`, `diviner/` and `textures/`, as in the register's "Path under root" column. Then:
 
 ```sh
 export CLPS_DATA=/path/to/clps
@@ -113,6 +113,7 @@ Every raw file with its URL, version, size, SHA-256 and licence note is in [docs
 |---|---|---|---|
 | NAIF SPICE kernels: [de440s.bsp](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp), [naif0012.tls](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls), [pck00011.tpc](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc), [moon_pa_de440_200625.bpc](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/moon_pa_de440_200625.bpc), [moon_de440_250416.tf](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/fk/satellites/moon_de440_250416.tf) | DE440; naif0012; pck00011; Moon FK Apr 2025 | Sun and Earth positions, Moon and Earth orientation | No licence file; attribute NASA/JPL/Caltech |
 | LOLA south-pole elevation model [LDEM_80S_20MPP_ADJ.TIF](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF) | Barker et al. 2023, 80° S to 90° S, 20 m/px | Terrain horizon, site height and slope, 3D terrain, site assessments | Cite Barker et al. 2023 ([doi:10.3847/PSJ/acf3e1](https://doi.org/10.3847/PSJ/acf3e1)) and data [doi:10.60903/gsfcpgda-lola-spole](https://doi.org/10.60903/gsfcpgda-lola-spole) |
+| LOLA south-pole elevation model [LDEM_60S_120MPP_ADJ.TIF](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF) | Barker et al. 2023, 60° S to 90° S, 120 m/px | Terrain horizon beyond the edge of the 20 m model | Cite Barker et al. 2023 ([doi:10.3847/PSJ/acf3e1](https://doi.org/10.3847/PSJ/acf3e1)) and data [doi:10.60903/gsfcpgda-lola-spole](https://doi.org/10.60903/gsfcpgda-lola-spole) |
 | LOLA polar elevation model [ldem_875s_5m.img](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img) | PDS LOLA GDR V2.0, 87.5° S to 90° S, 5 m/px | Site assessments (slope, roughness) where it covers the site | PDS: free use; attribute NASA/LOLA team and PDS Geosciences Node; no licence file in the bundle |
 | LOLA average Sun-visibility maps [avgvisib_85s_060m_201608](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_85s_060m_201608.img), [AVGVISIB_75S_120M_201608](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.IMG), [avgvisib_65s_240m_201608](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608.img) | 2016 release; 60 m, 120 m, 240 m | Site assessments (zero-visibility shadow clusters); overlay images generated with the terrain tiles | Cite Mazarico et al. 2011 (Icarus 211, 1066–1081, [doi:10.1016/j.icarus.2010.10.030](https://doi.org/10.1016/j.icarus.2010.10.030)) |
 | LRO Diviner Polar Resource Product [dlre_prp_south.tab](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab) | LRO-L-DLRE-5-PRP-V2.0 | Site assessments (annual mean and maximum temperature) | No licence terms in the labels; public NASA PDS data under NASA SMD policy [SPD-41a](https://science.nasa.gov/researchers/science-data/science-information-policy/). Cite "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018" |
@@ -150,7 +151,7 @@ Full list with the resolution of each result: [docs/documentation.md, Limits](do
 - Comms is geometric visibility of the selected stations, at both ends. No link budget, antenna schedule, weather or equipment is modelled.
 - No validation check has a written sign-off. V1 and V2 are recorded as passed as reported; the station check and V3 to V9 are open. The app therefore marks all values "sample values — not validated".
 - Only the 18 listed sites can be analysed. They are representative points of regions, not chosen landing points.
-- Terrain data ends at 80° S, so the horizon search stops there; the app names the affected directions per site.
+- The 20 m terrain model ends at 80° S; beyond it the horizon search continues on a 120 m model of the same product. Only IM-1, about 4 km from that edge, has skyline directions (52 of 720) that come from the coarser model.
 - The slope shown is one measurement over a 100 m baseline on the 20 m terrain model, compared with a project criterion of 5°.
 - The site assessments (slope statistics, roughness, shadow access, temperature) are computed and shipped in `assessments.json` but not shown in the user interface.
 
