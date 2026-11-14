@@ -8,6 +8,7 @@
  "illum_png": "amundsen-rim-illum.png",
  "illum_map": "avgvisib_75s_120m_201608",
  "illum_res_m": 120.0,
+ "illum_crs": "as labelled",
  "dem": "LDEM_80S_20MPP_ADJ.TIF",
  "ground_m": 424.6,
  "levels": [
