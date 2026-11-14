@@ -23,6 +23,7 @@
 // vertices must not fill a notch of the mask).
 
 import {
+  AmbientLight,
   BoxGeometry,
   BufferGeometry,
   DirectionalLight,
@@ -42,6 +43,7 @@ import {
 import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
+import { PinField, type PinItem } from './pins'
 import { heightAt, levelGrid, levelMesh, nestedLevels, normalsOf, place, sphereZ, stitch, type Level, type LevelGrid } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
@@ -177,7 +179,11 @@ function sightLine(h: Horizon): SightLine {
 
 
 const SUN_INTENSITY = 3 * Math.PI
-const HIDDEN_SUN_FRACTION = 0.12 // Sun hidden from the eye: dim, not black (see setLights)
+const HIDDEN_SUN_FRACTION = 0.12 // Sun hidden from the eye: dim, not black (see setLevels)
+// Even fill with the Sun hidden, fading out as the disc rises. Not a physical light: at a polar site the hidden
+// Sun's remaining 12 % arrives at a grazing angle and would leave flat ground black. 0.05·π puts flat regolith
+// (0x8b8781) at a pre-tone-mapping radiance of about 0.013, a dark grey just above the page background.
+const NIGHT_FILL = 0.05 * Math.PI
 export class SiteWorld {
   readonly scene = new Scene()
   private readonly terrain = new Group() // terrain for both levels
@@ -190,10 +196,12 @@ export class SiteWorld {
   private readonly marker = new Group()
   private readonly marks = new Group()
   private markList: { m: SiteMarker; stem: Mesh; head: Mesh }[] = []
+  private readonly near = new PinField() // points of interest and other landing sites near this one
   private readonly mast: Mesh
   private readonly cross: Mesh[]
   private readonly sunLight = new DirectionalLight(0xfff4e6, SUN_INTENSITY)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
+  private readonly nightFill = new AmbientLight(0xffffff, 0)
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
@@ -204,8 +212,8 @@ export class SiteWorld {
   private readonly tmp = new Vector3()
 
   constructor() {
-    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker, this.marks)
-    this.scene.add(this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker, this.marks, this.near.group)
+    this.scene.add(this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target, this.nightFill)
     this.setEyeMode(false)
     const mk = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
     this.mast = new Mesh(new BoxGeometry(1, 1, 1).translate(0, 0, 0.5), mk)
@@ -561,14 +569,32 @@ export class SiteWorld {
     this.addMesh(make(1), make(4))
   }
 
-  /** sunOn = false when the Sun is hidden from the eye (there is no shadow map, so without this the terrain
-   *  would be drawn sunlit while the answer says "Dark"). The light is dimmed, not switched off, so the
-   *  terrain stays faintly visible (sunlit distant peaks cannot be told apart without shadows). */
-  setLights(sunDir: Vector3, earthDir: Vector3, earthFill: number, sunOn = true) {
+  /** Directions of the two lights (unit vectors, ENU). */
+  setLights(sunDir: Vector3, earthDir: Vector3) {
     this.sunLight.position.copy(sunDir).multiplyScalar(1e5)
-    this.sunLight.intensity = sunOn ? SUN_INTENSITY : SUN_INTENSITY * HIDDEN_SUN_FRACTION
     this.earthLight.position.copy(earthDir).multiplyScalar(1e5)
+  }
+
+  /**
+   * sunFrac = share of the Sun's disc above the terrain mask seen from the eye, 0..1 (there is no shadow map, so
+   * without this the terrain would be drawn sunlit while the answer says "Dark"). The sunlight follows it in
+   * proportion, from full down to HIDDEN_SUN_FRACTION: dimmed, not switched off, so the terrain stays faintly
+   * visible (sunlit distant peaks cannot be told apart without shadows), with the even night fill taking over.
+   */
+  setLevels(sunFrac: number, earthFill: number) {
+    this.sunLight.intensity = SUN_INTENSITY * (HIDDEN_SUN_FRACTION + (1 - HIDDEN_SUN_FRACTION) * sunFrac)
+    this.nightFill.intensity = NIGHT_FILL * (1 - sunFrac)
     this.earthLight.intensity = earthFill
+  }
+
+  /** Test helper: the light levels as drawn, the sunlight as a share of full sunlight. */
+  lights(): { sun: number; hidden: number; fill: number; earth: number } {
+    return {
+      sun: this.sunLight.intensity / SUN_INTENSITY,
+      hidden: HIDDEN_SUN_FRACTION,
+      fill: this.nightFill.intensity,
+      earth: this.earthLight.intensity,
+    }
   }
 
   /** Keeps the mast and cross a constant on-screen thickness; hides them at eye level. */
@@ -598,8 +624,41 @@ export class SiteWorld {
     })
   }
 
+  /** Pins of the points of interest and the other landing sites near this one. */
+  setNear(items: PinItem[]) {
+    this.near.set(items)
+  }
+
+  /** Test helper: the pins drawn here, with the terrain height under each. */
+  nearInfo() {
+    const out = []
+    for (let i = 0; i < this.near.count; i++) {
+      const it = this.near.item(i)!
+      const rho = Math.hypot(it.base.x, it.base.y)
+      out.push({ kind: it.kind, id: it.id, shape: it.shape, base: it.base.toArray(), ground: it.grid ? this.groundZ(it.grid.x, it.grid.y) : NaN, sphere: sphereZ(rho, this.ground.rSite) })
+    }
+    return out
+  }
+
+  /** Head position (ENU m) of the pin of a point of interest or of another landing site, if it is drawn here. */
+  nearTop(kind: PinItem['kind'], id: string): Vector3 | null {
+    const i = this.near.indexOf(kind, id)
+    return i < 0 ? null : this.near.head(i, new Vector3())
+  }
+
+  /** The pin of that kind whose head is within 10 px of the pointer and not behind terrain. */
+  nearAt(kind: PinItem['kind'], ndc: Vector2, cam: PerspectiveCamera, widthPx: number, heightPx: number): PinItem | null {
+    const dir = new Vector3()
+    const i = this.near.nearest(kind, ndc, cam, widthPx, heightPx, 10, (head) => {
+      const len = dir.copy(head).sub(cam.position).length()
+      return this.occluded(cam.position, dir.normalize(), len - 1)
+    })
+    return this.near.item(i)
+  }
+
   /** Constant on-screen size for the user points, like the mast. */
   updateMarks(cam: PerspectiveCamera, heightPx: number) {
+    this.near.update(cam, heightPx)
     for (const k of this.markList) {
       const dist = Math.max(cam.position.distanceTo(k.m.ground), 1)
       const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
@@ -654,6 +713,25 @@ export class SiteWorld {
       if (h !== null) return sphereZ(rho, rSite, h)
     }
     return sphereZ(rho, rSite)
+  }
+
+  /**
+   * Where a pin at terrain-grid offset (x, y) stands: the terrain point from the data loaded under it (placed as
+   * the levels are, levels.ts), the smooth sphere through the site where no level or tile has data, and the
+   * local vertical there.
+   */
+  groundAt(x: number, y: number): { pos: Vector3; up: Vector3 } {
+    const { levels, tile, rSite } = this.ground
+    const rho = Math.hypot(x, y)
+    const pos = new Vector3(x, y, sphereZ(rho, rSite))
+    if (levels) {
+      const f = heightAt(levels, x, y)
+      if (f) place(levels[f.li], x, y, f.h, rSite, pos)
+    } else if (tile && rho <= TILE_RADIUS_M) {
+      const h = tileHeight(tile, x, y)
+      if (h !== null) pos.z = sphereZ(rho, rSite, h)
+    }
+    return { pos, up: new Vector3(pos.x, pos.y, pos.z + rSite).normalize() }
   }
 
   /** True when the 80 m tile (or a finer level) has terrain data under the ENU point (x, y). */

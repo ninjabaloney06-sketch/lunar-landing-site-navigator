@@ -27,8 +27,10 @@ import type { BodyState } from '../geometry'
 import { glowTexture, type TextureSet } from './assets'
 import { EARTH_RADIUS_KM, SPHERE_TO_BODY, SUN_RADIUS_KM, displayRadius, quat, v3 } from './frames'
 
-const D_EARTH = 1000 // display distances in sky units; Earth in front of the Sun, stars behind both
-const D_SUN = 1500
+// Display distances in sky units: of Earth and the Sun, the one nearer to the observer is drawn at D_NEAR and
+// hides the other where they overlap (S9); the stars are behind both.
+const D_NEAR = 1000
+const D_FAR = 1500
 const D_STARS = 5000
 
 // stars_4k.jpg (NASA SVS 4851): RA 0h at the image centre, RA growing to the left, as seen from inside. Checked
@@ -78,6 +80,9 @@ export class Sky {
   private readonly sunLight = new DirectionalLight(0xffffff, 2.5 * Math.PI)
   private readonly dirMe = { sun: new Vector3(1, 0, 0), earth: new Vector3(1, 0, 0) }
   earthPhase = 0 // illuminated fraction of Earth's disc seen by the observer (0..1), vector algebra only
+  // Nearer to the observer than the Moon's centre is: drawn after the Moon, over it (never so from the Moon's surface).
+  private readonly front = { sun: false, earth: false }
+  private bodiesOn = true
 
   constructor(tex: TextureSet) {
     this.scene.add(this.root)
@@ -133,14 +138,20 @@ export class Sky {
     this.dirMe.sun.copy(sunRel).normalize()
     this.dirMe.earth.copy(earthRel).normalize()
 
-    const rs = displayRadius(D_SUN, SUN_RADIUS_KM, sunDist)
-    this.sun.position.copy(this.dirMe.sun).multiplyScalar(D_SUN)
+    const dSun = sunDist < earthDist ? D_NEAR : D_FAR
+    const dEarth = sunDist < earthDist ? D_FAR : D_NEAR
+    const moonDist = observerKm.length()
+    this.front.sun = sunDist < moonDist
+    this.front.earth = earthDist < moonDist
+
+    const rs = displayRadius(dSun, SUN_RADIUS_KM, sunDist)
+    this.sun.position.copy(this.dirMe.sun).multiplyScalar(dSun)
     this.sun.scale.setScalar(rs)
     this.glow.position.copy(this.sun.position)
     this.glow.scale.setScalar(rs * 16)
 
-    const re = displayRadius(D_EARTH, EARTH_RADIUS_KM, earthDist)
-    this.earth.position.copy(this.dirMe.earth).multiplyScalar(D_EARTH)
+    const re = displayRadius(dEarth, EARTH_RADIUS_KM, earthDist)
+    this.earth.position.copy(this.dirMe.earth).multiplyScalar(dEarth)
     this.earth.scale.setScalar(re)
     // IAU_EARTH → MOON_ME (q_earth_to_me) after the sphere's own texture frame.
     this.earth.quaternion.copy(quat(s.q_earth_to_me)).multiply(SPHERE_TO_BODY)
@@ -172,7 +183,12 @@ export class Sky {
 
   /** The top view draws its own bodies over the star field: the sky's Sun and Earth are hidden meanwhile. */
   showBodies(on: boolean) {
-    this.sun.visible = this.glow.visible = this.earth.visible = this.atmo.visible = on
+    this.bodiesOn = on
+  }
+
+  /** True when Earth or the Sun is nearer than the Moon and has to be drawn over it: render(…, 'front') after the Moon. */
+  get hasFront(): boolean {
+    return this.bodiesOn && (this.front.sun || this.front.earth)
   }
 
   /** Drawn radius over drawn distance of a body: its angular size as geometry computed it, whatever the lens. */
@@ -192,7 +208,15 @@ export class Sky {
     this.camera.updateMatrixWorld(true)
   }
 
-  render(renderer: WebGLRenderer) {
+  /**
+   * 'back': the stars and the bodies beyond the Moon, drawn before the Moon or the terrain. 'front': the bodies
+   * nearer than the Moon, drawn after it with the depth cleared, so they hide the part of the Moon behind them.
+   */
+  render(renderer: WebGLRenderer, part: 'back' | 'front' = 'back') {
+    const front = part === 'front'
+    if (this.stars) this.stars.visible = !front
+    this.sun.visible = this.glow.visible = this.bodiesOn && this.front.sun === front
+    this.earth.visible = this.atmo.visible = this.bodiesOn && this.front.earth === front
     renderer.render(this.scene, this.camera)
   }
 }
