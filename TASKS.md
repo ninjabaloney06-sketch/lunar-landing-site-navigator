@@ -252,6 +252,28 @@ Rules for the tasks below: none of them replaces or reorders a required gate; th
 - [ ] `[AI+H]` `L2·Opus` **D + I** — **Educator mode** (the challenge names educators as users): a short explanation and one question per view, answered from the engine's numbers; builds on the glossary.
 - [ ] `[AI]` `L1·Haiku` — **AI-use log columns:** the prompt column is in place since 14 Nov (rule in AGENTS.md, template and log; earlier rows say "not recorded"). Still open: add "how we verified it" where the "Checked by" and "Notes" cells do not already say it, as their docs/ai-use.md does.
 
+### Competitor review — 10 further entries, 14 Nov 2026
+
+Reviewed (public READMEs; three live sites opened; read only, no code or data taken): rodneymora94965/lunar-site-navigator, yutuf/lmNasa, pythonhack000/lunar-navigator, ziyadell/Lunar-Landing-Site-Navigator, JAlavindu/Ridgeline, Softsasi/LunaMission, RicardoArg23/MoonSet, xiangen-coder/nasa, dagimfkadie/MoonSight, ChaymaeCoding/nasa-hack (all github.com). Other local events: they meet us only at global judging. Most started one to five weeks ago; do not match their breadth. Feature claims are from their READMEs, not confirmed in their apps.
+
+**What the strongest have that we lack:** validation shown in the app, including light against LROC images and PGDA maps with the model's own bias stated (rodneymora); ranges for a lander moved ±100 m (rodneymora) and an early–late window from a low and high horizon band (Ridgeline); delay buttons 1 / 7 / 30 days and a calendar of arrival day × mission length (pythonhack000, rodneymora); power and battery survival (yutuf, pythonhack000, rodneymora); any point by coordinates or a grid search of 21,856 points (pythonhack000, yutuf); printable brief and explainer video.
+
+**Where we still lead:** ranking by science goal with slope, thermal and PSR data; user-selected ground stations (DSN + ESTRACK).
+
+**Before the freeze — order of work. No new tasks: these four already exist above and close the most visible gaps.** None reorders a required gate; each number needs Leo's sign-off.
+
+1. Leo signs V1 and V2 in docs/event/validation.md (phase 4 task "Validate 10 sample points against JPL Horizons"; the values are filled in and agree to 0.0001°, about 5 minutes). Until then the public page says "sample values — not validated", which is our largest visible weakness.
+2. "Validation visible in the app" (LunaHorizon section).
+3. "Marginal windows" (LunaHorizon section).
+4. "Slip rows on the finder result" (LunaHorizon section).
+
+**Phase 7 — only if the continuation decision is CONTINUE**
+
+- [ ] `[AI+H]` `L2·Opus` **S** — **V4 with stated bias:** real horizons against PGDA average sunlight at every offered site; publish the difference per site, including where we are worse. Extends V4, no second check.
+- [ ] `[AI+H]` `L3·Opus` **S + I** — **Early–late window edges:** recompute window edges with the horizon raised and lowered by the DEM's published error; show a range instead of one time. Combine with the "Landing dispersion" task above.
+- [ ] `[AI+H]` `L2·Opus` **S + D** — **Power from sunlight:** visible disc fraction → watts for one stated panel, battery survival over the longest night; every assumption visible and labelled as a model.
+- [ ] `[AI+H]` `L3·Opus` **S + I** — **Custom coordinates** south of 80° S with a horizon computed in the browser from a reduced DEM; labelled lower resolution than the validated sites.
+
 ## Phase 5 — Sunday: complete, validate and release (resume 01:00 as available; final sprint 07:30 → 12:00)
 
 **Entry:** I reviews Q's branch reports at the agreed handoff; retain existing owners and S's sign-off gates. Overnight outputs are not automatically accepted. Phase-4 prerequisites and required assessments must be complete before final acceptance; independent remaining work can continue alongside them. This phase finishes existing work, not a second implementation of Saturday's core.
