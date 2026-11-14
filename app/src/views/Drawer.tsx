@@ -312,8 +312,9 @@ export function Drawer(p: Props) {
             <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
               data
             </a>
-            ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground, but only as
-            far as the elevation model reaches (it ends at 80° S).
+            ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground. Where
+            that reaches past the edge of the 20 m model (about 80° S), a 120 m model from the same data set
+            continues it.
             {ready && results.results.series.horizon && results.results.series.horizon.truncated.length > 0 && (
               <>
                 {' '}

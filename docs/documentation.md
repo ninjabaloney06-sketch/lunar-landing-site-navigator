@@ -61,7 +61,7 @@ Where a site's source does not name its frame, `MOON_ME` is assumed and the site
 
 **3. Direction of a body from the site (`siteVector`, `enuBasis`, `azEl`).** The site vector is (1737.4 km + height + 1.75 m) along the site's direction. The body's direction is body vector minus site vector, expressed in the local east/north/up frame. Subtracting the site vector accounts for parallax, which reaches 0.26° for Earth.
 
-**4. Terrain horizon (`scripts/horizon.py`).** For each of 720 azimuths (0.5° apart) a ray is sampled along a great circle: every 20 m to 4 km, then each step 0.5 % longer, to 300 km. Within 20 km the 20 m model is used at full resolution; beyond it the model's 160 m overview. The elevation angle of each sample is computed between points on the sphere plus their heights, so lunar curvature is included. The horizon value is the largest angle along the ray. A ray that leaves the model (it ends at 80° S) or hits missing data stops there; its azimuth is listed as truncated. In the browser the horizon between two azimuths is interpolated linearly (`maskAt`).
+**4. Terrain horizon (`scripts/horizon.py`).** For each of 720 azimuths (0.5° apart) a ray is sampled along a great circle: every 20 m to 4 km, then each step 0.5 % longer, to 300 km. Within 20 km the 20 m model is used at full resolution; beyond it the model's 160 m overview. The elevation angle of each sample is computed between points on the sphere plus their heights, so lunar curvature is included. The horizon value is the largest angle along the ray. A sample outside the 20 m model (a 608 km square around the pole, reaching 80° S) or on missing data is read from the same product's 120 m model, which reaches 60° S (`LDEM_60S_120MPP_ADJ.TIF`, since 14 Nov 2026 17:47). A ray stops only where neither model has data; its azimuth is then listed as truncated. No shipped horizon has a truncated direction. In the browser the horizon between two azimuths is interpolated linearly (`maskAt`).
 
 **5. Sunlit and Earth visible (`discFraction`).** The visible share of a disc is the part of a circle above a straight horizontal line at the horizon value for the disc centre's azimuth. Angular radius = asin(radius / distance), with 695,700 km for the Sun and 6,371.0 km for Earth. "Sunlit" means any part of the Sun's disc is above the terrain. "Earth visible" means any part of Earth's disc is.
 
@@ -113,7 +113,7 @@ Inputs recorded for these checks (filled in by an SI tool, not a sign-off):
 
 Site assessments: code review by the team's code checker and acceptance of the numbers by the science lead are recorded as reported by a team member for commit `6650ed1`; no written sign-off is in the repository. Seven method choices are listed there as not separately decided (landing pass rule, cluster size, roughness measure, map projection reading, use of the 5 m model, one source match, thermal scope). Recorded evidence includes: site heights and slopes reproduced from the 20 m model for three sites; Diviner maximum temperatures at four published reference points, three within 0.3 K and one 2.9 K off at a 2 km scale.
 
-Automated tests (run on 14 Nov 2026, see README): 195 Python tests, 70 unit tests, 40 end-to-end tests. They include a comparison of the interpolated ephemeris against direct SPICE values below 0.001° (`scripts/tests/test_ephemeris.py`) and 200 fixture cases in which the browser code must reproduce the Python reference to 1e-6° (`app/src/geometry/fixtures.test.ts`). Tests show that the code does what it was written to do. They are not scientific validation.
+Automated tests (run on 14 Nov 2026, see README): 206 Python tests, 76 unit tests, 63 end-to-end tests (one skipped by design); counts of 14 Nov 18:01. They include a comparison of the interpolated ephemeris against direct SPICE values below 0.001° (`scripts/tests/test_ephemeris.py`) and 200 fixture cases in which the browser code must reproduce the Python reference to 1e-6° (`app/src/geometry/fixtures.test.ts`). Tests show that the code does what it was written to do. They are not scientific validation.
 
 ### Limits
 
@@ -128,7 +128,7 @@ Automated tests (run on 14 Nov 2026, see README): 195 Python tests, 70 unit test
 - Boulders and obstacles. They are below the resolution of the terrain models and are reported as unknown.
 - Routes and access. Only a straight-line slope check to the nearest shadow cluster exists, in `assessments.json`.
 - Landing safety. Passing the 5° slope limit is one criterion on one measurement.
-- Terrain beyond 80° S. Horizon rays stop at the edge of the model; in those directions distant terrain is missing, and sunlight and Earth visibility may be overstated. The app states the number of affected directions per site.
+- Terrain beyond 80° S. Outside the 20 m model the horizon uses a 120 m model, coarser than the 20 m used near the site. This matters for IM-1 only, which lies about 4 km from the edge of the 20 m model: its skyline to the north-north-east (52 of 720 directions) comes from 120 m data.
 - The change of the horizon across the width of a disc. The horizon is taken at the disc centre's azimuth.
 - Scattered light, earthshine and heat from surrounding terrain as inputs to any result.
 - Arbitrary coordinates. Only the 18 listed sites can be analysed.

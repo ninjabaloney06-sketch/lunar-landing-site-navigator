@@ -11,8 +11,10 @@ Writes app/public/data/horizons/<id>.json. Method, as specified in §4.2:
   the file's 160 m overview over the ~600 × 600 km box the rays need (clipped to the DEM);
 - elevation angle = asin(((P − O)·up) / |P − O|) with O, P on the 1737.4 km sphere plus
   heights; this includes lunar curvature, so no extra curvature correction is applied;
-- a ray stops at the first sample outside the DEM or on nodata; its azimuth goes into
-  `truncated` and its mask value is the maximum over the samples before that point.
+- a sample outside the 20 m DEM (it is a 608 km square around the pole) or on nodata is read from
+  LDEM_60S_120MPP_ADJ.TIF, the same product at 120 m/px down to 60°S (added 14 Nov 2026);
+- a ray stops at the first sample that neither DEM covers; its azimuth goes into `truncated`
+  and its mask value is the maximum over the samples before that point.
 Extra field `slope_deg` (DEM slope over a 100 m baseline at the site) is read by sites.py.
 """
 import argparse
@@ -48,6 +50,9 @@ DEM_LABEL = (
     "data doi:10.60903/gsfcpgda-lola-spole); MOON_ME (DE421) south polar stereographic, heights "
     "relative to 1737.4 km; near field <= 20 km at 20 m/px, far field at 160 m/px (file overview)"
 )
+FILL_DEM_NAME = "LDEM_60S_120MPP_ADJ.TIF"
+FILL_LABEL = ("; samples outside that DEM from LDEM_60S_120MPP_ADJ (same product and frame, 60-90 S, "
+              "120 m/px, bilinear)")
 HORIZON_DIR = APP_DATA / "horizons"
 SITES_CSV = REPO / "scripts" / "sites.csv"
 ABORT_SECONDS = 60.0
@@ -67,6 +72,21 @@ class Grid:
         row = (np.asarray(y) - t.f) / t.e - 0.5
         return map_coordinates(self.data, [row, col], order=1, mode="constant", cval=np.nan,
                                prefilter=False, output=np.float64)
+
+
+@dataclass
+class FilledGrid:
+    """`grid` where it has a height, `fill` elsewhere; both in the same projected CRS."""
+    grid: Grid
+    fill: Grid
+
+    def sample(self, x, y):
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+        h = self.grid.sample(x, y)
+        bad = ~np.isfinite(h)
+        if bad.any():
+            h[bad] = self.fill.sample(x[bad], y[bad])
+        return h
 
 
 def ray_distances_km(ray_max_km=RAY_MAX_KM):
@@ -221,12 +241,22 @@ def load_grids(ds, lat, lon, ray_max_km=RAY_MAX_KM):
     return near, far, crs
 
 
-def horizon_for_site(site_id, lat, lon, dem_path=None, ray_max_km=RAY_MAX_KM):
+def horizon_for_site(site_id, lat, lon, dem_path=None, ray_max_km=RAY_MAX_KM, fill_path=None):
+    """Without fill_path the rays stop at the edge of the DEM; with it they continue on that wider DEM."""
     dem_path = Path(dem_path) if dem_path else data_root() / "lola" / DEM_NAME
+    label = DEM_LABEL
     with rasterio.Env(GDAL_CACHEMAX=256):
         with rasterio.open(dem_path) as ds:
             near, far, crs = load_grids(ds, lat, lon, ray_max_km)
-    return compute_horizon(site_id, float(lat), float(lon), near, far, crs, ray_max_km=ray_max_km)
+        if fill_path:
+            with rasterio.open(fill_path) as fs:
+                if CRS.from_wkt(fs.crs.to_wkt()) != crs:
+                    raise ValueError(f"{fill_path}: projection differs from the main DEM's")
+                _, fill, _ = load_grids(fs, lat, lon, ray_max_km)
+            near, far = FilledGrid(near, fill), FilledGrid(far, fill)
+            label += FILL_LABEL
+    return compute_horizon(site_id, float(lat), float(lon), near, far, crs, ray_max_km=ray_max_km,
+                           dem_label=label)
 
 
 def inside_dem(lat, lon, dem_path):
@@ -247,9 +277,9 @@ def peak_rss_bytes():
     return rss if sys.platform == "darwin" else rss * 1024
 
 
-def run_one(site_id, lat, lon, dem_path, out_dir):
+def run_one(site_id, lat, lon, dem_path, out_dir, fill_path=None):
     t0 = time.perf_counter()
-    res = horizon_for_site(site_id, lat, lon, dem_path)
+    res = horizon_for_site(site_id, lat, lon, dem_path, fill_path=fill_path)
     secs = time.perf_counter() - t0
     rss = peak_rss_bytes()
     m = res["mask"]
@@ -273,10 +303,13 @@ def main(argv=None):
     ap.add_argument("--out-dir", type=Path, default=HORIZON_DIR)
     args = ap.parse_args(argv)
     dem_path = data_root() / "lola" / DEM_NAME
+    fill_path = data_root() / "lola" / FILL_DEM_NAME
+    if not fill_path.exists():
+        raise SystemExit(f"{fill_path} is missing: see its row in docs/reference/data-sources.md")
 
     if args.site:
         sid, lat, lon = args.site[0], float(args.site[1]), float(args.site[2])
-        run_one(sid, lat, lon, dem_path, args.out_dir)
+        run_one(sid, lat, lon, dem_path, args.out_dir, fill_path)
         return
     with SITES_CSV.open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -285,7 +318,7 @@ def main(argv=None):
         if not inside_dem(lat, lon, dem_path):
             print(f"{r['id']}: outside the DEM, skipped (flat horizon in sites.json)")
             continue
-        run_one(r["id"], lat, lon, dem_path, args.out_dir)
+        run_one(r["id"], lat, lon, dem_path, args.out_dir, fill_path)
 
 
 if __name__ == "__main__":

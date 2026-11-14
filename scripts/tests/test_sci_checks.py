@@ -62,15 +62,18 @@ def test_period_states_match_windows_state_at(ctx):
 
 def test_closing_truncated_directions_can_only_remove_visibility(ctx):
     months, sites, stations = ctx
-    site, hor = sites["im-1"], sc.load_horizon(sites["im-1"])
+    # the shipped horizons are complete since 14 Nov 2026, so the cut directions are set here: IM-1's northern half
+    cut = [a * 0.5 for a in range(540, 720)] + [a * 0.5 for a in range(0, 200)]
+    site, hor = sites["im-1"], dict(sc.load_horizon(sites["im-1"]), truncated=cut)
     t0 = geo.iso_to_ms("2027-08-16T00:00:00Z")
     smp = sc.period_samples(site, months, stations, t0, t0 + 2 * 24 * geo.HOUR_MS, 30 * 60_000)
     a, b = sc.period_states(smp, stations, hor["mask"]), sc.period_states(smp, stations, sc.blocked(hor))
     for k in a:
         assert not np.any(b[k] & ~a[k])
+    assert a["earth"].all() and not b["earth"].any()  # Earth is north of IM-1: visible, and gone when closed
     closed = sc.blocked(hor)
     tb = sc.trunc_bins(hor)
-    assert tb.sum() == len(hor["truncated"]) == 380
+    assert tb.sum() == len(cut) == 380
     assert np.all(closed[tb] == 90.0) and np.array_equal(closed[~tb], np.array(hor["mask"])[~tb])
     whole = dict(hor, truncated=[])
     assert np.array_equal(sc.blocked(whole), np.array(hor["mask"]))
@@ -99,7 +102,7 @@ def test_ray_length_is_passed_in_without_touching_the_constant(ctx):
     site = sites["connecting-ridge"]
     h150, h300 = sc.horizon_at(site, 150.0), sc.horizon_at(site, 300.0)
     assert hz.RAY_MAX_KM == 300.0 and h150["ray_max_km"] == 150 and h300["ray_max_km"] == 300
-    assert h300["mask"] == sc.load_horizon(site)["mask"]  # same as the shipped file
+    assert h300["mask"] == sc.load_horizon(site)["mask"]  # the shipped file (60 S DEM behind it) has the same skyline
     d = np.array(h300["mask"]) - np.array(h150["mask"])
     # the 300 km ray has every 150 km sample except the last one (at exactly 150 km), so it is lower only there
     assert d.min() > -0.05 and d.max() > 0.1
