@@ -76,6 +76,19 @@ export interface SceneMenu {
 
 export interface SceneName extends ScreenPoint {
   name: string
+  /** Set when the thing under the pointer is a point of interest (ScenePoi.id); absent for site pins and user points. */
+  poiId?: string
+}
+
+/** A point of interest as the scene draws it: a coloured pin. Planetocentric MOON_ME degrees, east-positive. */
+export interface ScenePoi {
+  id: string
+  name: string
+  lat: number
+  lon: number
+  color: string // CSS hex
+  /** Landing-site records are drawn with the site-pin shape, the others with the POI shape. */
+  landing: boolean
 }
 
 export interface SceneHandle {
@@ -102,6 +115,12 @@ export interface SceneHandle {
   labelPoint(name: 'sun' | 'earth' | 'site'): ScreenPoint | null
   /** A right-click (or long press) on the scene. The browser's own menu is always suppressed. */
   onMenu(cb: (m: SceneMenu) => void): () => void
+  /**
+   * Points of interest to draw; [] draws none. On the globe every given point is drawn. At site and eye level
+   * only those near the current site are drawn (and the other landing-site pins near it). named() reports a
+   * hovered or tapped one with its poiId.
+   */
+  setPois(pois: ScenePoi[]): void
 }
 
 export function webglAvailable(): boolean {
@@ -1051,6 +1070,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       placeMarkers()
     },
     named,
+    setPois() {
+      // contract stub: drawn by the scene track
+    },
     labelPoint,
     onMenu(cb) {
       menuCbs.add(cb)
