@@ -101,7 +101,7 @@ export CLPS_DATA=/path/to/clps
 | `python scripts/terrain_tiles.py` | `terrain/` tiles and levels for the 3D view | not run here: the output is over 10 MB (same rule) |
 | `python scripts/textures.py` | `app/public/textures/` | exit 0, identical |
 | `python scripts/assessments.py` | `assessments.json` | exit 0; only `meta.generated_utc` differs |
-| `python scripts/export_fixtures.py` | `app/src/test/fixtures.json` (test fixtures) | exit 0; the result differs from the committed file, which was generated before the sites had terrain heights |
+| `python scripts/export_fixtures.py` | `app/src/test/fixtures.json` (test fixtures) | exit 0, identical (file regenerated on 14 Nov 2026 with the sites' terrain heights) |
 
 Order: `horizon.py` before `sites.py`; `sites.py` and `ephemeris.py` before `assessments.py` and `export_fixtures.py`. Docker is not used anywhere.
 
