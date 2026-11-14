@@ -265,6 +265,72 @@
   color: var(--fg);
 }
 
+/* ---------- slope warning: text colour plus the icon, above the answer; never a filled box ---------- */
+
+.slope-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+  color: var(--fg);
+}
+
+.slope-warning .icon {
+  width: var(--s-4);
+  height: var(--s-4);
+  margin-top: 2px; /* centres the 16 px icon on the first 20 px line when the text wraps */
+}
+
+/* ---------- timeline: context days dimmed, the mission bracketed, mission dates clickable ---------- */
+
+.tl-veil {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  background: var(--bg);
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.tl-bracket {
+  position: relative;
+  box-sizing: border-box;
+  height: var(--s-2);
+  border: 1px solid var(--line);
+  border-top: 0;
+}
+
+.tl-bracket-label {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: translate(-50%, -50%);
+  padding: 0 var(--s-2);
+  background: var(--bg);
+  font-size: var(--t-small);
+  line-height: 1.2;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tl-tick.is-day {
+  cursor: pointer;
+}
+
+.tl-tick.is-day:hover {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tl-tick.is-context {
+  color: var(--faint);
+}
+
 @media (max-width: 640px) {
   .mission-panel {
     position: fixed;

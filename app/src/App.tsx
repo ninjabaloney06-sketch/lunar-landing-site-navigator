@@ -26,7 +26,8 @@ import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
 import { SceneView } from './views/SceneView'
 import { Timeline } from './views/Timeline'
-import { fmtCoords, fmtDateTime, fmtRange } from './views/format'
+import { fmtCoords, fmtDateTime, fmtDeg, fmtRange } from './views/format'
+import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
 
 type Boot =
@@ -66,6 +67,7 @@ export default function App() {
 }
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
+const CONTEXT_DAYS = 3
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -133,6 +135,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const results = useResults({ site, stations, ids, startMs: period.startMs, endMs: period.endMs })
   const ready = results.status === 'ready'
+  // The timeline also shows CONTEXT_DAYS before and after the mission (clipped to the supported dates). Those
+  // windows come from their own series; the answer, the drawer and the ranking use the mission span only.
+  const ctxStart = Math.max(COVERAGE_START_MS, period.startMs - CONTEXT_DAYS * DAY_MS)
+  const ctxEnd = Math.min(COVERAGE_END_MS, period.endMs + CONTEXT_DAYS * DAY_MS)
+  const context = useResults({ site, stations, ids, startMs: ctxStart, endMs: ctxEnd })
+  const missionDays = Math.round((period.endMs - period.startMs) / DAY_MS)
+  const slope = slopeOf(site)
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
@@ -349,6 +358,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
       </header>
 
       <div className="bottom">
+        {/* Only when the site fails the slope criterion; passing and unknown are stated in the Mission panel. */}
+        {slope.state === 'fail' && slope.deg !== null && (
+          <p className="slope-warning" data-testid="slope-warning">
+            <Icon name="warning" />
+            <span>
+              Landing not recommended: slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°
+            </span>
+          </p>
+        )}
         {ready && answer ? (
           <button
             type="button"
@@ -366,11 +384,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           <AnswerPending state={results} siteName={site.name} />
         )}
         <Timeline
-          startMs={period.startMs}
-          endMs={period.endMs}
+          startMs={ctxStart}
+          endMs={ctxEnd}
+          missionStartMs={period.startMs}
+          missionEndMs={period.endMs}
+          missionLabel={`${missionName}, ${missionDays} ${missionDays === 1 ? 'day' : 'days'}`}
           cursorMs={cursor}
-          sun={ready ? results.results.sun : null}
-          comms={ready ? results.results.comms : null}
+          sun={context.status === 'ready' ? context.results.sun : null}
+          comms={context.status === 'ready' ? context.results.comms : null}
           valueText={valueText}
           onScrub={(ms) => patch({ t: snap(ms) })}
         />

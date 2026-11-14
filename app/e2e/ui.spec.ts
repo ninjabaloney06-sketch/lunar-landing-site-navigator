@@ -528,6 +528,49 @@ test('panel: Play mission goes to eye level at the mission start and plays', asy
   await expect(page.getByTestId('date')).toHaveText(paused)
 })
 
+test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Ridge (3.7°) does not', async ({ page }) => {
+  const sites = await data<{ id: string; slope_deg: number | null }[]>(page, 'sites.json')
+  expect(sites.find((s) => s.id === SHACK)!.slope_deg).toBe(31.8)
+  expect(sites.find((s) => s.id === RIDGE)!.slope_deg).toBe(3.7)
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('slope-warning')).toHaveCount(0)
+  await chooseSite(page, SHACK)
+  await expectAnswer(page, SHACK, AUG)
+  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
+  // The warning is text, not a control: the header still has 3 controls and the main screen 5.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(3)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
+  await chooseSite(page, RIDGE)
+  await expectAnswer(page, RIDGE, AUG)
+  await expect(page.getByTestId('slope-warning')).toHaveCount(0)
+})
+
+test('timeline: three dimmed context days each side, a bracket with the mission, a date moves the cursor to noon', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&name=Ridge%20ops`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expectTracks(page)
+  const slider = page.getByRole('slider')
+  await expect(slider).toHaveAttribute('aria-valuemin', String(Date.UTC(2027, 7, 16)))
+  await expect(slider).toHaveAttribute('aria-valuemax', String(Date.UTC(2027, 7, 30)))
+  const bracket = page.getByTestId('mission-bracket')
+  await expect(bracket).toHaveText('Ridge ops, 14 days')
+  // 13 Aug – 2 Sep shown (20 days): the mission starts 3/20 in and covers 14/20.
+  const s = (await slider.boundingBox())!
+  const b = (await bracket.boundingBox())!
+  expect(Math.abs((b.x - s.x) / s.width - 3 / 20)).toBeLessThan(0.005)
+  expect(Math.abs(b.width / s.width - 14 / 20)).toBeLessThan(0.005)
+  for (const id of ['track-sun', 'track-comms']) await expect(page.getByTestId(id).locator('.tl-veil')).toHaveCount(2)
+
+  const day = page.locator('.tl-tick.is-day').nth(1)
+  const label = await day.innerText() // e.g. "18 Aug"
+  await day.click()
+  await expect(page.getByTestId('date')).toHaveText(`${label.replace(/ (\w{3})$/, '')} August 2027, 12:00 UTC`)
+  // Dragging into the context days keeps the cursor inside the mission.
+  await page.mouse.click(s.x + 4, s.y + 10)
+  await expect(page.getByTestId('date')).toHaveText('16 August 2027, 00:00 UTC')
+})
+
 test('globe: clicking a site pin selects that site', async ({ page }) => {
   type DebugScene = {
     ready: Promise<void>

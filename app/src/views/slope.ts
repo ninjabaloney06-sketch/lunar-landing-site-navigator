@@ -7,7 +7,7 @@ import type { SlopeState } from '../geometry'
 
 // scripts/horizon.py: `SLOPE_HALF_BASE_KM = 0.05  # ±50 m → 100 m baseline` (heights 50 m east, west, north and
 // south of the site on the LOLA 20 m DEM). The horizon files do not carry the baseline, so it is stated here.
-export const SLOPE_BASELINE = '100 m'
+export const SLOPE_BASELINE = '100 m' // no-break space: the number never wraps away from its unit
 
 export function slopeOf(site: Site): { state: SlopeState; deg: number | null } {
   const { ranked, failed, unknown } = rankSites([{ site, summary: null }], 'any')
