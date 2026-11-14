@@ -7,7 +7,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
+  MeshPhysicalMaterial,
   PerspectiveCamera,
   Quaternion,
   Ray,
@@ -39,7 +39,7 @@ interface Pin {
 export class GlobeWorld {
   readonly scene = new Scene()
   private readonly moon: Mesh
-  private readonly moonMat: MeshStandardMaterial
+  private readonly moonMat: MeshPhysicalMaterial
   private checkerMat: MeshBasicMaterial | null = null
   private readonly pins: Pin[] = []
   private readonly pinGroup = new Group()
@@ -50,7 +50,9 @@ export class GlobeWorld {
   private pinLenKm = 100
 
   constructor(tex: TextureSet) {
-    this.moonMat = new MeshStandardMaterial({
+    // Diffuse only, as the site terrain (site.ts: no GGX glare at the limb and terminator).
+    this.moonMat = new MeshPhysicalMaterial({
+      specularIntensity: 0,
       map: tex.moon ?? null,
       normalMap: tex.moonNormal ?? null,
       color: tex.moon ? 0xffffff : 0x8b8781,

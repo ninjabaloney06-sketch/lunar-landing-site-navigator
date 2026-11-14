@@ -4,7 +4,7 @@
 import { loadEphem, loadHorizon, loadSites } from '../data/load'
 import type { EphemMonth, Horizon, TerrainMeta, TerrainTile } from '../data/types'
 import { interpolate } from '../geometry'
-import { mountScene, type SceneFrame, type SceneLevel } from './index'
+import { mountScene, type SceneDeps, type SceneFrame, type SceneLevel } from './index'
 
 const monthCache = new Map<string, Promise<EphemMonth | null>>()
 const month = (key: string) => {
@@ -43,10 +43,11 @@ async function terrain(id: string): Promise<TerrainTile | null> {
   }
 }
 
-const sites = await loadSites()
+// deps.sites is looked up on every load, so tests can add synthetic sites through __scene.setSites.
+const deps: SceneDeps = { sites: await loadSites(), loadFrame }
 
 async function loadFrame(siteId: string, utcMs: number): Promise<SceneFrame> {
-  const site = sites.find((s) => s.id === siteId)
+  const site = deps.sites.find((s) => s.id === siteId)
   if (!site) throw new Error(`unknown site ${siteId}`)
   const [h, t, months] = await Promise.all([
     site.horizon ? horizon(site.horizon) : Promise.resolve(null),
@@ -57,7 +58,7 @@ async function loadFrame(siteId: string, utcMs: number): Promise<SceneFrame> {
 }
 
 const params = new URLSearchParams(window.location.search)
-const handle = mountScene(document.getElementById('scene')!, { sites, loadFrame })
+const handle = mountScene(document.getElementById('scene')!, deps)
 const siteId = params.get('site')
 if (siteId) {
   const utc = Date.parse(params.get('utc') ?? '2026-11-14T00:00:00Z')

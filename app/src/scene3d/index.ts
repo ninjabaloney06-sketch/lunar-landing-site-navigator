@@ -18,7 +18,7 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
-import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, enuBasis, siteVector, type BodyState } from '../geometry'
+import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
 import { loadTextures } from './assets'
 import { installDebug, type DebugView } from './debug'
 import { azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
@@ -210,7 +210,6 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     if (!builtFor || builtFor.site !== f.site || builtFor.horizon !== f.horizon || builtFor.terrain !== f.terrain) {
       if (f.site) site.build(f.horizon, f.terrain, f.site.elev_m)
-      site.eyeHeight = f.horizon?.observer_height_m ?? OBSERVER_HEIGHT_M
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
@@ -243,7 +242,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function placeEyeCam(az: number, el: number) {
-    const eye = new Vector3(0, 0, OBSERVER_HEIGHT_M)
+    const eye = new Vector3(0, 0, site.eyeHeight)
     siteCam.position.copy(eye)
     siteControls.target.copy(eye).addScaledVector(enuDir(az, el), 0.01)
     siteCam.lookAt(siteControls.target)
