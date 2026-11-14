@@ -3,8 +3,8 @@ import { Vector3 } from 'three'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { type CapIo, type SouthCap, capXY, openCap } from '../data/southcap'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
-import { latLonOf } from './frames'
-import { CAP_GEOMETRY_DEFAULTS, type CapSurface, capGeometry, capVertex } from './southcap'
+import { SPHERE_TO_BODY, latLonOf } from './frames'
+import { CAP_GEOMETRY_DEFAULTS, type CapSurface, capGeometry, capVertex, globeWithoutCap } from './southcap'
 import source from './southcap.ts?raw'
 
 const HALF = 304_000
@@ -39,7 +39,7 @@ describe('capGeometry on synthetic surfaces', () => {
     }
   })
 
-  it('heights are real inside the blend band and fade inside it; the lip sits below the sphere beyond the rim', () => {
+  it('heights are real up to the blend band and fade inside it; the lip sits straight below the rim', () => {
     const g = capGeometry(flat(2000), { ...small, blendKm: 30 })
     const rimRho = capXY(-80, 0)[1]
     for (let i = 1; i <= small.rings; i++) {
@@ -49,9 +49,11 @@ describe('capGeometry on synthetic surfaces', () => {
       else expect(r).toBeLessThan(MOON_RADIUS_KM + 2)
       expect(r).toBeGreaterThanOrEqual(MOON_RADIUS_KM - 1e-3)
     }
+    // the lip: straight below the rim vertex, never outside the rim
     const lip = vec(g, 'position', capVertex(small.rings + 1, 7, small.sectors))
+    const rim = vec(g, 'position', capVertex(small.rings, 7, small.sectors))
     expect(lip.length()).toBeCloseTo(MOON_RADIUS_KM - CAP_GEOMETRY_DEFAULTS.lipDropKm, 3)
-    expect(latLonOf(lip).lat).toBeGreaterThan(-80)
+    expect(lip.clone().normalize().distanceTo(rim.clone().normalize())).toBeLessThan(1e-6)
   })
 
   it('uv follows the cap texture layout: +y (longitude 0) up, +x (90° E) right', () => {
@@ -97,7 +99,8 @@ describe('capGeometry on synthetic surfaces', () => {
     expect(g.getAttribute('position').count).toBe(1 + (small.rings + 1) * small.sectors)
     const ab = new Vector3()
     const ac = new Vector3()
-    for (let t = 0; t < idx.count; t += 3) {
+    const lipStart = idx.count - 2 * small.sectors * 3 // the lip's wall is vertical: it has no outward side
+    for (let t = 0; t < lipStart; t += 3) {
       const a = vec(g, 'position', idx.getX(t))
       const b = vec(g, 'position', idx.getX(t + 1))
       const c = vec(g, 'position', idx.getX(t + 2))
@@ -106,13 +109,41 @@ describe('capGeometry on synthetic surfaces', () => {
     }
   })
 
+  it('where the data end next to a vertex, its normal does not see a cliff', () => {
+    // 3 km high everywhere the square has data, nothing outside it: the rim vertices on the axes touch the edge.
+    const g = capGeometry({ heightXY: (x, y) => (Math.max(Math.abs(x), Math.abs(y)) < HALF - 200 ? 3000 : NaN), halfWidthM: HALF, northLat: -80 }, small)
+    for (const j of [0, 64, 128, 192]) {
+      const v = capVertex(small.rings, j, small.sectors)
+      expect(vec(g, 'normal', v).dot(vec(g, 'position', v).normalize())).toBeGreaterThan(0.999)
+    }
+  })
+
   it('a missing height (NaN) is drawn on the sphere, not as a spike', () => {
     const g = capGeometry({ heightXY: () => NaN, halfWidthM: HALF, northLat: -80 }, small)
     expect(vec(g, 'position', capVertex(5, 5, small.sectors)).length()).toBeCloseTo(MOON_RADIUS_KM, 4)
   })
 
+  it('globeWithoutCap: last ring on the cap rim at the cap’s rim longitudes, texture coordinates of the full sphere', () => {
+    const g = globeWithoutCap(MOON_RADIUS_KM, 256, 128, -80)
+    const pos = g.getAttribute('position')
+    const uv = g.getAttribute('uv')
+    const cap = capGeometry(flat(0), small) // 256 sectors, as the sphere's segments
+    const q = SPHERE_TO_BODY
+    const first = 128 * 257 // row 128 of 129, 257 vertices per row
+    for (const k of [0, 1, 77, 128, 255]) {
+      const p = new Vector3().fromBufferAttribute(pos, first + k).applyQuaternion(q)
+      expect(latLonOf(p).lat).toBeCloseTo(-80, 4)
+      expect(p.distanceTo(vec(cap, 'position', capVertex(small.rings, k, small.sectors)))).toBeLessThan(1e-3)
+      expect(uv.getY(first + k)).toBeCloseTo(10 / 180, 6) // 80 S in a pole-to-pole map
+      expect(uv.getX(first + k)).toBeCloseTo(k / 256, 6)
+    }
+    expect(uv.getY(64 * 257)).toBeCloseTo(1 - 85 / 180, 6) // ring 64 of 128 over 170 deg = colatitude 85 deg
+    expect(uv.getY(0)).toBe(1)
+  })
+
   it('uses no trigonometry (scene3d rule: angles go through geometry/)', () => {
     expect(source).not.toMatch(/Math\.(sin|cos|tan|asin|acos|atan|atan2)\b/)
+    expect(source).not.toMatch(/Matrix[34]/)
   })
 })
 
