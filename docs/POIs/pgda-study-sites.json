@@ -1,0 +1,613 @@
+{
+ "meta": {
+  "description": "The 27 per-site LOLA elevation-model sites of NASA Goddard PGDA product 78 (High-Resolution LOLA Topography for Lunar South Pole Sites). Names only: no centre coordinates were found.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "coordinate_convention": null,
+  "validation": "Names read from the product page on 14 Nov 2026 by an AI agent. Not validated by the science lead.",
+  "open_leads": [
+   "NASA Lunar Surface Data Book (ACD-50044), table A2-2, is the source of the two app reference points Site04 and Site23 and may list the other site centres; the PDF was not opened.",
+   "Barker et al. 2021, doi:10.1016/j.pss.2020.105119 (full text not read).",
+   "The GeoTIFF georeferencing of each site DEM gives its extent; reading it needs a download approved by Isaac."
+  ],
+  "app_site_id_note": "Filled only for the two app sites whose coordinates come from the same NASA site polygons (Site04, Site23). Other app sites with similar names use LROC mosaic centres and are different points."
+ },
+ "items": [
+  {
+   "id": "pgda78_site01",
+   "name": "Site01: Connecting ridge",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site01",
+    "pgda_site_name": "Connecting ridge"
+   }
+  },
+  {
+   "id": "pgda78_site04",
+   "name": "Site04: Shackleton rim",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": "shackleton-rim-site04",
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site04",
+    "pgda_site_name": "Shackleton rim"
+   }
+  },
+  {
+   "id": "pgda78_site06",
+   "name": "Site06: Nobile rim 1",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site06",
+    "pgda_site_name": "Nobile rim 1"
+   }
+  },
+  {
+   "id": "pgda78_site07",
+   "name": "Site07: Peak near Shackleton",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site07",
+    "pgda_site_name": "Peak near Shackleton"
+   }
+  },
+  {
+   "id": "pgda78_site11",
+   "name": "Site11: de Gerlache rim",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site11",
+    "pgda_site_name": "de Gerlache rim"
+   }
+  },
+  {
+   "id": "pgda78_site20",
+   "name": "Site20: Leibnitz beta plateau",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site20",
+    "pgda_site_name": "Leibnitz beta plateau"
+   }
+  },
+  {
+   "id": "pgda78_site20v2",
+   "name": "Site20v2: Leibnitz beta plateau, extended boundaries",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site20v2",
+    "pgda_site_name": "Leibnitz beta plateau, extended boundaries"
+   }
+  },
+  {
+   "id": "pgda78_site23",
+   "name": "Site23: Malapert massif",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": "malapert-site23",
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site23",
+    "pgda_site_name": "Malapert massif"
+   }
+  },
+  {
+   "id": "pgda78_site42",
+   "name": "Site42: de Gerlache-Kocher massif",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Site42",
+    "pgda_site_name": "de Gerlache-Kocher massif"
+   }
+  },
+  {
+   "id": "pgda78_haworth",
+   "name": "Haworth",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Haworth",
+    "pgda_site_name": null
+   }
+  },
+  {
+   "id": "pgda78_shoemaker",
+   "name": "Shoemaker",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "Shoemaker",
+    "pgda_site_name": null
+   }
+  },
+  {
+   "id": "pgda78_dm1",
+   "name": "DM1: Amundsen rim",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "DM1",
+    "pgda_site_name": "Amundsen rim"
+   }
+  },
+  {
+   "id": "pgda78_dm2",
+   "name": "DM2: Nobile rim 2",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "DM2",
+    "pgda_site_name": "Nobile rim 2"
+   }
+  },
+  {
+   "id": "pgda78_sl2",
+   "name": "SL2: de Gerlache rim",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "SL2",
+    "pgda_site_name": "de Gerlache rim"
+   }
+  },
+  {
+   "id": "pgda78_sl3",
+   "name": "SL3: Connecting ridge extension",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "SL3",
+    "pgda_site_name": "Connecting ridge extension"
+   }
+  },
+  {
+   "id": "pgda78_npa",
+   "name": "NPA: Cabeus exterior wall 1",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "NPA",
+    "pgda_site_name": "Cabeus exterior wall 1"
+   }
+  },
+  {
+   "id": "pgda78_npb",
+   "name": "NPB: Amundsen 1",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "NPB",
+    "pgda_site_name": "Amundsen 1"
+   }
+  },
+  {
+   "id": "pgda78_npc",
+   "name": "NPC: Idel'son L crater 1",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "NPC",
+    "pgda_site_name": "Idel'son L crater 1"
+   }
+  },
+  {
+   "id": "pgda78_npd",
+   "name": "NPD: Malapert crater 1",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "NPD",
+    "pgda_site_name": "Malapert crater 1"
+   }
+  },
+  {
+   "id": "pgda78_lm1",
+   "name": "LM1: Shackleton Rim B",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM1",
+    "pgda_site_name": "Shackleton Rim B"
+   }
+  },
+  {
+   "id": "pgda78_lm2",
+   "name": "LM2: Shoemaker Rim A",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM2",
+    "pgda_site_name": "Shoemaker Rim A"
+   }
+  },
+  {
+   "id": "pgda78_lm3",
+   "name": "LM3: Shoemaker Rim B",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM3",
+    "pgda_site_name": "Shoemaker Rim B"
+   }
+  },
+  {
+   "id": "pgda78_lm4",
+   "name": "LM4: Shoemaker Rim C",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM4",
+    "pgda_site_name": "Shoemaker Rim C"
+   }
+  },
+  {
+   "id": "pgda78_lm5",
+   "name": "LM5: Shoemaker Rim D",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM5",
+    "pgda_site_name": "Shoemaker Rim D"
+   }
+  },
+  {
+   "id": "pgda78_lm6",
+   "name": "LM6: Shoemaker Rim E",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM6",
+    "pgda_site_name": "Shoemaker Rim E"
+   }
+  },
+  {
+   "id": "pgda78_lm7",
+   "name": "LM7: Faustini Rim A",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM7",
+    "pgda_site_name": "Faustini Rim A"
+   }
+  },
+  {
+   "id": "pgda78_lm8",
+   "name": "LM8: Shoemaker Rim F",
+   "category": "pgda_study_site",
+   "geometry": null,
+   "frame": "MOON_ME, ephemeris DE421 (stated for the DEM files on the product page)",
+   "location_note": "The product page gives no centre latitude/longitude; the DEM files are in south polar stereographic X/Y metres.",
+   "evidence": "site ID and name as listed on the PGDA product 78 page",
+   "limitations": "No coordinates found on 14 Nov 2026 (product page, data directory README, NTRS abstract page). Not usable in the app until a sourced centre is added.",
+   "sources": [
+    "https://pgda.gsfc.nasa.gov/products/78"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": null,
+    "id": null
+   },
+   "properties": {
+    "pgda_site_id": "LM8",
+    "pgda_site_name": "Shoemaker Rim F"
+   }
+  }
+ ]
+}

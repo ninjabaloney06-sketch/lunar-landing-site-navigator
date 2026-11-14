@@ -1,0 +1,2731 @@
+{
+ "meta": {
+  "description": "Landing regions, candidate sites, literature point sites and mission landing points at the lunar south pole (plus non-polar mission sites named in the research data).",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/candidate_regions.json",
+   "docs/reference/research/data/missions.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive, given as lon_east_180 (-180..180) and lon_east_360 (0..360). Trek polygons are south polar stereographic metres (R = 1,737,400 m, +y toward lon 0, +x toward 90 E).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead. Coordinates need a check before use in the app.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "NASA has published NO official centre coordinates or boundary files for either the 13 (2022) or the 9 (2024) regions. Top-level lat/lon of a region is the LROC NAC mosaic centre where one exists (LROC team product, Henriksen et al. 2023; absolute positional accuracy 5-20 m, 1 m/px), otherwise the centre computed by the researcher from the NASA Trek 2022 polygon. Both are kept; see alt_coordinates.",
+   "LROC mosaic footprints are larger than NASA's ~15 x 15 km boxes (researcher-computed N-S extents: Malapert ~21 km, Faustini Rim A ~20 km, Peak near Shackleton ~22 km, Peak near Cabeus B and Amundsen Rim ~26 km, Nobile Rim 2 ~27 km, de Gerlache Rim ~37 km, Haworth ~39 km, Mons Mouton Plateau ~88 km). Treat centres as approximate region positions, not official NASA centres.",
+   "Trek polygon centres were computed by the researcher with the spherical polar stereographic inverse (lat = -90 + 2*atan(rho/(2R)), lon = atan2(x, y)); they are derived values, not NASA-published. The 0..360 form of Trek longitudes was added during conversion (value + 360 where negative). Notes call the Trek boxes 'schematic region boxes rather than surveyed boundaries'.",
+   "Size conflict kept: NASA release says each region is about 15 x 15 km; Trek boxes are 16-30 km on a side.",
+   "Mapping of LROC mosaic names to region names (e.g. 2024 'Mons Mouton' -> 'Nobile Rim 1 and Mons Mouton (Leibnitz Beta Plateau)' mosaic; 'de Gerlache Rim 2' -> single 'de Gerlache Rim' mosaic) is the researcher's reading of product titles, not a NASA statement.",
+   "No list for Artemis IV has been published; per NASA (LPSC 2026) the nine regions are specific to Artemis III and do not constrain Artemis IV and later. As of Oct-Nov 2026 the site of the first crewed landing (now Artemis IV) is undecided.",
+   "Wueller et al. 2026 (JGR Planets, doi 10.1029/2025JE009434) Table A1 lists 130 candidate landing sites with coordinates but could not be retrieved (HTTP 403); those sites are NOT in this file.",
+   "source_url may be a string or an array of strings."
+  ]
+ },
+ "items": [
+  {
+   "id": "faustini_rim_a",
+   "name": "Faustini Rim A",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.8,
+    "lon_east_180": 90.0,
+    "lon_east_360": 90.0
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_FAUSTINILO1_P878S0900)",
+   "evidence": "primary (LROC product) for mosaic; derived by researcher for Trek centre",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_FAUSTINILO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2",
+    "https://doi.org/10.1029/2025JE009434"
+   ],
+   "app_site_id": "faustini-rim-a",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "faustini_rim_a"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "bounds": {
+     "lat_min": -88.19,
+     "lat_max": -87.54,
+     "lon_min_180": 79.51,
+     "lon_max_180": 100.49,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -87.89,
+      "lon_east_180": 90.0,
+      "lon_east_360": 90.0,
+      "polygon_xy_m": {
+       "x_min": 54000,
+       "x_max": 74000,
+       "y_min": -10000,
+       "y_max": 10000
+      },
+      "side_km": 20,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA release); Trek box 20 x 20; LROC mosaic N-S ~20",
+    "selection_criteria_notes": "Dropped in 2024. TOPSIS study: 80 candidate points (LM7), best point rank 16. Wueller 2026 (search excerpt): among largest suitable fractional areas (after Slater Plain, Nobile Rim 2)."
+   }
+  },
+  {
+   "id": "peak_near_shackleton",
+   "name": "Peak Near Shackleton",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.8,
+    "lon_east_180": 124.7,
+    "lon_east_360": 124.7
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_SHKLTNPKLO1_P888S1247)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_SHKLTNPKLO1",
+    "https://pds.mcp.nasa.gov/data/store/img/lunar_reconnaissance_orbiter/pds4/lroc/lro-l-lroc-5-rdr/LROLRC_2001/DATA/BDR/NAC_ROI/SHKLTNPKLO1/NAC_ROI_SHKLTNPKLO1_P888S1247_README.TXT",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "peak-near-shackleton",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "peak_near_shackleton"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "bounds": {
+     "lat_min": -89.17,
+     "lat_max": -88.44,
+     "lon_min_180": 107.53,
+     "lon_max_180": 141.84,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon (Trek label 'Peak Near Shakleton' sic)",
+      "lat": -88.811,
+      "lon_east_180": 123.69,
+      "lon_east_360": 123.69,
+      "polygon_xy_m": {
+       "x_min": 22000,
+       "x_max": 38000,
+       "y_min": -28000,
+       "y_max": -12000
+      },
+      "side_km": 16,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 16 x 16; LROC mosaic N-S ~22",
+    "selection_criteria_notes": "Dropped in 2024. SPA material fraction 47% (rank 2 of 13, Gracy and Lee). TOPSIS: 19 points (Site07), best rank 15. PGDA Site07. Researcher inference: Bussey 2010 Point D is very probably this site."
+   }
+  },
+  {
+   "id": "connecting_ridge",
+   "name": "Connecting Ridge",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.463,
+    "lon_east_180": -137.49,
+    "lon_east_360": 222.51
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon",
+   "evidence": "derived by researcher (centre computed from Trek polygon)",
+   "limitations": "No LROC mosaic and no NASA centre coordinates specific to this region found; Trek-derived centre only.",
+   "sources": [
+    "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "connecting-ridge",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "connecting_ridge"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false,
+     "moon_base_reference_site": true
+    },
+    "polygon_xy_m": {
+     "x_min": -19000,
+     "x_max": -3000,
+     "y_min": -20000,
+     "y_max": -4000
+    },
+    "alt_coordinates": [],
+    "size_km": "~15 x 15 (NASA); Trek box 16 x 16",
+    "selection_criteria_notes": "Dropped from the Artemis III list in 2024 but first Moon Base robotic target (see moon_base_shackleton_connecting_ridge). SPA material fraction 46% (rank 3 of 13). TOPSIS: 20 points (Site01). PGDA Site01 = rank 1 in Mazarico 2011 average illumination. Evaluated in Saxena et al. 2026 microbial-survival model."
+   }
+  },
+  {
+   "id": "connecting_ridge_extension",
+   "name": "Connecting Ridge Extension",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.032,
+    "lon_east_180": -101.999,
+    "lon_east_360": 258.001
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon",
+   "evidence": "derived by researcher",
+   "limitations": "Trek-derived centre only; no LROC mosaic listed in notes.",
+   "sources": [
+    "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2",
+    "https://doi.org/10.1029/2025JE009434"
+   ],
+   "app_site_id": "connecting-ridge-extension",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "connecting_ridge_extension"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "polygon_xy_m": {
+     "x_min": -38700,
+     "x_max": -18700,
+     "y_min": -16100,
+     "y_max": 3900
+    },
+    "alt_coordinates": [],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20",
+    "selection_criteria_notes": "Dropped in 2024. TOPSIS: 36 points (SL3), none in top 100. Wueller 2026 (search excerpt): among smallest suitable fractional areas."
+   }
+  },
+  {
+   "id": "de_gerlache_rim_1",
+   "name": "de Gerlache Rim 1",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.683,
+    "lon_east_180": -67.932,
+    "lon_east_360": 292.068
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon; Trek label is 'de Gerlache Rim' (no number) (primary since 14 Nov: distinct per region)",
+   "evidence": "primary (LROC) but shared mosaic",
+   "limitations": "No coordinates separating Rim 1 from Rim 2 in the LROC product.",
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_DEGERRIMLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "de-gerlache-rim-1",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "de_gerlache_rim_1"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "LROC mosaic centre (NAC_ROI_DEGERRIMLO1_P885S2933; single 'de Gerlache Rim' mosaic covering Rim 1 and Rim 2)",
+      "lat": -88.5,
+      "lon_east_180": -66.7,
+      "lon_east_360": 293.3,
+      "bounds": {
+       "lat_min": -89.02,
+       "lat_max": -87.79,
+       "lon_min_180": -83.18,
+       "lon_max_180": -41.31,
+       "kind": "LROC mosaic bounds (shared Rim 1 + Rim 2)"
+      },
+      "note": "Former primary point (until 14 Nov): the LROC mosaic centre, shared with other regions, so map markers stacked."
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 16 x 16; LROC shared mosaic N-S ~37",
+    "selection_criteria_notes": "Dropped in 2024. TOPSIS: 15 points (Site11). Wueller 2026: among smallest suitable fractional areas. PGDA Site11 de Gerlache rim.",
+    "polygon_xy_m": {
+     "x_min": -45000,
+     "x_max": -29000,
+     "y_min": 7000,
+     "y_max": 23000
+    },
+    "side_km": 16
+   }
+  },
+  {
+   "id": "de_gerlache_rim_2",
+   "name": "de Gerlache Rim 2",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.23,
+    "lon_east_180": -64.628,
+    "lon_east_360": 295.372
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon (primary since 14 Nov: distinct per region)",
+   "evidence": "primary (LROC) shared mosaic; Trek centre derived by researcher",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_DEGERRIMLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://arxiv.org/html/2406.19863v2",
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "app_site_id": "de-gerlache-rim-2",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "de_gerlache_rim_2"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": true
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "LROC mosaic centre (NAC_ROI_DEGERRIMLO1_P885S2933; single 'de Gerlache Rim' mosaic covering Rim 1 and Rim 2)",
+      "lat": -88.5,
+      "lon_east_180": -66.7,
+      "lon_east_360": 293.3,
+      "bounds": {
+       "lat_min": -89.02,
+       "lat_max": -87.79,
+       "lon_min_180": -83.18,
+       "lon_max_180": -41.31,
+       "kind": "LROC mosaic bounds (shared Rim 1 + Rim 2)"
+      },
+      "note": "Former primary point (until 14 Nov): the LROC mosaic centre, shared with other regions, so map markers stacked."
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20",
+    "selection_criteria_notes": "Kept in 2024. TOPSIS: 104 points (SL2), best rank 19. Hazard: de Gerlache thrust scarp (-88.02, -59.1) lies within this region; unstable PSR slope to its north (Watters 2024). de Gerlache Rim evaluated in Saxena et al. 2026.",
+    "polygon_xy_m": {
+     "x_min": -58500,
+     "x_max": -38500,
+     "y_min": 13000,
+     "y_max": 33000
+    },
+    "side_km": 20
+   }
+  },
+  {
+   "id": "de_gerlache_kocher_massif",
+   "name": "de Gerlache-Kocher Massif",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.8,
+    "lon_east_180": -116.4,
+    "lon_east_360": 243.6
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_DEGERKCHLO1_P858S24363)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_DEGERKCHLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "de-gerlache-kocher-massif",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "de_gerlache_kocher_massif"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "bounds": {
+     "lat_min": -86.27,
+     "lat_max": -85.39,
+     "lon_min_180": -122.59,
+     "lon_max_180": -110.48,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -85.83,
+      "lon_east_180": -116.322,
+      "lon_east_360": 243.678,
+      "polygon_xy_m": {
+       "x_min": -123400,
+       "x_max": -103400,
+       "y_min": -66100,
+       "y_max": -46100
+      },
+      "side_km": 20,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20",
+    "selection_criteria_notes": "Dropped in 2024. TOPSIS: 56 points (Site42)."
+   }
+  },
+  {
+   "id": "haworth",
+   "name": "Haworth",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.7,
+    "lon_east_180": -23.7,
+    "lon_east_360": 336.3
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_HAWORTH_LO1_P867S3363)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_HAWORTH_LO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://arxiv.org/html/2406.19863v2",
+    "https://doi.org/10.1029/2025JE009434"
+   ],
+   "app_site_id": "haworth",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "haworth"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -87.39,
+     "lat_max": -86.11,
+     "lon_min_180": -34.98,
+     "lon_max_180": -12.36,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -86.764,
+      "lon_east_180": -22.777,
+      "lon_east_360": 337.223,
+      "polygon_xy_m": {
+       "x_min": -52900,
+       "x_max": -23100,
+       "y_min": 75600,
+       "y_max": 105400
+      },
+      "side_km": 29.8,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 29.8 x 29.8; LROC mosaic N-S ~39",
+    "selection_criteria_notes": "Kept in 2024. TOPSIS: 20 points, none in top 100. Wueller 2026 (search excerpt): sites HW04 and HW10 exceed 25 days of simultaneous Sun and Earth visibility at midsummer."
+   }
+  },
+  {
+   "id": "malapert_massif",
+   "name": "Malapert Massif",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.0,
+    "lon_east_180": 0.3,
+    "lon_east_360": 0.3
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_MALAPERTLO1_P860S0003)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MALAPERTLO1",
+    "https://lroc.im-ldi.com/images/1294",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "malapert-massif",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "malapert_massif"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -86.33,
+     "lat_max": -85.63,
+     "lon_min_180": -5.66,
+     "lon_max_180": 5.15,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -85.995,
+      "lon_east_180": -0.236,
+      "lon_east_360": 359.764,
+      "polygon_xy_m": {
+       "x_min": -11000,
+       "x_max": 10000,
+       "y_min": 111000,
+       "y_max": 132000
+      },
+      "side_km": 21,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     },
+     {
+      "coordinate_kind": "LROC description: flat 'heart' of the candidate region",
+      "lat": -86,
+      "lon_east_180": 0,
+      "lon_east_360": 0,
+      "source_url": "https://lroc.im-ldi.com/images/1294"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 21 x 21; LROC mosaic N-S ~21",
+    "selection_criteria_notes": "Kept in 2024. Summit rises more than 5,000 m above its base; 'thought to be' SPA rim remnant; nearside slope faces Earth. TOPSIS: 102 points (Site23), 30% of top 100. Wueller 2025 region average: Sun 0.31 +/- 0.25, Earth 0.41 +/- 0.32 (search excerpt). IM-5 (2030) targets Mons Malapert."
+   }
+  },
+  {
+   "id": "leibnitz_beta_plateau",
+   "name": "Leibnitz Beta Plateau",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.427,
+    "lon_east_180": 31.743,
+    "lon_east_360": 31.743
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon (primary since 14 Nov: distinct per region)",
+   "evidence": "primary (LROC) shared mosaic",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MTMOUTONLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "leibnitz-beta-plateau",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "leibnitz_beta_plateau"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "LROC mosaic centre (NAC_ROI_MTMOUTONLO1_P854S0353; mosaic titled 'Nobile Rim 1 and Mons Mouton / Leibnitz Beta Plateau', shared)",
+      "lat": -85.4,
+      "lon_east_180": 35.3,
+      "lon_east_360": 35.3,
+      "bounds": {
+       "lat_min": -86.07,
+       "lat_max": -84.82,
+       "lon_min_180": 27.29,
+       "lon_max_180": 43.23,
+       "kind": "LROC mosaic bounds (shared)"
+      },
+      "note": "Former primary point (until 14 Nov): the LROC mosaic centre, shared with other regions, so map markers stacked."
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 16 x 16",
+    "selection_criteria_notes": "Name dropped in 2024 (renamed area, see Mons Mouton). TOPSIS: 23 points (Site20), none in top 100. Chang'e-8 planned for the Leibnitz Beta plateau.",
+    "polygon_xy_m": {
+     "x_min": 65000,
+     "x_max": 81000,
+     "y_min": 110000,
+     "y_max": 126000
+    },
+    "side_km": 16
+   }
+  },
+  {
+   "id": "nobile_rim_1",
+   "name": "Nobile Rim 1",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.438,
+    "lon_east_180": 37.367,
+    "lon_east_360": 37.367
+   },
+   "frame": null,
+   "location_note": "computed from Trek polygon (primary since 14 Nov: distinct per region)",
+   "evidence": "primary (LROC) shared mosaic; Trek centre derived by researcher",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MTMOUTONLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://arxiv.org/html/2406.19863v2",
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "app_site_id": "nobile-rim-1",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "nobile_rim_1"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": true
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "LROC mosaic centre (NAC_ROI_MTMOUTONLO1_P854S0353; shared with Mons Mouton / Leibnitz Beta Plateau)",
+      "lat": -85.4,
+      "lon_east_180": 35.3,
+      "lon_east_360": 35.3,
+      "bounds": {
+       "lat_min": -86.07,
+       "lat_max": -84.82,
+       "lon_min_180": 27.29,
+       "lon_max_180": 43.23,
+       "kind": "LROC mosaic bounds (shared)"
+      },
+      "note": "Former primary point (until 14 Nov): the LROC mosaic centre, shared with other regions, so map markers stacked."
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20",
+    "selection_criteria_notes": "Kept in 2024. TOPSIS: 94 points (Site06). Hazard: ~30 km from the Shoemaker scarp; landslide-susceptible interior walls (Watters 2024). Nobile Rim evaluated in Saxena et al. 2026.",
+    "polygon_xy_m": {
+     "x_min": 74000,
+     "x_max": 94000,
+     "y_min": 100000,
+     "y_max": 120000
+    },
+    "side_km": 20
+   }
+  },
+  {
+   "id": "nobile_rim_2",
+   "name": "Nobile Rim 2",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.9,
+    "lon_east_180": 58.7,
+    "lon_east_360": 58.7
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_NOBILE02LO1_P839S0587)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_NOBILE02LO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "nobile-rim-2",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "nobile_rim_2"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -84.4,
+     "lat_max": -83.5,
+     "lon_min_180": 54.46,
+     "lon_max_180": 63.02,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -83.954,
+      "lon_east_180": 58.822,
+      "lon_east_360": 58.822,
+      "polygon_xy_m": {
+       "x_min": 147000,
+       "x_max": 167000,
+       "y_min": 85000,
+       "y_max": 105000
+      },
+      "side_km": 20,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20; LROC mosaic N-S ~27",
+    "selection_criteria_notes": "Kept in 2024. TOPSIS: 473 points (DM2), rank 1 point, 36% of top 100. Wueller 2026: second-largest suitable fractional area."
+   }
+  },
+  {
+   "id": "amundsen_rim",
+   "name": "Amundsen Rim",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.2,
+    "lon_east_180": 69.3,
+    "lon_east_360": 69.3
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_AMUNDRIMLO1_P842S0693)",
+   "evidence": "primary (LROC product)",
+   "limitations": null,
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_AMUNDRIMLO1",
+    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": "amundsen-rim",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "amundsen_rim"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": true,
+     "artemis_2024_9": false
+    },
+    "bounds": {
+     "lat_min": -84.65,
+     "lat_max": -83.8,
+     "lon_min_180": 65.1,
+     "lon_max_180": 73.51,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "computed from Trek polygon",
+      "lat": -84.229,
+      "lon_east_180": 69.444,
+      "lon_east_360": 69.444,
+      "polygon_xy_m": {
+       "x_min": 154000,
+       "x_max": 174000,
+       "y_min": 51500,
+       "y_max": 71500
+      },
+      "side_km": 20,
+      "source_url": "https://trek.nasa.gov/moon/trekarcgis2/rest/services/A3_Named_regions_SP/MapServer/0"
+     }
+    ],
+    "size_km": "~15 x 15 (NASA); Trek box 20 x 20; LROC mosaic N-S ~26",
+    "selection_criteria_notes": "Dropped in 2024. TOPSIS: 149 points (DM1), 13% of top 100, best rank 10."
+   }
+  },
+  {
+   "id": "peak_near_cabeus_b",
+   "name": "Peak near Cabeus B",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.6,
+    "lon_east_180": -68.8,
+    "lon_east_360": 291.2
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_CABEUSPKLO2_P836S2912)",
+   "evidence": "primary (LROC product)",
+   "limitations": "No Trek polygon (Trek layer holds only the 2022 regions).",
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_CABEUSPKLO2",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "peak_near_cabeus_b"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": false,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -84.06,
+     "lat_max": -83.21,
+     "lon_min_180": -72.47,
+     "lon_max_180": -64.8,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [],
+    "size_km": "not given by NASA for 2024 regions; LROC mosaic N-S ~26",
+    "selection_criteria_notes": "New in 2024. No published multi-criteria score found. Wueller 2026 (search excerpt): 'PCB' among smallest suitable fractional areas."
+   }
+  },
+  {
+   "id": "mons_mouton_plateau",
+   "name": "Mons Mouton Plateau",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.3,
+    "lon_east_180": 30.6,
+    "lon_east_360": 30.6
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_MOUTNPLTLO1_P843S0306)",
+   "evidence": "primary (LROC product)",
+   "limitations": "Mosaic much larger than a 15 km region; centre only approximate.",
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MOUTNPLTLO1",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025JE009127"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "mons_mouton_plateau"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": false,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -85.76,
+     "lat_max": -82.85,
+     "lon_min_180": 15.49,
+     "lon_max_180": 46.61,
+     "kind": "LROC mosaic bounds"
+    },
+    "alt_coordinates": [],
+    "size_km": "not given by NASA; LROC mosaic N-S ~88",
+    "selection_criteria_notes": "New in 2024. Wueller 2025 region average (search excerpt): Sun visibility 0.45 +/- 0.14, Earth visibility 74 +/- 19 % of lunar year, coldest PSR 85 K. IM-2 landed on Mons Mouton (2025); IM-4 planned for the plateau."
+   }
+  },
+  {
+   "id": "mons_mouton_region",
+   "name": "Mons Mouton (2024 region)",
+   "category": "artemis_region",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.4,
+    "lon_east_180": 35.3,
+    "lon_east_360": 35.3
+   },
+   "frame": null,
+   "location_note": "LROC mosaic centre (NAC_ROI_MTMOUTONLO1_P854S0353; shared 'Nobile Rim 1 and Mons Mouton / Leibnitz Beta Plateau' mosaic)",
+   "evidence": "primary (LROC) shared mosaic; name-to-mosaic mapping is researcher's reading",
+   "limitations": "No coordinates specific to the 2024 'Mons Mouton' region were found.",
+   "sources": [
+    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MTMOUTONLO1",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "mons_mouton_region"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": false,
+     "artemis_2024_9": true
+    },
+    "bounds": {
+     "lat_min": -86.07,
+     "lat_max": -84.82,
+     "lon_min_180": 27.29,
+     "lon_max_180": 43.23,
+     "kind": "LROC mosaic bounds (shared)"
+    },
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "named feature centre (Mons Mouton, Wikipedia citing USGS Gazetteer)",
+      "lat": -84.6,
+      "lon_east_180": 31.0,
+      "lon_east_360": 31.0,
+      "source_url": "https://en.wikipedia.org/wiki/Mons_Mouton",
+      "evidence": "secondary source"
+     }
+    ],
+    "size_km": "not given by NASA",
+    "selection_criteria_notes": "New name in 2024; the 2022 'Leibnitz Beta Plateau' is the renamed area. Researcher inference: this region is probably covered by the shared LROC mosaic; whether the 2024 box equals the 2022 Leibnitz Beta box is not confirmed. 'MMA' among smallest suitable fractional areas in Wueller 2026 (search excerpt; abbreviation as given in notes).",
+    "shared_point_warning": "lat/lon is the LROC mosaic centre that nobile_rim_1 and leibnitz_beta_plateau also used until 14 Nov; NASA gives no 2024 region geometry. Do not place a separate map marker on this point."
+   }
+  },
+  {
+   "id": "slater_plain",
+   "name": "Slater Plain",
+   "category": "artemis_region",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "name from NASA release (primary)",
+   "limitations": "No coordinates at all were found for Slater Plain in the notes; not filled. (Slater crater centre -88.08, 111.29 is a different object, see psr_and_ice.json.)",
+   "sources": [
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
+    "https://doi.org/10.1029/2025JE009434"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "slater_plain"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": false,
+     "artemis_2024_9": true
+    },
+    "alt_coordinates": [],
+    "size_km": null,
+    "selection_criteria_notes": "New in 2024. Wueller 2026 (search excerpt): largest suitable fractional area of all regions. Slater crater PSR 183.2 km2 (see psr_and_ice.json)."
+   }
+  },
+  {
+   "id": "moon_base_shackleton_connecting_ridge",
+   "name": "Moon Base I landing target: Shackleton Connecting Ridge",
+   "category": "moon_base_site",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "NASA statement via secondary quotation; fixed base site NOT established",
+   "limitations": "No coordinates for the Moon Base I landing target were published. For approximate ridge positions see connecting_ridge (Trek-derived), connecting_ridge_shackleton_junction and illumination_sites.json.",
+   "sources": [
+    "https://www.collectspace.com/ubb/Forum33/HTML/000840.html",
+    "https://starlust.org/nasa-to-launch-three-moon-base-missions-this-year-itselfheres-all-you-need-to-know-about-them/",
+    "https://www.astronomy.com/space-exploration/how-nasa-plans-to-build-a-moon-base/",
+    "https://www.nasa.gov/wp-content/uploads/2026/03/building-the-moon-base.pdf",
+    "https://www.nasa.gov/reference/moonbase-about/",
+    "https://www.techtimes.com/articles/317212/20260526/nasa-moon-base-30b-79-launch-plan-locks-shackleton-crater-2036.htm"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "moon_base_shackleton_connecting_ridge"
+   },
+   "properties": {
+    "list_membership": {
+     "artemis_2022_13": false,
+     "artemis_2024_9": false,
+     "moon_base_reference_site": true
+    },
+    "size_km": null,
+    "selection_criteria_notes": "NASA (26 May 2026, as quoted): Moon Base I (Blue Moon MK1 'Endurance') 'will land on the Shackleton Connecting Ridge to demonstrate capabilities that reduce risk for future crewed Artemis landing missions in 2028'. The Moon Base is 'located at the lunar South Pole'; base location to be confirmed from Phase 1 robotic scouting; Phase 2 speaks of multiple locations. Reporting rationale: near-continuous solar power on sunlit ridges, water ice in nearby PSRs. NASA 2022: ridge 'could have ice below the surface'. One outlet (TechTimes) claims the plan 'locks' Shackleton crater rim by 2036 - single secondary source, not stated by NASA."
+   }
+  },
+  {
+   "id": "connecting_ridge_shackleton_junction",
+   "name": "Shackleton-de Gerlache Connecting Ridge, junction with Shackleton rim",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.684,
+    "lon_east_180": -163.261,
+    "lon_east_360": 196.739
+   },
+   "frame": null,
+   "location_note": "LROC feature point",
+   "evidence": "primary (LROC post)",
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1247"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "connecting_ridge_shackleton_junction"
+   },
+   "properties": {
+    "list_membership": {},
+    "size_km": "ridge ~14 km long",
+    "selection_criteria_notes": "1:8,000 geomorphic map (Icarus 2022); ~8 m blocks near junction are primary sampling targets; flat spot with line of sight into Shackleton PSR."
+   }
+  },
+  {
+   "id": "malapert_scan_site_hls_md",
+   "name": "Malapert site used in NASA HLS 10-year opportunity scan",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.0,
+    "lon_east_180": 2.4,
+    "lon_east_360": 2.4
+   },
+   "frame": null,
+   "location_note": "analysis site in NASA mission-design slides",
+   "evidence": "primary (NASA slides); legacy NRHO analysis",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20230002566/downloads/HLS%20NRHO%20to%20Lunar%20Surface%20and%20Back%20Mission%20Design_STRIVES.pptx.pdf"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "malapert_scan_site_hls_md"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "557 HLS opportunities in a 10-year scan from 3 Sep 2024 (legacy NRHO design)."
+   }
+  },
+  {
+   "id": "mons_mouton_feature",
+   "name": "Mons Mouton (feature)",
+   "category": "named_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6,
+    "lon_east_180": 31.0,
+    "lon_east_360": 31.0
+   },
+   "frame": null,
+   "location_note": "named-feature centre",
+   "evidence": "secondary source (Wikipedia citing USGS Gazetteer and NASA SVS 5074)",
+   "limitations": "One NASA VIPER slide lists Mons Mouton as '84.6 S, 31.0 W' - sign inconsistent with all other sources (east); https://ntrs.nasa.gov/api/citations/20240007332/downloads/viper-2024-06-07.pdf",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mons_Mouton"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "mons_mouton_feature"
+   },
+   "properties": {
+    "list_membership": {},
+    "size_km": "about 100 km wide (just under 100 km), about 6 km high",
+    "selection_criteria_notes": "Flat-topped mountain; formerly Leibnitz Beta; named 13 May 2022; 'possibly' SPA rim remnant."
+   }
+  },
+  {
+   "id": "im2_intended_site",
+   "name": "IM-2 intended landing site (Mons Mouton)",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.78,
+    "lon_east_180": 29.13,
+    "lon_east_360": 29.13
+   },
+   "frame": null,
+   "location_note": "mission target point (LROC)",
+   "evidence": "primary (LROC, 26 Feb 2025)",
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1401"
+   ],
+   "app_site_id": "im-2-intended",
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "im2_intended_site"
+   },
+   "properties": {
+    "list_membership": {},
+    "alt_coordinates": [
+     {
+      "coordinate_kind": "PRIME-1 target per NASA MSolo slides",
+      "lat": -84.7754,
+      "lon_east_180": 29.128,
+      "lon_east_360": 29.128,
+      "source_url": "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf"
+     }
+    ],
+    "selection_criteria_notes": "'Central portion of one of the Artemis 3 potential landing regions'; 160 km from the pole."
+   }
+  },
+  {
+   "id": "viper_planned_landing_2021",
+   "name": "VIPER planned landing location (2021 Griffin-era plan), Mons Mouton",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.449452,
+    "lon_east_180": 31.064135,
+    "lon_east_360": 31.064135
+   },
+   "frame": null,
+   "location_note": "mission planned landing point",
+   "evidence": "primary (NASA/VIPER slides 2021)",
+   "limitations": "2021 values may be superseded for the 2027 Blue Moon MK1 delivery; updated coordinates not found.",
+   "sources": [
+    "https://www.nationalacademies.org/cdn/materials/9fba0b0c-198c-4772-a367-136febe32e2a"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "viper_planned_landing_2021"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Average slope 5 deg; chosen for high WEH, variety of ice-stability depths, survivable shadow durations, Earth line-of-sight."
+   }
+  },
+  {
+   "id": "gracy_lee_connecting_ridge",
+   "name": "Proposed site in 'Connecting Ridge' (Gracy and Lee, LPSC 2024 no. 1695)",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.53432,
+    "lon_east_180": -150.05233,
+    "lon_east_360": 209.94767
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (conference abstract)",
+   "limitations": null,
+   "sources": [
+    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "gracy_lee_connecting_ridge"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Near rim of crater holding H2O-ice PSR no. 107. Screening: 2 km-radius exploration zone (12.57 km2) around a 100 m x 100 m landing spot; slope <= 5 deg over >= 25% of zone; solar illumination >= 33% of time; DTE visibility >= 50% of time. SPA fraction 46%."
+   }
+  },
+  {
+   "id": "gracy_lee_peak_near_shackleton",
+   "name": "Proposed site in 'Peak Near Shackleton' (Gracy and Lee, LPSC 2024 no. 1695)",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.01701,
+    "lon_east_180": 126.27302,
+    "lon_east_360": 126.27302
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (conference abstract)",
+   "limitations": null,
+   "sources": [
+    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "gracy_lee_peak_near_shackleton"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Near rim of crater holding H2O-ice PSR no. 112. SPA fraction 47%."
+   }
+  },
+  {
+   "id": "topsis_dm2_nobile_rim_2",
+   "name": "Top-ranked TOPSIS point, Nobile Rim 2 ('DM2', point #358)",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.20156,
+    "lon_east_180": 60.69989,
+    "lon_east_360": 60.69989
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint, accepted in Acta Astronautica); MODEL/ranking",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_dm2_nobile_rim_2"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 1 of 1,247 points; Ri = 0.6916 (0.8453 in sensitivity case); first under TOPSIS, MABAC, CoCoSo, VIKOR."
+   }
+  },
+  {
+   "id": "topsis_dm1_amundsen_rim",
+   "name": "Best TOPSIS point, Amundsen Rim ('DM1')",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.19184,
+    "lon_east_180": 67.22904,
+    "lon_east_360": 67.22904
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint)",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_dm1_amundsen_rim"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 10."
+   }
+  },
+  {
+   "id": "topsis_site07_peak_near_shackleton",
+   "name": "Best TOPSIS point, Peak Near Shackleton ('Site07')",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.00506,
+    "lon_east_180": 125.3093,
+    "lon_east_360": 125.3093
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint)",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_site07_peak_near_shackleton"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 15."
+   }
+  },
+  {
+   "id": "topsis_lm7_faustini_rim_a",
+   "name": "Best TOPSIS point, Faustini Rim A ('LM7')",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.08695,
+    "lon_east_180": 98.35549,
+    "lon_east_360": 98.35549
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint)",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_lm7_faustini_rim_a"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 16."
+   }
+  },
+  {
+   "id": "topsis_sl2_de_gerlache_rim_2",
+   "name": "Best TOPSIS point, de Gerlache Rim 2 ('SL2')",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.51566,
+    "lon_east_180": -61.16732,
+    "lon_east_360": 298.83268
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint)",
+   "limitations": "Source gives 61 deg 10' 2.35\" 'O' (= west); sign interpreted as west by the researcher. lon_east_360 computed during conversion (360 - 61.16732).",
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_sl2_de_gerlache_rim_2"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 19."
+   }
+  },
+  {
+   "id": "topsis_site04_point",
+   "name": "TOPSIS point in 'Site04' (unnamed, on Shackleton rim near the pole)",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.95919,
+    "lon_east_180": 135.81846,
+    "lon_east_360": 135.81846
+   },
+   "frame": null,
+   "location_note": "paper point site",
+   "evidence": "primary (preprint)",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2406.19863v2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "topsis_site04_point"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "Rank 13. Site 004 is not one of the 13 NASA regions (added by the study; 56 points)."
+   }
+  },
+  {
+   "id": "faustini_rim_a_unnamed_crater",
+   "name": "Unnamed crater inside Faustini Rim A",
+   "category": "literature_point_site",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.0573,
+    "lon_east_180": 89.1596,
+    "lon_east_360": 89.1596
+   },
+   "frame": null,
+   "location_note": "paper point site (abstract)",
+   "evidence": "search-result snippet only",
+   "limitations": "Coordinates taken from a search-result snippet, not from the abstract text.",
+   "sources": [
+    "https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2042.pdf"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "candidate_regions.json",
+    "id": "faustini_rim_a_unnamed_crater"
+   },
+   "properties": {
+    "list_membership": {},
+    "selection_criteria_notes": "2023 Artemis III workshop abstract."
+   }
+  },
+  {
+   "id": "artemis_4",
+   "name": "Artemis IV",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "near the lunar South Pole; no region named; site undecided as of Oct-Nov 2026",
+   "evidence": null,
+   "limitations": "No landing coordinates; crew, stay length in days and SLS upper stage not confirmed by a primary source. Upper-stage conflict: Wikipedia 'Artemis IV' says final SLS flight with ICPS; Wikipedia 'Artemis program' says Centaur V replaces ICPS starting with Artemis IV.",
+   "sources": [
+    "https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/",
+    "https://spacenexus.us/moon/weekly/week-of-2026-11-02",
+    "https://payloadspace.com/nasa-outlines-the-details-of-artemis-iii-and-iv-missions/",
+    "https://spacepolicyonline.com/news/nasa-is-full-steam-ahead-on-artemis-iii-iv-and-v/",
+    "https://spaceinfo.club/artemis-iv-what-we-know-about-nasas-first-planned-moon-landing-mission-november-2026-update/",
+    "https://ntrs.nasa.gov/api/citations/20250011534/downloads/LEAG-2025_NASA%20Artemis%20Updates.pdf",
+    "https://jatan.space/moon-monday-issue-277/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "artemis_4"
+   },
+   "properties": {
+    "agency": "NASA",
+    "status": "PLANNED, first crewed landing",
+    "dates": "2028 ('early 2028' in Feb/Mar 2026 reporting; trackers changed to just '2028' between 25 Oct and 1 Nov 2026; NASA goal landing attempt by end of 2028)",
+    "outcome": null,
+    "landing": {
+     "intended_site": "near the lunar South Pole; no region named; site undecided as of Oct-Nov 2026",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "artemis_5",
+   "name": "Artemis V",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "near the lunar South Pole",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://starlust.org/heres-what-nasa-is-planning-for-artemis-iv-and-v-now-that-the-roadmap-to-the-moon-has-been-revised/",
+    "https://en.wikipedia.org/wiki/Artemis_program"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "artemis_5"
+   },
+   "properties": {
+    "agency": "NASA",
+    "status": "PLANNED, second crewed landing",
+    "dates": "Late 2028",
+    "outcome": null,
+    "landing": {
+     "intended_site": "near the lunar South Pole",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "ch1_mip",
+   "name": "Chandrayaan-1 Moon Impact Probe",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Near Shackleton rim",
+   "evidence": "secondary source",
+   "limitations": "No coordinates in notes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Lunar_south_pole"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "ch1_mip"
+   },
+   "properties": {
+    "agency": "ISRO",
+    "status": "FLOWN",
+    "dates": "14 Nov 2008",
+    "outcome": "Deliberate impact; mass spectrometer detected water during descent",
+    "landing": {
+     "site": "Near Shackleton rim",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "lunar_prospector_impact",
+   "name": "Lunar Prospector end-of-mission impact",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Shoemaker crater",
+   "evidence": "secondary source",
+   "limitations": "No impact coordinates in notes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "lunar_prospector_impact"
+   },
+   "properties": {
+    "agency": "NASA",
+    "status": "FLOWN",
+    "dates": "31 Jul 1999",
+    "outcome": "Deliberate crash; no detectable water vapour plume",
+    "landing": {
+     "site": "Shoemaker crater",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "lcross_actual",
+   "name": "LCROSS — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6796,
+    "lon_east_180": -48.7093,
+    "lon_east_360": 311.2907
+   },
+   "frame": null,
+   "location_note": "Cabeus PSR",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687",
+    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+    "https://en.wikipedia.org/wiki/Lunar_south_pole"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "lcross"
+   },
+   "properties": {
+    "agency": "NASA",
+    "status": "FLOWN",
+    "dates": "Impact 9 Oct 2009, Centaur at 11:31:19.506 UTC",
+    "outcome": "Impact; water 5.6 +/- 2.9 wt% in ejecta ('nearly 5% water' in one secondary summary)",
+    "landing": {
+     "site": "Cabeus PSR",
+     "actual": {
+      "lat": -84.6796,
+      "lon_east_180": -48.7093,
+      "lon_east_360": 311.2907
+     },
+     "intended": {
+      "lat": -84.675,
+      "lon_east_180": -48.725,
+      "lon_east_360": 311.275
+     }
+    }
+   }
+  },
+  {
+   "id": "lcross_intended",
+   "name": "LCROSS — intended",
+   "category": "mission_landing_intended",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.675,
+    "lon_east_180": -48.725,
+    "lon_east_360": 311.275
+   },
+   "frame": null,
+   "location_note": "Cabeus PSR",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687",
+    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+    "https://en.wikipedia.org/wiki/Lunar_south_pole"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "lcross"
+   },
+   "properties": {
+    "agency": "NASA",
+    "status": "FLOWN",
+    "dates": "Impact 9 Oct 2009, Centaur at 11:31:19.506 UTC",
+    "outcome": "Impact; water 5.6 +/- 2.9 wt% in ejecta ('nearly 5% water' in one secondary summary)",
+    "landing": {
+     "site": "Cabeus PSR",
+     "actual": {
+      "lat": -84.6796,
+      "lon_east_180": -48.7093,
+      "lon_east_360": 311.2907
+     },
+     "intended": {
+      "lat": -84.675,
+      "lon_east_180": -48.725,
+      "lon_east_360": 311.275
+     }
+    }
+   }
+  },
+  {
+   "id": "luna_25_actual",
+   "name": "Luna-25 — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -57.865,
+    "lon_east_180": 61.36,
+    "lon_east_360": 61.36
+   },
+   "frame": null,
+   "location_note": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
+    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "luna_25"
+   },
+   "properties": {
+    "agency": "Roscosmos",
+    "status": "FLOWN (failure)",
+    "dates": "Crashed 19 Aug 2023",
+    "outcome": "Failure after an orbit-lowering burn",
+    "landing": {
+     "site": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target",
+     "actual": {
+      "lat": -57.865,
+      "lon_east_180": 61.36,
+      "lon_east_360": 61.36
+     },
+     "intended": {
+      "lat": -69.545,
+      "lon_east_180": 43.544,
+      "lon_east_360": 43.544,
+      "note": "main site, north of Boguslawsky"
+     },
+     "reserve": {
+      "lat": -68.773,
+      "lon_east_180": 21.21,
+      "lon_east_360": 21.21
+     }
+    }
+   }
+  },
+  {
+   "id": "luna_25_intended",
+   "name": "Luna-25 — intended",
+   "category": "mission_landing_intended",
+   "geometry": {
+    "type": "Point",
+    "lat": -69.545,
+    "lon_east_180": 43.544,
+    "lon_east_360": 43.544
+   },
+   "frame": null,
+   "location_note": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target; note: main site, north of Boguslawsky",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
+    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "luna_25"
+   },
+   "properties": {
+    "agency": "Roscosmos",
+    "status": "FLOWN (failure)",
+    "dates": "Crashed 19 Aug 2023",
+    "outcome": "Failure after an orbit-lowering burn",
+    "landing": {
+     "site": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target",
+     "actual": {
+      "lat": -57.865,
+      "lon_east_180": 61.36,
+      "lon_east_360": 61.36
+     },
+     "intended": {
+      "lat": -69.545,
+      "lon_east_180": 43.544,
+      "lon_east_360": 43.544,
+      "note": "main site, north of Boguslawsky"
+     },
+     "reserve": {
+      "lat": -68.773,
+      "lon_east_180": 21.21,
+      "lon_east_360": 21.21
+     }
+    }
+   }
+  },
+  {
+   "id": "luna_25_reserve",
+   "name": "Luna-25 — reserve",
+   "category": "mission_landing_reserve",
+   "geometry": {
+    "type": "Point",
+    "lat": -68.773,
+    "lon_east_180": 21.21,
+    "lon_east_360": 21.21
+   },
+   "frame": null,
+   "location_note": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
+    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "luna_25"
+   },
+   "properties": {
+    "agency": "Roscosmos",
+    "status": "FLOWN (failure)",
+    "dates": "Crashed 19 Aug 2023",
+    "outcome": "Failure after an orbit-lowering burn",
+    "landing": {
+     "site": "Crashed on SW rim of Pontecoulant G; new crater about 10 m; about 400 km from target",
+     "actual": {
+      "lat": -57.865,
+      "lon_east_180": 61.36,
+      "lon_east_360": 61.36
+     },
+     "intended": {
+      "lat": -69.545,
+      "lon_east_180": 43.544,
+      "lon_east_360": 43.544,
+      "note": "main site, north of Boguslawsky"
+     },
+     "reserve": {
+      "lat": -68.773,
+      "lon_east_180": 21.21,
+      "lon_east_360": 21.21
+     }
+    }
+   }
+  },
+  {
+   "id": "chandrayaan_3_actual",
+   "name": "Chandrayaan-3 (Vikram lander, Pragyan rover) — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -69.373,
+    "lon_east_180": 32.319,
+    "lon_east_360": 32.319
+   },
+   "frame": null,
+   "location_note": "Statio Shiv Shakti, between Manzinus C and Simpelius N; source: Wikipedia",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Chandrayaan-3",
+    "https://jatan.space/moon-monday-issue-136.md",
+    "https://jatan.space/chandrayaan-3-makes-historic-touchdown/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "chandrayaan_3"
+   },
+   "properties": {
+    "agency": "ISRO",
+    "status": "FLOWN",
+    "dates": "Landed 23 Aug 2023, 12:33-12:34 UTC",
+    "outcome": "Success; first soft landing near the south pole; lander and rover worked one lunar day (rover 12 days); no response to wake-up calls 22 Sep 2023",
+    "landing": {
+     "site": "Statio Shiv Shakti, between Manzinus C and Simpelius N",
+     "actual": {
+      "lat": -69.373,
+      "lon_east_180": 32.319,
+      "lon_east_360": 32.319,
+      "source": "Wikipedia"
+     },
+     "actual_alt": {
+      "lat": -69.367621,
+      "lon_east_180": 32.348126,
+      "lon_east_360": 32.348126,
+      "source": "ISRO via Moon Monday no. 136"
+     },
+     "intended": null
+    }
+   }
+  },
+  {
+   "id": "chandrayaan_3_actual_alt",
+   "name": "Chandrayaan-3 (Vikram lander, Pragyan rover) — actual_alt",
+   "category": "mission_landing_actual_alt",
+   "geometry": {
+    "type": "Point",
+    "lat": -69.367621,
+    "lon_east_180": 32.348126,
+    "lon_east_360": 32.348126
+   },
+   "frame": null,
+   "location_note": "Statio Shiv Shakti, between Manzinus C and Simpelius N; source: ISRO via Moon Monday no. 136",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Chandrayaan-3",
+    "https://jatan.space/moon-monday-issue-136.md",
+    "https://jatan.space/chandrayaan-3-makes-historic-touchdown/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "chandrayaan_3"
+   },
+   "properties": {
+    "agency": "ISRO",
+    "status": "FLOWN",
+    "dates": "Landed 23 Aug 2023, 12:33-12:34 UTC",
+    "outcome": "Success; first soft landing near the south pole; lander and rover worked one lunar day (rover 12 days); no response to wake-up calls 22 Sep 2023",
+    "landing": {
+     "site": "Statio Shiv Shakti, between Manzinus C and Simpelius N",
+     "actual": {
+      "lat": -69.373,
+      "lon_east_180": 32.319,
+      "lon_east_360": 32.319,
+      "source": "Wikipedia"
+     },
+     "actual_alt": {
+      "lat": -69.367621,
+      "lon_east_180": 32.348126,
+      "lon_east_360": 32.348126,
+      "source": "ISRO via Moon Monday no. 136"
+     },
+     "intended": null
+    }
+   }
+  },
+  {
+   "id": "im_1_actual",
+   "name": "IM-1 Odysseus — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.13,
+    "lon_east_180": 1.44,
+    "lon_east_360": 1.44
+   },
+   "frame": null,
+   "location_note": "Near Malapert A, about 300 km from the pole; elevation 2,579 m",
+   "evidence": "secondary source",
+   "limitations": "Coordinates come from secondary sources / search excerpts per the programme note. Intended target coordinates not in notes.",
+   "sources": [
+    "https://jatan.space/moon-monday-issue-165/",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/",
+    "https://lroc.im-ldi.com/images/1360",
+    "https://en.wikipedia.org/wiki/IM-1",
+    "https://payloadspace.com/im-1-is-sideways-but-weve-all-been-there/"
+   ],
+   "app_site_id": "im-1",
+   "origin": {
+    "file": "missions.json",
+    "id": "im_1"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "FLOWN (partial)",
+    "dates": "Landed 22 Feb 2024, 23:23:53 UTC; power lost 29 Feb (ended 28/29 Feb, sources differ)",
+    "outcome": "Partial: landed within about 1.5 km of target (100 m precision goal missed), on a 12 deg slope in a degraded ~1 km crater, broke a leg, rested ~30 deg tilted; about seven days of data; not revived after the night",
+    "landing": {
+     "site": "Near Malapert A, about 300 km from the pole; elevation 2,579 m",
+     "actual": {
+      "lat": -80.13,
+      "lon_east_180": 1.44,
+      "lon_east_360": 1.44
+     },
+     "intended": null
+    }
+   }
+  },
+  {
+   "id": "im_2_actual",
+   "name": "IM-2 Athena (PRIME-1: TRIDENT drill + MSolo) — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.7906,
+    "lon_east_180": 29.1957,
+    "lon_east_360": 29.1957
+   },
+   "frame": null,
+   "location_note": "Mons Mouton; source: LROC",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1401",
+    "https://lroc.im-ldi.com/images/1408",
+    "https://en.wikipedia.org/wiki/Mons_Mouton",
+    "https://en.wikipedia.org/wiki/IM-2",
+    "https://spaceflightnow.com/2025/03/07/intuitive-machines-im-2-mission-ends-with-lander-on-its-side-on-the-moon/",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/",
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_2"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "FLOWN (failure)",
+    "dates": "Launched 26 Feb 2025; lunar orbit 3 Mar; landed 6 Mar 2025 (17:28 UTC per NASA slides; ~17:28 per LROC note; 17:31 UTC per collectSPACE); operations ended 7 Mar 06:15",
+    "outcome": "Failure: on its side in a shadowed crater about 20 m wide at about -173 C (~100 K); ~100 W; operations ended <13 h after landing (~12 h); >400 MB returned; southernmost landing to date",
+    "landing": {
+     "site": "Mons Mouton",
+     "actual": {
+      "lat": -84.7906,
+      "lon_east_180": 29.1957,
+      "lon_east_360": 29.1957,
+      "source": "LROC"
+     },
+     "actual_alt": {
+      "lat": -84.79059,
+      "lon_east_180": 29.19567,
+      "lon_east_360": 29.19567,
+      "source": "NASA MSolo slides"
+     },
+     "intended": {
+      "lat": -84.78,
+      "lon_east_180": 29.13,
+      "lon_east_360": 29.13,
+      "source": "LROC"
+     },
+     "intended_alt": {
+      "lat": -84.7754,
+      "lon_east_180": 29.128,
+      "lon_east_360": 29.128,
+      "source": "NASA MSolo slides"
+     },
+     "miss_distance": "about 250 m (LROC/collectSPACE); ~500 m per NASA slides; ~400 m per press",
+     "distance_from_pole": "160 km (LROC, intended site); ~158 km (derived by researcher)"
+    }
+   }
+  },
+  {
+   "id": "im_2_actual_alt",
+   "name": "IM-2 Athena (PRIME-1: TRIDENT drill + MSolo) — actual_alt",
+   "category": "mission_landing_actual_alt",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.79059,
+    "lon_east_180": 29.19567,
+    "lon_east_360": 29.19567
+   },
+   "frame": null,
+   "location_note": "Mons Mouton; source: NASA MSolo slides",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1401",
+    "https://lroc.im-ldi.com/images/1408",
+    "https://en.wikipedia.org/wiki/Mons_Mouton",
+    "https://en.wikipedia.org/wiki/IM-2",
+    "https://spaceflightnow.com/2025/03/07/intuitive-machines-im-2-mission-ends-with-lander-on-its-side-on-the-moon/",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/",
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_2"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "FLOWN (failure)",
+    "dates": "Launched 26 Feb 2025; lunar orbit 3 Mar; landed 6 Mar 2025 (17:28 UTC per NASA slides; ~17:28 per LROC note; 17:31 UTC per collectSPACE); operations ended 7 Mar 06:15",
+    "outcome": "Failure: on its side in a shadowed crater about 20 m wide at about -173 C (~100 K); ~100 W; operations ended <13 h after landing (~12 h); >400 MB returned; southernmost landing to date",
+    "landing": {
+     "site": "Mons Mouton",
+     "actual": {
+      "lat": -84.7906,
+      "lon_east_180": 29.1957,
+      "lon_east_360": 29.1957,
+      "source": "LROC"
+     },
+     "actual_alt": {
+      "lat": -84.79059,
+      "lon_east_180": 29.19567,
+      "lon_east_360": 29.19567,
+      "source": "NASA MSolo slides"
+     },
+     "intended": {
+      "lat": -84.78,
+      "lon_east_180": 29.13,
+      "lon_east_360": 29.13,
+      "source": "LROC"
+     },
+     "intended_alt": {
+      "lat": -84.7754,
+      "lon_east_180": 29.128,
+      "lon_east_360": 29.128,
+      "source": "NASA MSolo slides"
+     },
+     "miss_distance": "about 250 m (LROC/collectSPACE); ~500 m per NASA slides; ~400 m per press",
+     "distance_from_pole": "160 km (LROC, intended site); ~158 km (derived by researcher)"
+    }
+   }
+  },
+  {
+   "id": "im_2_intended",
+   "name": "IM-2 Athena (PRIME-1: TRIDENT drill + MSolo) — intended",
+   "category": "mission_landing_intended",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.78,
+    "lon_east_180": 29.13,
+    "lon_east_360": 29.13
+   },
+   "frame": null,
+   "location_note": "Mons Mouton; source: LROC",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1401",
+    "https://lroc.im-ldi.com/images/1408",
+    "https://en.wikipedia.org/wiki/Mons_Mouton",
+    "https://en.wikipedia.org/wiki/IM-2",
+    "https://spaceflightnow.com/2025/03/07/intuitive-machines-im-2-mission-ends-with-lander-on-its-side-on-the-moon/",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/",
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_2"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "FLOWN (failure)",
+    "dates": "Launched 26 Feb 2025; lunar orbit 3 Mar; landed 6 Mar 2025 (17:28 UTC per NASA slides; ~17:28 per LROC note; 17:31 UTC per collectSPACE); operations ended 7 Mar 06:15",
+    "outcome": "Failure: on its side in a shadowed crater about 20 m wide at about -173 C (~100 K); ~100 W; operations ended <13 h after landing (~12 h); >400 MB returned; southernmost landing to date",
+    "landing": {
+     "site": "Mons Mouton",
+     "actual": {
+      "lat": -84.7906,
+      "lon_east_180": 29.1957,
+      "lon_east_360": 29.1957,
+      "source": "LROC"
+     },
+     "actual_alt": {
+      "lat": -84.79059,
+      "lon_east_180": 29.19567,
+      "lon_east_360": 29.19567,
+      "source": "NASA MSolo slides"
+     },
+     "intended": {
+      "lat": -84.78,
+      "lon_east_180": 29.13,
+      "lon_east_360": 29.13,
+      "source": "LROC"
+     },
+     "intended_alt": {
+      "lat": -84.7754,
+      "lon_east_180": 29.128,
+      "lon_east_360": 29.128,
+      "source": "NASA MSolo slides"
+     },
+     "miss_distance": "about 250 m (LROC/collectSPACE); ~500 m per NASA slides; ~400 m per press",
+     "distance_from_pole": "160 km (LROC, intended site); ~158 km (derived by researcher)"
+    }
+   }
+  },
+  {
+   "id": "im_2_intended_alt",
+   "name": "IM-2 Athena (PRIME-1: TRIDENT drill + MSolo) — intended_alt",
+   "category": "mission_landing_intended_alt",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.7754,
+    "lon_east_180": 29.128,
+    "lon_east_360": 29.128
+   },
+   "frame": null,
+   "location_note": "Mons Mouton; source: NASA MSolo slides",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1401",
+    "https://lroc.im-ldi.com/images/1408",
+    "https://en.wikipedia.org/wiki/Mons_Mouton",
+    "https://en.wikipedia.org/wiki/IM-2",
+    "https://spaceflightnow.com/2025/03/07/intuitive-machines-im-2-mission-ends-with-lander-on-its-side-on-the-moon/",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/",
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_2"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "FLOWN (failure)",
+    "dates": "Launched 26 Feb 2025; lunar orbit 3 Mar; landed 6 Mar 2025 (17:28 UTC per NASA slides; ~17:28 per LROC note; 17:31 UTC per collectSPACE); operations ended 7 Mar 06:15",
+    "outcome": "Failure: on its side in a shadowed crater about 20 m wide at about -173 C (~100 K); ~100 W; operations ended <13 h after landing (~12 h); >400 MB returned; southernmost landing to date",
+    "landing": {
+     "site": "Mons Mouton",
+     "actual": {
+      "lat": -84.7906,
+      "lon_east_180": 29.1957,
+      "lon_east_360": 29.1957,
+      "source": "LROC"
+     },
+     "actual_alt": {
+      "lat": -84.79059,
+      "lon_east_180": 29.19567,
+      "lon_east_360": 29.19567,
+      "source": "NASA MSolo slides"
+     },
+     "intended": {
+      "lat": -84.78,
+      "lon_east_180": 29.13,
+      "lon_east_360": 29.13,
+      "source": "LROC"
+     },
+     "intended_alt": {
+      "lat": -84.7754,
+      "lon_east_180": 29.128,
+      "lon_east_360": 29.128,
+      "source": "NASA MSolo slides"
+     },
+     "miss_distance": "about 250 m (LROC/collectSPACE); ~500 m per NASA slides; ~400 m per press",
+     "distance_from_pole": "160 km (LROC, intended site); ~158 km (derived by researcher)"
+    }
+   }
+  },
+  {
+   "id": "blue_ghost_1",
+   "name": "Blue Ghost Mission 1",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Mare Crisium (not polar)",
+   "evidence": "secondary source",
+   "limitations": "Not polar; coordinates not in notes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services",
+    "https://www.astronomy.com/space-exploration/how-nasa-plans-to-build-a-moon-base/",
+    "https://fireflyspace.com/news/firefly-aerospace-successfully-completes-14-days-of-surface-operations-on-the-moon",
+    "https://www.space.com/total-lunar-eclipse-march-2025-what-happens-to-solar-powered-spacecraft"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "blue_ghost_1"
+   },
+   "properties": {
+    "agency": "Firefly / NASA CLPS",
+    "status": "FLOWN",
+    "dates": "Landed 2 Mar 2025",
+    "outcome": "Success; only CLPS 1.0 mission to fully meet objectives; operated > 14 days",
+    "landing": {
+     "site": "Mare Crisium (not polar)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "peregrine_1",
+   "name": "Peregrine Mission One",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Gruithuisen Domes (intended; not polar)",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "peregrine_1"
+   },
+   "properties": {
+    "agency": "Astrobotic / NASA CLPS",
+    "status": "FLOWN (failure)",
+    "dates": "Launched 8 Jan 2024",
+    "outcome": "Failure: propellant leak, no landing attempt",
+    "landing": {
+     "site": "Gruithuisen Domes (intended; not polar)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "change_4",
+   "name": "Chang'e-4 (context: biosphere experiment, LND radiation)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Far side (Von Karman crater, from researcher's memory; not re-verified)",
+   "evidence": "secondary source",
+   "limitations": "Not polar; site name not verified in the notes.",
+   "sources": [
+    "https://universetoday.com/143614/chinas-lander-successfully-grew-some-cotton-plants-on-the-moon-fruit-flies-and-potatoes-didnt-fare-so-well/",
+    "https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "change_4"
+   },
+   "properties": {
+    "agency": "CNSA",
+    "status": "FLOWN",
+    "dates": "2019",
+    "outcome": "Cotton seeds sprouted in sealed canister, died at first lunar night; LND measured ~1,369 uSv/day",
+    "landing": {
+     "site": "Far side (Von Karman crater, from researcher's memory; not re-verified)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "change_6_actual",
+   "name": "Chang'e-6 (context: SPA basin sample return) — actual",
+   "category": "mission_landing_actual",
+   "geometry": {
+    "type": "Point",
+    "lat": -41.625,
+    "lon_east_180": -153.978,
+    "lon_east_360": 206.022
+   },
+   "frame": null,
+   "location_note": "SPA basin, far side",
+   "evidence": null,
+   "limitations": "Not polar. lon_east_360 computed during conversion.",
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12086667/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "change_6"
+   },
+   "properties": {
+    "agency": "CNSA",
+    "status": "FLOWN",
+    "dates": "2024 (samples; papers 2025)",
+    "outcome": "SPA dated 4247 +/- 5 Ma from norite clasts",
+    "landing": {
+     "site": "SPA basin, far side",
+     "actual": {
+      "lat": -41.625,
+      "lon_east_180": -153.978,
+      "lon_east_360": 206.022
+     }
+    }
+   }
+  },
+  {
+   "id": "beresheet",
+   "name": "Beresheet (context: tardigrades)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Mare Serenitatis (from researcher's memory; not re-verified); not polar",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://cosmoquest.org/x/2021/05/tardigrades-designed-for-high-impact-collisions"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "beresheet"
+   },
+   "properties": {
+    "agency": "SpaceIL",
+    "status": "FLOWN (failure)",
+    "dates": "Crashed 11 Apr 2019",
+    "outcome": "Crash; tardigrade survival unlikely",
+    "landing": {
+     "site": "Mare Serenitatis (from researcher's memory; not re-verified); not polar",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "moon_base_1_endurance",
+   "name": "Moon Base I = Blue Moon Pathfinder Mission 1 (Blue Moon MK1 'Endurance', MK1-101)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Shackleton Connecting Ridge",
+   "evidence": "secondary source",
+   "limitations": "Landing coordinates not published. Conflicting dates kept (Q1 2027 vs NET 2H 2027).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Blue_Moon_Pathfinder_Mission_1",
+    "https://nasa.gov/missions/moon-base/nasa-provides-updates-on-moon-base-cargo-landers-tech-demonstrations",
+    "https://starlust.org/nasa-to-launch-three-moon-base-missions-this-year-itselfheres-all-you-need-to-know-about-them/",
+    "https://jatan.space/moon-monday-issue-277/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "moon_base_1_endurance"
+   },
+   "properties": {
+    "agency": "Blue Origin (New Glenn); NASA payloads",
+    "status": "PLANNED",
+    "dates": "NET Q1 2027 (launch-listing sites/Wikipedia); a June 2026 newsletter: no earlier than 2H 2027; was NET fall 2026 / end-2026 (SUPERSEDED)",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Shackleton Connecting Ridge",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "moon_base_2_griffin_1",
+   "name": "Moon Base II = Griffin Mission One",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Nobile crater region, South Pole",
+   "evidence": "secondary source",
+   "limitations": "Landing coordinates not published.",
+   "sources": [
+    "https://spacenexus.us/moon/weekly/week-of-2026-11-02",
+    "https://nasa.gov/missions/moon-base/nasa-provides-updates-on-moon-base-cargo-landers-tech-demonstrations",
+    "https://spaceflightnow.com/2025/10/28/astrobotic-delays-griffin-1-moon-mission-to-net-july-2026/",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "moon_base_2_griffin_1"
+   },
+   "properties": {
+    "agency": "Astrobotic (acquired by Voyager Technologies, Jun 2026), Falcon Heavy; NASA CLPS",
+    "status": "PLANNED",
+    "dates": "Listing moved from 31 Dec 2026 to 31 Jan 2027 (seen 1 Nov 2026); NASA in Aug 2026 said 'late 2026'; NET Jul 2026 SUPERSEDED",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Nobile crater region, South Pole",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "moon_base_3_im_3",
+   "name": "Moon Base III = IM-3 (Nova-C 'Trinity'; Lunar Vertex)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Reiner Gamma (not polar)",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services",
+    "https://aerospaceamerica.aiaa.org/how-intuitive-machines-is-planning-to-make-its-third-moon-landing-a-successful-one/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "moon_base_3_im_3"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "PLANNED",
+    "dates": "Early 2027 per Wikipedia (was 2026)",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Reiner Gamma (not polar)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "viper_intended_2021_plan",
+   "name": "VIPER (CS-7, Blue Moon Pathfinder Mission 2) — intended_2021_plan",
+   "category": "mission_landing_intended_2021_plan",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.449452,
+    "lon_east_180": 31.064135,
+    "lon_east_360": 31.064135
+   },
+   "frame": null,
+   "location_note": "Mons Mouton, western edge of Nobile",
+   "evidence": "secondary source",
+   "limitations": "Task-order date given as 19 Sep 2025 in one note and 'Sept 2025' elsewhere. 2021 coordinates may be superseded for the 2027 delivery; updated landing coordinates not published.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/VIPER_(rover)",
+    "https://satnews.com/2025/12/17/nasa-solidifies-lunar-strategy-with-blue-origin-viper-delivery-task-order/",
+    "https://starlust.org/nasa-to-launch-three-moon-base-missions-this-year-itselfheres-all-you-need-to-know-about-them/",
+    "https://www.nationalacademies.org/cdn/materials/9fba0b0c-198c-4772-a367-136febe32e2a",
+    "https://ntrs.nasa.gov/api/citations/20220008301/downloads/2022-06-02-spaceops-viper-planning.pdf",
+    "https://jatan.space/moon-monday-issue-277/",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "viper"
+   },
+   "properties": {
+    "agency": "NASA; delivery Blue Origin Blue Moon MK1",
+    "status": "PLANNED (cancelled 17 Jul 2024, SUPERSEDED; revived by CLPS task order Sep 2025, up to ~$190M)",
+    "dates": "Late 2027 / fall 2027; a June 2026 newsletter judges 2H 2028 more likely. Original plan: landing Nov 2023, then Nov 2024.",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Mons Mouton, western edge of Nobile",
+     "intended_2021_plan": {
+      "lat": -85.449452,
+      "lon_east_180": 31.064135,
+      "lon_east_360": 31.064135
+     },
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "im_4",
+   "name": "IM-4 (Nova-C; ESA PROSPECT)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "South Pole / Mons Mouton plateau",
+   "evidence": "secondary source",
+   "limitations": "Coordinates not published.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services",
+    "https://en.wikipedia.org/wiki/Mons_Mouton"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_4"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "PLANNED",
+    "dates": "2027 (two Khon relay satellites to launch with it, no earlier than 2H 2027)",
+    "landing": {
+     "intended_site": "South Pole / Mons Mouton plateau",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "blue_ghost_2",
+   "name": "Blue Ghost Mission 2 (Blue Ghost + Elytra; LuSEE-Night)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Far side (not polar)",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services",
+    "https://en.wikipedia.org/wiki/Blue_Ghost_Mission_2"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "blue_ghost_2"
+   },
+   "properties": {
+    "agency": "Firefly / NASA CLPS",
+    "status": "PLANNED",
+    "dates": "Early 2027 (another note: no earlier than late 2026 / 2027)",
+    "landing": {
+     "intended_site": "Far side (not polar)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "blue_ghost_4",
+   "name": "Blue Ghost Mission 4 (Canadian rover)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "South Pole",
+   "evidence": "secondary source",
+   "limitations": "Coordinates not published.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "blue_ghost_4"
+   },
+   "properties": {
+    "agency": "Firefly / NASA CLPS",
+    "status": "PLANNED",
+    "dates": "2029",
+    "landing": {
+     "intended_site": "South Pole",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "im_5",
+   "name": "IM-5 (Nova-D)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Mons Malapert (described as chosen for continuous Earth visibility)",
+   "evidence": "secondary source",
+   "limitations": "Coordinates not published.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services",
+    "https://www.militaryaerospace.com/commercial-aerospace/article/55366507/nasa-awards-1804-million-clps-contract-to-intuitive-machines-for-lunar-south-pole-payload-delivery"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "im_5"
+   },
+   "properties": {
+    "agency": "Intuitive Machines / NASA CLPS",
+    "status": "PLANNED (awarded Mar 2026)",
+    "dates": "2030",
+    "landing": {
+     "intended_site": "Mons Malapert (described as chosen for continuous Earth visibility)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "draper_apex",
+   "name": "Draper / ispace (APEX 1.0)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Schrodinger basin",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Commercial_Lunar_Payload_Services"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "draper_apex"
+   },
+   "properties": {
+    "agency": "ispace-U.S. / Draper / NASA CLPS",
+    "status": "CANCELLED Jul 2026 by mutual agreement with NASA",
+    "dates": null,
+    "landing": {
+     "intended_site": "Schrodinger basin",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "farside_seismic_suite",
+   "name": "Farside Seismic Suite",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Schrodinger basin (-75.0, 132.4 basin centre)",
+   "evidence": null,
+   "limitations": "Its CLPS carrier (Draper/ispace APEX 1.0) is listed as cancelled in Jul 2026 in another note; consequence for FSS not stated in the notes.",
+   "sources": [
+    "https://www.jpl.nasa.gov/missions/farside-seismic-suite/",
+    "https://cnes.fr/en/projects/fss"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "farside_seismic_suite"
+   },
+   "properties": {
+    "agency": "JPL / CNES / UK",
+    "status": "PLANNED (status not confirmed)",
+    "dates": "launch dates in sources range from 2025 to mid-2026",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Schrodinger basin (-75.0, 132.4 basin centre)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "moonfall",
+   "name": "MoonFall (four JPL hopping drones on Firefly Elytra)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "South Pole survey (centimetre-scale resolution)",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.nasa.gov/reference/moonbase-about/",
+    "https://starlust.org/nasa-to-launch-three-moon-base-missions-this-year-itselfheres-all-you-need-to-know-about-them/",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "moonfall"
+   },
+   "properties": {
+    "agency": "NASA JPL / Firefly ($75M subcontract)",
+    "status": "PLANNED",
+    "dates": "Phase 1; 2028 per NASA Moon Base Phases page",
+    "landing": {
+     "intended_site": "South Pole survey (centimetre-scale resolution)",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "promise_rover",
+   "name": "PROMISE nuclear-powered rover",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "South Pole region",
+   "evidence": "secondary source",
+   "limitations": "Coordinates not published.",
+   "sources": [
+    "https://spaceq.ca/?p=53144",
+    "https://www.nasa.gov/reference/moonbase-about/",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "promise_rover"
+   },
+   "properties": {
+    "agency": "NASA; Blue Origin delivery (awarded 7 Nov 2026; reported $94M base plus $140M option)",
+    "status": "PLANNED",
+    "dates": "From late 2028; 18-month mission",
+    "landing": {
+     "intended_site": "South Pole region",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "change_7_intended",
+   "name": "Chang'e-7 (orbiter, lander, rover, hopper) — intended",
+   "category": "mission_landing_intended",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.8,
+    "lon_east_180": 123.4,
+    "lon_east_360": 123.4
+   },
+   "frame": null,
+   "location_note": "Illuminated rim of Shackleton (SE ridge/rim); note: unofficial",
+   "evidence": "secondary source",
+   "limitations": "Target coordinates are unofficial, from secondary sources; no CNSA primary page read. One note (science) found no report of the delay and still lists 2H 2026; the programme and timing notes record the Aug 2026 scrub.",
+   "sources": [
+    "https://spacenews.com/china-delays-change-7-lunar-south-pole-landing-mission-launch/",
+    "https://www.scientificamerican.com/article/china-delays-ambitious-change-7-moon-mission-until-2027/",
+    "https://en.wikipedia.org/wiki/Chang%27e_7",
+    "https://www.space.com/space-exploration/launches-spacecraft/bad-weather-delays-launch-of-chinas-historic-change-7-mission-to-moons-south-pole",
+    "https://spacepolicyonline.com/?p=90081"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "change_7"
+   },
+   "properties": {
+    "agency": "CNSA (Long March 5 Y14, Wenchang)",
+    "status": "PLANNED (2026 launch and Nov 2026 landing SUPERSEDED)",
+    "dates": "Launch scrubbed 23 Aug 2026 (NOTAM window opened 24 Aug 2026 00:00 UTC, daily 00:00-04:00 UTC to 31 Aug); 'cannot take place during the planned window this year'; now 2027 at the earliest",
+    "outcome": null,
+    "landing": {
+     "intended_site": "Illuminated rim of Shackleton (SE ridge/rim)",
+     "intended": {
+      "lat": -88.8,
+      "lon_east_180": 123.4,
+      "lon_east_360": 123.4,
+      "note": "unofficial"
+     },
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "change_8",
+   "name": "Chang'e-8 (ISRU demo)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "Leibnitz Beta plateau (Mons Mouton); earlier candidates Amundsen, Cabeus, Shackleton-de Gerlache ridge",
+   "evidence": "secondary source",
+   "limitations": "Coordinates not published.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Chang%27e_8",
+    "https://spacenexus.us/moon/missions/change-8"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "change_8"
+   },
+   "properties": {
+    "agency": "CNSA (Long March 5)",
+    "status": "PLANNED",
+    "dates": "Around 2029 (Sep 2024 plan said 2028); SpaceNews (Sep 2026): programme may be reconfigured",
+    "landing": {
+     "intended_site": "Leibnitz Beta plateau (Mons Mouton); earlier candidates Amundsen, Cabeus, Shackleton-de Gerlache ridge",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  },
+  {
+   "id": "ilrs",
+   "name": "ILRS (China/Russia)",
+   "category": "mission_site_no_coordinates",
+   "geometry": null,
+   "frame": null,
+   "location_note": "South Pole",
+   "evidence": "secondary source",
+   "limitations": null,
+   "sources": [
+    "https://www.scientificamerican.com/article/china-delays-ambitious-change-7-moon-mission-until-2027/",
+    "https://spacenexus.us/moon/missions/change-8"
+   ],
+   "app_site_id": null,
+   "origin": {
+    "file": "missions.json",
+    "id": "ilrs"
+   },
+   "properties": {
+    "agency": "CNSA / Roscosmos",
+    "status": "PLANNED",
+    "dates": "Construction from 2031 (Scientific American); basic robotic operations by 2030 (tracker); Chinese crewed landing by 2030",
+    "landing": {
+     "intended_site": "South Pole",
+     "lat": null,
+     "lon_east_180": null,
+     "lon_east_360": null
+    }
+   }
+  }
+ ]
+}

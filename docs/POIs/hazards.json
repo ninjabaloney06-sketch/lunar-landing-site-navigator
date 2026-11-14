@@ -1,0 +1,663 @@
+{
+ "meta": {
+  "description": "Located and regional hazards for landing and surface work at the lunar south pole: tectonic scarps, seismicity, slopes, regolith, plume, dust, radiation, micrometeoroids, thermal extremes and lighting.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/hazards_and_science.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive; lon_east_180 (-180..180) and lon_east_360 (0..360). Where the notes gave only one form the other was computed during conversion (+/-360).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "Evidence labels (as in the notes): ESTABLISHED = measured / documented in primary or official sources; MODEL = result of a published simulation, not a measurement; CONTESTED = published but disputed; SPECULATIVE = hypothesis without supporting data. INTERPRETATION / PROPOSAL are used where the notes use them.",
+   "Item 'category' values: hazard_scarp, hazard_seismic, hazard_terrain, hazard_regolith, hazard_plume, hazard_dust, hazard_radiation, hazard_micrometeoroid, hazard_thermal, hazard_lighting, science_feature, crater_age, science_objective, geologic_product, astrobiology, planetary_protection, site_ranking.",
+   "There is NO evidence of indigenous lunar life. 'Possible bacteria' refers to forward contamination by terrestrial microbes (modelled dormant survival), not detection of lunar organisms.",
+   "No rule forbids landing in or near south-polar PSRs; Category IIb (south of 79 S) means documentation, not prohibition.",
+   "None of the published rankings is official; NASA has published no site scores."
+  ]
+ },
+ "items": [
+  {
+   "id": "scarp_de_gerlache",
+   "name": "de Gerlache lobate thrust scarp",
+   "category": "hazard_scarp",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.02,
+    "lon_east_180": -59.1,
+    "lon_east_360": 300.9
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED (scarp); link to N9 MODEL/plausible",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332",
+    "https://physicsworld.com/a/moonquakes-and-landslides-make-the-lunar-south-pole-unstable/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_de_gerlache"
+   },
+   "properties": {
+    "notes": "Lies within the de Gerlache Rim 2 candidate region. One relocated N9 solution lies within ~24 km of the de Gerlache scarps (source not uniquely determined).",
+    "length": "~4 km (4,030 m)",
+    "relief_m": "~60-80",
+    "slope_setting": "on <10 deg slope",
+    "distance_from_pole_km": "~60"
+   }
+  },
+  {
+   "id": "scarp_wiechert_cluster",
+   "name": "Wiechert scarp cluster",
+   "category": "hazard_scarp",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.7,
+    "lon_east_180": 146.7,
+    "lon_east_360": 146.7
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_wiechert_cluster"
+   },
+   "properties": {
+    "count": ">= 5 scarps",
+    "relief_m": "~10"
+   }
+  },
+  {
+   "id": "scarp_ibn_bajja_cluster",
+   "name": "Ibn Bajja scarp cluster",
+   "category": "hazard_scarp",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.6,
+    "lon_east_180": -174.7,
+    "lon_east_360": 185.3
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_ibn_bajja_cluster"
+   },
+   "properties": {
+    "count": "3 scarps",
+    "relief_m": "~20"
+   }
+  },
+  {
+   "id": "scarp_shoemaker",
+   "name": "Shoemaker scarp",
+   "category": "hazard_scarp",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.25,
+    "lon_east_180": 54.55,
+    "lon_east_360": 54.55
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_shoemaker"
+   },
+   "properties": {
+    "notes": "~30 km from Nobile Rim 1; a PSR on the Nobile rim within 20 km of the scarp is landslide-susceptible.",
+    "relief_m": "~80",
+    "length": "~4 km"
+   }
+  },
+  {
+   "id": "scarp_newton_e",
+   "name": "Newton E scarp",
+   "category": "hazard_scarp",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.02,
+    "lon_east_180": -32.65,
+    "lon_east_360": 327.35
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_newton_e"
+   },
+   "properties": {}
+  },
+  {
+   "id": "scarp_statistics",
+   "name": "Lobate thrust scarps: counts",
+   "category": "hazard_scarp",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": "Statistic; no coordinates.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332",
+    "https://zenodo.org/record/7780129"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "scarp_statistics"
+   },
+   "properties": {
+    "within_150_km_of_pole": "15 known/new",
+    "global": ">3,800",
+    "mapped_length_scr": "~582 km of lobate scarps mapped in Krasilnikov et al. Zenodo data v1.3"
+   }
+  },
+  {
+   "id": "seismic_n9",
+   "name": "N9 shallow moonquake (strongest Apollo-era)",
+   "category": "hazard_seismic",
+   "geometry": {
+    "type": "Point",
+    "lat": -84,
+    "lon_east_180": 134,
+    "lon_east_360": 134
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED (event); location uncertain",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "seismic_n9"
+   },
+   "properties": {
+    "notes": "Original epicentre (approximate).",
+    "date": "1973-03-13",
+    "magnitude": "mb ~5-5.6",
+    "context": "28 shallow moonquakes recorded 1969-1977"
+   }
+  },
+  {
+   "id": "seismic_modelled_event",
+   "name": "Modelled shallow moonquake on a polar scarp",
+   "category": "hazard_seismic",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL",
+   "limitations": "Recurrence rate not quantified.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "seismic_modelled_event"
+   },
+   "properties": {
+    "magnitude": "Mw ~5.3 (moment ~1.29e17 N m, upper limit)",
+    "shaking": "strong-to-moderate to >= ~40 km; moderate-to-light beyond ~50 km",
+    "landslide_trigger": "~2.3% of lunar g (1.62 m/s2) for a 1 m slab on >30 deg slopes at low cohesion",
+    "susceptible_areas_C_0_1_kPa": "large portions of Shackleton interior walls, its NW rim and parts of Connecting Ridge near the rim; interior walls in Nobile Rim 1; a PSR north of de Gerlache Rim 2; a PSR on the Nobile rim within 20 km of the Shoemaker scarp",
+    "observational_check": "recent boulder falls on Shackleton's wall seen by ShadowCam; no recent regolith landslides observed where predicted (ice-raised cohesion suggested)"
+   }
+  },
+  {
+   "id": "seismic_instruments",
+   "name": "Planned seismic instruments",
+   "category": "hazard_seismic",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (selection); manifesting after the 2026 re-plan unknown",
+   "limitations": null,
+   "sources": [
+    "https://www.militaryaerospace.com/home/article/55000283/nasa-announces-first-lunar-instruments-for-artemis-astronaut-deployment",
+    "https://seismosoc.secure-platform.com/a/gallery/rounds/43/details/13014",
+    "https://www.jpl.nasa.gov/missions/farside-seismic-suite/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "seismic_instruments"
+   },
+   "properties": {
+    "LEMS": "Artemis III deployed instrument selected Mar 2024: 3-axis short-period + 3-axis broadband, buried; 3 months to 2 years",
+    "Farside_Seismic_Suite": "Schrodinger basin, >= 4.5 months; status not confirmed",
+    "other_A3_instruments": "LEAF (plant growth), LDA (Lunar Dielectric Analyzer)"
+   }
+  },
+  {
+   "id": "terrain_crater_slopes_tye",
+   "name": "Mean slopes of major polar craters (20 m baseline)",
+   "category": "hazard_terrain",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf",
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_crater_slopes_tye"
+   },
+   "properties": {
+    "Shackleton_floor_wall_ejecta_deg": "9.4 +/- 5.8 / 28.6 +/- 6.1 / 12.3 +/- 5.7",
+    "Haworth_deg": "5.1 +/- 3.7 / 15.1 +/- 5.4 / 9.7 +/- 5.3",
+    "Shoemaker_deg": "5.0 +/- 4.0 / 15.5 +/- 4.9 / 8.6 +/- 5.7",
+    "Faustini_deg": "4.7 +/- 4.3 / 15.4 +/- 4.6 / 7.2 +/- 4.1",
+    "Shackleton_interior_wall": "~30 deg; rim tilt ~1.5 deg (Wikipedia)"
+   }
+  },
+  {
+   "id": "terrain_boulders_shackleton",
+   "name": "Boulder populations near sites 001 (Connecting Ridge) and 004 (Shackleton rim)",
+   "category": "hazard_terrain",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://aasnova.org/2023/04/14/planning-for-touchdown-new-maps-of-the-moons-south-pole/",
+    "https://lroc.im-ldi.com/images/1247",
+    "https://boris-portal.unibe.ch/items/8a475dd4-fed2-411d-a7a0-4f44660492be"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_boulders_shackleton"
+   },
+   "properties": {
+    "isolated_boulders": 86896,
+    "rocky_craters": 3556,
+    "rock_exposures": 7553,
+    "image_resolution": "NAC 0.5-2 m/pixel",
+    "blocks": "~8 m blocks at the ridge-rim junction (-89.684, -163.261)",
+    "targets": "on slopes <15 deg documented"
+   }
+  },
+  {
+   "id": "terrain_dsne_rocks",
+   "name": "Generic design environment (DSNE): rocks and regolith depth",
+   "category": "hazard_terrain",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (design environment)",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20230015518/downloads/DSNE_LunarSurfaceEnvironment_Chambers_v2.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_dsne_rocks"
+   },
+   "properties": {
+    "rock_cover": "rocks >~1 m typically ~1% of area but locally 10-20%",
+    "highland_regolith_median_depth_m": "10-15 (mare 3-5)"
+   }
+  },
+  {
+   "id": "terrain_narrow_rims",
+   "name": "Narrow rims of de Gerlache and Nobile; Connecting Ridge approaches; Malapert relief",
+   "category": "hazard_terrain",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "press-level description / secondary",
+   "limitations": null,
+   "sources": [
+    "https://www.universetoday.com/articles/here-is-where-astronauts-might-land-on-the-moon",
+    "https://spacenews.com/?p=130778",
+    "https://moonresource.com/research/artemis-iii-candidate-sites",
+    "https://lroc.im-ldi.com/posts/1294"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_narrow_rims"
+   },
+   "properties": {
+    "statement": "Rims of de Gerlache and Nobile are narrow and flanked by slopes unsuited to a stable landing; Connecting Ridge: slopes up to about 20 deg on rim approaches (low-reliability site); Malapert: summit >5,000 m above base, ~3,500 m cliff"
+   }
+  },
+  {
+   "id": "terrain_crater_survival",
+   "name": "Sub-km crater density vs slope",
+   "category": "hazard_terrain",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_crater_survival"
+   },
+   "properties": {
+    "statement": "Sub-km crater density drops strongly with slope (diffusive mass wasting); 250-500 m craters survive only ~3.5 Gyr even on plains"
+   }
+  },
+  {
+   "id": "terrain_landing_outcomes",
+   "name": "Demonstrated polar landing outcomes",
+   "category": "hazard_terrain",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.7906,
+    "lon_east_180": 29.1958,
+    "lon_east_360": 29.1958
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mons_Mouton",
+    "https://lroc.im-ldi.com/images/1360",
+    "https://www.theregister.com/2026/03/11/nasa_oig_artemis_lander/",
+    "https://spacepolicyonline.com/news/nasa-is-full-steam-ahead-on-artemis-iii-iv-and-v/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "terrain_landing_outcomes"
+   },
+   "properties": {
+    "notes": "Coordinates are the IM-2 site as given in this note (29.1958; LROC value elsewhere 29.1957).",
+    "IM-2": "6 Mar 2025, Mons Mouton: altimeter failed, struck a plateau, tipped, skidded, came to rest on its side in a ~20 m shadowed crater (~100 K); regolith coated solar panels",
+    "IM-1": "22 Feb 2024, -80.13, 1.44: 12 deg slope, broke a leg, ~30 deg tilt",
+    "common_cause": "altimetry / navigation sensors, not slope or lighting directly (researcher inference)",
+    "crewed_lander_concerns": "Starship height -> tip-over risk; cryogenic propellants never used on the Moon; only one uncrewed landing test per provider"
+   }
+  },
+  {
+   "id": "regolith_psr_porosity",
+   "name": "PSR surface porosity from LAMP far-UV albedo",
+   "category": "hazard_regolith",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "CONTESTED",
+   "limitations": null,
+   "sources": [
+    "https://www.thespaceresource.com/news/2019/4/surface-strength-of-psrs"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "regolith_psr_porosity"
+   },
+   "properties": {
+    "porosity": "~70% in PSRs vs ~40% outside (inferred, not measured)"
+   }
+  },
+  {
+   "id": "regolith_bearing_capacity",
+   "name": "PSR bearing capacity from boulder tracks (Sargeant et al. 2020)",
+   "category": "hazard_regolith",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (remote inference); in-situ measurement required",
+   "limitations": "Numeric kPa values not retrieved. No in-situ geotechnical measurement of PSR regolith exists.",
+   "sources": [
+    "https://oro.open.ac.uk/69451",
+    "https://eos.org/articles/shedding-light-on-the-darkest-regions-of-the-moon"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "regolith_bearing_capacity"
+   },
+   "properties": {
+    "sample": "13 boulder tracks in shadowed terrain (70-76 deg latitude per one note; 'at/inside south-polar PSRs' per the other)",
+    "depth_range_m": "~0.28-4.68",
+    "result": "'somewhat stronger' than highland/mare at 0.28-1.00 m; statistically indistinguishable at 1-2 m; ice in pore space suggested"
+   }
+  },
+  {
+   "id": "regolith_slope_stability_inputs",
+   "name": "Slope-stability inputs used for the south pole",
+   "category": "hazard_regolith",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL inputs",
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332",
+    "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "regolith_slope_stability_inputs"
+   },
+   "properties": {
+    "density_kg_m3": "1660 +/- 50 (top 60 cm)",
+    "cohesion_kPa": "0.1-1.0",
+    "friction_angle_deg": "30-50",
+    "ice_effect": "~0.3% ice may significantly raise cohesion",
+    "isru_unknowns": "cohesion 0-100 kPa; friction angle 10-50 deg; particle size 1-1000 um; bulk density 0.5-2.5 g/cm3; compressive strength 1-100 MPa (LWIMS design inputs still unknown)"
+   }
+  },
+  {
+   "id": "plume_surface_interaction",
+   "name": "Plume-surface interaction (PSI) for large landers",
+   "category": "hazard_plume",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (programme status)",
+   "limitations": "No validated crater-depth or ejecta-range numbers for Starship/Blue Moon found.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20260004959/downloads/NASAPSI_IPPW2026_v0.pdf",
+    "https://ntrs.nasa.gov/api/citations/20240011028/downloads/PSI_FLT_status_240905.pdf",
+    "https://starlust.org/nasa-prepares-for-moon-landings-begins-the-most-complex-plume-surface-interaction-tests/",
+    "https://en.wikipedia.org/wiki/Chandrayaan-3"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "plume_surface_interaction"
+   },
+   "properties": {
+    "statement": "'Apollo flight experience cannot be extrapolated to upcoming large Human Landing Systems'; subscale hybrid motor tests over regolith simulant; NASA Langley vacuum-chamber tests (BP-1 simulant) continue into 2026; lunar flight PSI data lacking",
+    "chandrayaan_3": "exhaust removed about 3 cm of regolith",
+    "instrumentation": "SCALPSS plume cameras on Blue Moon MK1 Endurance"
+   }
+  },
+  {
+   "id": "plume_exhaust_contamination",
+   "name": "Lander exhaust contaminating polar cold traps (Prem et al. 2020)",
+   "category": "hazard_plume",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL",
+   "limitations": null,
+   "sources": [
+    "https://www.scientificamerican.com/article/will-increasing-traffic-to-the-moon-contaminate-its-precious-ice/",
+    "https://zendy.io/title/10.1029/2020je006464",
+    "https://www.nationalacademies.org/read/26029/chapter/6"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "plume_exhaust_contamination"
+   },
+   "properties": {
+    "lander_mass_modelled_kg": "~1,200",
+    "result": "water-vapour exhaust globally redistributed within hours; 30-40% remained in exosphere/surface after two months; roughly 20% ultimately freezes out near the poles; contamination scales with exhaust mass and proximity to the poles; water is only ~1/3 of typical exhaust",
+    "nasem": "most contaminants not expected to penetrate more than a few centimetres; mitigations: mission-specific exhaust modelling, characterised exhaust signatures, witness plates, sampling protocols"
+   }
+  },
+  {
+   "id": "dust_charging",
+   "name": "Dust lofting and charging",
+   "category": "hazard_dust",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL / CONTESTED",
+   "limitations": "Surface-potential values (kV) not confirmed from a primary source.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20230015518/downloads/DSNE_LunarSurfaceEnvironment_Chambers_v2.pdf",
+    "https://ntrs.nasa.gov/citations/20050175993",
+    "https://ui.adsabs.harvard.edu/abs/2020P&SS..18004775L"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "dust_charging"
+   },
+   "properties": {
+    "statement": "Electrostatic lofting proposed for near-surface (<1 m, Surveyor) and high-altitude (1-100 km, Apollo) observations; Apollo LEAM terminator enhancement discounted (Grun and Horanyi 2011); LADEE/LDEX measured dust well below Apollo-era estimates; 'dynamic fountain' model: grains <0.1 um lofted ~1-100 km at terminator (open question); lighting and plasma environment 'more complex' at the poles"
+   }
+  },
+  {
+   "id": "radiation_surface_dose",
+   "name": "Surface radiation dose (Chang'e-4 LND)",
+   "category": "hazard_radiation",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": "Not a polar measurement.",
+   "sources": [
+    "https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html",
+    "https://www.x-mol.com/paper/1309588122420613120",
+    "https://ntrs.nasa.gov/api/citations/20230015518/downloads/DSNE_LunarSurfaceEnvironment_Chambers_v2.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "radiation_surface_dose"
+   },
+   "properties": {
+    "dose_equivalent_uSv_per_day": "~1,369",
+    "absorbed_dose_Si_uGy_per_h": "13.2 +/- 1 (neutral component 3.1 +/- 0.5)",
+    "context": "far side, solar minimum; likely an upper limit for GCR; design environment: interplanetary GCR/SEP fluxes divided by 2 plus albedo neutrons"
+   }
+  },
+  {
+   "id": "radiation_topographic_shielding",
+   "name": "Topographic shielding by crater walls",
+   "category": "hazard_radiation",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20210021039/downloads/Phipps_NESF_2021_abstract.pdf",
+    "https://www.nationalacademies.org/cdn/materials/a055a7cb-d07b-49dc-b8c1-d3636a5c507e",
+    "https://mdpi.com/2226-4310/10/11/970"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "radiation_topographic_shielding"
+   },
+   "properties": {
+    "shackleton_like_crater": "20 km simple crater (proxy for 'Artemis Base Camp 004' near the rim): SEP dose reduced >= 40% inside the crater and >= 10% just outside the rim relative to a flat plain (Geant4, Oct 1989 worst-case SEP)",
+    "stubbs_2020": "20 km wide, 3 km deep crater cuts net exposure ~40%",
+    "habitat_beside_wall": "total dose -44.9% at 15 m depth, -10.7% at 5 m depth (PHITS)"
+   }
+  },
+  {
+   "id": "micrometeoroids",
+   "name": "Micrometeoroids and secondary ejecta",
+   "category": "hazard_micrometeoroid",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (models in use)",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20230015518/downloads/DSNE_LunarSurfaceEnvironment_Chambers_v2.pdf",
+    "https://mdsoar.org/items/22abcc8f-0963-417b-bbc2-cfb7c9e93916"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "micrometeoroids"
+   },
+   "properties": {
+    "primary": "NASA MEM 3 (1e-6 g to 10 g)",
+    "secondary": "NASA SP-8013 (Apollo era) in SLS-SPEC-159 DSNE; replacement MeMoSeE predicts ejecta flux ~2-3 orders of magnitude lower for particles >1 ug"
+   }
+  },
+  {
+   "id": "thermal_extremes",
+   "name": "Cold and thermal extremes",
+   "category": "hazard_thermal",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (Diviner / in situ), partly press-level",
+   "limitations": "Diviner summer-max / winter-min values for named features not retrieved from a primary source.",
+   "sources": [
+    "https://www.diviner.ucla.edu/science",
+    "https://meetingorganizer.copernicus.org/EPSC2013/EPSC2013-864.pdf",
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)",
+    "https://www.nasa.gov/reference/moonbase-about/",
+    "https://en.wikipedia.org/wiki/Chandrayaan-3",
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf",
+    "https://ntrs.nasa.gov/citations/20230002802"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "thermal_extremes"
+   },
+   "properties": {
+    "psr": "~25 K in coldest polar PSRs (record on Hermite, north pole); Haworth coldest areas never exceed ~40 K; Shackleton floor ~88-90 K; PSR interiors down to -248 C; LCROSS site annual average 37 K; PSR floors below -410 F (~28 K) in places",
+    "sunlit": "illuminated near-rim sites at Shackleton about -50 +/- 10 C; NASA: above 54 C in sunlit areas to -203 C in PSRs",
+    "slope_sensitivity": "Chandrayaan-3 ChaSTE at 69.37 S: 355 K (+/-0.5) on ~6 deg Sun-facing slope vs ~332 K (+/-1) on flat ground ~1 m away",
+    "eclipse_swing": "~5-hour eclipse took a mid-latitude surface from about +40 C to -170 C (press report)",
+    "key_parameter": "maximum time in shadow; at best sites 20-50% of a normal lunar night"
+   }
+  },
+  {
+   "id": "lighting_visual_hazards",
+   "name": "Low-Sun visual and sensor hazards",
+   "category": "hazard_lighting",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (NASA NESC / OCHMO / MSFC)",
+   "limitations": null,
+   "sources": [
+    "https://www.nasa.gov/centers-and-facilities/nesc/characterizing-the-visual-experience-of-astronauts-at-the-lunar-south-pole/",
+    "https://ntrs.nasa.gov/api/citations/20230006313/downloads/IAASS%202023%20Paper_Final_24apr23.pdf",
+    "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-001-artemis-lighting-considerations.pdf",
+    "https://www.hou.usra.edu/meetings/lunarsurface2020/pdf/5067.pdf",
+    "https://ntrs.nasa.gov/citations/20240011393"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "lighting_visual_hazards"
+   },
+   "properties": {
+    "statement": "Sun never above 7 deg in landing regions; crews cannot avoid Sun in their eyes; no existing requirement guaranteed functional vision moving between sunlight and shadow (NESC recommended one); shadows ~27x object height; deep shadows can hide large obstacles; Apollo 12 crew thought a ~10 deg slope was ~40 deg; Apollo 12 colour TV camera burned out pointed at a 7.5 deg Sun; in driving simulations crews tacked +/-20-30 deg to avoid glare; LIDAR suggested for hazard sensing"
+   }
+  }
+ ]
+}

@@ -1,0 +1,2248 @@
+{
+ "meta": {
+  "description": "South-polar permanently shadowed regions (PSRs) from the LROC PSR Atlas and Lemelin 2021, and their host craters: cold-trap candidates with positions, sizes, temperatures and access data.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/psr_and_ice.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive, lon_east_180 (-180..180) and lon_east_360 (0..360). Where the notes gave only one form, the other was computed during conversion (+/-360).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead. A permanently shadowed region is a cold-trap candidate, not proof of ice.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "Evidence classes (as in the notes): DIRECT = direct detection of H2O/volatiles; INDIRECT = hydrogen (neutrons), temperature/illumination models, albedo or radar proxies; MODEL = geological/thermal modelling; SPEC = speculation / press characterisation.",
+   "Item 'type' values: psr_atlas (LROC PSR Atlas, 40 largest south-polar PSRs), psr_lemelin2021 (per-PSR evidence and accessibility), lend_maximum (McClanahan 2024 Table 1), host_crater (centre/diameter), location_evidence (evidence matrix per location), dataset_finding (what each instrument found).",
+   "Lemelin's WEH column and McClanahan's LEND collimated WEH are DIFFERENT products; do not mix them in one numeric field without the instrument tag.",
+   "Lemelin 2021 temperature minima of 2 K (Shoemaker) and 14 K are 'as printed and look like data artefacts' per the notes.",
+   "Host-crater coordinates marked 'WP' come from Wikipedia infoboxes (which cite the IAU/USGS Gazetteer); Gazetteer-grade values were directly confirmed only for Cabeus and Amundsen.",
+   "Only one ground-truth direct detection of bulk water exists at the south pole (LCROSS, Cabeus). No landed mission has measured ice in situ at the south pole as of November 2026.",
+   "Surface-frost datasets (LAMP, LOLA, M3) are mutually inconsistent and do not correlate with the buried-hydrogen (neutron) dataset; ShadowCam 2026 finds no widespread surface ice above ~20-30 wt%."
+  ]
+ },
+ "items": [
+  {
+   "id": "atlas_01",
+   "name": "Shoemaker",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.026,
+    "lon_east_180": 45.279,
+    "lon_east_360": 45.279
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_01"
+   },
+   "properties": {
+    "atlas_id": "SP_880260_0452790",
+    "psr_area_km2": 1075.518,
+    "perimeter_km": 166.2,
+    "notes": "high-reflectance south-facing wall"
+   }
+  },
+  {
+   "id": "atlas_02",
+   "name": "Haworth",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.493,
+    "lon_east_180": -2.124,
+    "lon_east_360": 357.876
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_02"
+   },
+   "properties": {
+    "atlas_id": "SP_874930_3578760",
+    "psr_area_km2": 1017.932,
+    "perimeter_km": 173.9,
+    "notes": "smooth crater with high reflectance"
+   }
+  },
+  {
+   "id": "atlas_03",
+   "name": "Faustini",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.146,
+    "lon_east_180": 84.075,
+    "lon_east_360": 84.075
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_03"
+   },
+   "properties": {
+    "atlas_id": "SP_871460_0840750",
+    "psr_area_km2": 663.93,
+    "perimeter_km": 133.4,
+    "notes": "heavily cratered floor"
+   }
+  },
+  {
+   "id": "atlas_04",
+   "name": "Sverdrup",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.249,
+    "lon_east_180": -143.545,
+    "lon_east_360": 216.455
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_04"
+   },
+   "properties": {
+    "atlas_id": "SP_882490_2164550",
+    "psr_area_km2": 548.791,
+    "perimeter_km": 177.4,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_05",
+   "name": "Amundsen",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.524,
+    "lon_east_180": 91.015,
+    "lon_east_360": 91.015
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_05"
+   },
+   "properties": {
+    "atlas_id": "SP_835240_0910150",
+    "psr_area_km2": 439.222,
+    "perimeter_km": 413.3,
+    "notes": "wall terracing"
+   }
+  },
+  {
+   "id": "atlas_06",
+   "name": "Cabeus B",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.691,
+    "lon_east_180": -54.619,
+    "lon_east_360": 305.381
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_06"
+   },
+   "properties": {
+    "atlas_id": "SP_816910_3053810",
+    "psr_area_km2": 376.916,
+    "perimeter_km": 197.4,
+    "notes": "cluster of craters"
+   }
+  },
+  {
+   "id": "atlas_07",
+   "name": "Wiechert J",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.023,
+    "lon_east_180": -177.393,
+    "lon_east_360": 182.607
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_07"
+   },
+   "properties": {
+    "atlas_id": "SP_850230_1826070",
+    "psr_area_km2": 371.549,
+    "perimeter_km": 133.3,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_08",
+   "name": "Idel'son L",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.891,
+    "lon_east_180": 118.47,
+    "lon_east_360": 118.47
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_08"
+   },
+   "properties": {
+    "atlas_id": "SP_838910_1184700",
+    "psr_area_km2": 326.779,
+    "perimeter_km": 102.0,
+    "notes": "smooth dark floor, central peak"
+   }
+  },
+  {
+   "id": "atlas_09",
+   "name": "Cabeus (LCROSS PSR)",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.458,
+    "lon_east_180": -46.568,
+    "lon_east_360": 313.432
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_09"
+   },
+   "properties": {
+    "atlas_id": "SP_844580_3134320",
+    "psr_area_km2": 315.029,
+    "perimeter_km": 340.9,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_10",
+   "name": "Malapert F / E",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -82.176,
+    "lon_east_180": 11.104,
+    "lon_east_360": 11.104
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_10"
+   },
+   "properties": {
+    "atlas_id": "SP_821760_0111040",
+    "psr_area_km2": 300.589,
+    "perimeter_km": 109.0,
+    "notes": "high-reflectance streaks"
+   }
+  },
+  {
+   "id": "atlas_11",
+   "name": "de Gerlache",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.312,
+    "lon_east_180": -90.857,
+    "lon_east_360": 269.143
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_11"
+   },
+   "properties": {
+    "atlas_id": "SP_883120_2691430",
+    "psr_area_km2": 243.292,
+    "perimeter_km": 111.1,
+    "notes": "high-reflectance crater"
+   }
+  },
+  {
+   "id": "atlas_12",
+   "name": "between Haworth and Shoemaker",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.744,
+    "lon_east_180": 21.861,
+    "lon_east_360": 21.861
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_12"
+   },
+   "properties": {
+    "atlas_id": "SP_867440_0218610",
+    "psr_area_km2": 237.287,
+    "perimeter_km": 170.6,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_13",
+   "name": "Shackleton",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.645,
+    "lon_east_180": 128.203,
+    "lon_east_360": 128.203
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_13"
+   },
+   "properties": {
+    "atlas_id": "SP_896450_1282030",
+    "psr_area_km2": 233.698,
+    "perimeter_km": 70.3,
+    "notes": "central peak on floor"
+   }
+  },
+  {
+   "id": "atlas_14",
+   "name": "Wiechert",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.74,
+    "lon_east_180": 163.086,
+    "lon_east_360": 163.086
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_14"
+   },
+   "properties": {
+    "atlas_id": "SP_837400_1630860",
+    "psr_area_km2": 194.702,
+    "perimeter_km": 104.4,
+    "notes": "wrinkle ridge"
+   }
+  },
+  {
+   "id": "atlas_15",
+   "name": "Malapert",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.142,
+    "lon_east_180": 5.953,
+    "lon_east_360": 5.953
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_15"
+   },
+   "properties": {
+    "atlas_id": "SP_841420_0059530",
+    "psr_area_km2": 194.479,
+    "perimeter_km": 139.2,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_16",
+   "name": "Slater",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.1,
+    "lon_east_180": 114.782,
+    "lon_east_360": 114.782
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_16"
+   },
+   "properties": {
+    "atlas_id": "SP_881000_1147820",
+    "psr_area_km2": 183.172,
+    "perimeter_km": 106.9,
+    "notes": "linear fracture"
+   }
+  },
+  {
+   "id": "atlas_17",
+   "name": "Nobile / Amundsen ('Nobile 2')",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.551,
+    "lon_east_180": 60.29,
+    "lon_east_360": 60.29
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_17"
+   },
+   "properties": {
+    "atlas_id": "SP_845510_0602900",
+    "psr_area_km2": 182.268,
+    "perimeter_km": 114.1,
+    "notes": "high-reflectance wall"
+   }
+  },
+  {
+   "id": "atlas_18",
+   "name": "Scott E",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.971,
+    "lon_east_180": 35.735,
+    "lon_east_360": 35.735
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_18"
+   },
+   "properties": {
+    "atlas_id": "SP_809710_0357350",
+    "psr_area_km2": 166.374,
+    "perimeter_km": 98.6,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_19",
+   "name": "Nefed'ev",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.424,
+    "lon_east_180": 135.485,
+    "lon_east_360": 135.485
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_19"
+   },
+   "properties": {
+    "atlas_id": "SP_804240_1354850",
+    "psr_area_km2": 155.074,
+    "perimeter_km": 171.8,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_20",
+   "name": "Newton B / Cabeus",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.767,
+    "lon_east_180": -21.229,
+    "lon_east_360": 338.771
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_20"
+   },
+   "properties": {
+    "atlas_id": "SP_837670_3387710",
+    "psr_area_km2": 142.949,
+    "perimeter_km": 76.4,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_21",
+   "name": "Amundsen",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.26,
+    "lon_east_180": 82.062,
+    "lon_east_360": 82.062
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_21"
+   },
+   "properties": {
+    "atlas_id": "SP_832600_0820620",
+    "psr_area_km2": 138.251,
+    "perimeter_km": 158.5,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_22",
+   "name": "Shoemaker / Nobile",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.355,
+    "lon_east_180": 48.828,
+    "lon_east_360": 48.828
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_22"
+   },
+   "properties": {
+    "atlas_id": "SP_863550_0488280",
+    "psr_area_km2": 132.347,
+    "perimeter_km": 98.5,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_23",
+   "name": "Demonax B",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.055,
+    "lon_east_180": 67.449,
+    "lon_east_360": 67.449
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_23"
+   },
+   "properties": {
+    "atlas_id": "SP_830550_0674490",
+    "psr_area_km2": 129.557,
+    "perimeter_km": 172.0,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_24",
+   "name": "Cabeus",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.415,
+    "lon_east_180": -52.159,
+    "lon_east_360": 307.841
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_24"
+   },
+   "properties": {
+    "atlas_id": "SP_854150_3078410",
+    "psr_area_km2": 127.296,
+    "perimeter_km": 87.4,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_25",
+   "name": "Newton B",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -82.482,
+    "lon_east_180": -4.988,
+    "lon_east_360": 355.012
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_25"
+   },
+   "properties": {
+    "atlas_id": "SP_824820_3550120",
+    "psr_area_km2": 124.33,
+    "perimeter_km": 100.3,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_26",
+   "name": "Nobile / Haworth (south of Mons Mouton)",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.404,
+    "lon_east_180": 31.443,
+    "lon_east_360": 31.443
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_26"
+   },
+   "properties": {
+    "atlas_id": "SP_864040_0314430",
+    "psr_area_km2": 120.575,
+    "perimeter_km": 55.4,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_27",
+   "name": "Malapert F / E",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -82.853,
+    "lon_east_180": 8.05,
+    "lon_east_360": 8.05
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_27"
+   },
+   "properties": {
+    "atlas_id": "SP_828530_0080500",
+    "psr_area_km2": 119.171,
+    "perimeter_km": 115.3,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_28",
+   "name": "Wiechert U",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.295,
+    "lon_east_180": 149.545,
+    "lon_east_360": 149.545
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_28"
+   },
+   "properties": {
+    "atlas_id": "SP_832950_1495450",
+    "psr_area_km2": 114.437,
+    "perimeter_km": 144.8,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_29",
+   "name": "Wiechert E",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.47,
+    "lon_east_180": 175.774,
+    "lon_east_360": 175.774
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_29"
+   },
+   "properties": {
+    "atlas_id": "SP_834700_1757740",
+    "psr_area_km2": 113.414,
+    "perimeter_km": 76.1,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_30",
+   "name": "Malapert",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.577,
+    "lon_east_180": 1.707,
+    "lon_east_360": 1.707
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_30"
+   },
+   "properties": {
+    "atlas_id": "SP_845770_0017070",
+    "psr_area_km2": 103.727,
+    "perimeter_km": 88.7,
+    "notes": "dark floor"
+   }
+  },
+  {
+   "id": "atlas_31",
+   "name": "Ibn Bajja / Haworth",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.593,
+    "lon_east_180": -47.429,
+    "lon_east_360": 312.571
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_31"
+   },
+   "properties": {
+    "atlas_id": "SP_875930_3125710",
+    "psr_area_km2": 101.833,
+    "perimeter_km": 55.7,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_32",
+   "name": "Newton B",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.049,
+    "lon_east_180": -9.462,
+    "lon_east_360": 350.538
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_32"
+   },
+   "properties": {
+    "atlas_id": "SP_830490_3505380",
+    "psr_area_km2": 101.758,
+    "perimeter_km": 125.2,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_33",
+   "name": "Scott E / Scott",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.226,
+    "lon_east_180": 42.429,
+    "lon_east_360": 42.429
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_33"
+   },
+   "properties": {
+    "atlas_id": "SP_802260_0424290",
+    "psr_area_km2": 99.558,
+    "perimeter_km": 121.1,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_34",
+   "name": "Cabeus A",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.444,
+    "lon_east_180": -42.775,
+    "lon_east_360": 317.225
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_34"
+   },
+   "properties": {
+    "atlas_id": "SP_814440_3172250",
+    "psr_area_km2": 98.23,
+    "perimeter_km": 85.6,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_35",
+   "name": "Nobile",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.289,
+    "lon_east_180": 56.344,
+    "lon_east_360": 56.344
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_35"
+   },
+   "properties": {
+    "atlas_id": "SP_842890_0563440",
+    "psr_area_km2": 97.967,
+    "perimeter_km": 60.5,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_36",
+   "name": "Scott E / Malapert E",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.969,
+    "lon_east_180": 25.094,
+    "lon_east_360": 25.094
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_36"
+   },
+   "properties": {
+    "atlas_id": "SP_819690_0250940",
+    "psr_area_km2": 95.083,
+    "perimeter_km": 80.0,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_37",
+   "name": "Sverdrup / Slater ('PSR 120')",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.728,
+    "lon_east_180": 168.88,
+    "lon_east_360": 168.88
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_37"
+   },
+   "properties": {
+    "atlas_id": "SP_887280_1688800",
+    "psr_area_km2": 88.607,
+    "perimeter_km": 45.8,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_38",
+   "name": "Scott",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -80.791,
+    "lon_east_180": 45.506,
+    "lon_east_360": 45.506
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_38"
+   },
+   "properties": {
+    "atlas_id": "SP_807910_0455060",
+    "psr_area_km2": 85.18,
+    "perimeter_km": 109.1,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_39",
+   "name": "Svedberg",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.648,
+    "lon_east_180": 65.221,
+    "lon_east_360": 65.221
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_39"
+   },
+   "properties": {
+    "atlas_id": "SP_816480_0652210",
+    "psr_area_km2": 79.788,
+    "perimeter_km": 35.9,
+    "notes": null
+   }
+  },
+  {
+   "id": "atlas_40",
+   "name": "von Baeyer",
+   "category": "psr_atlas",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.761,
+    "lon_east_180": 61.919,
+    "lon_east_360": 61.919
+   },
+   "frame": null,
+   "location_note": "PSR atlas centre point; the PSR is an area, not a point",
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "atlas_40"
+   },
+   "properties": {
+    "atlas_id": "SP_817610_0619190",
+    "psr_area_km2": 79.142,
+    "perimeter_km": 46.9,
+    "notes": null
+   }
+  },
+  {
+   "id": "lem21_shoemaker",
+   "name": "Shoemaker",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.0517,
+    "lon_east_180": 45.488,
+    "lon_east_360": 45.488
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "T min 2 K as printed; looks like a data artefact. null distance = no route.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_shoemaker"
+   },
+   "properties": {
+    "psr_area_km2": 1071,
+    "m3_ice_detections": 134,
+    "m3_detections_per_km2": 0.13,
+    "h_max_ppm": 168,
+    "max_weh_wt_pct": 0.24,
+    "temp_K_min_max_mean": [
+     2,
+     109,
+     44
+    ],
+    "slope_deg_max_mean": [
+     28,
+     9
+    ],
+    "access_slope_class_deg": "10-15",
+    "h2o_stability_depth_m": "0.00-0.11",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     null,
+     13843,
+     9134,
+     8160
+    ],
+    "illum_pct_within_1_5_10_km": [
+     2,
+     24,
+     47
+    ],
+    "model_age_Ga": 4.15
+   }
+  },
+  {
+   "id": "lem21_haworth",
+   "name": "Haworth",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.5109,
+    "lon_east_180": -2.2324,
+    "lon_east_360": 357.7676
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "T min 14 K looks like a data artefact.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_haworth"
+   },
+   "properties": {
+    "psr_area_km2": 1009,
+    "m3_ice_detections": 80,
+    "m3_detections_per_km2": 0.08,
+    "h_max_ppm": 145,
+    "max_weh_wt_pct": 0.31,
+    "temp_K_min_max_mean": [
+     14,
+     128,
+     42
+    ],
+    "slope_deg_max_mean": [
+     31,
+     9
+    ],
+    "access_slope_class_deg": "5-10",
+    "h2o_stability_depth_m": "0.00-0.36",
+    "traverse_dist_m_at_10_15_20_25_deg": "not tabulated",
+    "illum_pct_within_1_5_10_km": null,
+    "model_age_Ga": 4.18
+   }
+  },
+  {
+   "id": "lem21_faustini",
+   "name": "Faustini",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.1557,
+    "lon_east_180": 84.0797,
+    "lon_east_360": 84.0797
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "T min 14 K looks like a data artefact.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_faustini"
+   },
+   "properties": {
+    "psr_area_km2": 660,
+    "m3_ice_detections": 34,
+    "m3_detections_per_km2": 0.05,
+    "h_max_ppm": 168,
+    "max_weh_wt_pct": 0.37,
+    "temp_K_min_max_mean": [
+     14,
+     201,
+     47
+    ],
+    "slope_deg_max_mean": [
+     30,
+     11
+    ],
+    "access_slope_class_deg": "10-15",
+    "h2o_stability_depth_m": "0.00-0.43",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     null,
+     10433,
+     4784,
+     4243
+    ],
+    "illum_pct_within_1_5_10_km": [
+     5,
+     65,
+     68
+    ],
+    "model_age_Ga": 4.1
+   }
+  },
+  {
+   "id": "lem21_sverdrup_1",
+   "name": "Sverdrup 1",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.2432,
+    "lon_east_180": -143.9156,
+    "lon_east_360": 216.0844
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_sverdrup_1"
+   },
+   "properties": {
+    "psr_area_km2": 541,
+    "m3_ice_detections": 93,
+    "m3_detections_per_km2": 0.17,
+    "h_max_ppm": 141,
+    "max_weh_wt_pct": 0.12,
+    "temp_K_min_max_mean": [
+     28,
+     125,
+     55
+    ],
+    "slope_deg_max_mean": [
+     26,
+     7
+    ],
+    "access_slope_class_deg": "0-5",
+    "h2o_stability_depth_m": "0.00-0.32",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     20741,
+     8583,
+     4527,
+     3684
+    ],
+    "illum_pct_within_1_5_10_km": [
+     29,
+     55,
+     77
+    ],
+    "model_age_Ga": 3.8
+   }
+  },
+  {
+   "id": "lem21_cabeus_1",
+   "name": "Cabeus 1 (LCROSS)",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.463,
+    "lon_east_180": -46.2819,
+    "lon_east_360": 313.7181
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_cabeus_1"
+   },
+   "properties": {
+    "psr_area_km2": 285,
+    "m3_ice_detections": 9,
+    "m3_detections_per_km2": 0.03,
+    "h_max_ppm": 178,
+    "max_weh_wt_pct": 0.9,
+    "temp_K_min_max_mean": [
+     24,
+     243,
+     51
+    ],
+    "slope_deg_max_mean": [
+     23,
+     10
+    ],
+    "access_slope_class_deg": "5-10",
+    "h2o_stability_depth_m": "0.00-0.11",
+    "traverse_dist_m_at_10_15_20_25_deg": "not tabulated",
+    "illum_pct_within_1_5_10_km": null,
+    "model_age_Ga": 3.5
+   }
+  },
+  {
+   "id": "lem21_wiechert_j",
+   "name": "Wiechert J",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.0288,
+    "lon_east_180": -140.3766,
+    "lon_east_360": 219.6234
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "Longitude -140.3766 is as printed in the paper; the LROC atlas gives -177.39 for the Wiechert J PSR (conflict kept; see atlas_07).",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_wiechert_j"
+   },
+   "properties": {
+    "psr_area_km2": 367,
+    "m3_ice_detections": 17,
+    "m3_detections_per_km2": 0.05,
+    "h_max_ppm": 94,
+    "max_weh_wt_pct": 0.06,
+    "temp_K_min_max_mean": [
+     36,
+     180,
+     66
+    ],
+    "slope_deg_max_mean": [
+     30,
+     12
+    ],
+    "access_slope_class_deg": "0-5",
+    "h2o_stability_depth_m": "0.00-0.31",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     null,
+     11204,
+     7548,
+     6720
+    ],
+    "illum_pct_within_1_5_10_km": [
+     41,
+     45,
+     50
+    ],
+    "model_age_Ga": 3.2
+   }
+  },
+  {
+   "id": "lem21_malapert",
+   "name": "Malapert",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.1452,
+    "lon_east_180": 5.9438,
+    "lon_east_360": 5.9438
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_malapert"
+   },
+   "properties": {
+    "psr_area_km2": 191,
+    "m3_ice_detections": 17,
+    "m3_detections_per_km2": 0.09,
+    "h_max_ppm": 97,
+    "max_weh_wt_pct": 0.05,
+    "temp_K_min_max_mean": [
+     37,
+     206,
+     66
+    ],
+    "slope_deg_max_mean": [
+     33,
+     15
+    ],
+    "access_slope_class_deg": "0-5",
+    "h2o_stability_depth_m": "0.00-0.24",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     15413,
+     9792,
+     5906,
+     1800
+    ],
+    "illum_pct_within_1_5_10_km": [
+     43,
+     55,
+     55
+    ],
+    "model_age_Ga": null
+   }
+  },
+  {
+   "id": "lem21_nobile_2",
+   "name": "Nobile 2",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.5522,
+    "lon_east_180": 60.2933,
+    "lon_east_360": 60.2933
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_nobile_2"
+   },
+   "properties": {
+    "psr_area_km2": 178,
+    "m3_ice_detections": 15,
+    "m3_detections_per_km2": 0.08,
+    "h_max_ppm": 121,
+    "max_weh_wt_pct": 0.13,
+    "temp_K_min_max_mean": [
+     31,
+     137,
+     57
+    ],
+    "slope_deg_max_mean": [
+     24,
+     9
+    ],
+    "access_slope_class_deg": "0-5",
+    "h2o_stability_depth_m": "0.00-0.18",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     3836,
+     2028,
+     2028,
+     2028
+    ],
+    "illum_pct_within_1_5_10_km": [
+     45,
+     54,
+     54
+    ],
+    "model_age_Ga": 3.8,
+    "notes": "Fastest-access target (~4 km from a landing site on 0-10 deg slopes; ~2 km if 15 deg allowed)."
+   }
+  },
+  {
+   "id": "lem21_psr_120",
+   "name": "Unnamed PSR 120 (Sverdrup/Slater area)",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.729,
+    "lon_east_180": 168.8992,
+    "lon_east_360": 168.8992
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_psr_120"
+   },
+   "properties": {
+    "psr_area_km2": 87,
+    "m3_ice_detections": 36,
+    "m3_detections_per_km2": 0.41,
+    "h_max_ppm": 141,
+    "max_weh_wt_pct": 0.15,
+    "temp_K_min_max_mean": [
+     28,
+     174,
+     47
+    ],
+    "slope_deg_max_mean": [
+     22,
+     6
+    ],
+    "access_slope_class_deg": "5-10",
+    "h2o_stability_depth_m": "0.00-0.25",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     16356,
+     10400,
+     6601,
+     6391
+    ],
+    "illum_pct_within_1_5_10_km": [
+     6,
+     44,
+     64
+    ],
+    "model_age_Ga": null,
+    "notes": "Highest M3 detection density."
+   }
+  },
+  {
+   "id": "lem21_psr_89",
+   "name": "Unnamed PSR 89",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.9996,
+    "lon_east_180": -42.9735,
+    "lon_east_360": 317.0265
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_psr_89"
+   },
+   "properties": {
+    "psr_area_km2": 42,
+    "m3_ice_detections": 10,
+    "m3_detections_per_km2": 0.24,
+    "h_max_ppm": 140,
+    "max_weh_wt_pct": 0.84,
+    "temp_K_min_max_mean": [
+     33,
+     123,
+     53
+    ],
+    "slope_deg_max_mean": [
+     17,
+     5
+    ],
+    "access_slope_class_deg": "0-5",
+    "h2o_stability_depth_m": "0.00-0.14",
+    "traverse_dist_m_at_10_15_20_25_deg": "not tabulated",
+    "illum_pct_within_1_5_10_km": null,
+    "model_age_Ga": null,
+    "notes": "Traverse case study: 20-50 km mission."
+   }
+  },
+  {
+   "id": "lem21_psr_57",
+   "name": "Unnamed PSR 57",
+   "category": "psr_lemelin2021",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.3678,
+    "lon_east_180": -30.7628,
+    "lon_east_360": 329.2372
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_psr_57"
+   },
+   "properties": {
+    "psr_area_km2": 32,
+    "m3_ice_detections": 10,
+    "m3_detections_per_km2": 0.31,
+    "h_max_ppm": 135,
+    "max_weh_wt_pct": 0.08,
+    "temp_K_min_max_mean": [
+     27,
+     96,
+     47
+    ],
+    "slope_deg_max_mean": [
+     25,
+     11
+    ],
+    "access_slope_class_deg": "5-10",
+    "h2o_stability_depth_m": "0.00-0.15",
+    "traverse_dist_m_at_10_15_20_25_deg": [
+     7549,
+     7479,
+     7467,
+     7467
+    ],
+    "illum_pct_within_1_5_10_km": [
+     9,
+     37,
+     62
+    ],
+    "model_age_Ga": null
+   }
+  },
+  {
+   "id": "lem21_shackleton",
+   "name": "Shackleton (not recommended by the paper)",
+   "category": "psr_lemelin2021",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "Paper row gives no PSR centroid or area; crater centre -89.67, 129.78 and atlas area 233.7 km2 are in other items (host_shackleton, atlas_13).",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lem21_shackleton"
+   },
+   "properties": {
+    "psr_area_km2": null,
+    "m3_ice_detections": 34,
+    "m3_detections_per_km2": 0.15,
+    "h_max_ppm": 152,
+    "max_weh_wt_pct": 0.17,
+    "temp_K_min_max_mean": [
+     20,
+     173,
+     63
+    ],
+    "slope_deg_max_mean": [
+     35,
+     27
+    ],
+    "access_slope_class_deg": "accessible only via >= 25 deg",
+    "h2o_stability_depth_m": null,
+    "traverse_dist_m_at_10_15_20_25_deg": null,
+    "illum_pct_within_1_5_10_km": null,
+    "model_age_Ga": null
+   }
+  },
+  {
+   "id": "host_shackleton",
+   "name": "Shackleton",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.67,
+    "lon_east_180": 129.78,
+    "lon_east_360": 129.78
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter; depth WP (secondary)",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/5450",
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_shackleton"
+   },
+   "properties": {
+    "diameter_km": 20.92,
+    "depth_km": 4.2,
+    "notes": "floor 6.6 km wide; walls ~30 deg. Another note gives -89.667, 129.783."
+   }
+  },
+  {
+   "id": "host_haworth",
+   "name": "Haworth",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.45,
+    "lon_east_180": -5.17,
+    "lon_east_360": 354.83
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/14502",
+    "https://en.wikipedia.org/wiki/Haworth_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_haworth"
+   },
+   "properties": {
+    "diameter_km": 51.42,
+    "depth_km": null,
+    "notes": "Gazetteer centre (record updated 26 Aug 2024); the 2008 IAU approval notice gave 86.8 S, 4 W. Tye 2015 uses 52 km. PSR centroid -87.49, -2.1 agrees with the Gazetteer."
+   }
+  },
+  {
+   "id": "host_shoemaker",
+   "name": "Shoemaker",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.14,
+    "lon_east_180": 45.91,
+    "lon_east_360": 45.91
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter; depth WP (secondary)",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/5494",
+    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_shoemaker"
+   },
+   "properties": {
+    "diameter_km": 51.82,
+    "depth_km": 3.81,
+    "notes": "Tye 2015 uses 52 km."
+   }
+  },
+  {
+   "id": "host_faustini",
+   "name": "Faustini",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.18,
+    "lon_east_180": 84.31,
+    "lon_east_360": 84.31
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/1919",
+    "https://en.wikipedia.org/wiki/Faustini_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_faustini"
+   },
+   "properties": {
+    "diameter_km": 42.48,
+    "depth_km": null,
+    "notes": "Tye 2015 uses 41 km. Gazetteer centre; the older -87.3, 77.0 (Wikipedia) was about 10 km off."
+   }
+  },
+  {
+   "id": "host_cabeus",
+   "name": "Cabeus",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.33,
+    "lon_east_180": -42.13,
+    "lon_east_360": 317.87
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter; depth WP (secondary)",
+   "limitations": "Coordinate conflict: Gazetteer -85.33, -42.13 vs Wikipedia -84.9, -35.5; both kept.",
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/953"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_cabeus"
+   },
+   "properties": {
+    "diameter_km": 100.58,
+    "depth_km": "~4",
+    "notes": "floor ~60 km across; crater sunlit ~25% per lunar day, walls 10-15 deg; shaded region below 100 K.",
+    "alt_coordinates": [
+     {
+      "lat": -84.9,
+      "lon_east_180": -35.5,
+      "lon_east_360": 324.5,
+      "source_url": "https://en.wikipedia.org/wiki/Cabeus_(crater)",
+      "evidence": "WP"
+     }
+    ]
+   }
+  },
+  {
+   "id": "host_cabeus_a",
+   "name": "Cabeus A",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -82.08,
+    "lon_east_180": -40.24,
+    "lon_east_360": 319.76
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/8057",
+    "https://en.wikipedia.org/wiki/Cabeus_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_cabeus_a"
+   },
+   "properties": {
+    "diameter_km": 40.88,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_cabeus_b",
+   "name": "Cabeus B",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -82.26,
+    "lon_east_180": -54.58,
+    "lon_east_360": 305.42
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/8058",
+    "https://en.wikipedia.org/wiki/Cabeus_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_cabeus_b"
+   },
+   "properties": {
+    "diameter_km": 59.62,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_de_gerlache",
+   "name": "de Gerlache",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.48,
+    "lon_east_180": -88.34,
+    "lon_east_360": 271.66
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/1439",
+    "https://en.wikipedia.org/wiki/De_Gerlache_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_de_gerlache"
+   },
+   "properties": {
+    "diameter_km": 32.71,
+    "depth_km": null,
+    "notes": "Depth removed (14 Nov): the 7.5 km value came from Wikipedia and is implausible for a 32.7 km crater (depth/diameter 0.23); source it to a primary paper before use."
+   }
+  },
+  {
+   "id": "host_sverdrup",
+   "name": "Sverdrup",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.32,
+    "lon_east_180": -153.39,
+    "lon_east_360": 206.61
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/5782",
+    "https://en.wikipedia.org/wiki/Sverdrup_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_sverdrup"
+   },
+   "properties": {
+    "diameter_km": 32.83,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_slater",
+   "name": "Slater",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.08,
+    "lon_east_180": 111.29,
+    "lon_east_360": 111.29
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/15325",
+    "https://en.wikipedia.org/wiki/Slater_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_slater"
+   },
+   "properties": {
+    "diameter_km": 25.12,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_nobile",
+   "name": "Nobile",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.28,
+    "lon_east_180": 53.27,
+    "lon_east_360": 53.27
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/4321",
+    "https://en.wikipedia.org/wiki/Nobile_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_nobile"
+   },
+   "properties": {
+    "diameter_km": 79.27,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_amundsen",
+   "name": "Amundsen",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.44,
+    "lon_east_180": 83.07,
+    "lon_east_360": 83.07
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/247"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_amundsen"
+   },
+   "properties": {
+    "diameter_km": 103.39,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_wiechert",
+   "name": "Wiechert",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.03,
+    "lon_east_180": 164.7,
+    "lon_east_360": 164.7
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/6541",
+    "https://en.wikipedia.org/wiki/Wiechert_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_wiechert"
+   },
+   "properties": {
+    "diameter_km": 40.82,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_wiechert_j",
+   "name": "Wiechert J",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.2,
+    "lon_east_180": -177.64,
+    "lon_east_360": 182.36
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/13888",
+    "https://en.wikipedia.org/wiki/Wiechert_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_wiechert_j"
+   },
+   "properties": {
+    "diameter_km": 34.89,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_idelson",
+   "name": "Idel'son (parent)",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -81.35,
+    "lon_east_180": 112.69,
+    "lon_east_360": 112.69
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter; depth WP (secondary)",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/2650",
+    "https://en.wikipedia.org/wiki/Idel%27son_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_idelson"
+   },
+   "properties": {
+    "diameter_km": 59.82,
+    "depth_km": 2.83
+   }
+  },
+  {
+   "id": "host_idelson_l",
+   "name": "Idel'son L",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -83.99,
+    "lon_east_180": 118.56,
+    "lon_east_360": 118.56
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/10114",
+    "https://en.wikipedia.org/wiki/Idel%27son_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_idelson_l"
+   },
+   "properties": {
+    "diameter_km": 28.04,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_malapert",
+   "name": "Malapert",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.0,
+    "lon_east_180": 11.4,
+    "lon_east_360": 11.4
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "USGS Gazetteer (primary) for centre and diameter",
+   "limitations": null,
+   "sources": [
+    "https://planetarynames.wr.usgs.gov/Feature/3603",
+    "https://en.wikipedia.org/wiki/Malapert_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_malapert"
+   },
+   "properties": {
+    "diameter_km": 72.38,
+    "depth_km": null
+   }
+  },
+  {
+   "id": "host_malapert_massif_peak",
+   "name": "Malapert Massif (peak)",
+   "category": "host_crater",
+   "geometry": null,
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "WP",
+   "limitations": "Source gives no latitude and only an approximate longitude (~0); coordinates not filled.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Malapert_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_malapert_massif_peak"
+   },
+   "properties": {
+    "diameter_km": null,
+    "notes": "peak 'almost exactly on 0 deg longitude'; ~5 km relief"
+   }
+  },
+  {
+   "id": "host_mons_mouton",
+   "name": "Mons Mouton (mountain, not a crater)",
+   "category": "host_crater",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6,
+    "lon_east_180": 31.0,
+    "lon_east_360": 31.0
+   },
+   "frame": null,
+   "location_note": "host crater centre",
+   "evidence": "WP",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mons_Mouton"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "host_mons_mouton"
+   },
+   "properties": {
+    "diameter_km": "just under 100 km wide",
+    "notes": "~6 km base-to-peak, flat-topped"
+   }
+  }
+ ]
+}
