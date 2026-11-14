@@ -344,6 +344,8 @@ test.describe('terrain levels (track-terrain)', () => {
   })
 
   test('T17 at every site with levels: the Sun is hidden exactly where the mask hides it (eye level)', async ({ page }) => {
+    // 35 site/time cases: about 50 s alone, over the default 90 s when the whole suite runs in parallel.
+    test.setTimeout(300_000)
     await open(page)
     // T17's cases (whole disc ≥ 0.3° below the mask but within 3°, or ≥ 0.3° above it and < 8°), first match in
     // Aug 2027, for every site with a horizon: checks the clamp and the crest strip on all terrain, not one site.
