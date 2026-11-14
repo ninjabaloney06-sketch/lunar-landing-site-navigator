@@ -15,7 +15,6 @@ import {
   COVERAGE_START_MS,
   DAY_MS,
   DEFAULT_DAYS,
-  DEFAULT_PERIOD_ID,
   DEFAULT_MISSION_NAME,
   DEFAULT_SPEED_H_PER_S,
   DEFAULT_SITE_ID,
@@ -38,7 +37,9 @@ import type { SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
 import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
-import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
+import { fmtCoords, fmtDateTime, fmtDeg } from './views/format'
+import { resolvePeriod } from './views/period'
+import { missionKey, missionOf, useMissions } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
 import './styles/view.css'
@@ -125,24 +126,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
+  // Saved missions (this browser only): listed in the Mission panel and as rows of the comparison table.
+  const missions = useMissions()
+  const currentMission = missionKey(missionOf(hs))
 
-  const period: ViewPeriod = useMemo(() => {
-    if (hs.period === 'custom' && hs.from !== null) {
-      const end = Math.min(hs.from + hs.days * DAY_MS, COVERAGE_END_MS)
-      // A period that does not start at 00:00 UTC (e.g. opened from the finder at the landing time) says so,
-      // so the label does not suggest whole calendar days.
-      const label = hs.from % DAY_MS === 0 ? fmtRange(hs.from, end) : `${fmtShort(hs.from)} – ${fmtShort(end)} UTC`
-      return { id: 'custom', label, startMs: hs.from, endMs: end }
-    }
-    const p = periods.find((x) => x.id === hs.period) ?? periods.find((x) => x.id === DEFAULT_PERIOD_ID) ?? periods[0]
-    if (!p) {
-      const start = COVERAGE_START_MS
-      return { id: 'custom', label: fmtRange(start, start + DEFAULT_DAYS * DAY_MS), startMs: start, endMs: start + DEFAULT_DAYS * DAY_MS }
-    }
-    const startMs = Date.parse(p.start_utc)
-    const endMs = Date.parse(p.end_utc)
-    return { id: p.id, label: fmtRange(startMs, endMs), startMs, endMs }
-  }, [hs.period, hs.from, hs.days, periods])
+  const period: ViewPeriod = useMemo(
+    () => resolvePeriod({ period: hs.period, from: hs.from, days: hs.days }, periods),
+    [hs.period, hs.from, hs.days, periods],
+  )
 
   const lastStep = period.endMs - STEP_MS
   const snap = useCallback(
@@ -413,6 +404,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               goal={hs.goal}
               points={hs.pts}
               selectedPoint={selPoint}
+              periods={periods}
+              missions={missions.list}
+              missionSaved={missions.list.some((m) => missionKey(m) === currentMission)}
+              onAddMission={() => missions.add(missionOf(hs))}
+              onLoadMission={(m) => patch({ ...m, t: null })}
+              onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
               onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
               onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
@@ -570,6 +567,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
           }
           onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
+          goal={hs.goal}
+          missions={missions.list}
+          onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
           speed={speed}
           onSpeed={setSpeed}
           onReset={() => {

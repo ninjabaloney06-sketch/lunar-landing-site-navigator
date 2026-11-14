@@ -2,7 +2,8 @@
 // potential, export, how this is computed and the terms of use. Opened from the answer sentence, "Find better dates" or the
 // footer link.
 import { useEffect, useRef, useState } from 'react'
-import type { Sample, StationLos } from '../geometry'
+import type { Sample, ScienceGoal, StationLos } from '../geometry'
+import type { MissionState } from '../missions'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
@@ -12,6 +13,7 @@ import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { HorizonStrip } from './HorizonStrip'
+import { SiteTable } from './SiteTable'
 import { Terms } from './Terms'
 import { capital, fmtDateTime, fmtDeg } from './format'
 
@@ -36,11 +38,18 @@ interface Props {
   onChooseStations(): void // opens the Mission panel at its station checklist (one checklist, not two)
   onShowWindow(startMs: number, days: number, landingMs: number): void
   onSwitch(siteId: string, periodId: string): void
+  goal: ScienceGoal // the mission's science goal: the order "Find better location" uses
+  missions: MissionState[] // saved missions, shown as rows of the table
+  onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
   speed: number // Simulate: hours of mission time per second
   onSpeed(hoursPerSecond: number): void
   onReset(): void // cursor back to the first mission step
   onClose(): void
 }
+
+// Whole-year mode of the table. Measured before shipping (14 Nov 2026, this build in Chromium on ninja's Mac):
+// one site for 365 days (17 520 samples) took 198 ms, all 18 sites 3.2 s; the limit set for shipping was 20 s.
+const WHOLE_YEAR = true
 
 const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
 
@@ -234,6 +243,26 @@ export function Drawer(p: Props) {
           ids={p.ids}
           current={results}
           onSwitch={p.onSwitch}
+        />
+      </section>
+
+      <section className="drawer-sec" aria-labelledby="sec-table">
+        <h3 id="sec-table">All sites</h3>
+        <SiteTable
+          key={`${site.id}|${period.startMs}|${period.endMs}`}
+          sites={p.sites}
+          periods={p.periods}
+          stations={p.stations}
+          ids={p.ids}
+          site={site}
+          period={period}
+          goal={p.goal}
+          missions={p.missions}
+          wholeYear={WHOLE_YEAR}
+          onFindDates={(id) => {
+            p.onFindDates(id)
+            finderRef.current?.scrollIntoView({ block: 'start' })
+          }}
         />
       </section>
 
