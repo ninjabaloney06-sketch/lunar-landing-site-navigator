@@ -572,8 +572,10 @@ export class SiteWorld {
   }
 
   /** Keeps the mast and cross a constant on-screen thickness; hides them at eye level. */
-  updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean) {
+  updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean, cross = show) {
     this.marker.visible = show
+    // The ground cross is drawn through the terrain for the view from above; standing on the ground it would float.
+    for (const c of this.cross) c.visible = cross
     const dist = cam.position.length()
     const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
     this.mastHeight = MAST_PER_DIST * dist

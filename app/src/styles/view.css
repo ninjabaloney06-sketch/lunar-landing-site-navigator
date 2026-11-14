@@ -151,6 +151,16 @@
   color: var(--fg);
 }
 
+/* ---------- Details drawer: simulation speed ---------- */
+
+.sim-speed {
+  gap: var(--s-2);
+}
+
+.sim-speed .field {
+  width: auto;
+}
+
 @media (max-width: 640px) {
   .tl-tools {
     gap: var(--s-4);

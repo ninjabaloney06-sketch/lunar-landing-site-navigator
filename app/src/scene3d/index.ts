@@ -32,6 +32,8 @@ import { SiteWorld } from './site'
 import { Sky } from './sky'
 import { TopView } from './topview'
 
+export { TOP_VIEW } from './topview'
+
 export type SceneLevel = 'globe' | 'site' | 'eye'
 
 export interface SceneFrame {
@@ -567,12 +569,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * above it, facing the way it came. A camera move only: the site, the sky directions and every number stay
    * those of the landing site.
    */
-  function walkTo(x: number, y: number, animate = !testMode): boolean {
+  function walkTo(x: number, y: number, animate = !testMode, faceSite = false): boolean {
     if (!frame?.site || fly || level === 'globe') return false
     if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
     const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
     const to = new Vector3(x, y, site.groundZ(x, y) + site.eyeHeight)
-    const way = to.clone().sub(from.p).setZ(0)
+    // A click faces the way the camera came; a point viewpoint faces the landing site, so its mast is in view.
+    const way = faceSite ? new Vector3(-x, -y, 0) : to.clone().sub(from.p).setZ(0)
     const az = way.lengthSq() > 1 ? azElOfEnu(way.normalize()).az : currentHeading()
     const was = level
     level = 'eye'
@@ -658,7 +661,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       if (g && site.covers(g.x, g.y)) {
         // On the terrain tile: stand on the point, as a walk does.
         if (level === 'globe') setLevel('site', false)
-        return walkTo(g.x, g.y, animate)
+        return walkTo(g.x, g.y, animate, true)
       }
       flyInSpace(() => setGlobeView(m.lat, m.lon, POINT_ABOVE_KM), animate)
       return true
@@ -781,7 +784,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       const sp = toScreen(head, globeCam)
       return { ...sp, visible: sp.visible && globe.pinsVisible && !globe.occluded(globeCam.position, head) }
     }
-    site.updateMarker(siteCam, size.y, showMast())
+    site.updateMarker(siteCam, size.y, showMast(), level === 'site')
     const mast = site.mastTop()
     const sp = toScreen(mast, siteCam)
     if (!showMast()) return { ...sp, visible: false } // the mast is hidden while standing on the site
@@ -817,7 +820,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         globeCam.updateProjectionMatrix()
       }
     } else {
-      site.updateMarker(siteCam, size.y, showMast())
+      site.updateMarker(siteCam, size.y, showMast(), level === 'site')
       site.updateMarks(siteCam, size.y)
     }
     syncSky()

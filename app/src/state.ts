@@ -43,6 +43,11 @@ export const STEP_MS = STEP_MIN * 60_000
 export const DAY_MS = 86_400_000
 export const DEFAULT_DAYS = 14
 
+// Simulate (Brief C4 part 4): hours of mission time per second of real time. 10 is the pace "Play mission" has
+// always had (one 30-minute step every 50 ms).
+export const SPEEDS_H_PER_S = [3, 10, 24, 72]
+export const DEFAULT_SPEED_H_PER_S = 10
+
 // Demo question: a fresh URL opens on it. Demo site is Connecting Ridge (ninja, 14 Nov); the period id is unchanged.
 export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'

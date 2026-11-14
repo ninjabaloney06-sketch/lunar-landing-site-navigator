@@ -17,6 +17,7 @@ import {
   DEFAULT_DAYS,
   DEFAULT_PERIOD_ID,
   DEFAULT_MISSION_NAME,
+  DEFAULT_SPEED_H_PER_S,
   DEFAULT_SITE_ID,
   MAX_POINTS,
   pointName,
@@ -107,6 +108,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const [menu, setMenu] = useState<null | 'mission' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
   const [webgl, setWebgl] = useState(() => webglAvailable())
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
@@ -183,16 +185,38 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }, [])
   const closeMenuQuiet = useCallback(() => closeMenu(false), [closeMenu])
 
-  // Play: one 30-minute step every 50 ms until the period ends.
+  // Simulate: the cursor follows the real clock (elapsed time × speed), on the 30-minute grid, until the
+  // period's last step. A timer that reads the clock, so a throttled tab plays at the same pace, in fewer steps.
+  const cursorNow = useRef(cursor)
+  cursorNow.current = cursor
   useEffect(() => {
     if (!playing) return
-    if (cursor >= lastStep) {
+    if (cursorNow.current >= lastStep) {
       setPlaying(false)
       return
     }
-    const id = window.setTimeout(() => patch({ t: cursor + STEP_MS }), 50)
-    return () => window.clearTimeout(id)
-  }, [playing, cursor, lastStep, patch])
+    let from = cursorNow.current // mission time and
+    let t0 = performance.now() // real time where the run is anchored
+    let shown = from
+    let before = from // the cursor before the last step this timer made
+    const id = window.setInterval(() => {
+      // Scrubbed or stepped by the user meanwhile: go on from there.
+      const c = cursorNow.current
+      if (c !== shown && c !== before) {
+        from = shown = before = c
+        t0 = performance.now()
+      }
+      const elapsed = (performance.now() - t0) * speed * 3600 // ms of mission time
+      const next = Math.min(lastStep, from + Math.floor(elapsed / STEP_MS) * STEP_MS)
+      if (next !== shown) {
+        before = shown
+        shown = next
+        patch({ t: next })
+      }
+      if (next >= lastStep) setPlaying(false)
+    }, 40)
+    return () => window.clearInterval(id)
+  }, [playing, speed, lastStep, patch])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -270,6 +294,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     { id: 'eye', label: 'Eye level', current: !topView && hs.view === 'eye', onSelect: () => goLevel('eye') },
     ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
   ]
+
+  // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
+  const toggleSimulate = () => {
+    if (playing) return setPlaying(false)
+    if (cursor >= lastStep) patch({ t: period.startMs })
+    setPlaying(true)
+  }
 
   const playMission = () => {
     setMenu(null)
@@ -495,6 +526,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                   {menu === 'view' && <ViewMenu label="View" testId="view-menu" className="is-anchored" items={viewItems} onClose={closeMenu} />}
                 </span>
               )}
+              <button type="button" className="tool" data-testid="simulate" aria-pressed={playing} onClick={toggleSimulate}>
+                {playing ? 'Pause' : 'Simulate'}
+              </button>
             </>
           }
           onScrub={(ms) => patch({ t: snap(ms) })}
@@ -536,6 +570,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
           }
           onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
+          speed={speed}
+          onSpeed={setSpeed}
+          onReset={() => {
+            setPlaying(false)
+            patch({ t: period.startMs })
+          }}
           onClose={() => patch({ drawer: null })}
         />
       )}

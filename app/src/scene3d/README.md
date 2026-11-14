@@ -14,3 +14,5 @@ Walk (note 6): a left-click (< 5 px) on terrain at site or eye level flies the c
 ends at eye level; camera only (sky, labels and numbers stay the landing site's); beyond 60 km from the site it is ignored.
 Viewpoints (Brief C4 part 2): handle.goTo('moon'|'start'|'end'|'earth'|'sun'|'top'). Earth and Sun reuse the sky layer
 (true direction and angular size from the camera's position, 5.5 radii out); 'top' is topview.ts, not to scale.
+User points (part 3): handle.setMarkers(points): square-headed pins on the globe, and in the site scene where the 80 m
+tile has terrain under them. handle.named() gives the hovered or tapped pin's name; handle.onMenu the right-click.

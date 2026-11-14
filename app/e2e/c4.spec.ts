@@ -672,3 +672,276 @@ test.describe('C4 part 3: user points', () => {
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
   })
 })
+
+// ---------- part 4: Simulate ----------
+
+type SceneP4 = Scene & { sunAzEl(): { az: number; el: number } | null; earthAzEl(): { az: number; el: number } | null }
+const sky = (page: Page) =>
+  page.evaluate(() => {
+    const s = (window as unknown as { __scene: SceneP4 }).__scene
+    return { sun: s.sunAzEl(), earth: s.earthAzEl() }
+  })
+
+/** What the screen shows for the cursor time: date, answer, timeline value text, the labels' numbers. */
+async function shown(page: Page) {
+  const label = async (id: string) => ((await page.getByTestId(id).isVisible()) ? page.getByTestId(id).innerText() : null)
+  return {
+    date: await page.getByTestId('date').innerText(),
+    answer: await page.getByTestId('answer').innerText(),
+    value: await page.getByRole('slider').getAttribute('aria-valuetext'),
+    sunLabel: await label('label-sun'),
+    earthLabel: await label('label-earth'),
+  }
+}
+
+test.describe('C4 part 4: Simulate', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('Simulate reaches a time T; a fresh page opened at T shows the same answer, labels and Sun/Earth az/el', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-17T00:00Z&view=eye`)
+    const sim = page.getByTestId('simulate')
+    await expect(sim).toHaveText('Simulate')
+    await expect(sim).toHaveAttribute('aria-pressed', 'false')
+    await sim.click()
+    await expect(sim).toHaveText('Pause')
+    await expect(page.getByTestId('date')).not.toHaveText('17 August 2027, 00:00 UTC')
+    await page.waitForTimeout(1500)
+    await sim.click()
+    await expect(sim).toHaveText('Simulate')
+    // Paused: the link is written once the cursor rests.
+    const linkT = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('t'))
+    await expect.poll(linkT, { timeout: 5000 }).not.toBe('2027-08-17T00:00Z')
+    const t = (await linkT())!
+    expect(t).toMatch(/^2027-08-1[78]T\d\d:[03]0Z$/)
+    await frames(page)
+    await page.waitForTimeout(500) // the scene loads its frame for the resting cursor
+    const played = { screen: await shown(page), sky: await sky(page), level: await scene(page, (s) => s.level()) }
+    expect(played.screen.answer.length).toBeGreaterThan(10)
+
+    // A fresh page at the same T: scrubbing or a link, the screen is a function of the cursor time alone.
+    const fresh = await page.context().newPage()
+    await fresh.setViewportSize({ width: 1440, height: 900 })
+    await openApp(fresh, `site=${RIDGE}&period=${AUG}&t=${t}&view=eye`)
+    await frames(fresh)
+    await fresh.waitForTimeout(500)
+    expect(await shown(fresh)).toEqual(played.screen)
+    const direct = await sky(fresh)
+    for (const b of ['sun', 'earth'] as const) {
+      expect(direct[b]!.az).toBeCloseTo(played.sky[b]!.az, 9)
+      expect(direct[b]!.el).toBeCloseTo(played.sky[b]!.el, 9)
+    }
+    expect(await scene(fresh, (s) => s.level())).toBe(played.level)
+    // And scrubbed there with the arrow keys from 30 minutes earlier.
+    await fresh.keyboard.press('ArrowLeft')
+    await fresh.keyboard.press('ArrowRight')
+    await frames(fresh)
+    await fresh.waitForTimeout(300)
+    expect(await shown(fresh)).toEqual(played.screen)
+    await fresh.close()
+  })
+
+  test('Simulate follows the clock at the chosen speed, stops at the last step, Space and the drawer controls work', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}`)
+    const sim = page.getByTestId('simulate')
+    const cursorMs = async () => Number(await page.getByRole('slider').getAttribute('aria-valuenow'))
+    const start = Date.UTC(2027, 7, 16)
+    const lastStep = Date.UTC(2027, 7, 30) - 30 * 60_000
+    expect(await cursorMs()).toBe(start)
+    // Speed and "Reset to start" live in the Details drawer, not on the main screen.
+    await expect(page.getByRole('button', { name: 'Reset to start' })).toHaveCount(0)
+    await page.getByTestId('details').click()
+    const drawer = page.getByTestId('drawer')
+    const speed = drawer.getByTestId('speed')
+    await expect(speed.locator('option')).toHaveText(['3 hours per second', '10 hours per second', '1 day per second', '3 days per second'])
+    await expect(speed).toHaveValue('10')
+    await speed.selectOption('24')
+    await drawer.getByRole('button', { name: 'Close' }).click()
+    // One day per second: after about 2 s of real time the cursor is about 2 days on, on the 30-minute grid.
+    const t0 = Date.now()
+    await sim.click()
+    await page.waitForTimeout(2000)
+    await sim.click()
+    const real = (Date.now() - t0) / 1000
+    const advancedH = ((await cursorMs()) - start) / 3_600_000
+    expect((await cursorMs()) % (30 * 60_000)).toBe(0)
+    expect(advancedH, `advanced ${advancedH} h in ${real.toFixed(2)} s`).toBeGreaterThan(24 * (real - 0.6))
+    expect(advancedH).toBeLessThan(24 * (real + 0.3))
+    // Space pauses and resumes, as before.
+    const paused = await cursorMs()
+    await page.keyboard.press('Space')
+    await expect(sim).toHaveText('Pause')
+    await expect.poll(cursorMs).toBeGreaterThan(paused)
+    await page.keyboard.press('Space')
+    await expect(sim).toHaveText('Simulate')
+    // Three days per second from near the end: stops on the last step and the control reads Simulate again.
+    await page.getByTestId('details').click()
+    await speed.selectOption('72')
+    await drawer.getByRole('button', { name: 'Close' }).click()
+    await page.goto(`/?test=1#site=${RIDGE}&period=${AUG}&t=2027-08-29T00:00Z`)
+    await page.reload()
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+    await page.getByTestId('simulate').click()
+    await expect(page.getByTestId('simulate')).toHaveText('Simulate', { timeout: 15_000 })
+    expect(await cursorMs()).toBe(lastStep)
+    // At the end, Simulate starts over from the first step; "Reset to start" goes back and stops.
+    await page.getByTestId('simulate').click()
+    await expect.poll(cursorMs).toBeLessThan(lastStep)
+    await page.getByTestId('details').click()
+    await page.getByTestId('drawer').getByRole('button', { name: 'Reset to start' }).click()
+    await expect(page.getByTestId('simulate')).toHaveText('Simulate')
+    expect(await cursorMs()).toBe(start)
+    await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('looks down the +z axis of the Moon body-fixed frame (MOON_ME)')
+    await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('It is not to scale')
+  })
+})
+
+// ---------- every size: no horizontal scroll; the screenshots the brief asks for ----------
+
+for (const vp of [
+  { width: 1600, height: 1000 },
+  { width: 1440, height: 900 },
+  { width: 375, height: 812 },
+]) {
+  test(`no horizontal scroll and screenshots at ${vp.width} × ${vp.height}: main view, Mission panel with two points, top view, Point start`, async ({ page }) => {
+    test.setTimeout(180_000)
+    await page.setViewportSize(vp)
+    const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; lat: number; lon: number }[]
+    const ridge = sites.find((s) => s.id === RIDGE)!
+    const pts = `${(ridge.lat + 0.1).toFixed(4)},${ridge.lon.toFixed(4)},s,Ridge camp;-85.9900,0.5000,e,Malapert view`
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&pts=${pts}`)
+    await page.evaluate(() => document.fonts.ready)
+    const tag = `${vp.width}x${vp.height}`
+    const noScroll = async (what: string) => {
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+      expect(overflow, `${what} at ${tag}`).toBeLessThanOrEqual(0)
+    }
+    const shot = (name: string) => page.screenshot({ path: `test-results/c4-${name}-${tag}.png`, animations: 'disabled' })
+    await noScroll('main view')
+    await shot('main')
+    await page.getByTestId('view').click()
+    await expect(page.getByTestId('view-menu')).toBeVisible()
+    await noScroll('View menu')
+    await shot('view-menu')
+    await page.keyboard.press('Escape')
+    const panel = await openPanel(page)
+    await expect(panel.getByTestId('point')).toHaveCount(2)
+    await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
+    await panel.getByTestId('points').evaluate((e) => e.scrollIntoView({ block: 'start' }))
+    await noScroll('Mission panel with two points')
+    await shot('panel-points')
+    await panel.getByRole('button', { name: 'Close' }).click()
+    await chooseView(page, 'Solar system — top view')
+    await expect(page.getByTestId('not-to-scale')).toBeVisible()
+    await page.waitForTimeout(300)
+    await noScroll('top view')
+    await shot('top-view')
+    await chooseView(page, 'Point start')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    await page.waitForTimeout(300)
+    await noScroll('Point start')
+    await shot('point-start')
+    await page.getByTestId('simulate').click()
+    await expect(page.getByTestId('simulate')).toHaveText('Pause')
+    await noScroll('simulating')
+    await page.getByTestId('simulate').click()
+    await page.getByTestId('details').click()
+    await page.getByTestId('drawer').getByRole('heading', { name: 'Simulation' }).scrollIntoViewIfNeeded()
+    await noScroll('drawer')
+    await shot('drawer-simulation')
+  })
+}
+
+// ---------- the camera never changes the selection; the flights of the real app (no test mode) ----------
+
+test('app: middle-drag, wheel, eye-level zoom and every viewpoint leave site, period, cursor and stations in the hash unchanged', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid&pts=-89.3600,-136.6800,s,Near;-85.9900,0.5000,e,Far`)
+  const before = await selection(page)
+  const answer = await page.getByTestId('answer').innerText()
+  const act = async (what: string, fn: () => Promise<void>) => {
+    await fn()
+    await frames(page)
+    expect(await selection(page), `after ${what}`).toBe(before)
+    expect(await page.getByTestId('answer').innerText(), `answer after ${what}`).toBe(answer)
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+  }
+  const drag = async () => {
+    await page.mouse.move(720, 380)
+    await page.mouse.down({ button: 'middle' })
+    await page.mouse.move(820, 420, { steps: 3 })
+    await page.mouse.up({ button: 'middle' })
+  }
+  const a = await camera(page)
+  await act('a middle-drag at site level', drag)
+  expect(angleDeg((await camera(page)).forward, a.forward)).toBeGreaterThan(3)
+  await act('the wheel at site level', async () => {
+    await page.mouse.move(720, 380)
+    await page.mouse.wheel(0, -300)
+  })
+  expect(dist((await camera(page)).position, a.position)).toBeGreaterThan(100)
+  await act('a left-drag', async () => {
+    await page.mouse.move(720, 380)
+    await page.mouse.down()
+    await page.mouse.move(760, 360, { steps: 3 })
+    await page.mouse.up()
+  })
+  await act('Eye level', () => chooseView(page, 'Eye level'))
+  await act('the wheel at eye level', async () => {
+    await page.mouse.move(720, 380)
+    await page.mouse.wheel(0, -300)
+  })
+  expect((await camera(page)).fov).toBeLessThan(54)
+  await act('a middle-drag at eye level', drag)
+  for (const label of VIEW_LABELS) await act(label, () => chooseView(page, label))
+  await act('a middle-drag in the top view (ignored)', drag)
+  await act('Moon', () => chooseView(page, 'Moon'))
+  await act('the wheel on the globe', async () => {
+    await page.mouse.move(720, 380)
+    await page.mouse.wheel(0, -300)
+  })
+  await act('a middle-drag on the globe', drag)
+  await act('Landing site', () => chooseView(page, 'Landing site'))
+})
+
+test('without test mode: the walk and the viewpoint flights finish, with no page error', async ({ page }) => {
+  test.setTimeout(120_000)
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&pts=-89.3600,-136.6800,s,Near;-85.9900,0.5000,e,Far`)
+  await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+  await expect(page.getByTestId('label-site')).toBeVisible({ timeout: 30_000 })
+  const view = (label: string) => chooseView(page, label)
+  const hashView = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('view') ?? 'site')
+  // Walk: the 1.5 s flight ends at eye level.
+  await page.mouse.click(900, 430)
+  await expect.poll(hashView, { timeout: 10_000 }).toBe('eye')
+  await page.waitForTimeout(1800)
+  await page.screenshot({ path: 'test-results/c4-live-walk-1440x900.png', animations: 'disabled' })
+  await view('Earth')
+  await expect.poll(hashView, { timeout: 10_000 }).toBe('globe')
+  await page.waitForTimeout(1800)
+  await expect(page.getByTestId('label-earth')).toBeVisible()
+  await page.screenshot({ path: 'test-results/c4-live-earth-1440x900.png', animations: 'disabled' })
+  await view('Sun')
+  await page.waitForTimeout(1800)
+  await expect(page.getByTestId('label-sun')).toBeVisible()
+  await view('Solar system — top view')
+  await expect(page.getByTestId('not-to-scale')).toBeVisible()
+  await view('Point end')
+  await page.waitForTimeout(1800)
+  await expect(page.getByTestId('not-to-scale')).toHaveCount(0)
+  await view('Point start')
+  await expect.poll(hashView, { timeout: 10_000 }).toBe('eye')
+  await page.waitForTimeout(1800)
+  await view('Moon')
+  await expect.poll(hashView, { timeout: 10_000 }).toBe('globe')
+  await page.waitForTimeout(1800)
+  await page.screenshot({ path: 'test-results/c4-live-moon-1440x900.png', animations: 'disabled' })
+  await view('Landing site')
+  await expect.poll(hashView, { timeout: 10_000 }).toBe('site')
+  await page.waitForTimeout(1800)
+  await expect(page.getByTestId('label-site')).toBeVisible()
+  await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+  expect(errors).toEqual([])
+})
