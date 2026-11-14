@@ -258,3 +258,29 @@ Also: SI (AI) use must be marked in the project itself: code and data need an ac
 ## Mandatory site assessments — 14 Nov 2026
 
 **DECIDED — DO NOT REOPEN:** ninja requires terrain slope (**≤ 5° for landing**, strictly **< 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility. These are mandatory, not bonus features. Both thresholds come from ninja's project requirements, not claimed NASA/vehicle limits. Landing-site terrain steeper than 5° is unsuitable for landing; exactly 5° passes only the slope criterion, not overall landing safety. Missing slope data leaves landing suitability unknown. This supersedes earlier thermal/access exclusions and optional PSR scope only as needed for these assessments. Full automated route optimisation is not required. Methods, data and scientific validation remain open; see [spec.md](../event/spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and [TASKS.md](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026).
+
+## Local jury answers and paper UI notes — photographed 14 Nov 2026, 13:15
+
+Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the venue; downscaled copies in git-ignored `private/notes-14nov/`). Transcribed by Claude Code from the photos; German handwriting, so single words may be misread. Who gave the jury answers is not written on the notes. Nothing here is a team decision unless marked.
+
+**Jury answers (IMG_2343, 2344; the question list is IMG_2345):**
+
+| Question | Answer as written |
+|---|---|
+| Jury criteria | Depends on the challenge; mainly usefulness for researchers/astronauts, intuitive to use, innovative. |
+| What separates good from bad | Innovation, creativity. |
+| Prototype vs. idea | The prototype counts more; the idea is taken into account. |
+| Prior knowledge | "We must hand in a technical documentation." The pitch is a walkthrough of the project and an explanation of what we were thinking. |
+| Mainly pitch or app | Mainly the app; the pitch counts too. |
+| Typical mistakes | Nice UI with no content; too much superficial content. |
+| Presentation time limit | 3 minutes. |
+| What a complete submission needs | Deploy on a hosted domain; public repo with a README (install) and product documentation. |
+
+**Consequences:**
+
+- **OPEN — needs Isaac: public repo.** The note says a complete submission includes a public repo. This contradicts "the repo stays private" (Submission Guide check above, AGENTS.md "never make it public"). The global form does not require a code link; the local jury apparently does. Not changed by an agent. Options: confirm with the organisers that it is mandatory, then publish either this repo after a secrets/personal-data/names check (team first names are in docs/event/team.md and TASKS.md; minors' names rule) or a clean export with only `app/`, `scripts/`, README, LICENSE and the product documentation.
+- **New deliverables:** a technical documentation and a product documentation, plus install steps in the README. None exists yet; tracked in TASKS.md phase 6.
+- **Two formats:** the local pitch is a 3-minute walkthrough; the global submission demo stays ≤ 30 s video or ≤ 7 slides. Both are needed.
+- **Priority signal:** app over pitch, prototype over idea, content over UI polish. Validated numbers and the mandatory site assessments come before visual extras.
+
+**Paper UI notes (IMG_2339–2342):** a foreground wireframe, a "Missions" menu sketch and two pages "Anweisungen für UI erstellen" (author not written; "show Bene when finished, test for errors, fix"). Evaluated against spec.md and the earlier decisions in [TASKS.md](../../TASKS.md#paper-notes--photographed-14-nov-2026-1315). The top-right menu icon in the wireframe falls under "Right settings sidebar removed" above and is not reopened.
