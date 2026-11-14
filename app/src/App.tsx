@@ -1,5 +1,5 @@
-// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, three header
-// controls (mission, date, Find better dates), the answer sentence, the timeline and one footer line.
+// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, the header controls
+// (mission, date, points of interest, Find better dates, Details), the answer sentence, the timeline and one footer line.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
@@ -32,6 +32,8 @@ import type { ViewPeriod } from './views/Drawer'
 import { HorizonStrip } from './views/HorizonStrip'
 import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
+import { PoiKey, PoiToggle } from './views/PoiControl'
+import { pinCounts, scenePois, usePois } from './views/poiLayer'
 import { SceneView, viewpointItems } from './views/SceneView'
 import type { SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
@@ -43,6 +45,7 @@ import { missionKey, missionOf, useMissions } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
 import './styles/view.css'
+import './styles/poi.css'
 
 type Boot =
   | { status: 'loading' }
@@ -163,6 +166,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
+
+  // Points of interest: pois.json is fetched the first time the layer is switched on (off by default).
+  const poiData = usePois(hs.poi !== null)
+  const visiblePois = useMemo(
+    () => (poiData.status === 'ready' && hs.poi ? scenePois(poiData.pois, hs.poi, sites) : []),
+    [poiData, hs.poi, sites],
+  )
+  const poiCounts = useMemo(() => (poiData.status === 'ready' ? pinCounts(poiData.pois, sites) : null), [poiData, sites])
 
   const deps = useMemo(() => ({ sites, loadFrame: makeLoadFrame(sites) }), [sites])
   const onUnavailable = useCallback(() => setWebgl(false), [])
@@ -339,6 +350,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onTopView={setTopView}
             canAddPoint={hs.pts.length < MAX_POINTS}
             onAddPoint={addUserPoint}
+            pois={visiblePois}
+            poiById={poiData.status === 'ready' ? poiData.byId : null}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -449,23 +462,27 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
         </div>
-        <div className="actions">
-          <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
-            Find better dates
-          </button>
-          {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
-          <button
-            type="button"
-            className="details-btn"
-            data-testid="details"
-            aria-label="Details"
-            title="Details"
-            aria-haspopup="dialog"
-            aria-expanded={hs.drawer !== null}
-            onClick={() => patch({ drawer: 'details' })}
-          >
-            <Icon name="settings" />
-          </button>
+        <div className="actions-col">
+          <div className="actions">
+            <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />
+            <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
+              Find better dates
+            </button>
+            {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
+            <button
+              type="button"
+              className="details-btn"
+              data-testid="details"
+              aria-label="Details"
+              title="Details"
+              aria-haspopup="dialog"
+              aria-expanded={hs.drawer !== null}
+              onClick={() => patch({ drawer: 'details' })}
+            >
+              <Icon name="settings" />
+            </button>
+          </div>
+          {hs.poi && <PoiKey groups={hs.poi} data={poiData} counts={poiCounts} webgl={webgl} onChange={(poi) => patch({ poi })} />}
         </div>
       </header>
 

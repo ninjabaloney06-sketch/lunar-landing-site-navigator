@@ -1,0 +1,173 @@
+/* ui · shape: Workbench · Points of interest (U2–U4): the top-bar toggle and its key, the info box at a pin, and the
+   site search panel. Tokens from styles/tokens.css; colour only for meaning (each group's own colour). */
+
+/* ---------- top bar: buttons in one row, the key under them ---------- */
+
+.actions-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.poi-toggle[aria-pressed='true'] {
+  border-color: var(--fg);
+}
+
+.poi-key {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  background: var(--bg-veil);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-small);
+}
+
+.poi-key-list {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.poi-key-item {
+  align-items: center;
+  padding: 2px 0;
+}
+
+.poi-key-item input {
+  margin: 0;
+}
+
+.poi-swatch {
+  flex: none;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--bg);
+}
+
+.poi-key-n {
+  margin-left: auto;
+  padding-left: var(--s-4);
+  color: var(--muted);
+}
+
+.poi-key-note {
+  max-width: 32ch;
+  margin: var(--s-2) 0 0;
+  color: var(--muted);
+}
+
+/* ---------- info box at a pin (placed by SceneView with a transform) ---------- */
+
+.poi-info {
+  position: absolute;
+  z-index: 12;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.poi-info-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+
+.poi-info-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.poi-info-close {
+  flex: none;
+}
+
+.poi-info-name {
+  margin: var(--s-1) 0 0;
+  font: 500 var(--t-ui) / 1.35 var(--font-sans);
+}
+
+.poi-info-summary {
+  margin: var(--s-2) 0 0;
+}
+
+.poi-facts {
+  display: grid;
+  gap: 2px;
+  margin: var(--s-3) 0 0;
+}
+
+.poi-fact {
+  display: grid;
+  grid-template-columns: minmax(0, 10em) minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.poi-fact dt {
+  color: var(--muted);
+}
+
+.poi-fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.poi-info-line {
+  margin: var(--s-2) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.poi-info-key {
+  color: var(--muted);
+}
+
+.poi-info-caveat {
+  color: var(--muted);
+}
+
+.poi-info-hint {
+  margin: var(--s-2) 0 0;
+  color: var(--faint);
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 640px) {
+  .actions-col {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .poi-key-list {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s-4);
+  }
+
+  .poi-key-note {
+    max-width: none;
+  }
+}

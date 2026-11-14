@@ -1,11 +1,15 @@
 // URL-hash state (build-plan §5.2): site, cursor time, period, selected stations, view, drawer, user
-// points, mission name and science goal. A copied link reproduces the view. Parsing never throws and never
+// points, mission name, science goal and the points-of-interest layer. A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { POI_GROUPS } from './data/pois'
+import type { PoiGroup } from './data/pois'
 import type { ScienceGoal } from './geometry'
 import type { SceneLevel } from './scene3d'
 
-export type DrawerSection = 'details' | 'finder' | 'sources'
+// 'search' (site search by nearby POIs) and 'docs' (documentation) are panels of their own, opened from the top bar
+// and the footer; the other three are sections of the details drawer.
+export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs'
 
 /** Start and End are places and viewpoints only: no route, and unrelated to the period's start and end times. */
 export type PointRole = 'start' | 'end'
@@ -33,6 +37,7 @@ export interface HashState {
   pts: UserPoint[]
   name: string | null // mission name, plain text; null = DEFAULT_MISSION_NAME
   goal: ScienceGoal
+  poi: PoiGroup[] | null // points-of-interest layer: null = off (the default; absent from the link), else the groups shown
 }
 
 // Supported coverage (spec.md "Dates"): [2026-11-01, 2031-01-01) UTC.
@@ -53,7 +58,8 @@ export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
 const VIEWS: SceneLevel[] = ['globe', 'site', 'eye']
-const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources']
+const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs']
+const POI_IDS: PoiGroup[] = POI_GROUPS.map((g) => g.id)
 export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', 'science']
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/
 export const NAME_MAX = 40
@@ -74,6 +80,7 @@ export const EMPTY_STATE: HashState = {
   pts: [],
   name: null,
   goal: DEFAULT_GOAL,
+  poi: null,
 }
 
 /** Mission name as plain text: control characters dropped, runs of white space collapsed, at most 40
@@ -99,6 +106,25 @@ function parseTime(v: string | null): number | null {
   const ms = Date.parse(v)
   if (!Number.isFinite(ms) || ms < COVERAGE_START_MS || ms >= COVERAGE_END_MS) return null
   return ms
+}
+
+// ---------- points-of-interest layer ----------
+// Link format: absent = layer off; poi=all = every group; poi=none = on with no group; else poi=hazard,water,…
+// (POI_GROUPS order). Unknown words are dropped; a value with no known group and not "none" is ignored (off).
+
+function parsePoi(v: string | null): PoiGroup[] | null {
+  if (v === null) return null
+  if (v === 'all') return [...POI_IDS]
+  if (v === 'none') return []
+  const words = v.split(',')
+  const groups = POI_IDS.filter((g) => words.includes(g))
+  return groups.length ? groups : null
+}
+
+function serializePoi(groups: PoiGroup[]): string {
+  const known = POI_IDS.filter((g) => groups.includes(g))
+  if (known.length === POI_IDS.length) return 'all'
+  return known.length ? known.join(',') : 'none'
 }
 
 // ---------- user points ----------
@@ -203,6 +229,7 @@ export function parseHash(hash: string): HashState {
   s.name = cleanName(p.get('name'))
   const goal = p.get('goal') as ScienceGoal | null
   if (goal && GOALS.includes(goal)) s.goal = goal
+  s.poi = parsePoi(p.get('poi'))
   if (s.period === 'custom' && s.from === null) s.period = null
   return s
 }
@@ -222,6 +249,7 @@ export function serializeHash(s: HashState): string {
   if (s.pts.length) p.set('pts', serializePoints(s.pts))
   if (s.name) p.set('name', s.name)
   if (s.goal !== DEFAULT_GOAL) p.set('goal', s.goal)
+  if (s.poi) p.set('poi', serializePoi(s.poi))
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }

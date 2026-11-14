@@ -1,3 +1,4 @@
+import type { Poi, SearchSite } from './pois'
 import type { EphemMonth, Horizon, Period, Site, Station, TerrainMeta, TerrainTile } from './types'
 
 /** A file the build does not contain (404, or the dev server / Worker answering with the SPA page). */
@@ -39,6 +40,16 @@ export const loadPeriods = () => cached('periods', () => getJson<Period[]>('peri
 export const loadStations = () => cached('stations', () => getJson<Station[]>('stations.json'))
 export const loadHorizon = (file: string) => cached(`h:${file}`, () => getJson<Horizon>(`horizons/${file}`))
 export const loadEphem = (month: string) => cached(`e:${month}`, () => getJson<EphemMonth>(`ephem/${month}.json`))
+// Points of interest: fetched only when the layer or the search is first opened (never at start).
+export const loadPois = () => cached('pois', () => getJson<Poi[]>('pois.json'))
+/** POI points with a horizon of their own (terrain track); [] when this build has none, so the search lists the sites only. */
+export const loadSearchSites = () =>
+  cached('search-sites', () =>
+    getJson<SearchSite[]>('search-sites.json').catch((e) => {
+      if (e instanceof MissingDataError) return [] as SearchSite[]
+      throw e
+    }),
+  )
 
 /** One grid: terrain/<name>.json (TerrainMeta) + terrain/<name>.bin (little-endian Int16, size × size). */
 async function loadGrid(name: string): Promise<TerrainTile> {

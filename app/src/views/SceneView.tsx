@@ -1,10 +1,21 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
 // "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top. A label is hidden whenever
 // project() returns null or a point that is not visible.
+//
+// Points of interest (U2, U3): the visible ones go to the scene through setPois(). A POI that named() reports
+// opens its info box at the pin, instead of the plain name label site pins and user points keep:
+// - mouse: the box shows while the pointer is on the pin, and stays while the pointer moves onto the box (a short
+//   grace time bridges the gap), so its links can be reached; a click on the pin keeps it open;
+// - touch: a tap on the pin opens it and keeps it open (the scene reports the last tapped pin);
+// - a kept box closes with its Close button, Esc, a press anywhere else, or a camera move away from it.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { mountScene } from '../scene3d'
-import type { SceneDeps, SceneHandle, SceneLevel, SceneMenu, ScenePoint, ScreenPoint, Viewpoint } from '../scene3d'
+import type { SceneDeps, SceneHandle, SceneLevel, SceneMenu, SceneName, ScenePoi, ScenePoint, ScreenPoint, Viewpoint } from '../scene3d'
+import { inPinRegion } from '../scene3d/region'
+import type { Poi } from '../data/pois'
+import { PoiInfo } from './PoiInfo'
+import { REGION_TEXT } from './poiLayer'
 import { ViewMenu, VIEWPOINTS } from './ViewMenu'
 import type { ViewItem } from './ViewMenu'
 import { fmtDeg } from './format'
@@ -41,6 +52,18 @@ interface Props {
   onTopView(on: boolean): void // the not-to-scale top view is shown
   canAddPoint: boolean // false when the list of user points is full
   onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
+  pois: ScenePoi[] // points of interest to draw ([] = layer off)
+  poiById: Map<string, Poi> | null // records for the info box; null until pois.json is loaded
+}
+
+const HOVER_GRACE_MS = 350 // pointer from the pin onto its info box
+const CLICK_SLOP_PX = 5 // the scene's own limit between a click and a drag
+
+/** Test hook (?test=1 only, like the scene's window.__scene): the POIs last passed to setPois, and an override of
+ *  named() so the info box can be tested before the scene draws POI pins. */
+interface ViewsTestHook {
+  pois(): ScenePoi[]
+  setNamed(n: SceneName | null | undefined): void // undefined = the scene's own named()
 }
 
 function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
@@ -54,7 +77,7 @@ function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
 }
 
 export function SceneView(props: Props) {
-  const { deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint } = props
+  const { deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint, pois, poiById } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
@@ -82,6 +105,21 @@ export function SceneView(props: Props) {
   const [failedFor, setFailedFor] = useState<string | null>(null)
   const have = useRef({ sun: false, earth: false })
   have.current = { sun: sunEl !== null, earth: earthEl !== null }
+  // Info box of a point of interest: which one, and whether a click or tap keeps it open.
+  const [info, setInfo] = useState<{ id: string; pinned: boolean } | null>(null)
+  const infoNow = useRef(info)
+  const showInfo = useCallback((v: { id: string; pinned: boolean } | null) => {
+    infoNow.current = v
+    setInfo(v)
+  }, [])
+  const byId = useRef(poiById)
+  byId.current = poiById
+  const box = useRef<HTMLElement>(null)
+  const overBox = useRef(false)
+  const lostAt = useRef<number | null>(null)
+  const anchor = useRef<{ x: number; y: number } | null>(null)
+  const namedOverride = useRef<SceneName | null | undefined>(undefined)
+  const lastPois = useRef<ScenePoi[]>([])
 
   useEffect(() => {
     let h: SceneHandle
@@ -102,18 +140,105 @@ export function SceneView(props: Props) {
     const offTop = h.onTopView((on) => cb.current.onTopView(on))
     const offMenu = h.onMenu((m) => setCtx(m))
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
+    const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
+    const poiOf = (n: SceneName | null) => (n && n.poiId && byId.current?.has(n.poiId) ? n.poiId : null)
+    const testHook = new URLSearchParams(window.location.search).has('test')
+    if (testHook) {
+      const hook: ViewsTestHook = { pois: () => lastPois.current, setNamed: (n) => (namedOverride.current = n) }
+      ;(window as unknown as { __views?: ViewsTestHook }).__views = hook
+    }
+
+    // The box sits above the pin (below it when there is no room), inside the stage.
+    const placeBox = () => {
+      const el = box.current
+      const a = anchor.current
+      const stage = host.current
+      if (!el || !a || !stage) return
+      const w = el.offsetWidth
+      const ht = el.offsetHeight
+      const W = stage.clientWidth
+      const H = stage.clientHeight
+      const gap = 14
+      const x = Math.max(8, Math.min(a.x - w / 2, W - w - 8))
+      let y = a.y - ht - gap
+      if (y < 8) y = a.y + gap
+      y = Math.max(8, Math.min(y, H - ht - 8))
+      const t = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`
+      if (el.style.transform !== t) el.style.transform = t
+    }
+
     let raf = 0
     const tick = () => {
       place(sun.current, h.labelPoint('sun'), have.current.sun)
       place(earth.current, h.labelPoint('earth'), have.current.earth)
       place(site.current, h.project('site'), true)
-      const n = h.named()
-      if (n && nameText.current && nameText.current.textContent !== n.name) nameText.current.textContent = n.name
-      place(name.current, n, true)
+      const n = namedNow()
+      const id = n && n.visible ? poiOf(n) : null
+      const cur = infoNow.current
+      if (id) {
+        lostAt.current = null
+        if (!cur || (!cur.pinned && cur.id !== id)) showInfo({ id, pinned: false })
+        if (!cur || !cur.pinned || cur.id === id) anchor.current = { x: n!.x, y: n!.y }
+      } else if (cur && !cur.pinned && !overBox.current) {
+        const t = performance.now()
+        if (lostAt.current === null) lostAt.current = t
+        else if (t - lostAt.current > HOVER_GRACE_MS) {
+          lostAt.current = null
+          showInfo(null)
+        }
+      }
+      placeBox()
+      // The plain name: site pins and user points, and a POI only while another POI's box is kept open.
+      const plain = n && !(n.poiId && infoNow.current?.id === n.poiId) ? n : null
+      if (plain && nameText.current && nameText.current.textContent !== plain.name) nameText.current.textContent = plain.name
+      place(name.current, plain, true)
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
+
+    // A click or tap on a POI pin keeps its box open; any other press closes a kept box.
+    const stage = host.current!
+    let down: { x: number; y: number } | null = null
+    const onDown = (e: PointerEvent) => {
+      down = { x: e.clientX, y: e.clientY }
+    }
+    const onUp = (e: PointerEvent) => {
+      const d = down
+      down = null
+      if (!d) return
+      const click = Math.hypot(e.clientX - d.x, e.clientY - d.y) <= CLICK_SLOP_PX
+      const n = click ? namedNow() : null
+      const id = poiOf(n)
+      if (n && id) {
+        anchor.current = { x: n.x, y: n.y }
+        showInfo({ id, pinned: true })
+      } else if (infoNow.current?.pinned) showInfo(null)
+    }
+    const onOutside = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (infoNow.current?.pinned && !box.current?.contains(t) && !stage.contains(t)) showInfo(null)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !infoNow.current?.pinned) return
+      e.preventDefault()
+      e.stopPropagation() // capture phase: the app's Esc (globe view, close drawer) does not also run
+      showInfo(null)
+    }
+    stage.addEventListener('pointerdown', onDown)
+    stage.addEventListener('pointerup', onUp)
+    document.addEventListener('pointerdown', onOutside, true)
+    window.addEventListener('keydown', onKey, true)
+    const offCam = h.onCameraChange(() => {
+      const cur = infoNow.current
+      if (cur?.pinned && poiOf(namedNow()) !== cur.id) showInfo(null)
+    })
     return () => {
+      stage.removeEventListener('pointerdown', onDown)
+      stage.removeEventListener('pointerup', onUp)
+      document.removeEventListener('pointerdown', onOutside, true)
+      window.removeEventListener('keydown', onKey, true)
+      offCam()
+      if (testHook) delete (window as unknown as { __views?: ViewsTestHook }).__views
       cancelAnimationFrame(raf)
       offPick()
       offLevel()
@@ -129,6 +254,16 @@ export function SceneView(props: Props) {
   useEffect(() => {
     handle.current?.setMarkers(points)
   }, [points, deps])
+
+  useEffect(() => {
+    lastPois.current = pois
+    handle.current?.setPois(pois)
+  }, [pois, deps])
+
+  // A box whose POI is no longer drawn (group switched off, layer off) closes.
+  useEffect(() => {
+    if (info && !pois.some((p) => p.id === info.id)) showInfo(null)
+  }, [pois, info, showInfo])
 
   useEffect(() => {
     const own = ownLevel.current
@@ -163,6 +298,21 @@ export function SceneView(props: Props) {
           not affected.
         </p>
       )}
+      {info && poiById?.get(info.id) && (
+        <PoiInfo
+          poi={poiById.get(info.id)!}
+          pinned={info.pinned}
+          boxRef={box}
+          onClose={() => showInfo(null)}
+          onPointerEnter={() => {
+            overBox.current = true
+          }}
+          onPointerLeave={() => {
+            overBox.current = false
+            lostAt.current = performance.now()
+          }}
+        />
+      )}
       <div className="labels">
         {/* .obj is a zero-size anchor at the projected point; the boxes inside carry the text. */}
         <div ref={sun} className="obj" hidden>
@@ -191,12 +341,14 @@ export function SceneView(props: Props) {
           label="View"
           testId="scene-menu"
           at={ctx}
+          note={ctx.hit && !inPinRegion(ctx.hit.lat) ? `Points can be added only ${REGION_TEXT}.` : undefined}
           items={[
             {
-              // Disabled when the pointer is not on the Moon (sky, or another body in view).
+              // Disabled when the pointer is not on the Moon (sky, or another body in view) or outside the pin region.
               id: 'add',
               label: 'Add point here',
-              disabled: !ctx.hit || !canAddPoint,
+              disabled: !ctx.hit || !canAddPoint || !inPinRegion(ctx.hit.lat),
+              title: ctx.hit && !inPinRegion(ctx.hit.lat) ? `Points can be added only ${REGION_TEXT}.` : undefined,
               onSelect: () => ctx.hit && onAddPoint(ctx.hit.lat, ctx.hit.lon),
             },
             ...viewpointItems(points, (v) => handle.current?.goTo(v)),
