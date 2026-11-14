@@ -259,7 +259,7 @@ utc                             goldstone                 madrid               c
 
 ## Mandatory site assessments — method and evidence (AI, not validated)
 
-Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 113 KB). **Not validated by S; code not checked by Q.** Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
+Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 143 KB; full run 6.5-11.6 s including one memmap pass over the 605 MB Diviner table). **Not validated by S; code not checked by Q.** Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
 
 ### Data and method
 
@@ -268,7 +268,7 @@ Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scrip
 | Slope | `ldem_875s_5m.img` (LOLA PDS GDR V2.0, 2017, 5 m, 87.5–90° S; height = DN × 0.5 m from the `.lbl`) where the whole 2 km disk is inside it with ≤ 20 % nodata (7 sites), else `LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, 20 m) (11 sites) | Per-pixel slope by central differences over 2 px (baseline 10 m / 40 m), gradient × polar stereographic scale factor at the site; median, max, % ≤ 5.0°, % < 20.0° over a 100 m (landing) and 2 km (exploration) radius disk. Slopes rounded to 0.01° before comparison. | Landing pass rule (AI proposal): **every** valid pixel in the 100 m disk ≤ 5.0°. Not the 100 m point slope of `sites.json`. |
 | Roughness | same DEM as slope | RMS height deviation from a least-squares plane over the 100 m disk ([Shepard et al. 2001](https://doi.org/10.1029/2000JE001429)) | Features < ~2 px (10 m / 40 m), including all boulders, not resolved: `obstacles` is `"unknown"` everywhere. Sourced site hazards from `hazards_and_science.json` attached by explicit match (IM-1, IM-2, Site04 boulders, narrow-rim statement for de Gerlache / Nobile / Connecting Ridge / Malapert) or scarp ≤ 50 km. |
 | Shadow / access | `avgvisib_85s_060m_201608` (60 m) where it covers the site (15 sites), else `AVGVISIB_75S_120M_201608` (120 m) (nobile-rim-2, amundsen-rim, im-1); [Mazarico et al. 2011](https://doi.org/10.1016/j.icarus.2010.10.030) | "Zero average Sun visibility in the Mazarico et al. model map" = DN exactly 0, not the LROC PSR Atlas. 8-connected clusters ≥ 0.1 km², 50 km search; great-circle distance and bearing to the nearest cluster pixel centre; cluster area within 5/10/15 km; straight line to that pixel sampled every DEM pixel, slope over 2 px. | Labelled "straight-line terrain check, not a route". Named PSR only if exactly one LROC PSR Atlas coordinate falls in the cluster. No ice is stated or implied. |
-| Thermal | none on disk | Not modelled from illumination. Sourced nearby values attached where a source names a nearby area. | All 18 `"unknown"`. |
+| Thermal | `dlre_prp_south.tab` (Diviner Polar Resource Product, LRO-L-DLRE-5-PRP-V2.0; approved and downloaded 14 Nov 14:34–14:43) | Site unit vector tested against the vertices of every mesh triangle whose centre is within 3 km; `temp_avg_k` (annual average at 2 cm depth) and `temp_max_k` (annual maximum at the surface) of the containing triangle, columns and fill values read from the PDS4 label. Not modelled from illumination. | All 18 `"sourced"`. Triangles are 0.13–0.15 km², coarser than the 100 m landing disk (≤ 1 centre inside it at every site). No minimum, no time series, no mission-date value: **thermal stability over the mission period is not assessed.** `temp_max_k − temp_avg_k` is not a range and is not given. `ice_depth` not used. Frame: label says Moon-centered; MOON_ME assumed, Leo to confirm. |
 
 **Projection finding (Leo to confirm).** The 60 m and 240 m Sun-visibility labels state `CENTER_LONGITUDE = 180`; the 120 m label and both DEMs state 0. Read as labelled (lon_0 = 180, as GDAL parses it), the 60 m map correlates with the 120 m map at r = −0.05 and with LOLA elevation at r = −0.02 (4000 random points, 85.5–89.5° S). Read with lon_0 = 0 the correlations are 0.98 and 0.27 (120 m map vs elevation: 0.28; 240 m map with lon_0 = 0: 0.28). The pipeline reads the 60 m and 240 m maps with the DEM's CRS (lon_0 = 0). Independent check: the cluster next to Site04 measures 234.4 km² in the 60 m map; the [LROC PSR Atlas](https://lroc.im-ldi.com/atlases/psr/list) lists Shackleton at 233.7 km² (via `psr_and_ice.json`).
 
@@ -315,7 +315,7 @@ The 20 m reading reproduces all three. The 5 m product differs from the 20 m pro
 
 ### Every `unknown`
 
-- `thermal.status`: all 18 sites (no temperature data on disk). Nearby sourced values attached: im-2-intended (~100 K in the ~20 m crater where IM-2 came to rest, 0.37 km from the site point; not the site).
+- `thermal.annual_min_temp_k`: null for all 18 (not in the product); thermal stability over the mission period not assessed for any site. `thermal.status` is `"sourced"` for all 18. Nearby sourced value still attached for im-2-intended (~100 K in the ~20 m crater where IM-2 came to rest, 0.37 km away; not the site).
 - `roughness.obstacles`: all 18 sites, by design (below detection limit).
 - `psr.nearest_cluster.named_psr`: null for 17 sites (no LROC Atlas coordinate inside the nearest cluster); only Site04 → Shackleton.
 - No slope, roughness or shadow block is `unknown`; no site is outside coverage; no area exceeds 20 % nodata.
@@ -328,8 +328,42 @@ The 20 m reading reproduces all three. The 5 m product differs from the 20 m pro
 4. The lon_0 = 0 reading of the 60 m / 240 m Sun-visibility maps (above).
 5. Use of the 5 m LOLA GDR for 7 sites given the Site04 difference (above).
 6. Site04 boulder statement matched by site number ("site 004") — confirm it is the Data Book Site04.
-7. Thermal: Diviner download pending ninja's yes (below).
+7. Thermal: the Site04 annual maximum (below), the Cabeus discrepancy, and whether annual mean/max without a minimum is enough for the thermal requirement.
 
-### Diviner product (not downloaded)
+### Thermal: Diviner Polar Resource Product (used)
 
-Best single product for the south pole: **Diviner Polar Resource Product (PRP), south**, `LRO-L-DLRE-5-PRP-V2.0` (Paige et al. 2018, model fits to the first mapping year; method Paige et al. 2010, Science 330, 497), in [urn-nasa-pds-lro_diviner_derived1/data_derived_prp/](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/): `dlre_prp_south.tab` 604,800,210 bytes, `dlre_prp_south.lbl` 2,167 bytes, `dlre_prp_south.xml` 14,561 bytes (HEAD, 14 Nov). ASCII table, 2,880,000 triangles of a Kaguya-derived polar mesh (square to 80° S, about 0.13 km² per triangle), columns: triangle vertices and centre lat/lon, `temp_avg` (annual mean at 2 cm depth, K), `temp_max` (annual maximum surface temperature, K), `ice_depth` (model). Gives annual mean and maximum per site, not a minimum or a time series. Time-resolved alternative: Williams 2022 seasonal Polar Cumulative Products (observed bolometric temperature, 240 m bins, 2009–2020; Schorghofer and Williams 2020, [doi:10.3847/PSJ/abb6ff](https://doi.org/10.3847/PSJ/abb6ff)) in [data_derived_pcp/seasonal/slon/pols/](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_pcp/seasonal/slon/pols/): 144 files, 30.7 GB in total; one season bin (24 files) is about 5.1 GB. Terms: public NASA PDS data; the PRP catalogue gives the citation "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018"; no licence file seen in the bundle.
+File `diviner/dlre_prp_south.tab` (604,800,210 bytes, SHA-256 `393deaa5…a62d`; row in [data-sources.md](../reference/data-sources.md)), from [data_derived_prp/](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/). Citation per prpds.cat: Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA PDS, 2018. Model fits to the first Diviner mapping year (Paige et al. 2010 method). Values of the triangle containing each site point:
+
+| Site | temp_avg_k (2 cm depth) | temp_max_k (surface) | Status | Site to triangle centre km |
+|---|---|---|---|---|
+| haworth | 124.73 | 244.52 | sourced | 0.267 |
+| malapert-massif | 108.02 | 211.28 | sourced | 0.122 |
+| nobile-rim-1 | 108.08 | 219.56 | sourced | 0.179 |
+| nobile-rim-2 | 134.9 | 239.57 | sourced | 0.272 |
+| de-gerlache-rim-2 | 151.46 | 273.23 | sourced | 0.025 |
+| amundsen-rim | 140.5 | 240.33 | sourced | 0.086 |
+| connecting-ridge-extension | 127.58 | 266.82 | sourced | 0.153 |
+| faustini-rim-a | 128.19 | 239.34 | sourced | 0.209 |
+| leibnitz-beta-plateau | 102.53 | 197.09 | sourced | 0.083 |
+| peak-near-shackleton | 116.71 | 214.42 | sourced | 0.109 |
+| de-gerlache-rim-1 | 144.25 | 263.02 | sourced | 0.319 |
+| de-gerlache-kocher-massif | 115.0 | 208.9 | sourced | 0.116 |
+| malapert-site23 | 92.34 | 194.25 | sourced | 0.286 |
+| shackleton-rim-site04 | 112.54 | 319.61 | sourced | 0.173 |
+| connecting-ridge | 136.61 | 239.21 | sourced | 0.122 |
+| im-1 | 159.24 | 271.79 | sourced | 0.189 |
+| im-2-intended | 138.07 | 239.06 | sourced | 0.149 |
+| viper-mons-mouton | 105.3 | 214.3 | sourced | 0.104 |
+
+**Reference-point check** (replaces the earlier "Site04 must be colder" check, which assumed a shadowed floor). Product `temp_max` in the triangle containing each sourced coordinate; the same lookup with longitude shifted by 180° shows the georeferencing is not flipped. Pytest `test_prp_reference_points` (skips without the file).
+
+| Reference point (coordinate) | Product temp_max / temp_avg K | Sourced value | Source | Longitude + 180° |
+|---|---|---|---|---|
+| Haworth LEND maximum (−87.28, 4.31) | 60.0 / 39.6 | T_max 60.3 K | `psr_and_ice.json` lend_haworth, McClanahan et al. ([arXiv 2303.03911](https://www.arxiv.org/pdf/2303.03911)) | 210.6 K |
+| Haworth PSR (−87.5109, −2.2324) | 60.8 / 39.7 | max 128 K, mean 42 K over the PSR | `psr_and_ice.json` lem21_haworth (Lemelin et al. 2021) | 255.3 K |
+| Shackleton floor (−89.66, 129.2; point chosen by AI near the crater centre) | 85.2 / 50.2 | floor ~88–90 K | `hazards_and_science.json` thermal_extremes (mixed secondary sources; caveat: Diviner values not from a primary source) | 86.6 K (point near the pole, not discriminating) |
+| Cabeus LEND maximum (−84.35, −48.22) | 68.1 / 49.6 | Diviner max 78 K | `psr_and_ice.json` lend_cabeus_1 ([arXiv 2303.03911](https://www.arxiv.org/pdf/2303.03911)) | 74.7 K |
+
+Haworth LEND maximum agrees within 0.3 K. Haworth PSR: product mean 39.7 K vs 42 K PSR mean, and the product point maximum (60.8 K) lies below the PSR-wide maximum (128 K), as a single point should; consistent, not a like-for-like match. A flipped longitude would give 210–255 K. **Cabeus is an open discrepancy (68.1 K vs 78 K), not agreement**: possible causes (different Diviner product, footprint vs triangle, coordinate) are not checked. Shackleton is consistent but weak evidence (secondary source, point near the pole).
+
+**Site04 (for Leo to confirm).** Annual maximum 319.6 K, annual mean 112.5 K. The point is on the ~32° inner wall of Shackleton, lit about 11 % of the time (average Sun visibility 0.11, 60 m map); a sunward wall can be hot at its annual maximum while cold on average. All 57 triangle centres within 1.5 km have temp_max 82–332 K, median 315 K, so the value is not a single-triangle outlier. Note also in Site04's `thermal.limitations`.
