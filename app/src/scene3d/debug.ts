@@ -33,6 +33,7 @@ export interface DebugView {
   setSites(sites: Site[]): void
   camera(): Record<string, unknown>
   terrainInfo(): { levels: string[]; triangles: number }
+  lights(): { sun: number; hidden: number; fill: number; earth: number }
   setFlat(on: boolean): void
   renderInfo(): { calls: number; triangles: number }
   surfaceDist(): number
@@ -99,6 +100,9 @@ export function installDebug(v: DebugView) {
     setSites: (s: Site[]) => v.setSites(s),
     setLevel: (l: SceneLevel) => v.setLevelNow(l),
     terrainInfo: () => v.terrainInfo(),
+    // Terrain light levels as drawn at site and eye level: the sunlight as a share of full sunlight (never below
+    // `hidden`), the even night fill and the earthshine.
+    lights: () => v.lights(),
     setFlat: async (on: boolean) => {
       v.setFlat(on)
       v.renderNow()

@@ -20,3 +20,7 @@ Easing (scene track, 14 Nov): the orbit drag, the middle-drag, the wheel and the
 1 − e^(−dt/160 ms) of what is pending per frame (controls.ts RESPONSE_MS), so they ease alike at any frame rate and
 come to rest after the release. In test mode nothing eases and the animation clock stands still;
 __scene.setAnimated(true) turns the easing on and __scene.advance(ms) is one frame (e2e/scene-motion.spec.ts).
+Terrain light (S2): at site and eye level the sunlight is the share of the Sun's disc above the mask at the eye
+(geometry.discFraction, the app's own number, read only), from full down to 12 %, plus an even night fill that
+takes over as the disc goes; earthshine follows Earth's disc the same way. A change eases over 500 ms
+(index.ts LIGHT_EASE_MS); directions and computed numbers are never eased. The globe has no such switch.

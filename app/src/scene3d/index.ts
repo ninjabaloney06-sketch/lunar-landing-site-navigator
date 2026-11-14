@@ -22,7 +22,17 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
-import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
+import {
+  MOON_RADIUS_KM,
+  OBSERVER_HEIGHT_M,
+  angRadiusDeg,
+  azEl,
+  discFraction,
+  enuBasis,
+  maskAt,
+  siteVector,
+  type BodyState,
+} from '../geometry'
 import { loadTextures } from './assets'
 import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
@@ -146,6 +156,7 @@ const BODY_FRAME = 5.5 // Earth and Sun viewpoints: camera this many body radii 
 const POINT_ABOVE_KM = GLOBE_DIST_KM.min // a point outside the terrain tile is looked at from this far from the Moon's centre
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
 const FLY_MS = 1500
+const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the time cursor) is spread over this long
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
@@ -394,17 +405,57 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     sky.syncCamera(activeCam())
   }
 
-  function applyLights() {
+  // Terrain light levels as drawn: they ease toward the computed ones, so a jump of the time cursor across a
+  // sunset fades over LIGHT_EASE_MS instead of switching in one frame (ease-out: a change every frame, as while
+  // the time plays, is followed without stalling). The directions and every computed number are never eased.
+  const light = { sun: 1, earth: 0, from: { sun: 1, earth: 0 }, to: { sun: 1, earth: 0 }, t0: 0, easing: false }
+  function setLightLevels(sun: number, earth: number, snap: boolean) {
+    if (snap || !animated) {
+      light.easing = false
+      light.sun = sun
+      light.earth = earth
+    } else if (sun !== light.to.sun || earth !== light.to.earth || !light.easing) {
+      light.from = { sun: light.sun, earth: light.earth }
+      light.t0 = nowMs()
+      light.easing = sun !== light.sun || earth !== light.earth
+    }
+    light.to = { sun, earth }
+    site.setLevels(light.sun, light.earth)
+  }
+  function stepLight() {
+    const x = Math.min((nowMs() - light.t0) / LIGHT_EASE_MS, 1)
+    const e = 1 - (1 - x) * (1 - x)
+    light.sun = light.from.sun + (light.to.sun - light.from.sun) * e
+    light.earth = light.from.earth + (light.to.earth - light.from.earth) * e
+    if (x >= 1) light.easing = false
+    site.setLevels(light.sun, light.earth)
+    markDirty()
+  }
+
+  /** snap: the levels land at once (a new site, the first frame), whatever the easing. */
+  function applyLights(snap = false) {
     if (!sky || !frame || !globe) return
     // Site lights from the site's point of view (topocentric), globe lights from the Moon centre.
     sky.update(frame.state, siteKm, meToEnu)
-    const sunE = sky.worldDir('sun')
-    const earthE = sky.worldDir('earth')
-    const eye = new Vector3(0, 0, site.eyeHeight)
-    const earthUp = frame.site ? !site.occluded(eye, earthE, Infinity, true) : false
-    // Same eye-level test for the Sun, so the ground is not drawn sunlit while the answer says "Dark".
-    const sunUp = frame.site ? !site.occluded(eye, sunE, Infinity, true) : true
-    site.setLights(sunE, earthE, earthUp ? EARTHSHINE * sky.earthPhase : 0, sunUp)
+    site.setLights(sky.worldDir('sun'), sky.worldDir('earth'))
+    // How much of each disc is above the terrain mask from the eye: geometry's own disc fraction, the number the
+    // answer and the percentages are computed from (sunlit = fraction > 0), read here and never written. The
+    // terrain light follows it, so a sunset dims for as long as the disc takes to cross the mask.
+    let sunFrac = 1
+    let earthFrac = 0
+    if (frame.site) {
+      const { lat, lon, elev_m } = frame.site
+      const eyeKm = siteVector(lat, lon, ((elev_m ?? 0) + OBSERVER_HEIGHT_M) / 1000)
+      const enu = enuBasis(lat, lon)
+      const horizon = frame.horizon
+      const above = (bodyKm: BodyState['sun_km'], radiusKm: number) => {
+        const a = azEl(bodyKm, eyeKm, enu)
+        return discFraction(a.el, maskAt(horizon, a.az), angRadiusDeg(radiusKm, a.dist_km))
+      }
+      sunFrac = above(frame.state.sun_km, SUN_RADIUS_KM)
+      earthFrac = above(frame.state.earth_km, EARTH_RADIUS_KM)
+    }
+    setLightLevels(sunFrac, EARTHSHINE * sky.earthPhase * earthFrac, snap)
     const sunM = v3(frame.state.sun_km).normalize()
     const earthM = v3(frame.state.earth_km).normalize()
     globe.setLights(sunM, earthM, EARTHSHINE * 0.5 * sky.earthPhase)
@@ -433,7 +484,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       placeMarkers()
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
-    applyLights()
+    applyLights(siteChanged)
     if (!f.site && level !== 'globe') {
       level = 'globe'
       fly = null
@@ -929,6 +980,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   /** One frame of every animation, dtMs after the previous one. */
   function tick(dtMs: number) {
     if (fly) stepFly(nowMs())
+    if (light.easing) stepLight()
     if (freeCam.step(dtMs)) markDirty()
     const ctl = inSpace() ? globeControls : siteControls
     // The orbit drag eases with the same time constant as the wheel and the look-around, whatever the frame rate.
@@ -1182,6 +1234,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         globe?.setSites(sites, frame?.site?.id ?? null)
       },
       terrainInfo: () => site.info(),
+      lights: () => site.lights(),
       setFlat(on) {
         site.setFlat(on)
         markDirty()
