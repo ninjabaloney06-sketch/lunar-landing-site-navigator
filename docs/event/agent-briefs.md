@@ -504,3 +504,14 @@ ABORT: if T14–T18 cannot be kept green, or part 1 is not green by Sun 15 Nov 0
 
 FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; every visible string added; the D4 count change; the top-view orientation and compression as built; BUILD_LOG line and ai-use-log row (prompt cell: "Brief C4"); open items for Bene (look, control feel), ninja (strings, two more controls on the main screen), Leo (viewpoints do not change eye-level numbers).
 ```
+
+### Brief C4 — Addendum (ninja, 14 Nov ~16:45; paste into the running C4 session, or read with the brief)
+
+```text
+Three clarifications from ninja. They replace the conflicting lines of Brief C4 and of the start prompt.
+1. "Walk" (notebook note 6) IS built, as a camera move: at site and eye level, a left-click on the terrain that moved less than 5 px flies the camera to stand on that spot, 1.75 m above the terrain. It is the camera only. hs.site and every number stay those of the selected site, and the answer line keeps naming it. Left-drag is unchanged. In test mode the move is instant.
+2. Because of 1, a left-click no longer adds a user point. Points are added by "Add point here" in the right-click menu or by typed coordinates. A left-click on a site pin on the globe still selects that site, as today.
+3. The right-click menu, including "Add point here", works at every level: on the globe (complete view) and in the zoomed-in site and eye views.
+Tests: replace "a globe click adds a point" with "right-click → Add point here adds a point, on the globe and in the site view", and add "a left-click on terrain moves the camera and leaves site, period, cursor and stations in the hash unchanged".
+"Find better dates" stays in the header.
+```
