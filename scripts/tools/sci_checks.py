@@ -1,7 +1,8 @@
 """Science checks of 14 Nov 2026: read-only analyses, evidence in docs/event/validation.md.
 
     python scripts/tools/sci_checks.py range [SITE ...]   # skyline at 150 km vs 300 km rays   (needs CLPS_DATA)
-    python scripts/tools/sci_checks.py truncated [--fill] # truncated directions and bounds    (--fill needs CLPS_DATA)
+    python scripts/tools/sci_checks.py truncated [--fill ldem16|dem60s]  # truncated directions and bounds
+                                                          # (--fill needs CLPS_DATA; dem60s = LDEM_60S_120MPP_ADJ.TIF)
     python scripts/tools/sci_checks.py v4                 # average sunlight vs AVGVISIB maps  (needs CLPS_DATA)
 
 Reads app/public/data (sites, stations, ephemeris months, horizons) and never writes there. Horizons it
@@ -34,6 +35,7 @@ N_AZ = 720
 BLOCKED_DEG = 90.0
 SUN_MAPS = [("illumination/avgvisib_85s_060m_201608.lbl", 60.0, True),
             ("illumination/AVGVISIB_75S_120M_201608.LBL", 120.0, False)]
+FILL_DEM60 = "LDEM_60S_120MPP_ADJ.TIF"  # PGDA product 90, 60-90 S at 120 m/px (downloaded 14 Nov 2026)
 EARTH_MAPS = [("illumination/avgvisib_85s_060m_201608_earth.lbl", 60.0, True),
               ("illumination/AVGVISIB_75S_120M_201608_EARTH.LBL", 120.0, False)]
 
@@ -216,7 +218,7 @@ def horizon_at(site, ray_max_km, fill=None):
     label = hz.DEM_LABEL
     if fill is not None:
         near, far = _FillGrid(near, crs, fill), _FillGrid(far, crs, fill)
-        label += "; outside that DEM: global ldem_16_uint.tif (16 px/deg, encoding inferred in terrain_tiles.py)"
+        label += "; outside that DEM: " + fill.label
     return hz.compute_horizon(site["id"], float(site["lat"]), float(site["lon"]), near, far, crs,
                               ray_max_km=ray_max_km, dem_label=label)
 
@@ -235,6 +237,42 @@ class _FillGrid:
             lon, lat = self.to_ll.transform(x[bad], y[bad])
             h[bad] = self.fill.at(lat, lon)
         return h
+
+
+class _PolarFill:
+    """Heights from the wider south-polar DEM of the same product (60-90 S, 120 m/px): one full-resolution
+    window per site, covering every sample its rays need, read with horizon.py's own window code."""
+    name = "dem60s"
+    label = FILL_DEM60 + " (PGDA product 90, Barker et al. 2023; 120 m/px, bilinear)"
+
+    def __init__(self, path, site, ray_max_km):
+        import rasterio
+        from pyproj import CRS, Transformer
+
+        import horizon as hz
+
+        with rasterio.Env(GDAL_CACHEMAX=256):
+            with rasterio.open(path) as ds:
+                _, self.grid, crs = hz.load_grids(ds, site["lat"], site["lon"], ray_max_km)
+        self.to_xy = Transformer.from_crs(CRS(crs).geodetic_crs, CRS(crs), always_xy=True)
+
+    def at(self, lat, lon):
+        x, y = self.to_xy.transform(lon, lat)
+        return self.grid.sample(np.asarray(x, dtype=float), np.asarray(y, dtype=float))
+
+
+def make_fill(kind, site=None, ray_max_km=None, _cache={}):
+    """'ldem16': the global 16 px/deg grid (one object for all sites); 'dem60s': a window of the 60 S DEM."""
+    from config import data_root
+    if kind == "dem60s":
+        return _PolarFill(data_root() / "lola" / FILL_DEM60, site, ray_max_km)
+    if "ldem16" not in _cache:
+        from terrain_tiles import FILL_NAME, Ldem16
+        f = Ldem16(data_root() / "textures" / FILL_NAME)
+        f.name = "ldem16"
+        f.label = "global ldem_16_uint.tif (16 px/deg, encoding inferred in terrain_tiles.py)"
+        _cache["ldem16"] = f
+    return _cache["ldem16"]
 
 
 def write_private(name, horizon):
@@ -332,11 +370,7 @@ def cmd_truncated(fill):
     period = next(p for p in load_json(APP_DATA / "periods.json") if p["id"] == PERIOD_ID)
     p0, p1 = geo.iso_to_ms(period["start_utc"]), geo.iso_to_ms(period["end_utc"])
     long_t = stack_months(months, LONG_START, LONG_END)
-    filler = None
-    if fill:
-        from config import data_root
-        from terrain_tiles import FILL_NAME, Ldem16
-        filler = Ldem16(data_root() / "textures" / FILL_NAME)
+    notes = []
 
     head = ("| Site | Truncated of 720 | Truncated azimuths | Earth centre azimuth range | Earth-visible directions "
             "truncated | Sun-lit directions truncated | Earth visible %: shipped / filled / all closed "
@@ -355,13 +389,24 @@ def cmd_truncated(fill):
         a = period_states(smp, stations, mask)
         b = period_states(smp, stations, blocked(hor))
         c, margin = None, "– / –"
-        if filler is not None:
+        if fill:
+            filler = make_fill(fill, site, float(hor["ray_max_km"]))
             mg = outside_margin(site, hor, filler)
             margin = (f"{np.nanmin(mg):+.2f}°" if tb.any() else "–") + " / " + \
                      (f"{np.nanmin(mg[earth_b & tb]):+.2f}°" if (earth_b & tb).any() else "–")
             hf = horizon_at(site, float(hor["ray_max_km"]), fill=filler)
-            write_private(f"{site['id']}-ldem16fill.json", hf)
-            c = period_states(smp, stations, np.array(hf["mask"]))
+            write_private(f"{site['id']}-{filler.name}fill.json", hf)
+            mf = np.array(hf["mask"])
+            c = period_states(smp, stations, mf)
+            d = mf - mask
+            j = int(np.argmax(d))
+            notes.append(
+                f"<!-- {site['id']}: {filler.name} fill leaves {len(hf['truncated'])} truncated; raises "
+                f"{int(np.sum(d > 0.01))} directions by > 0.01 deg ({runs_text(d > 0.01)}), most {d[j]:+.4f} at "
+                f"{j * 0.5:g} deg (skyline then at {hf['mask_dist_km'][j]:.1f} km); lowers {int(np.sum(d < -1e-9))}; "
+                f"raised Earth-visible directions {int(np.sum((d > 0.01) & earth_b))}, Sun-lit {int(np.sum((d > 0.01) & sun_b))}; "
+                f"2027-2030 lit % {pct(visible(bodies['sun'], mask)):.2f} -> {pct(visible(bodies['sun'], mf)):.2f}, "
+                f"Earth % {pct(visible(bodies['earth'], mask)):.2f} -> {pct(visible(bodies['earth'], mf)):.2f} -->")
 
         def three(k):
             mid = f"{pct(c[k]):.1f}" if c else "–"
@@ -374,6 +419,7 @@ def cmd_truncated(fill):
               f"| {share(sun_b)} | {three('earth')} | {three('cov')} | {three('lit')} "
               f"| {pct(a['earth']) - pct(b['earth']):.1f} / {pct(a['cov']) - pct(b['cov']):.1f} "
               f"/ {pct(a['lit']) - pct(b['lit']):.1f} | {margin} |")
+    print("\n".join(notes))
 
 
 def cmd_v4():
@@ -436,8 +482,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("range").add_argument("sites", nargs="*", default=RANGE_SITES)
-    sub.add_parser("truncated").add_argument("--fill", action="store_true",
-                                             help="also fill beyond the polar DEM from the global 16 px/deg grid")
+    sub.add_parser("truncated").add_argument("--fill", choices=["ldem16", "dem60s"],
+                                             help="also fill beyond the 80 S DEM from the global 16 px/deg grid "
+                                                  "or from the 60 S DEM")
     sub.add_parser("v4")
     args = ap.parse_args(argv)
     if args.cmd == "range":

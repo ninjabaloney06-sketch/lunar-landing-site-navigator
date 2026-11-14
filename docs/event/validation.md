@@ -11,7 +11,7 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 | V4 | Real horizons vs PGDA averages (context) | open — needs S | — | AI comparison of 14 Nov: [V4 with stated bias](#v4-with-stated-bias-our-average-sunlight-against-the-published-average-illumination-maps) |
 | V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
 | Horizon range | 150 km vs 300 km rays at three sites | open — needs S | — | [inputs and table](#horizon-range-check-150-km-against-300-km-rays) |
-| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage % | open — needs S | — | [inputs, table, recommendation](#truncated-horizons) |
+| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35 | open — needs S | — | [inputs, table, recommendation](#truncated-horizons) |
 
 ## How Leo checks V1, V2 and the station check (now about 5 min)
 
@@ -415,6 +415,41 @@ For Leo: accept 300 km, or name a site and direction to test at a longer range.
 
 **Status: open — needs S (Leo).** Computed by AI, not validated.
 
+> **Update 14 Nov 17:35: recomputed with the 60° S DEM (AI, not validated; status stays open — needs S).** ninja approved the download named below ("Yes, download"); it finished at 17:23 ([data-sources.md](../reference/data-sources.md)). The text after this update is the earlier analysis and is kept as written. The estimate from the global grid is confirmed, and IM-1 is now settled.
+
+Inputs: `lola/LDEM_60S_120MPP_ADJ.TIF` (PGDA product 90, 60°–90° S, 120 m/px, 821,504,895 bytes, SHA-256 `894f30e2…e094`) as the source of every ray sample outside the 20 m DEM, read bilinearly; everything else as below (300 km rays, 0.5° step, observer 1.75 m, period `shackleton-2027-08` at 1-min steps, 5 stations, 2027–2030 at 30-min samples). Command `sci_checks.py truncated --fill dem60s`; `horizon.py` and the shipped files unchanged; results in `private/sci-horizons/<id>-dem60sfill.json`. Where the two DEMs overlap they agree: r = 1.0000, mean difference −0.02 m, standard deviation 0.76 m, largest 9.2 m (3000 random points around IM-1, 160 m far field against the 120 m file).
+
+| Site | Truncated, shipped | Truncated with the 60° S DEM | Directions whose skyline changes > 0.01° | Largest change | Period: Earth / coverage / lit %, shipped → complete | 2027–2030 lit %, shipped → complete | 2027–2030 Earth %, shipped → complete | Terrain beyond the 80° S DEM stays below our skyline by at least: all truncated / Earth-visible directions |
+|---|---|---|---|---|---|---|---|---|
+| nobile-rim-2 | 393 | 0 | none | – | 100.0 / 100.0 / 23.4 → 100.0 / 100.0 / 23.4 | 34.13 → 34.13 | 69.70 → 69.70 | +2.77° / +3.01° |
+| im-1 | 380 | 0 | 52 (8.5–34°) | +1.07° at 19.5° | 100.0 / 100.0 / 57.7 → 100.0 / 100.0 / 57.7 | 38.95 → 38.95 | 100.00 → 100.00 | -1.07° / +0.09° |
+| amundsen-rim | 377 | 0 | none | – | 100.0 / 97.9 / 12.6 → 100.0 / 97.9 / 12.6 | 42.27 → 42.27 | 59.06 → 59.06 | +2.01° / +4.44° |
+| im-2-intended | 375 | 0 | none | – | 100.0 / 100.0 / 50.7 → 100.0 / 100.0 / 50.7 | 46.09 → 46.09 | 93.46 → 93.46 | +2.35° / +2.35° |
+| nobile-rim-1 | 365 | 0 | none | – | 74.8 / 67.3 / 0.0 → 74.8 / 67.3 / 0.0 | 31.68 → 31.68 | 35.84 → 35.84 | +1.08° / +9.39° |
+| viper-mons-mouton | 363 | 0 | none | – | 100.0 / 100.0 / 100.0 → 100.0 / 100.0 / 100.0 | 49.18 → 49.18 | 69.52 → 69.52 | +0.88° / +4.01° |
+| leibnitz-beta-plateau | 362 | 0 | none | – | 93.6 / 84.9 / 83.8 → 93.6 / 84.9 / 83.8 | 34.25 → 34.25 | 49.26 → 49.26 | +5.75° / +8.60° |
+| de-gerlache-kocher-massif | 343 | 0 | none | – | 0.0 / 0.0 / 23.4 → 0.0 / 0.0 / 23.4 | 36.24 → 36.24 | 0.00 → 0.00 | +1.16° / – |
+| haworth | 294 | 0 | none | – | 81.9 / 70.5 / 70.8 → 81.9 / 70.5 / 70.8 | 32.52 → 32.52 | 41.81 → 41.81 | +2.09° / +8.74° |
+| de-gerlache-rim-2 | 213 | 0 | none | – | 100.0 / 97.9 / 82.8 → 100.0 / 97.9 / 82.8 | 38.24 → 38.24 | 56.09 → 56.09 | +2.32° / +4.47° |
+| malapert-massif | 212 | 0 | none | – | 100.0 / 100.0 / 46.0 → 100.0 / 100.0 / 46.0 | 41.10 → 41.10 | 82.29 → 82.29 | +2.54° / +2.54° |
+| malapert-site23 | 210 | 0 | none | – | 100.0 / 92.8 / 15.9 → 100.0 / 92.8 / 15.9 | 24.02 → 24.02 | 53.84 → 53.84 | +7.70° / +7.74° |
+| de-gerlache-rim-1 | 178 | 0 | none | – | 100.0 / 100.0 / 54.5 → 100.0 / 100.0 / 54.5 | 44.93 → 44.93 | 62.02 → 62.02 | +3.04° / +3.36° |
+| peak-near-shackleton | 175 | 0 | none | – | 100.0 / 97.9 / 95.5 → 100.0 / 97.9 / 95.5 | 72.07 → 72.07 | 57.01 → 57.01 | +3.23° / – |
+| faustini-rim-a | 149 | 0 | none | – | 97.8 / 87.9 / 14.2 → 97.8 / 87.9 / 14.2 | 39.48 → 39.48 | 51.96 → 51.96 | +3.03° / – |
+| connecting-ridge-extension | 137 | 0 | none | – | 0.0 / 0.0 / 27.4 → 0.0 / 0.0 / 27.4 | 32.97 → 32.97 | 0.00 → 0.00 | +3.63° / – |
+| connecting-ridge | 110 | 0 | none | – | 100.0 / 98.1 / 91.3 → 100.0 / 98.1 / 91.3 | 46.61 → 46.61 | 59.51 → 59.51 | +3.58° / – |
+| shackleton-rim-site04 | 37 | 0 | none | – | 0.0 / 0.0 / 0.0 → 0.0 / 0.0 / 0.0 | 10.82 → 10.82 | 10.80 → 10.80 | +11.10° / – |
+
+- **17 sites: the shipped horizon is already the complete 300 km horizon.** With the 60° S DEM no ray is truncated and no direction changes at all. Their `truncated` entries mark rays that were cut short, not a skyline that is too low.
+- **IM-1: 52 directions between 8.5° and 34° are too low in the shipped file, by up to 1.07° (azimuth 19.5°).** The complete skyline there lies between −0.24° and +0.79°, on terrain 34.7 to 49.1 km from the site, outside the 80° S DEM. No value changes: in those azimuths the Sun's upper limb is never below 6.95° (2027–2030); Earth's azimuths are 350.4–6.6°, and its whole disc stays at least 1.44° above the complete skyline. The global-grid estimate had these directions right to within 0.23°.
+- Limit: outside the 80° S DEM the terrain is sampled at 120 m. For IM-1 that includes ground 4 to 20 km to the north, where the method otherwise uses 20 m.
+
+**Revised recommendation (AI): no site needs to be flagged or excluded for a wrong horizon.** Option 3 is the one to adopt in the pipeline: `horizon.py` reads samples outside the 20 m DEM from this file, the 18 horizons are regenerated, `truncated` becomes empty everywhere, only `im-1.json` changes its mask (52 directions), and the Drawer note disappears by itself. That is a change to `horizon.py`, to `app/public/data/horizons/`, to test T8 (it expects truncated directions at IM-1) and to everyone's raw-data folder (the file is on ninja's Mac only). Not done here.
+
+For Leo: confirm the 17-site result and the IM-1 change; with Isaac, decide whether the pipeline change is made before the freeze or the shipped files stay with the note "ends before 300 km" and this section as its explanation.
+
+Earlier analysis (16:43), kept as written:
+
 Inputs: `truncated` of all 18 files in `app/public/data/horizons/` (ray 300 km, step 0.5°, DEM `lola/LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, SHA-256 `09b7ca80…5649`, [data-sources.md](../reference/data-sources.md)); the DEM is a 608 × 608 km square around the pole, no empty pixel in a 1-in-64 subsample, so a ray is truncated where it leaves that square). Period `shackleton-2027-08` = 2027-08-16T00:00Z to 2027-08-30T00:00Z, sampled every 1 min (20,160 samples) through `windows.interpolate` and `windows.sample`; coverage = any of the 5 stations of `stations.json` (goldstone, madrid, canberra, usuda, uchinoura) in line of sight with its own minimum elevation. Direction columns use 2027–2030.
 
 Three skylines per site:
@@ -453,7 +488,7 @@ What the table says:
 
 **Recommendation (AI): flag, do not exclude.** Flag as "partial horizon" every site whose Earth-visible or Sun-lit directions are truncated, with the hard bound available on request; state next to the flag that a coarser global grid shows no higher terrain beyond the edge, once Leo accepts that estimate. Excluding every site whose Earth directions are truncated would remove 12 of 18 sites, among them Malapert Massif, IM-1, IM-2 and VIPER, on a bound the terrain data on disk does not support. Adding a DEM is needed for one site, IM-1; for the other 17 it would replace the estimate by a full-resolution result.
 
-The download the third option needs (not downloaded, needs Isaac's yes): `LDEM_60S_120MPP_ADJ.TIF`, https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF, 821,504,895 bytes (HTTP HEAD on 14 Nov 2026; Last-Modified 7 Jul 2023), 60°–90° S at 120 m/px, same product family and frame as our DEM ([PGDA product 90](https://pgda.gsfc.nasa.gov/products/90)). Licence: no explicit licence on the product page; "Please cite this paper when using these products" (Barker et al. 2023, [doi:10.3847/PSJ/acf3e1](https://iopscience.iop.org/article/10.3847/PSJ/acf3e1), data doi 10.60903/gsfcpgda-lola-spole), as for our DEM. The 75°–90° S product on the same page (`LDEM_75S_30MPP_ADJ.TIF`, 2,802,850,273 bytes) is not enough: a 300 km ray from IM-1 reaches about 70° S. Using the new file means a change to `horizon.py` (far field from a second raster) and regenerated horizons, i.e. new expected values in the tests.
+The download the third option needs (not downloaded when this was written; downloaded 14 Nov 16:50–17:23 after ninja's yes, see the update above): `LDEM_60S_120MPP_ADJ.TIF`, https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF, 821,504,895 bytes (HTTP HEAD on 14 Nov 2026; Last-Modified 7 Jul 2023), 60°–90° S at 120 m/px, same product family and frame as our DEM ([PGDA product 90](https://pgda.gsfc.nasa.gov/products/90)). Licence: no explicit licence on the product page; "Please cite this paper when using these products" (Barker et al. 2023, [doi:10.3847/PSJ/acf3e1](https://iopscience.iop.org/article/10.3847/PSJ/acf3e1), data doi 10.60903/gsfcpgda-lola-spole), as for our DEM. The 75°–90° S product on the same page (`LDEM_75S_30MPP_ADJ.TIF`, 2,802,850,273 bytes) is not enough: a 300 km ray from IM-1 reaches about 70° S. Using the new file means a change to `horizon.py` (far field from a second raster) and regenerated horizons, i.e. new expected values in the tests.
 
 For Leo: accept or reject the filled estimate as grounds for "flag, not exclude"; decide whether IM-1 stays offered before its northern horizon is computed from real data.
 
