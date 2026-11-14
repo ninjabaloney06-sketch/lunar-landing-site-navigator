@@ -15,6 +15,7 @@ import type { AnswerState } from './answerSentence'
 
 export { answerSentence } from './answerSentence'
 export type { AnswerLines, AnswerState } from './answerSentence'
+export { rankSites, type RankedSite, type ScienceGoal, type SlopeState } from './rankSites'
 
 export const MOON_RADIUS_KM = 1737.4
 export const OBSERVER_HEIGHT_M = 1.75
