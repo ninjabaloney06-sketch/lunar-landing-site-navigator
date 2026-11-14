@@ -98,6 +98,8 @@ Learning material and knowledge only. No project code, no project data files, no
 
 ## Phase 4 — Saturday build: core data and app shell (Sat 12:30 → 22:30, parallel tracks)
 
+**Agents start from [docs/event/agent-briefs.md](docs/event/agent-briefs.md)** (orchestrator prompt + Briefs A, B, C1, C2 = build step 1; updated 14 Nov with the spec.md decisions: 1.75 m observer, DSN + ESTRACK station line of sight, Shackleton/Malapert demo periods, site potential). Where a task line below still says Earth visibility or 2 m, the briefs and spec.md win.
+
 Track A — ephemeris (I + agents, S validates):
 - [ ] `[AI]` `L3·Opus` — `scripts/ephemeris.py`: input lat, lon, elevation on the Moon (frame per the primer note) + time range + step; output Sun and Earth azimuth and elevation in the local horizon frame. Python + `spiceypy`, kernels from the USB stick.
 - [ ] `[AI+H]` `L2·Codex·Sol` **Q** — Unit tests: known geometry checks (symmetry, Earth always low at the pole, Sun elevation bounds). S supplies the expected values; Q reviews the tests and the script.

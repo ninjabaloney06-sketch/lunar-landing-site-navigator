@@ -1,22 +1,39 @@
 # Agent briefs — Saturday step 0 and step 1
 
-Copy-paste prompts for the agents on Sat 14 Nov. Written 13 Nov from [build-plan.md](build-plan.md) (the spec) and ninja's mockup review (§5.1). Plan text only; nothing here is code. If a brief and the build plan disagree, the build plan wins; fix the brief.
+Copy-paste prompts for the agents on Sat 14 Nov. Written 13 Nov from [build-plan.md](build-plan.md) and ninja's mockup review (§5.1); updated 14 Nov ~11:45 with the kickoff decisions in [spec.md](spec.md) and the research in [lunar-interest-points.md](../reference/lunar-interest-points.md). Plan text only; nothing here is code.
+
+**Precedence:** the decisions in `spec.md` (14 Nov) override `build-plan.md`; `build-plan.md` overrides these briefs. Where they disagree, fix the brief. The 14 Nov changes that override the build plan:
+
+| Topic | Build plan (13 Nov) | Now (spec.md, ninja 14 Nov) |
+|---|---|---|
+| Observer height | 2 m | **1.75 m** |
+| Communications | Earth disc above the terrain mask; DSN coverage out of scope (§1) | **Line of sight to selected Earth ground stations, both ends**: station above the lunar terrain mask as seen from the site, and Moon above the station's elevation mask. **At least one** selected station = comms available. Outage inputs = `unknown`, never invented. Earth-disc visibility stays as a secondary number. |
+| Stations | — | **NASA DSN** (Goldstone, Madrid, Canberra) + **ESA ESTRACK deep-space** (Cebreros, Malargüe, New Norcia); every coordinate and elevation mask with a source link |
+| Finder | % Earth visible, max blackout | Same thresholds, applied to **combined selected-station coverage**: 14 days, ≥ 70 % lit, ≥ 50 % coverage, gap ≤ 48 h, darkness ≤ 72 h, all adjustable; rank by coverage. Leo reviews the values in parallel |
+| Demo question | Connecting Ridge, 14–28 Nov 2026 | **Shackleton Rim, 16–29 Aug 2027 UTC**: when is the site sunlit, and when can at least one selected station communicate with it? |
+| Test periods | "Now" etc. | Plus the four named periods: Shackleton Rim 16–29 Aug 2027 and 12–26 Sep 2027; Malapert 21–27 Dec 2026 and 9–15 Jan 2028 (candidates, not proven best; the finder computes the real best windows) |
+| Timeline colours | Sun / Earth tracks | Sun track: **yellow = lit, black = dark**. Comms track: **blue = at least one station in line of sight, dark = none, hatched = unknown**. Text labels too, never colour alone |
+| Site information | Name, coordinates, slope | Plus a sourced **site potential** (water ice / cold traps, illumination, science) with evidence labels, from `lunar-interest-points.md` |
+
+Brief 0 (scaffold) is **done** (TASKS.md, 14 Nov 09:20): `app/` exists, contract types are in `app/src/data/types.ts`, synthetic sample JSON is in `app/public/data/` (`sites.json`, `periods.json`, `ephem/sample.json`, `horizons/sample-site.json`), not in a `sample/` folder. Start at step 1.
 
 ## Orchestrator prompt (Isaac drives every agent — 13 Nov)
 
 Run this in **one** Claude Code session on the **Max 20x** account (check with `/usage` or the app's usage card first: it must say Max, not Pro). The Max 5x account runs a second session on the other laptop only when the orchestrator hands it a brief.
 
 ```text
-Find the repo ~/Documents/clps-lunar-mission-browser and read AGENTS.md, docs/event/build-plan.md and docs/event/agent-briefs.md. Execute the briefs in this order: 0, then A + B + C1 + C2 in parallel. Follow my global rules (CLAUDE.md) and the brief table exactly.
+Find the repo ~/Documents/clps-lunar-mission-browser and read AGENTS.md, docs/event/spec.md, docs/event/build-plan.md and docs/event/agent-briefs.md (start with its precedence table). Your job: complete build step 1 (build-plan §8) fully. Brief 0 is already done; execute A + B + C1 + C2 in parallel. Follow my global rules (CLAUDE.md) and the brief table exactly.
 
 How to run them:
-- Each brief runs as a subagent with isolation "worktree" (its own branch, never the main checkout) and the model in the model table below. Pass the shared preamble + the full brief text verbatim, plus the two mockup PNGs from ~/Downloads for C1 and C2.
+- Each brief runs as a subagent with isolation "worktree" (its own branch, never the main checkout) and the model in the model table below. Pass the shared preamble + the full brief text verbatim, plus for C1 and C2: ~/Downloads/lunar-site-navigator-mockup-v4.png, ~/Downloads/lunar-site-navigator-mockup-v4-site-menu.png, and ~/Downloads/"WhatsApp Image 2026-11-13 at 12.21.47.jpeg" (ninja's timeline reference: yellow sunlight / blue comms bars; its numbers and terrain are fictional). Do not copy these images into the repo.
+- Merge order: A first (it owns the contract types and stations), then B, then C1 and C2 rebased on A + B so they switch from sample to real data.
 - You are the integrator: read each subagent's report, re-run its done-checks yourself, look at its screenshots, then merge its branch into main with --no-ff. Never merge a branch whose checks you have not re-run.
 - Human gates stop you: V1/V2 (Leo, 16:00), V3 (20:00), V4 + horizon go/no-go (21:30), look approval (Bene), visible wording (me). At a gate, post the evidence in one message and wait for my "yes". Do not mark any V-check passed yourself.
 - Cost: Haiku for every task in the model table marked Haiku; Opus only where it says Opus; never Sonnet. Spawn a subagent only for an independent file set or a fresh-context review — never two subagents on the same files.
 - Pace: call get_usage (or /usage) every hour; if the 5-hour window passes 70 %, pause the lowest-priority track (order: C2 polish → B assets → C1 polish), never A or the merge queue.
 - Night shifts (ninja, 13 Nov): Isaac + Leo sleep 22:00–01:00, Otto + Bene 01:00–04:00. From 22:00 work the overnight queue in docs/event/event-plan.md — branches only, no merges, no deploys, no gate items; Otto may review, Bene may approve screenshots, only Isaac merges (from 01:00). Write one report per finished branch: checks, screenshots, open questions.
 - Stop rules: build-plan §5.4 (T14 red at 21:30 → strip becomes main view) and the event-plan cut list. Feature freeze Sun 12:00.
+- Step 1 is complete when: all four branches are merged with their done-checks re-run by you on main; `cd app && npm run build && npx vitest run && npx playwright test` and `python3 -m pytest scripts/tests -q` pass on main; the app answers the spec demo question (Shackleton Rim, 16–29 Aug 2027, sunlight + station coverage) from a fresh URL; basic comparison works (Shackleton ↔ Malapert same period; Shackleton Aug ↔ Sep 2027); every unvalidated number still shows "sample"; TASKS.md, BUILD_LOG.md and docs/event/ai-use-log.md are updated; main is pushed. Then write one report: what passed, what waits for Leo/Otto/Bene, what was cut.
 ```
 
 ### Model table (cost: Haiku where the job is mechanical or checkable by a command)
@@ -24,7 +41,9 @@ How to run them:
 | Task | Model | Why |
 |---|---|---|
 | Brief 0 scaffold, folder READMEs, sample JSON | Haiku | mechanical, fully checkable by build/test commands |
-| A: ephemeris.py, quaternions, geometry/, windows, finder, fixtures | Opus | physics and frames; errors are silent |
+| A: ephemeris.py, quaternions, stations, geometry/, windows, finder, fixtures | Opus | physics and frames; errors are silent |
+| A: stations.csv (copy sourced coordinates) | Haiku | conversion with source check |
+| B: site potential text (from lunar-interest-points.md + sources) | Opus | evidence wording must not overclaim |
 | A: periods.py, answerSentence wording table | Haiku | small, rule-driven, tested by fixtures |
 | B: horizon.py + tests T5–T8, T13 | Opus | the risky algorithm |
 | B: sites.csv / sites.py (copy from sources.md), textures.py, terrain_tiles.py | Haiku | conversion scripts with size and count checks |
@@ -39,12 +58,12 @@ How to run them:
 | Brief | Reviewer (human) | Model | Starts | Worktree / branch | Files it owns |
 |---|---|---|---|---|---|
 | 0 Scaffold | Otto | Haiku 5.5 | Sat 11:00 | main checkout, branch `step0-scaffold` | everything it creates; nothing after merge |
-| A Ephemeris + geometry | Leo (numbers), Otto (code) | Opus 5.5 | after 0 merged | `../clps-wt/a`, `track-a` | `scripts/ephemeris.py`, `scripts/periods.py`, `scripts/export_fixtures.py`, `scripts/tests/test_ephemeris.py`, `app/src/geometry/`, `app/public/data/ephem/`, `app/public/data/periods.json`, `app/src/test/fixtures.json` |
-| B Horizon + assets | Leo (numbers), Otto (code) | Opus 5.5 | after 0 merged | `../clps-wt/b`, `track-b` | `scripts/horizon.py`, `scripts/sites.py`, `scripts/sites.csv`, `scripts/textures.py`, `scripts/terrain_tiles.py`, `scripts/tests/test_horizon.py`, `app/public/data/sites.json`, `app/public/data/horizons/`, `app/public/data/terrain/`, `app/public/textures/` |
-| C1 3D scene | Bene (look), Leo (T14–T17) | Opus 5.5 | after 0 merged | `../clps-wt/c1`, `track-c1` | `app/src/scene3d/`, `app/e2e/scene.spec.ts` |
-| C2 Screen UI | Bene (look), Isaac (wording) | Opus 5.5 | after 0 merged | `../clps-wt/c2`, `track-c2` | `app/src/views/`, `app/src/data/`, `app/src/state.ts`, `app/src/App.tsx`, `app/src/styles/`, `app/e2e/ui.spec.ts` |
+| A Ephemeris + stations + geometry | Leo (numbers), Otto (code) | Opus 5.5 | now (0 is done) | `../clps-wt/a`, `track-a` | `scripts/ephemeris.py`, `scripts/stations.py`, `scripts/stations.csv`, `scripts/periods.py`, `scripts/export_fixtures.py`, `scripts/tests/test_ephemeris.py`, `scripts/tests/test_stations.py`, `app/src/geometry/`, `app/src/data/types.ts` (only Track A edits it), `app/public/data/ephem/`, `app/public/data/stations.json`, `app/public/data/periods.json`, `app/src/test/fixtures.json` |
+| B Horizon + sites + assets | Leo (numbers), Otto (code) | Opus 5.5 | now (0 is done) | `../clps-wt/b`, `track-b` | `scripts/horizon.py`, `scripts/sites.py`, `scripts/sites.csv`, `scripts/textures.py`, `scripts/terrain_tiles.py`, `scripts/tests/test_horizon.py`, `app/public/data/sites.json`, `app/public/data/horizons/`, `app/public/data/terrain/`, `app/public/textures/` |
+| C1 3D scene | Bene (look), Leo (T14–T17) | Opus 5.5 | now (0 is done) | `../clps-wt/c1`, `track-c1` | `app/src/scene3d/`, `app/e2e/scene.spec.ts` |
+| C2 Screen UI | Bene (look), Isaac (wording) | Opus 5.5 | now (0 is done) | `../clps-wt/c2`, `track-c2` | `app/src/views/`, `app/src/data/` (except `types.ts`, read-only), `app/src/state.ts`, `app/src/App.tsx`, `app/src/styles/`, `app/e2e/ui.spec.ts` |
 
-Worktrees: `cd ~/Documents/clps-lunar-mission-browser && git worktree add ../clps-wt/a -b track-a` (same for b, c1, c2), after brief 0 is merged.
+Worktrees: `cd ~/Documents/clps-lunar-mission-browser && git worktree add ../clps-wt/a -b track-a` (same for b, c1, c2).
 
 ---
 
@@ -53,13 +72,17 @@ Worktrees: `cd ~/Documents/clps-lunar-mission-browser && git worktree add ../clp
 ```text
 You are working in the repo "Lunar Landing Site Navigator" for NASA Space Apps 2026 (local event OpenSpace Heilbronn, 14–15 Nov 2026). Hacking started Sat 14 Nov 10:30; feature freeze Sun 12:00; submission Sun 15:00.
 
-Read before acting, in this order: AGENTS.md (rules for agents), docs/event/build-plan.md sections named in your brief (this is the spec), then your brief below. Do not read the rest of docs/ unless the brief points there.
+Read before acting, in this order: AGENTS.md (rules for agents), docs/event/spec.md (kickoff decisions, 14 Nov — they override the build plan), the precedence table at the top of docs/event/agent-briefs.md, docs/event/build-plan.md sections named in your brief, then your brief below. Do not read the rest of docs/ unless the brief points there.
 
 Facts you must not re-derive:
 - Raw data root: environment variable CLPS_DATA (ninja's Mac: ~/Documents/clps-data/clps; other laptops: the USB stick's clps/ folder). Subfolders: spice/ (naif0012.tls, pck00011.tpc, de440s.bsp, moon_pa_de440_200625.bpc, moon_de440_250416.tf), lola/LDEM_80S_20MPP_ADJ.TIF (20 m/px, 80–90°S, polar stereographic, MOON_ME DE421, heights relative to 1737.4 km), illumination/ (PGDA average-illumination maps), textures/ (lroc_color_poles_4k.tif, lroc_color_poles_8k.tif, ldem_16_uint.tif, starmap_2020_4k.exr, world.200411.3x5400x2700.jpg). Never copy raw data into git.
 - Frame: MOON_ME everywhere, planetocentric, east-positive longitude, sphere radius 1737.4 km. Never IAU_MOON. Units: degrees, km (metres only in names ending _m), UTC.
+- Observer height 1.75 m above the terrain (spec.md; the build plan's 2 m is superseded).
+- Communications = geometric line of sight to selected Earth ground stations (NASA DSN + ESA ESTRACK deep-space), both ends; "at least one selected station" counts as covered. Missing outage/link inputs are `unknown`, never "available" and never an invented outage. Never call line of sight a guaranteed working link.
+- Demo question (spec.md): Shackleton Rim, 16–29 Aug 2027 UTC — when is the site sunlit, and when can at least one selected station communicate with it?
 - Azimuth: 0 = north, clockwise, degrees. Local frame at a site: up = unit(lat, lon), east = unit(z × up), north = up × east.
-- Data contracts are build-plan §3. Do not change a field name or unit; if you think one is wrong, stop and say so.
+- Data contracts are build-plan §3 plus the station extension defined in Brief A (stations.json) and the site `potential` field in Brief B. Do not change any other field name or unit; if you think one is wrong, stop and say so.
+- Sample data from step 0 lives in app/public/data/ (sites.json, periods.json, ephem/sample.json, horizons/sample-site.json); contract types in app/src/data/types.ts.
 - Commit email must be 274549381+ninjabaloney06-sketch@users.noreply.github.com (check `git config user.email` first). Commit to your own branch only. Never push to main, never force-push.
 
 Hard rules:
@@ -72,7 +95,9 @@ Hard rules:
 
 ---
 
-## Brief 0 — Scaffold (Haiku 5.5, Otto drives, ~30 min)
+## Brief 0 — Scaffold (Haiku 5.5, Otto drives, ~30 min) — DONE 14 Nov 09:20, do not rerun
+
+Kept for the record. Actual result differs slightly: sample JSON sits in `app/public/data/`, not `app/public/data/sample/`; see TASKS.md.
 
 ```text
 TASK: Create the empty project skeleton so four agents can work in parallel without touching shared files afterwards. Nothing in this repo exists yet except docs/ and scripts/tools/make_pdf.py — there is no app/ and no scripts/tests/.
@@ -106,7 +131,7 @@ HUMAN DECISION: none. Otto reviews the diff; Isaac merges.
 ## Brief A — Ephemeris and browser geometry (Opus 5.5, Isaac drives)
 
 ```text
-TASK: Build the site-independent Sun/Earth ephemeris (Python), the browser geometry that turns it into azimuth/elevation for any site (TypeScript), and the fixtures that prove both agree. Spec: build-plan §2 (why the browser subtracts the site vector), §3 (ephem, periods, fixtures contracts), §4.1, §4.4 (windows, finder), §4.5. Step 0 is merged; app/public/data/sample/ shows the JSON shapes.
+TASK: Build the site-independent Sun/Earth ephemeris (Python), the Earth ground-station catalogue, the browser geometry that turns both into azimuth/elevation and station line of sight for any site (TypeScript), and the fixtures that prove Python and TypeScript agree. Spec: docs/event/spec.md (decisions, comparison periods, data-contract section), build-plan §2 (why the browser subtracts the site vector), §3 (ephem, periods, fixtures contracts), §4.1, §4.4 (windows, finder), §4.5. Step 0 is done; app/public/data/ holds sample JSON and app/src/data/types.ts the contract types (you are the only track that edits types.ts).
 
 TRAPS (read first):
 1. Frame: pass "MOON_ME" explicitly in every spkpos/pxform call. A grep for IAU_MOON in scripts/ and app/src must return nothing (test T1).
@@ -114,28 +139,37 @@ TRAPS (read first):
 3. Earth direction from a site must subtract the site vector (parallax up to 0.26°). Never use the Moon-centre direction for a surface observer.
 4. Quaternions (added 13 Nov): q_me_to_j2000 = pxform("MOON_ME","J2000",et); q_earth_to_me = pxform("IAU_EARTH","MOON_ME",et - lt_earth). Store as (x, y, z, w). Interpolate with slerp in the browser, vectors linearly.
 5. Earth's angular radius from the actual distance (0.90–1.02°), Sun's likewise.
+6. Station position in MOON_ME at time t: s_me = earth_km(t) + R(q_earth_to_me(t)) · s_earthfixed, with s_earthfixed from the station's geodetic lat/lon/height on its stated datum (WGS84/ITRF). IAU_EARTH is used as an approximation of the terrestrial frame; say so in the output and let Leo judge the error.
+7. A station is in line of sight when BOTH hold: (a) from the site, its elevation exceeds the terrain mask at its azimuth (subtract the site vector, as for Earth); (b) at the station, the Moon site's elevation above the station's local horizon (geodetic normal) is ≥ that station's min_elev_deg. Coverage = union over the selected stations; never count overlapping windows twice.
+8. Elevation masks and coordinates come only from primary sources (e.g. the DSN Telecommunications Link Design Handbook 810-005, ESA ESTRACK station pages). No source for a value → leave that station out and report it; never pick a mask yourself.
 
 STEPS:
 1. scripts/ephemeris.py: load the 5 kernels from $CLPS_DATA/spice; write app/public/data/ephem/YYYY-MM.json for 2026-11 … 2030-12 at 30-min steps per §3, with kernel names + SHA-256 prefixes. Mode `--site LAT LON --start ISO --end ISO --step MIN` prints az/el table for Leo.
 2. scripts/tests/test_ephemeris.py: T1 (grep), T2 (polar site: Sun within ±2°, Earth within ±8° over 2027), T3 (in every month, the maximum Sun–Earth separation seen from the Moon's centre is > 175° — that is full Moon; do not hard-code dates), interpolation check < 0.001°.
 3. app/src/geometry/: pure TS, no DOM: loadMonth, interpolate(t), siteVector(lat,lon,h), enuBasis, azEl(bodyVec, site), discFraction(elev, mask, angRadius), windows(series, mask) with ±1 min bisection, finder(site, earliest, latest, missionDays, thresholds) per §4.4, answerSentence(state) (rules below).
 4. scripts/export_fixtures.py → app/src/test/fixtures.json: 200 random (site from sample sites, time in 2026-11 … 2027-12) with Python az/el, visibility. app/src/geometry/*.test.ts must match within 1e-6° (T9). Also T4: a target due north has az 0, due east az 90.
-5. scripts/periods.py → app/public/data/periods.json per §3 ("Now" = 14–28 Nov 2026 UTC).
+5. scripts/periods.py → app/public/data/periods.json per §3 ("Now" = 14–28 Nov 2026 UTC) plus the four spec periods, each as UTC [start, end) with the final named day included: shackleton-2027-08 (2027-08-16 → 2027-08-30T00:00Z), shackleton-2027-09 (2027-09-12 → 2027-09-27), malapert-2026-12 (2026-12-21 → 2026-12-28), malapert-2028-01 (2028-01-09 → 2028-01-16). Reason text: "team candidate period, not a verified best window".
+6. scripts/stations.csv (one source URL per row) → scripts/stations.py → app/public/data/stations.json: list of {id, name, network ("DSN" | "ESTRACK"), complex, lat_deg, lon_deg (east-positive), h_m, datum, min_elev_deg, source_url, source_label, link_state_inputs: "unknown"}. One representative deep-space antenna per complex: Goldstone, Madrid, Canberra, Cebreros, Malargüe, New Norcia. Add the TS types to app/src/data/types.ts.
+7. app/src/geometry/: stationLos(station, site, t, mask) → {az, el, moonElAtStation, state: "los" | "blocked"}; coverage(series, stationIds) → per-sample "covered" | "none" (and "unknown" only where an input is missing). windows() and finder() use coverage instead of Earth-disc visibility; Earth-disc visibility stays available as a secondary series.
+8. scripts/tests/test_stations.py: a station at the sub-site point on Earth sees the Moon near 90° elevation; its antipode near −90°; union of two overlapping windows is not double-counted; a missing min_elev_deg raises instead of defaulting.
 
 answerSentence rules (C2 renders it; Leo approves wording):
 - Lit now: "Sunlight for {N} more days." (≥ 48 h → days, rounded down; < 48 h → hours). Dark now: "Dark for {N} more days." / hours.
-- Earth up: "Earth sets in {N} hours/days." Earth down: "Earth rises in {N} …". Earth never rises at this site: "Earth never rises here."
+- Covered now: "Station contact for {N} more hours/days." Not covered: "Next station contact in {N} hours/days." No selected station ever reaches the site in the period: "No selected station can reach this site in this period." Earth never rises at this site: "Earth never rises here."
+- Comms wording always means geometric line of sight; the details drawer explains that a real link also needs equipment and schedules.
 - Never round up; never show minutes in the sentence.
 
 DONE WHEN (paste outputs):
 - `python3 -m pytest scripts/tests/test_ephemeris.py -q` all pass.
 - `cd app && npx vitest run src/geometry` all pass, including fixtures (T9) and T4.
 - `python3 scripts/ephemeris.py --site -89.46 -136.68 --start 2026-11-14T00:00 --end 2026-11-15T00:00 --step 60` prints 25 rows; hand this table to Leo for V1.
+- `python3 scripts/ephemeris.py --site -89.7668 -171.87 --start 2027-08-16T00:00 --end 2027-08-17T00:00 --step 60 --stations` (Shackleton Rim Site04) prints Sun/Earth az/el plus each station's Moon elevation; hand to Leo for the station check (Moon elevation at two stations vs JPL Horizons with that station as observer; Leo sets the tolerance).
+- `python3 -m pytest scripts/tests/test_stations.py -q` passes; every row of stations.json has source_url and min_elev_deg (paste a one-line assertion).
 - `du -sh app/public/data/ephem` ≤ 12 MB; each month ≤ 250 KB.
 - `grep -rn IAU_MOON scripts app/src` prints nothing.
 
-SCOPE FENCE: no UI, no scene3d, no horizon code. Use the sample horizon until Track B merges.
-HUMAN DECISION: Leo signs V1 (10 points vs JPL Horizons, < 0.05°) and V2 by 16:00. Until he signs, everything you produce stays "sample" in the UI. Do not mark V1 passed yourself.
+SCOPE FENCE: no UI, no scene3d, no horizon code. Use the sample horizon until Track B merges. No link-budget, weather or schedule modelling: those inputs stay "unknown".
+HUMAN DECISION: Leo signs V1 (10 points vs JPL Horizons, < 0.05°) and V2 by 16:00, plus the station check and the IAU_EARTH approximation. Until he signs, everything you produce stays "sample" in the UI. Do not mark V1 passed yourself.
 ABORT: if V1 fails by > 0.05° at 16:00 and the cause is not found by 16:30, stop and report; Isaac + Leo decide the fallback (event-plan checkpoint 1).
 ```
 
@@ -144,20 +178,23 @@ ABORT: if V1 fails by > 0.05° at 16:00 and the cause is not found by 16:30, sto
 ## Brief B — Horizon masks, sites, textures, terrain tiles (Opus 5.5, Otto drives)
 
 ```text
-TASK: Produce the terrain horizon for every curated site, the sites file, the processed 3D textures and the per-site terrain tiles. Spec: build-plan §3 (sites, horizons contracts), §4.2 (horizon method, in full), §4.3 (site list), §5.4 "Assets" table. Step 0 is merged.
+TASK: Produce the terrain horizon for every curated site, the sites file, the processed 3D textures and the per-site terrain tiles. Spec: docs/event/spec.md (site information, site benefits, comparison points), build-plan §3 (sites, horizons contracts), §4.2 (horizon method, in full), §4.3 (site list), §5.4 "Assets" table, docs/reference/lunar-interest-points.md (site potential rules). Step 0 is done.
 
 TRAPS (read first):
 1. Convert lat/lon to DEM x/y with the CRS read from the GeoTIFF itself (pyproj), never a hand-typed projection.
 2. 720 azimuths (0.5°), rays out to 300 km (NOT 150 km — changed 13 Nov), 20 m steps to 4 km then +0.5 % per step. Elevation angle via the 3D vector formula in §4.2 step 6; that already includes curvature, so do not add a curvature correction on top.
 3. Rays leaving the DEM or hitting nodata stop and go into "truncated"; never write 0 for them.
 4. Do not load the 2.7 GB DEM into memory: windowed reads, near field full-res (40 × 40 km), far field decimated to 160 m (600 × 600 km box, clipped).
-5. Site coordinates only from docs/reference/sources.md, copied exactly, with the source URL. A site with no sourced coordinates is left out, not guessed. Groups per §3: artemis-2024 first, then artemis-2022 (label "dropped in 2024"); Connecting Ridge is group "commercial", label "Blue Moon MK1 target".
+5. Site coordinates only from docs/reference/sources.md or docs/event/spec.md, copied exactly, with the source URL. A site with no sourced coordinates is left out, not guessed. Groups per §3: artemis-2024 first, then artemis-2022 (label "dropped in 2024"); Connecting Ridge is group "commercial", label "Blue Moon MK1 target". Required for the demo: shackleton-rim-site04 (−89.7668, −171.87) and malapert-site23 (−85.9948, −0.23578) from NASA's Lunar Surface Data Book table A2-2 (link in spec.md), new group value "reference", label "NASA reference point, not a chosen landing site"; check and record the source frame in frame_note.
 6. Texture orientation: equirectangular, longitude 0 at the image centre — check with the debug test in C1 (T16), do not flip or mirror by eye.
+7. Observer height is 1.75 m (spec.md), not 2 m: write observer_height_m = 1.75.
+8. Site potential: only site-specific, sourced claims. Shadow is not ice; hydrogen evidence is indirect; illumination must be recomputed for the exact point. No proximity distances in step 1 (PSR footprints are not downloaded; downloading needs Isaac's approval).
 
 STEPS:
-1. scripts/tests/test_horizon.py first: T5 flat sphere → mask = −0.087° for 2 m (±0.01°); T6 single cone of known height/distance → its angle; T7 wall at a known azimuth; T8 site near 80°S yields truncated entries; T13 a 5 km cone at 200 km appears in the mask.
+1. scripts/tests/test_horizon.py first: T5 flat sphere → mask = −0.0813° for 1.75 m (±0.01°; dip = arccos(R/(R+h)), R = 1737.4 km); T6 single cone of known height/distance → its angle; T7 wall at a known azimuth; T8 site near 80°S yields truncated entries; T13 a 5 km cone at 200 km appears in the mask.
 2. scripts/horizon.py → app/public/data/horizons/<id>.json per §3 (+ elev_m and slope_deg written back for sites.py).
-3. scripts/sites.csv (hand-built from sources.md, one URL per row) → scripts/sites.py → app/public/data/sites.json.
+3. scripts/sites.csv (hand-built from sources.md and spec.md, one URL per row) → scripts/sites.py → app/public/data/sites.json. Compute horizons for shackleton-rim-site04 and malapert-site23 first (demo and comparison sites).
+3b. Add a `potential` list to each site: {category ("water-ice" | "cold-trap" | "illumination" | "science" | "other"), text (one sentence, phrased as an opportunity, with its limitation), evidence ("direct measurement" | "remote observation" | "modeled condition" | "hypothesis"), source_url}. Draw on lunar-interest-points.md and its sources; a site with no site-specific evidence gets an explicit "unknown" entry, never a generic claim. Leo reviews every entry.
 4. scripts/textures.py → app/public/textures/: moon_color_4k.webp (from lroc_color_poles_4k.tif), moon_normal_2k.png (from ldem_16_uint.tif), stars_4k.jpg (tone-mapped starmap_2020_4k.exr), earth_2k.jpg (from world.200411…jpg). Each ≤ 3 MB.
 5. scripts/terrain_tiles.py → app/public/data/terrain/<id>.bin + <id>.json: 40 × 40 km around each curated site, 80 m spacing, 500 × 500 Int16 heights in metres relative to the site, ENU-aligned (x east, y north), plus a 500 × 500 PNG of the PGDA average-illumination map for the "% time lit" overlay: avgvisib_85s_060m for sites south of 85°S, AVGVISIB_75S_120M for sites between 80° and 85°S (label which map and resolution in the tile JSON).
 
@@ -166,7 +203,8 @@ DONE WHEN (paste outputs):
 - `ls app/public/data/horizons | wc -l` equals the number of sites with horizon != null in sites.json.
 - `python3 -c "import json;d=json.load(open('app/public/data/horizons/connecting-ridge.json'));print(len(d['mask']),d['ray_max_km'],min(d['mask']),max(d['mask']))"` prints 720 300 and plausible angles (−1° … +5°).
 - `du -sh app/public/textures app/public/data/terrain` each ≤ 12 MB.
-- Every row of sites.json has source_url (check with a one-line python assertion, paste it).
+- Every row of sites.json has source_url, and every potential entry has source_url and evidence (one-line python assertion, paste it).
+- horizons/shackleton-rim-site04.json and horizons/malapert-site23.json exist with observer_height_m 1.75.
 
 SCOPE FENCE: no TypeScript, no UI. Do not touch ephemeris files.
 HUMAN DECISION: Leo signs V3 (synthetic cases, by 20:00) and V4 (PGDA comparison, by 21:30). The 21:30 go/no-go on horizons is Leo's call, not yours.
@@ -186,7 +224,8 @@ TRAPS (read first):
 3. Two scenes: space scene (Moon centre, MOON_ME axes, km, logarithmicDepthBuffer) and site scene (site origin, ENU, metres). Never render 20 m terrain in the km scene.
 4. Shadows are visual only. Lit/dark comes from the horizon mask (geometry). Label in the "how this is computed" text, not on screen.
 5. No ambient light. One directional light = Sun. Faint fill from Earth's direction only.
-6. Until Tracks A/B merge, use app/public/data/sample/; when a value is sample, C2 shows it — you just render.
+6. Until Tracks A/B merge, use the sample JSON in app/public/data/; when a value is sample, C2 shows it — you just render.
+7. Demo site is shackleton-rim-site04 (−89.77°, deep south: Sun and Earth sit within a few degrees of the horizon). The default view and every screenshot must also work there, not only at Connecting Ridge.
 
 SITE LEVEL (default when a site is selected — ninja, 13 Nov):
 - OrbitControls (three/examples) with target = the landing site, fixed. Default: distance 17 km, 16° above the site's horizon, vertical FOV 54°, azimuth chosen so the Sun sits ~18° left of centre (if Earth is up and fits, it lands right). Drag = circle the site; scroll = distance 2–60 km; target never moves. `E` = eye level (2 m above ground, drag to look around), `Esc` back.
@@ -199,7 +238,7 @@ DEBUG API (?test=1): window.__scene = { ready: Promise, setView({site, utc, leve
 
 DONE WHEN (paste outputs):
 - `cd app && npx playwright test e2e/scene.spec.ts` passes: T14 (eye level, camera at the Sun's azimuth: projected Sun pixel within 1 px of the pinhole projection of geometry's az/el; same for Earth), T16 (debug checker texture: pin at 0°N 0°E faces +x MOON_ME, pin at 0°N 90°E at +y), T17 (mask says Sun hidden → Sun pixel dark).
-- 4 screenshots at 1440 × 900 saved to app/test-results/: system (if built), globe, site default, eye level. Look at each yourself and list, per screenshot, what is wrong compared with the reference image and Bene's checklist; fix and repeat at most 3 rounds, then hand over.
+- 5 screenshots at 1440 × 900 saved to app/test-results/: system (if built), globe, site default, eye level, and site default at shackleton-rim-site04 on 2027-08-16 12:00 UTC. Look at each yourself and list, per screenshot, what is wrong compared with the reference image and Bene's checklist; fix and repeat at most 3 rounds, then hand over.
 - fps ≥ 30 on the ThinkPad at the site level (show the debug fps counter in ?debug=1).
 - `grep -nE "Euler|Math\.(sin|cos|tan|atan)|new Matrix4\(" -r app/src/scene3d` prints nothing except makeBasis lines.
 
@@ -213,31 +252,32 @@ ABORT (stop rule): if T14 is not green by Sat 21:30, stop; the horizon strip bec
 ## Brief C2 — The screen around the scene (Opus 5.5, Bene drives, Isaac reviews wording)
 
 ```text
-TASK: Build everything on screen except the 3D scene: the three controls, the answer sentence, labels on objects, the timeline, the site menu and the details drawer. Spec: build-plan §5.1 (revised 13 Nov — read every bullet), §5.2 (modules), UX-01–05 in docs/reference/existing-tools.md. Reference images: lunar-site-navigator-mockup-v4.png (main) and lunar-site-navigator-mockup-v4-site-menu.png (menu open); ninja attaches them. Match layout, type and restraint; do not copy code (none exists in the repo).
+TASK: Build everything on screen except the 3D scene: the three controls, the answer sentence, labels on objects, the timeline, the site menu and the details drawer. Spec: docs/event/spec.md (acceptance criteria UX-01–05 and basic comparison — these replace the generic UX list), build-plan §5.1 (revised 13 Nov — read every bullet), §5.2 (modules), docs/reference/lunar-interest-points.md ("Proposed nearby-interest infographic": wording rules only). Reference images: lunar-site-navigator-mockup-v4.png (main), lunar-site-navigator-mockup-v4-site-menu.png (menu open), and ninja's timeline reference (WhatsApp image: yellow sunlight bar, blue comms bar; its numbers are fictional); ninja attaches them. Match layout, type and restraint; do not copy code (none exists in the repo).
 
 TRAPS (read first — ninja rejected the first mockup as "AI slop" for exactly these):
 1. Main screen has exactly three clickable things: site name, date/time, "Find better dates". No icon chips, no pill buttons, no frosted glass, no sparkles icon, no ALL-CAPS letter-spaced labels, no floating readout card, no legend that repeats the picture.
-2. Every number appears once, on its object: "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth (positions from window.__scene.project). Coordinates under the site name, mono.
+2. Every number appears once, on its object: "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth (positions from window.__scene.project). Coordinates under the site name, mono. Station names and their elevations live in the drawer, not on the main screen.
 3. The answer sentence comes from geometry.answerSentence (Track A); never write your own wording. Until A merges, show the sample sentence with "sample" in the footer.
-4. Colour means something: Sun amber oklch(80% 0.13 70), Earth blue oklch(72% 0.11 245), used identically in sentence, labels and timeline; accent ≤ 5 % of the screen. Background near-black oklch(11% 0.006 260), never #000; text oklch(94% 0.008 85), never #fff.
+4. Colour means something: sunlight yellow oklch(86% 0.15 95), comms/Earth blue oklch(72% 0.11 245), dark = background, unknown = diagonal hatch with the text "unknown"; used identically in sentence, labels and timeline; accent ≤ 5 % of the screen. Background near-black oklch(11% 0.006 260), never #000; text oklch(94% 0.008 85), never #fff.
 5. Never show the previous site's numbers under a new site's name while loading (UX-03).
+6. Station selection is NOT a fourth main-screen control: it lives in the details drawer ("Stations" checklist, all six selected by default) and in the URL hash.
 
 TOKENS: fonts Newsreader 400/500 (site name, answer), IBM Plex Sans 400/500 (UI), IBM Plex Mono 400 (numbers, coordinates, dates on the axis) via @fontsource (offline). Spacing 4 px scale. Site name 32 px, answer 32 px, UI 14 px, small 12 px. One dark bottom fade behind the answer and timeline only for legibility.
 
 SCREEN (1440 × 900 reference; must also work at 375 px wide):
 - Top left: site name (underlined, opens site menu), coordinates "89.46° S · 136.68° W", date "14 November 2026, 12:00 UTC" (underlined, opens date + time picker, UTC).
-- Top right: "Find better dates" (thin outline button) → opens the finder in the details drawer (Track A's finder; defaults 14 days, ≥ 70 % lit, ≥ 50 % Earth, blackout ≤ 48 h, darkness ≤ 72 h, every value editable).
-- Bottom left: the answer sentence, two lines ("Sunlight" in amber, "Earth" in blue).
-- Bottom: timeline 14 days: two 4 px tracks labelled Sun and Earth, dates in mono below, a 1 px cursor; drag = scrub, space = play, ←/→ = 30 min, shift = 1 day.
+- Top right: "Find better dates" (thin outline button) → opens the finder in the details drawer (Track A's finder; defaults 14 days, ≥ 70 % lit, ≥ 50 % station coverage, coverage gap ≤ 48 h, darkness ≤ 72 h, every value editable).
+- Bottom left: the answer sentence, two lines (sunlight line in yellow, station-contact line in blue).
+- Bottom: timeline over the selected period (default 14 days): two 4 px tracks labelled Sun (yellow = lit, black = dark) and Comms (blue = at least one selected station in line of sight, dark = none, hatch = unknown), dates in mono below, a 1 px cursor; drag = scrub, space = play, ←/→ = 30 min, shift = 1 day.
 - Footer line: "Terrain LOLA 20 m · ephemeris JPL DE440 · how this is computed" (opens sources + limits) and, while any value is sample, "sample values" on the right.
 - Landing-site label: "Landing site" on a small solid dark backing at the mast top (from project("site")).
 SITE MENU (per mockup): search field that also accepts typed coordinates; groups "Artemis regions, NASA 2024", "Landers", "Your points"; selected row highlighted; bottom row "Add a point: click the terrain, or type coordinates above" — DISABLED with "coming after terrain checks" until step 7 passes (never show flat-horizon numbers at the pole).
-DETAILS DRAWER (opened from the answer sentence or Find better dates): horizon strip (D3 SVG, az 0–360°, el −2…+10°, exact values on hover/tap), finder, compare (step 4), CSV export (step 4). The strip is also the full fallback when WebGL is unavailable.
-STATE: site, utc, view, drawer, user points — all in the URL hash; a copied link reproduces the view.
+DETAILS DRAWER (opened from the answer sentence or Find better dates): horizon strip (D3 SVG, az 0–360°, el −2…+10°, exact values on hover/tap), Stations checklist with each station's current state (line of sight / blocked by terrain / Moon below station mask), finder, basic comparison (step 1: switch site and named period; results and context update together), Site potential (from sites.json `potential`: category, sentence, evidence label, source link; "access not assessed"; no distances, no scores), CSV export (step 4). A short "what comms means" line: geometric line of sight, not a guaranteed radio link. The strip is also the full fallback when WebGL is unavailable.
+STATE: site, utc, period, selected stations, view, drawer, user points — all in the URL hash; a copied link reproduces the view.
 
 DONE WHEN (paste outputs):
 - On ninja's Mac only: `node ~/.claude/skills/ui/check-slop.mjs app/src` → 0 ERROR; every WARN fixed or justified in one line. On other laptops skip this line and say so; Isaac runs it before merge.
-- `cd app && npx playwright test e2e/ui.spec.ts` passes: UX-01 (fresh browser, Connecting Ridge 14 Nov: sentence + both labels visible within 60 s), UX-03 (invalid coordinates rejected with a message, never NaN; failed data load shows an error; WebGL disabled → strip + sentence still work), the main screen before any menu opens has exactly 3 buttons/links (site name, date, Find better dates) plus the timeline slider — assert with `page.getByRole('button').or(page.getByRole('link'))` count = 3 and `getByRole('slider')` count = 1, no horizontal scroll at 375 px.
+- `cd app && npx playwright test e2e/ui.spec.ts` passes: UX-01/02 (fresh browser, Shackleton Rim Site04, period shackleton-2027-08: sentence, both labels and both timeline tracks visible within 60 s, at 1440 px and 375 px), basic comparison (Shackleton ↔ Malapert same period, Shackleton Aug ↔ Sep 2027: each change shows the new answer within 10 s, never the previous site's values), UX-03 (invalid coordinates rejected with a message, never NaN; failed data load shows an error; WebGL disabled → strip + sentence still work), the main screen before any menu opens has exactly 3 buttons/links (site name, date, Find better dates) plus the timeline slider — assert with `page.getByRole('button').or(page.getByRole('link'))` count = 3 and `getByRole('slider')` count = 1, no horizontal scroll at 375 px.
 - Screenshots at 1440 × 900 and 375 × 812, main and menu open, in app/test-results/. Compare with the reference images and list differences; fix, max 3 rounds, then hand over.
 
 SCOPE FENCE: no 3D code (scene3d is C1's), no geometry maths, no wording of the answer sentence. Stop and ask before adding a dependency.

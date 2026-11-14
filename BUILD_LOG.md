@@ -82,3 +82,4 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 
 - 11:32 — Researched lunar landing-site interests and wrote source-backed infographic specification (15 categories, spatial data sources, evidence/proximity/access rules); no implementation or human science validation.
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Spec: recorded ninja's decisions (line-of-sight comms first, DSN + ESTRACK stations, plan finder defaults, candidate periods as test cases).
+- 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Agent briefs updated for step 1 with spec.md decisions and lunar-interest research; Brief 0 marked done; TASKS phase 4 points to the briefs.
