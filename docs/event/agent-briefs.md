@@ -295,9 +295,9 @@ Isaac: read the agent's final message, check the pasted done-outputs, look at th
 
 ---
 
-## Step 2-UI — Mission layer and science goals (plan + Brief C3, written 14 Nov 14:00)
+## Step 2-UI — Mission layer and science goals (plan + Brief C3, written 14 Nov 13:30)
 
-**Status: plan approved by ninja, 14 Nov ~14:20. Not started.** Still open before an agent runs parts 2–4: Bene's look at the plan, the three wording choices below, and the track-c1 / track-c2 merges. Sources: the four paper pages IMG_2339–2342 (copies in git-ignored `private/notes-14nov/`), the jury answers and kickoff transcript (decisions.md), ninja's instruction of 14 Nov ("prioritise points of interest for scientists; POIs can be water, places where bacteria could grow, consistent light, anything"), build-plan §5.1 and handoff D4.
+**Status: plan approved by ninja, 14 Nov ~13:34. Part 1 (ranking) built and merged 13:45 (`6dbae83`); parts 2–4 not started.** Still open before an agent runs parts 2–4: Bene's look at the plan and the three wording choices below. track-c1 and track-c2 are merged (`6218d95`, `87c438d`). Sources: the four paper pages IMG_2339–2342 (copies in git-ignored `private/notes-14nov/`), the jury answers and kickoff transcript (decisions.md), ninja's instruction of 14 Nov ("prioritise points of interest for scientists; POIs can be water, places where bacteria could grow, consistent light, anything"), build-plan §5.1 and handoff D4.
 
 ### What the paper asks for, and what is taken
 
@@ -375,7 +375,7 @@ Repo: /Users/Guest123/Documents/clps-lunar-mission-browser (GitHub ninjabaloney0
 
 TASK: add the Mission layer and science-goal site ranking to the existing app. Five parts, in this order, each committed separately on branch `track-c3` in your own worktree.
 
-START CONDITION (check, do not assume): `git branch --merged main` lists both track-c1 and track-c2 (track-c2 merged 14 Nov as 87c438d; track-c1 was still open at 14:25). If either is missing, stop and report: C1 owns app/src/scene3d/ and C2 owns app/src/views/, app/src/state.ts, app/src/App.tsx, app/src/styles/ and app/e2e/ui.spec.ts until they are merged. Part 1 alone may start earlier (it only adds files under app/src/geometry/, free since track A merged as a4bd092).
+START CONDITION (check, do not assume): `git branch --merged main` lists both track-c1 and track-c2 (both merged 14 Nov: track-c2 87c438d, track-c1 6218d95). If either is missing, stop and report: C1 owns app/src/scene3d/ and C2 owns app/src/views/, app/src/state.ts, app/src/App.tsx, app/src/styles/ and app/e2e/ui.spec.ts until they are merged. Part 1 alone may start earlier (it only adds files under app/src/geometry/, free since track A merged as a4bd092).
 
 ALREADY DONE — do not rebuild (state on 14 Nov 13:30): geometry, windows, summarize, finder, answerSentence (track A, merged a4bd092); horizons with slope_deg for all 18 sites and site_potential.json with 56 evidence-labelled entries (track B, merged a92cdfd); app/public/data/sites.json carries slope_deg, label and potential per site; stations.json has goldstone, madrid, canberra, usuda, uchinoura (e0b5704). C2's branch (614bba0) has SiteMenu, DateMenu, Drawer, Finder, Compare, HorizonStrip, Timeline, SceneView, URL-hash state in app/src/state.ts, tokens in app/src/styles/tokens.css and 20 Playwright tests in app/e2e/ui.spec.ts. Extend these files; do not create parallel versions.
 
@@ -390,7 +390,7 @@ TRAPS (read before coding):
 8. Never show the previous site's values under a new site's name while results load (UX-03). Ranking 18 sites is async: show the list with "computing" per row, fill rows as they finish, keep the selected site usable meanwhile.
 9. VALIDATED in app/src/data/validation.ts is false. Leave it. Everything you show keeps the existing "sample values — not validated" footer until Leo signs.
 
-PART 1 — ranking (pure TypeScript, no DOM): new app/src/geometry/rankSites.ts + rankSites.test.ts.
+PART 1 — ranking: DONE, merged 14 Nov as 6dbae83 (app/src/geometry/rankSites.ts, 14 tests). Do not rebuild; import rankSites from '../geometry'. Known behaviour to respect in the UI: ties use exact values, not displayed ones; for goals 'water-ice' and 'science' most sites share a tier, so the order is mostly decided by coverage — the panel must say "then by station coverage" next to such rows. Original contract, for reference:
   type ScienceGoal = 'any' | 'water-ice' | 'cold-trap' | 'light' | 'science'
   type SlopeState = 'pass' | 'fail' | 'unknown'
   interface RankedSite { siteId; rank: number | null; slope: SlopeState; slopeDeg: number | null; litPct; coveragePct; longestDarkH; longestGapH; goalEvidence: SitePotential['evidence'] | null; goalSourceUrl: string | null; tiedWith: string[] }

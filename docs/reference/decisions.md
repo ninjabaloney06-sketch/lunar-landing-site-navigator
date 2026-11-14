@@ -296,6 +296,6 @@ ninja's instruction: adjust the course of the tasks to be more innovative and to
 - The organisers want the work to continue after the weekend; the local prize is entry to a startup programme.
 - Jury answers (above): usefulness for researchers and astronauts, intuitive, innovative; prototype over idea; mainly the app; typical mistakes are a nice UI without content and superficial content.
 
-**Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: [agent-briefs.md, Step 2-UI](../event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1400); task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
+**Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: [agent-briefs.md, Step 2-UI](../event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1330); task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
 
 **Limits kept:** no weighted score without Leo's approval (ranking is filter, then one rule per goal, then tie-breakers); "biology experiments" is offered only with a primary source; unknown evidence is shown as unknown; nothing is called optimal.
