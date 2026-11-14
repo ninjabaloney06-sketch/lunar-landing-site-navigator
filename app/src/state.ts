@@ -22,7 +22,7 @@ export interface HashState {
   view: SceneLevel
   drawer: DrawerSection | null
   pts: UserPoint[]
-  name: string | null // mission name, plain text; null = the site's name (default)
+  name: string | null // mission name, plain text; null = DEFAULT_MISSION_NAME
   goal: ScienceGoal
 }
 
@@ -44,6 +44,9 @@ export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', '
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/
 export const NAME_MAX = 40
 export const MAX_DAYS = 60
+// Defaults decided by ninja, 14 Nov: a neutral mission name, and the goal whose ranking uses our own numbers.
+export const DEFAULT_MISSION_NAME = 'Mission 1'
+export const DEFAULT_GOAL: ScienceGoal = 'light'
 
 export const EMPTY_STATE: HashState = {
   site: null,
@@ -56,11 +59,11 @@ export const EMPTY_STATE: HashState = {
   drawer: null,
   pts: [],
   name: null,
-  goal: 'any',
+  goal: DEFAULT_GOAL,
 }
 
 /** Mission name as plain text: control characters dropped, runs of white space collapsed, at most 40
- *  characters. Empty → null (the site's name is shown). React renders it as text, never as markup. */
+ *  characters. Empty → null (DEFAULT_MISSION_NAME is shown). React renders it as text, never as markup. */
 export function cleanName(v: string | null): string | null {
   if (v === null) return null
   const s = v.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/\s+/g, ' ').trim()
@@ -138,7 +141,7 @@ export function serializeHash(s: HashState): string {
   if (s.drawer) p.set('drawer', s.drawer)
   if (s.pts.length) p.set('pts', s.pts.map((q) => `${q.lat.toFixed(4)},${q.lon.toFixed(4)}`).join(';'))
   if (s.name) p.set('name', s.name)
-  if (s.goal !== 'any') p.set('goal', s.goal)
+  if (s.goal !== DEFAULT_GOAL) p.set('goal', s.goal)
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }

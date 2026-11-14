@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Site, Station } from '../data/types'
 import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
-import { DAY_MS, inCoverage, MAX_DAYS, NAME_MAX, RANGE_ERROR, COVERAGE_END_MS } from '../state'
+import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, NAME_MAX, RANGE_ERROR, COVERAGE_END_MS } from '../state'
 import type { UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
@@ -234,7 +234,7 @@ export function MissionPanel(p: Props) {
             className="field"
             type="text"
             maxLength={NAME_MAX}
-            value={nameDraft ?? p.name ?? site.name}
+            value={nameDraft ?? p.name ?? DEFAULT_MISSION_NAME}
             onChange={(e) => {
               setNameDraft(e.target.value)
               p.onName(e.target.value)

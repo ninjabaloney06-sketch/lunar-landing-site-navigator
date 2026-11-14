@@ -365,7 +365,7 @@ Evidence tiers, best first: direct measurement, remote observation, modeled cond
 
 **Decided by ninja, 14 Nov 13:47 (answers given in the step-1 integrator session):** (2) track labels "Light / Comms" — ninja wrote "light/communicatoin"; read as the offered option, "Communication" spelled out is a one-string change if he meant that; (3) date display "16 Aug 2027"; (4) `ionicons` may be added at an exact pinned version. Point 1 (the plan itself) is taken as yes, because he answered the three follow-up choices and asked for the work to start.
 
-**Parts 2–4 merged 14 Nov 14:32 (`06a7393`, branch `track-c3`):** the resource lock is released. Part 5 (middle-button pan) is not started and still needs ninja's go. Open after the merge: Bene's look approval, ninja's yes on the strings, Leo's validation; two proposals from the integrator are undecided (default mission name "Mission 1" instead of the site name; default science goal "Consistent light" instead of "Any").
+**Parts 2–4 merged 14 Nov 14:32 (`06a7393`, branch `track-c3`):** the resource lock is released. Part 5 (middle-button pan) is not started and still needs ninja's go. Open after the merge: Bene's look approval, ninja's yes on the strings, Leo's validation. Decided by ninja 14 Nov 14:40 and built on main: the default mission name is "Mission 1" (not the site name) and the default science goal is "Consistent light" (not "Any"); both live in app/src/state.ts as DEFAULT_MISSION_NAME and DEFAULT_GOAL.
 
 1. ~~Yes or no to this plan~~ — **yes** (ninja, 14 Nov): panel instead of the paper dialog; launch location, rocket flight and the empty start state are dropped.
 2. Track labels: "Light / Comms" (paper) or keep "Sun / Comms".

@@ -14,6 +14,7 @@ import {
   DAY_MS,
   DEFAULT_DAYS,
   DEFAULT_PERIOD_ID,
+  DEFAULT_MISSION_NAME,
   DEFAULT_SITE_ID,
   STEP_MS,
   useHashState,
@@ -100,7 +101,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const dateBtn = useRef<HTMLButtonElement>(null)
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
-  const missionName = hs.name ?? site.name
+  const missionName = hs.name ?? DEFAULT_MISSION_NAME
 
   const period: ViewPeriod = useMemo(() => {
     if (hs.period === 'custom' && hs.from !== null) {

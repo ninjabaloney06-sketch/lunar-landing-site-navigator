@@ -380,22 +380,24 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
 
 // ---------- Mission layer (Brief C3) ----------
 
-test('(e) mission: the name defaults to the site name; a copied link restores name and goal', async ({ page }) => {
+test('(e) mission: the name defaults to "Mission 1" and the goal to Consistent light; a copied link restores name and goal', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await expect(page.getByTestId('mission')).toHaveText('Connecting Ridge')
-  await expect(page.getByTestId('mission')).toHaveAccessibleName('Connecting Ridge')
+  await expect(page.getByTestId('mission')).toHaveText('Mission 1')
+  await expect(page.getByTestId('mission')).toHaveAccessibleName('Mission 1')
+  await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('goal=')
+  await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('name=')
 
-  await page.goto(`/#site=${MASSIF}&period=${SEP}&name=Ice%20survey%201&goal=light`)
+  await page.goto(`/#site=${MASSIF}&period=${SEP}&name=Ice%20survey%201&goal=cold-trap`)
   await expectAnswer(page, MASSIF, SEP, 60_000)
   await expect(page.getByTestId('mission')).toHaveText('Ice survey 1')
   await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Ice+survey+1')
-  await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=light')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=cold-trap')
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
   await expect(panel.getByLabel('Name', { exact: true })).toHaveValue('Ice survey 1')
-  await expect(panel.getByRole('radio', { name: 'Consistent light' })).toBeChecked()
+  await expect(panel.getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
   // Editing the name in the panel changes the header and the link at once.
   await panel.getByLabel('Name', { exact: true }).fill('Rim survey')
   await expect(page.getByTestId('mission')).toHaveText('Rim survey')
