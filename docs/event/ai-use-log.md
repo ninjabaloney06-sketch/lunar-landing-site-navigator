@@ -23,6 +23,12 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 12:27 | Codex (account owner unconfirmed) | ninja | Removed settings sidebar/page/icon tasks and the related open decision; recorded ninja’s scope decision | TASKS.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; retained direct core controls and inline legend. |
 
+| Sat 12:36 | Codex (account owner unconfirmed) | ninja | Recorded four mandatory site assessments and the strict exploration slope criterion; reconciled prior scope exclusions | TASKS.md; docs/event/spec.md; docs/event/build-plan.md; docs/event/agent-briefs.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; no implementation, dataset acquisition or scientific validation claimed. |
+
+| Sat 12:42 | Codex (account owner unconfirmed) | ninja | Reviewed phase dependencies and reordered the remaining task checklist; clarified preparation handoffs, existing-work ownership, windows/finder validation, acceptance before deployment, submission prerequisites and post-event decisions | TASKS.md; BUILD_LOG.md | none | Phase 4 preserved byte-for-byte; completed task entries retained, no implementation or human validation marked done. |
+
+| Sat 13:05 | Codex (account owner unconfirmed) | ninja | Added landing-site slope ≤ 5° alongside the separate exploration slope < 20° requirement; specified boundary and missing-data checks | TASKS.md; docs/event/spec.md; docs/event/build-plan.md; docs/event/agent-briefs.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; implementation and scientific validation remain open. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
