@@ -283,16 +283,22 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
 
 test.describe('terrain levels (track-terrain)', () => {
   test('T18 nested levels: loaded where present, ≤ 1.5 MB of terrain per site, no cracks at the level borders', async ({ page }) => {
-    let terrainBytes = 0
-    page.on('response', async (r) => {
-      if (r.url().includes(`/data/terrain/${DEMO}`)) terrainBytes += (await r.body()).length
+    const bodies: Promise<number>[] = []
+    const files: string[] = []
+    page.on('response', (r) => {
+      if (!r.url().includes(`/data/terrain/${DEMO}`)) return
+      files.push(r.url().split('/').pop()!)
+      bodies.push(r.body().then((b) => b.length))
     })
     await open(page)
     type Info = { levels: string[]; triangles: number }
     await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'site' })
     const info = await call<Info>(page, 'terrainInfo')
     expect(info.levels).toEqual(['fine', 'tile', 'mid', 'far'])
-    console.log(`T18 ${DEMO}: ${terrainBytes} bytes of terrain fetched, ${info.triangles} terrain triangles at site level`)
+    const terrainBytes = (await Promise.all(bodies)).reduce((a, b) => a + b, 0)
+    console.log(`T18 ${DEMO}: ${terrainBytes} bytes of terrain in ${files.length} files (${files.join(', ')}), ` +
+      `${info.triangles} terrain triangles at site level`)
+    expect(files.length).toBe(8)
     expect(terrainBytes).toBeLessThan(1.5e6)
     // Flat unlit grey terrain: a dark pixel inside the terrain is a gap between levels (or inside one). Views look
     // straight down on the fine/80 m border (±2.5 km) and the 80 m/mid border (±20 km), and obliquely across both.
