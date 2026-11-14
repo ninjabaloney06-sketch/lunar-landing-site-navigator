@@ -32,8 +32,9 @@ async function stationIds(page: Page): Promise<string[]> {
   return (await data<{ id: string }[]>(page, 'stations.json')).map((s) => s.id)
 }
 
+/** Header control 1 is the mission (rocket + name); it opens the site list. */
 async function chooseSite(page: Page, id: string) {
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   await page.locator(`#site-opt-${id}`).click()
 }
 
@@ -232,7 +233,7 @@ test('basic comparison: Connecting Ridge ↔ Malapert Massif, same period; Aug �
 test('UX-03: invalid coordinates are rejected with a message, never NaN', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   const search = page.getByRole('combobox', { name: 'Search a site or type coordinates' })
   const cases: [string, RegExp][] = [
     ['95 S, 10 E', /Latitude must be between 90° S and 90° N/],
@@ -258,7 +259,7 @@ test('UX-04: the site menu lists every site in sites.json, each with its label',
   const sites = await data<{ id: string; name: string; label: string | null }[]>(page, 'sites.json')
   await page.goto(`/#site=${MASSIF}&period=${AUG}`)
   await expectAnswer(page, MASSIF, AUG, 60_000)
-  await page.getByTestId('site-name').click()
+  await page.getByTestId('mission').click()
   await expect(page.getByRole('option')).toHaveCount(sites.length)
   for (const s of sites.filter((x) => x.label)) {
     await expect(page.locator(`#site-opt-${s.id}`)).toHaveAccessibleName(`${s.name} ${s.label}`)
@@ -373,6 +374,37 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   else await expect.poll(() => page.evaluate(() => location.hash)).toContain(`st=${sel.join(',')}`)
 })
 
+// ---------- Mission layer (Brief C3) ----------
+
+test('(e) mission: the name defaults to the site name; a copied link restores name and goal', async ({ page }) => {
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('Connecting Ridge')
+  await expect(page.getByTestId('mission')).toHaveAccessibleName('Connecting Ridge')
+
+  await page.goto(`/#site=${MASSIF}&period=${SEP}&name=Ice%20survey%201&goal=light`)
+  await expectAnswer(page, MASSIF, SEP, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('Ice survey 1')
+  await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Ice+survey+1')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=light')
+
+  // Invalid values fall back to the defaults, like every other key; names are cut to 40 characters.
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=biology&name=${'x'.repeat(45)}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText('x'.repeat(40))
+  await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('goal=')
+})
+
+test('(f) mission: a name containing <script> renders as text', async ({ page }) => {
+  const name = '<script>window.__pwned=1</script>'
+  await page.goto(`/#site=${RIDGE}&period=${AUG}&name=${encodeURIComponent(name)}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await expect(page.getByTestId('mission')).toHaveText(name)
+  expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined()
+  await expect(page.locator('header.top script')).toHaveCount(0)
+})
+
 test('keys and drag move the cursor; space plays', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
@@ -438,7 +470,7 @@ for (const vp of [
     await page.evaluate(() => document.fonts.ready)
     const shot = (name: string) => page.screenshot({ path: `test-results/${name}-${vp.tag}.png`, animations: 'disabled' })
     await shot('main')
-    await page.getByTestId('site-name').click()
+    await page.getByTestId('mission').click()
     await expect(page.getByRole('option').first()).toBeVisible()
     await shot('menu')
     await page.keyboard.press('Escape')

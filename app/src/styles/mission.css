@@ -1,0 +1,86 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Mission layer (Step 2-UI): mission header control, Mission panel, slope warning, timeline context. Tokens: tokens.css. */
+
+/* ---------- icons (Ionicons outlines as CSS masks, filled with the text colour) ---------- */
+
+.icon {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+/* ---------- header: mission control, then the site as plain text ---------- */
+
+.mission-h {
+  margin: 0;
+  font: inherit;
+}
+
+.mission {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  max-width: 100%;
+  font: 400 var(--t-display) / 1.2 var(--font-serif);
+}
+
+.mission .icon {
+  width: var(--s-6);
+  height: var(--s-6);
+  color: var(--muted);
+}
+
+.mission-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 7px;
+  text-decoration-color: var(--faint);
+}
+
+.mission:hover .mission-name,
+.mission[aria-expanded='true'] .mission-name {
+  text-decoration-color: var(--fg);
+}
+
+.mission:hover .icon,
+.mission[aria-expanded='true'] .icon {
+  color: var(--fg);
+}
+
+.mission:active .mission-name {
+  color: var(--muted);
+}
+
+.site-line {
+  margin: var(--s-2) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.site-line .coords {
+  margin: 0;
+}
+
+.site-line-sep {
+  color: var(--faint);
+}
+
+.place .site-label {
+  margin-top: var(--s-1);
+}
+
+@media (max-width: 640px) {
+  .mission {
+    font-size: 28px;
+  }
+
+  .mission .icon {
+    width: var(--s-5);
+    height: var(--s-5);
+  }
+}

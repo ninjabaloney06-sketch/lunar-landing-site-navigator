@@ -1,5 +1,5 @@
-// Main screen (build-plan §5.1, Brief C2): the 3D scene with labels on its objects, three header controls
-// (site name, date, Find better dates), the answer sentence, the timeline and one footer line.
+// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, three header
+// controls (mission, date, Find better dates), the answer sentence, the timeline and one footer line.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
@@ -21,10 +21,12 @@ import { DateMenu } from './views/DateMenu'
 import { Drawer } from './views/Drawer'
 import type { ViewPeriod } from './views/Drawer'
 import { HorizonStrip } from './views/HorizonStrip'
+import { Icon } from './views/Icon'
 import { SceneView } from './views/SceneView'
 import { SiteMenu } from './views/SiteMenu'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtRange } from './views/format'
+import './styles/mission.css'
 
 type Boot =
   | { status: 'loading' }
@@ -87,13 +89,14 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
   const [hs, patch] = useHashState()
-  const [menu, setMenu] = useState<null | 'site' | 'date'>(null)
+  const [menu, setMenu] = useState<null | 'mission' | 'date'>(null)
   const [playing, setPlaying] = useState(false)
   const [webgl, setWebgl] = useState(() => webglAvailable())
-  const siteBtn = useRef<HTMLButtonElement>(null)
+  const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  const missionName = hs.name ?? site.name
 
   const period: ViewPeriod = useMemo(() => {
     if (hs.period === 'custom' && hs.from !== null) {
@@ -137,7 +140,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const closeMenu = useCallback((focus = false) => {
     setMenu((m) => {
-      if (focus) (m === 'date' ? dateBtn : siteBtn).current?.focus()
+      if (focus) (m === 'date' ? dateBtn : missionBtn).current?.focus()
       return null
     })
   }, [])
@@ -229,25 +232,33 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
       <header className="top">
         <div className="place">
-          <h1 className="site-h">
+          <h1 className="mission-h">
             <button
-              ref={siteBtn}
+              ref={missionBtn}
               type="button"
-              className="site-name"
-              data-testid="site-name"
-              data-site-id={site.id}
+              className="mission"
+              data-testid="mission"
               data-menu-trigger=""
               aria-haspopup="dialog"
-              aria-expanded={menu === 'site'}
-              onClick={() => setMenu(menu === 'site' ? null : 'site')}
+              aria-expanded={menu === 'mission'}
+              onClick={() => setMenu(menu === 'mission' ? null : 'mission')}
             >
-              {site.name}
+              <Icon name="rocket" />
+              <span className="mission-name">{missionName}</span>
             </button>
           </h1>
-          {site.label && <p className="site-label">{site.label}</p>}
-          <p className="coords mono" data-testid="coords">
-            {fmtCoords(site.lat, site.lon)}
+          <p className="site-line">
+            <span className="site-line-name" data-testid="site-name" data-site-id={site.id}>
+              {site.name}
+            </span>
+            <span className="site-line-sep" aria-hidden="true">
+              {' · '}
+            </span>
+            <span className="coords mono" data-testid="coords">
+              {fmtCoords(site.lat, site.lon)}
+            </span>
           </p>
+          {site.label && <p className="site-label">{site.label}</p>}
           <button
             ref={dateBtn}
             type="button"
@@ -261,7 +272,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           >
             {fmtDateTime(cursor)}
           </button>
-          {menu === 'site' && (
+          {menu === 'mission' && (
             <SiteMenu
               sites={sites}
               currentId={site.id}
@@ -269,7 +280,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onSelect={(id) => {
                 setMenu(null)
                 patch({ site: id, view: 'site' })
-                siteBtn.current?.focus()
+                missionBtn.current?.focus()
               }}
               onClose={closeMenuQuiet}
             />
