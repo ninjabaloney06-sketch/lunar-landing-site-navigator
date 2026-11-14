@@ -13,8 +13,8 @@ import {
 import type { AnswerLines, CoverageState, Series, SiteGeo, Summary, Window } from '../geometry'
 import type { SceneFrame } from '../scene3d'
 import { loadHorizon, loadMonthsFor, loadEphem, loadTerrain, monthKey, MissingDataError } from './load'
+import { isNotImplemented } from './mask'
 import {
-  SAMPLE_ANSWER,
   sampleAnswerState,
   sampleBodyState,
   sampleCoverage,
@@ -26,10 +26,6 @@ import type { Horizon, Site, Station } from './types'
 
 // Leo's V7 sign-off flips this. Until then every number on screen is labelled "sample" (preamble hard rule).
 export const NUMBERS_VALIDATED = false
-
-export function isNotImplemented(e: unknown): boolean {
-  return e instanceof Error && /not implemented yet/.test(e.message)
-}
 
 export interface Results {
   key: string
@@ -79,15 +75,6 @@ async function getSeries(site: Site, horizon: Horizon | null, stations: Station[
   return p
 }
 
-function sampleAnswer(series: Series, ids: string[], utcMs: number): AnswerLines {
-  try {
-    return answerSentence(sampleAnswerState(series, ids, utcMs))
-  } catch (e) {
-    if (!isNotImplemented(e)) throw e
-    return SAMPLE_ANSWER
-  }
-}
-
 export async function computeResults(input: ResultsInput): Promise<Results> {
   const { site, stations, ids, startMs, endMs } = input
   const horizon = site.horizon ? await loadHorizon(site.horizon) : null
@@ -108,7 +95,8 @@ export async function computeResults(input: ResultsInput): Promise<Results> {
             return { lines: answerSentence(answerState(series, ids, utcMs)), sample: false }
           } catch (e) {
             if (!isNotImplemented(e)) throw e
-            return { lines: SAMPLE_ANSWER, sample: true }
+            // answerState not in this build: Track A's wording over this UI's own reading of the series.
+            return { lines: answerSentence(sampleAnswerState(series, ids, utcMs)), sample: true }
           }
         },
       }
@@ -126,7 +114,7 @@ export async function computeResults(input: ResultsInput): Promise<Results> {
     sun: sampleWindows(fake, 'sun'),
     comms: sampleWindows(fake, 'coverage', ids),
     summary: sampleSummary(fake, ids),
-    answerAt: (utcMs) => ({ lines: sampleAnswer(fake, ids, utcMs), sample: true }),
+    answerAt: (utcMs) => ({ lines: answerSentence(sampleAnswerState(fake, ids, utcMs)), sample: true }),
   }
 }
 

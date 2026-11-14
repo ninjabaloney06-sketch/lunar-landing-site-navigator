@@ -4,7 +4,7 @@ import { area, line, scaleLinear } from 'd3'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sample } from '../geometry'
 import type { Horizon } from '../data/types'
-import { maskFromHorizon } from '../data/sampleSeries'
+import { displayMask } from '../data/mask'
 import { fmtDeg } from './format'
 
 const EL_MIN = -2
@@ -43,7 +43,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
 
   const paths = useMemo(() => {
     const pts: [number, number][] = []
-    for (let az = 0; az <= 360; az += 0.5) pts.push([az, maskFromHorizon(horizon, az)])
+    for (let az = 0; az <= 360; az += 0.5) pts.push([az, displayMask(horizon, az)])
     const a = area<[number, number]>()
       .x((d) => x(d[0]))
       .y0(y(EL_MIN))
@@ -69,7 +69,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
 
   const readout =
     hoverAz !== null
-      ? `Azimuth ${hoverAz.toFixed(1)}° · terrain ${fmtDeg(maskFromHorizon(horizon, hoverAz), 2)}`
+      ? `Azimuth ${hoverAz.toFixed(1)}° · terrain ${fmtDeg(displayMask(horizon, hoverAz), 2)}`
       : sample
         ? `Sun az ${sample.sun.az.toFixed(1)}°, el ${fmtDeg(sample.sun.el, 2)} · Earth az ${sample.earth.az.toFixed(1)}°, el ${fmtDeg(sample.earth.el, 2)}`
         : ''
@@ -99,7 +99,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
             <path className="strip-edge" d={paths.edge} />
             {AZ_TICKS.map(([az, lab]) => (
               <text key={az} className="strip-tick" x={x(az)} y={height - 6} textAnchor={az === 0 ? 'start' : az === 360 ? 'end' : 'middle'}>
-                {lab} {az}°
+                {width < 480 ? lab : `${lab} ${az}°`}
               </text>
             ))}
             {bodies.map((b) => {

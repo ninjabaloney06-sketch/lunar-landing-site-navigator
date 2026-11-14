@@ -4,21 +4,15 @@
 // geometry and the real ephemeris months are on main (integrator, orchestrator note 6).
 //
 // Nothing here is physics: the curves are invented so that lit/dark, covered/none and one unknown stretch
-// all appear on the timeline.
+// all appear on the timeline. The sentence still comes from geometry.answerSentence (Track A wording).
 
-import type { AnswerLines, AnswerState, BodyState, CoverageState, Sample, Series, SiteGeo, StationLos, Summary, Window } from '../geometry'
+import type { AnswerState, BodyState, CoverageState, Sample, Series, SiteGeo, StationLos, Summary, Window } from '../geometry'
 import { enuBasis, siteVector } from '../geometry'
+import { displayMask } from './mask'
 import type { Horizon, Site, Station, Vec3 } from './types'
 
 const DEG = Math.PI / 180
 const DAY = 86_400_000
-const FLAT_DIP_DEG = -0.0813 // flat-sphere horizon dip for a 1.75 m observer (geometry contract)
-
-/** Shown in place of the answer sentence until Track A's answerSentence exists. Not computed. */
-export const SAMPLE_ANSWER: AnswerLines = {
-  sun: 'Sunlight for 3 more days.',
-  comms: 'A selected station stays in view for 18 more hours.',
-}
 
 function seed(id: string): number {
   let h = 2166136261
@@ -28,17 +22,6 @@ function seed(id: string): number {
 
 function mod360(x: number): number {
   return ((x % 360) + 360) % 360
-}
-
-/** Terrain mask by linear interpolation of the horizon file (display helper; not geometry.maskAt). */
-export function maskFromHorizon(h: Horizon | null, az: number): number {
-  if (!h || !h.mask.length) return FLAT_DIP_DEG
-  const n = h.mask.length
-  const x = mod360(az) / h.az_step
-  const i0 = Math.floor(x) % n
-  const i1 = (i0 + 1) % n
-  const f = x - Math.floor(x)
-  return h.mask[i0] * (1 - f) + h.mask[i1] * f
 }
 
 interface FakeSky {
@@ -83,25 +66,15 @@ function fakeStation(st: Station, site: Site, t: number, sky: FakeSky, earthVisi
 export function sampleSeries(site: Site, horizon: Horizon | null, stations: Station[], startMs: number, endMs: number, stepMin = 30): Series {
   const step = stepMin * 60_000
   const samples: Sample[] = []
-  const H = 3_600_000
   for (let t = startMs; t < endMs; t += step) {
     const sky = fakeSky(site, t)
-    const sunMask = maskFromHorizon(horizon, sky.sunAz)
-    const earthMask = maskFromHorizon(horizon, sky.earthAz)
-    // The period opens the way SAMPLE_ANSWER reads (3 days of sunlight, 18 hours of station view), so the
-    // default view does not contradict its own sample sentence.
-    const rel = t - startMs
-    if (rel < 72 * H) sky.sunEl = Math.max(sky.sunEl, sunMask + 0.4)
-    else if (rel < 102 * H) sky.sunEl = Math.min(sky.sunEl, sunMask - 0.3)
-    if (rel < 18 * H) sky.earthEl = Math.max(sky.earthEl, earthMask + 0.5)
+    const sunMask = displayMask(horizon, sky.sunAz)
+    const earthMask = displayMask(horizon, sky.earthAz)
     const lit = sky.sunEl > sunMask
     const visible = sky.earthEl > earthMask
     const st: Record<string, StationLos> = {}
     for (const s of stations) {
-      const l = fakeStation(s, site, t, sky, visible)
-      if (rel < 18 * H) Object.assign(l, { moonElAtStation: Math.max(l.moonElAtStation, s.min_elev_deg + 5), state: 'los', reason: null })
-      else if (rel < 26 * H && l.state === 'los') Object.assign(l, { moonElAtStation: Math.min(l.moonElAtStation, s.min_elev_deg - 5), state: 'blocked', reason: 'station-mask' })
-      st[s.id] = l
+      st[s.id] = fakeStation(s, site, t, sky, visible)
     }
     samples.push({
       utcMs: t,
