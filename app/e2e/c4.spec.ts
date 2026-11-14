@@ -1,6 +1,7 @@
 // Brief C4 (free-look camera, viewpoints, user points, Simulate) and the notebook notes built with it.
 // Camera tests run on the scene harness, the rest on the app. Run: PW_PORT=5184 npx playwright test e2e/c4.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
 
 interface Cam {
   level: string
@@ -519,9 +520,12 @@ test.describe('C4 part 3: user points', () => {
     expect(mark.y).toBeLessThan(430 + 3) // the head sits on a short stem above the ground point
 
     // Globe: the surface point under the pointer; over the sky the entry is disabled.
-    await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'globe', el: -70, az: 30, dist: 6500 }))
+    // South of the pin region's edge (region.ts PIN_REGION_NORTH_LAT: points can only be added in the south cap),
+    // on the side of the pole that has no landing-site pin within 150 km of the pointer.
+    await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'globe', el: -84, az: 160, dist: 3500 }))
     const onGlobe = (await surfaceAt(page, 700, 420))!
     expect(onGlobe).not.toBeNull()
+    expect(onGlobe.lat, 'inside the pin region').toBeLessThan(PIN_REGION_NORTH_LAT - 1)
     await addHere(page, 700, 420)
     await expect.poll(() => hashPts(page)).toBe(
       `${onTerrain.lat.toFixed(4)},${onTerrain.lon.toFixed(4)},,Point A;${onGlobe.lat.toFixed(4)},${onGlobe.lon.toFixed(4)},,Point B`,

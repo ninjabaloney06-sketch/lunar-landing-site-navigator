@@ -53,3 +53,5 @@ After the review (14 Nov): a click on another site's pin on the globe makes the 
 (at most 2 s) instead of starting toward the old site; an orbit glide and eased wheel or look input are dropped
 when a fly starts or a camera is placed; each scene is drawn once before the fly between them starts, so the
 first fly does not stall on uploads; the globe's site pins are rebuilt only for another list of sites.
+POI pins have a 1.5 px dark outline (pins.ts: three more instanced meshes); at site and eye level a left-click
+on a POI's pin is not a walk (the page keeps its info box open on it).

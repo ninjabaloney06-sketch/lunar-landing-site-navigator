@@ -1,6 +1,10 @@
 // Pins drawn in numbers (S4): the points of interest on the globe and in the site scene, and the other landing
-// sites near the current one in the site scene. Three instanced meshes for any number of pins (stems, round
-// heads, triangular heads), a constant size on screen, and nothing allocated per frame.
+// sites near the current one in the site scene. Instanced meshes for any number of pins (stems, round heads,
+// triangular heads, and their outlines), a constant size on screen, and nothing allocated per frame.
+//
+// A point of interest's pin has a dark outline (its colour comes from the page and may be close to the sunlit
+// regolith's): a slightly larger dark copy of the stem and of the head, drawn first without writing depth, with
+// the coloured pin drawn over it. Three more instanced meshes, three more draw calls.
 //
 // Shapes: 'site' is the landing-site pin, a stem with a round head. 'poi' is a short stem with a triangle that
 // always faces the camera, tip down: it reads as a triangle from every side, so it is not mistaken for the round
@@ -9,6 +13,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  CircleGeometry,
   Color,
   Float32BufferAttribute,
   Group,
@@ -51,6 +56,8 @@ const SITE_LEN_PX = 26 // the globe's site pin (globe.ts)
 const SITE_HEAD_PX = 3.2
 const POI_LEN_PX = 12
 const POI_HEAD_PX = 5.5 // circumradius of the triangle
+const OUTLINE_PX = 1.5 // width of the dark outline around a point of interest's pin
+const OUTLINE_COLOR = 0x0b0d11 // the page background (index.ts BACKGROUND)
 const Z = new Vector3(0, 0, 1)
 const H = Math.sqrt(3) / 2
 
@@ -67,6 +74,13 @@ export class PinField {
   private items: PinItem[] = []
   private turn: Quaternion[] = [] // stem direction of each pin
   private slot = new Int32Array(0) // index of each pin's head in its head mesh
+  private rimStem = new Int32Array(0) // index of each pin's stem outline, −1 = no outline
+  private rimHead = new Int32Array(0) // index of its head outline in the outline mesh of its shape
+  private stemRims: InstancedMesh | null = null
+  private roundRims: InstancedMesh | null = null
+  private triRims: InstancedMesh | null = null
+  private readonly rimMat = new MeshBasicMaterial({ color: OUTLINE_COLOR, toneMapped: false, depthWrite: false })
+  private readonly discGeo = new CircleGeometry(1, 20)
   private heads = new Float32Array(0) // head centre of each pin after update(), xyz
   private stems: InstancedMesh | null = null
   private round: InstancedMesh | null = null
@@ -87,27 +101,45 @@ export class PinField {
   }
 
   set(items: PinItem[]) {
-    for (const mesh of [this.stems, this.round, this.tri]) {
+    for (const mesh of [this.stems, this.round, this.tri, this.stemRims, this.roundRims, this.triRims]) {
       if (!mesh) continue
       this.group.remove(mesh)
       mesh.dispose()
     }
-    this.stems = this.round = this.tri = null
+    this.stems = this.round = this.tri = this.stemRims = this.roundRims = this.triRims = null
     this.items = items
     this.turn = items.map((it) => new Quaternion().setFromUnitVectors(Z, it.up))
     this.slot = new Int32Array(items.length)
     this.heads = new Float32Array(items.length * 3)
     if (!items.length) return
     const nRound = items.filter((it) => it.shape === 'site').length
-    const mesh = (geo: BufferGeometry, n: number) => {
-      const im = new InstancedMesh(geo, this.mat, n)
+    const mesh = (geo: BufferGeometry, n: number, rim = false) => {
+      const im = new InstancedMesh(geo, rim ? this.rimMat : this.mat, n)
       im.frustumCulled = false // the instances move every frame; the pins are few
+      // After the terrain and the Moon (order 0), the outlines before the pins they belong to.
+      im.renderOrder = rim ? 1 : 2
       this.group.add(im)
       return im
     }
     this.stems = mesh(this.stemGeo, items.length)
     if (nRound) this.round = mesh(this.roundGeo, nRound)
     if (nRound < items.length) this.tri = mesh(this.triGeo, items.length - nRound)
+    // Outlines: for the points of interest only (a landing site's pin near the site keeps the look of the globe's).
+    const outlined = items.filter((it) => it.kind === 'poi')
+    const nRoundRim = outlined.filter((it) => it.shape === 'site').length
+    if (outlined.length) this.stemRims = mesh(this.stemGeo, outlined.length, true)
+    if (nRoundRim) this.roundRims = mesh(this.discGeo, nRoundRim, true)
+    if (nRoundRim < outlined.length) this.triRims = mesh(this.triGeo, outlined.length - nRoundRim, true)
+    this.rimStem = new Int32Array(items.length).fill(-1)
+    this.rimHead = new Int32Array(items.length).fill(-1)
+    let o = 0
+    let oRound = 0
+    let oTri = 0
+    items.forEach((it, i) => {
+      if (it.kind !== 'poi') return
+      this.rimStem[i] = o++
+      this.rimHead[i] = it.shape === 'site' ? oRound++ : oTri++
+    })
     const c = new Color()
     let r = 0
     let t = 0
@@ -136,15 +168,25 @@ export class PinField {
       const site = it.shape === 'site'
       const len = (site ? SITE_LEN_PX : POI_LEN_PX) * perPx
       const w = STEM_W_PX * perPx
+      const edge = OUTLINE_PX * perPx
+      const rimStem = this.rimStem[i]
+      const rimHead = this.rimHead[i]
+      const rim = rimStem
       this.stems.setMatrixAt(i, m.compose(it.base, this.turn[i], s.set(w, w, len)))
+      if (rim >= 0) this.stemRims!.setMatrixAt(rimStem, m.compose(it.base, this.turn[i], s.set(w + 2 * edge, w + 2 * edge, len)))
       p.copy(it.base).addScaledVector(it.up, len)
       if (site) {
-        this.round!.setMatrixAt(this.slot[i], m.compose(p, this.still, s.setScalar(SITE_HEAD_PX * perPx)))
+        const r = SITE_HEAD_PX * perPx
+        this.round!.setMatrixAt(this.slot[i], m.compose(p, this.still, s.setScalar(r)))
+        // A disc facing the camera through the head's centre: it shows as a ring around the sphere.
+        if (rim >= 0) this.roundRims!.setMatrixAt(rimHead, m.compose(p, cam.quaternion, s.setScalar(r + edge)))
       } else {
         // The triangle faces the camera, its lower corner on the top of the stem.
         const r = POI_HEAD_PX * perPx
         p.addScaledVector(this.camUp, r)
         this.tri!.setMatrixAt(this.slot[i], m.compose(p, cam.quaternion, s.setScalar(r)))
+        // The same triangle with its sides moved out by the outline's width (the inradius is half the circumradius).
+        if (rim >= 0) this.triRims!.setMatrixAt(rimHead, m.compose(p, cam.quaternion, s.setScalar(r + 2 * edge)))
       }
       heads[i * 3] = p.x
       heads[i * 3 + 1] = p.y
@@ -153,6 +195,9 @@ export class PinField {
     this.stems.instanceMatrix.needsUpdate = true
     if (this.round) this.round.instanceMatrix.needsUpdate = true
     if (this.tri) this.tri.instanceMatrix.needsUpdate = true
+    if (this.stemRims) this.stemRims.instanceMatrix.needsUpdate = true
+    if (this.roundRims) this.roundRims.instanceMatrix.needsUpdate = true
+    if (this.triRims) this.triRims.instanceMatrix.needsUpdate = true
   }
 
   item(i: number): PinItem | null {

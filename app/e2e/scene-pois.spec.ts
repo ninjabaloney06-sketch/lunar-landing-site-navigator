@@ -43,6 +43,7 @@ interface Scene {
   region(): { boundary: number[][]; cap: number[][]; color: number[] } | null
   showRegion(on: boolean): void
   advance(ms: number): void
+  camera(): { level: string; position: number[] }
 }
 const scene = <T>(page: Page, fn: (s: Scene) => T | Promise<T>) => page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
 const setView = (page: Page, o: Record<string, unknown>) => page.evaluate((o) => (window as unknown as { __scene: Scene }).__scene.setView(o), o)
@@ -112,7 +113,7 @@ const freePoi = (page: Page) =>
   )
 
 test.describe('S4: points of interest', () => {
-  test('globe: every given POI is a pin, in three draw calls; hovering one names it with its poiId; a site pin wins', async ({ page }) => {
+  test('globe: every given POI is a pin, in six draw calls; hovering one names it with its poiId; a site pin wins', async ({ page }) => {
     await open(page)
     await setView(page, { site: RIDGE.id, utc: UTC, level: 'globe', el: -72, az: RIDGE.lon, dist: 3200 })
     const before = await scene(page, (s) => s.renderInfo())
@@ -121,7 +122,7 @@ test.describe('S4: points of interest', () => {
     expect(POIS.length).toBe(170)
     expect((await scene(page, (s) => s.pins())).globe, 'every given POI is drawn on the globe').toBe(170)
     const after = await scene(page, (s) => s.renderInfo())
-    expect(after.calls - before.calls, '170 pins cost at most three draw calls (stems, round heads, triangles)').toBeLessThanOrEqual(3)
+    expect(after.calls - before.calls, '170 pins cost at most six draw calls (stems, round heads, triangles, and the outline of each)').toBeLessThanOrEqual(6)
     await page.screenshot({ path: 'test-results/s4-globe-170-pois.png' })
 
     // The magenta one is where its coordinates project, in its colour.
@@ -140,6 +141,7 @@ test.describe('S4: points of interest', () => {
     // Hover: the name and the poiId; away: nothing.
     const free = (await freePoi(page))!
     expect(free, 'a POI with nothing else near it on screen').not.toBeNull()
+    await page.screenshot({ path: 'test-results/s4-globe-pois-detail.png', clip: { x: Math.max(0, free.x - 160), y: Math.max(0, free.y - 100), width: 320, height: 200 } })
     await page.mouse.move(free.x, free.y)
     await frames(page)
     const n = await scene(page, (s) => s.handle().named())
@@ -209,6 +211,34 @@ test.describe('S4: points of interest', () => {
     expect(n?.poiId).toBe('near:3')
     expect(n?.name).toBe('Three km out')
     expect(await scene(page, (s) => s.projectPoi('far:70')), 'a POI beyond the radius has no pin here').toBeNull()
+
+    // A left-click on the POI's pin is the page's (its info box): no walk, the camera stays, the POI stays named.
+    const before = await scene(page, (s) => s.camera())
+    await page.mouse.click(p.x, p.y)
+    await frames(page)
+    const after = await scene(page, (s) => s.camera())
+    expect(after.level, 'a click on a POI pin is not a walk').toBe('site')
+    expect(Math.hypot(...after.position.map((v, i) => v - before.position[i])), 'the camera stays (m)').toBeLessThan(1e-6)
+    expect((await scene(page, (s) => s.handle().named()))?.poiId).toBe('near:3')
+    // A left-click on the terrain beside it walks, as before.
+    await page.mouse.click(p.x + 160, p.y + 120)
+    await frames(page)
+    expect((await scene(page, (s) => s.camera())).level, 'a click on terrain walks').toBe('eye')
+
+    // Eye level, standing on the site: the same pins. A click on a POI's pin there does not walk either.
+    await setView(page, { level: 'eye', az: 50, el: 2 })
+    const fromEye = await scene(page, (s) => s.projectPoi('near:3'))
+    if (fromEye?.visible) {
+      const eyeBefore = await scene(page, (s) => s.camera())
+      await page.mouse.move(fromEye.x, fromEye.y)
+      await frames(page)
+      if ((await scene(page, (s) => s.handle().named()))?.poiId === 'near:3') {
+        await page.mouse.click(fromEye.x, fromEye.y)
+        await frames(page)
+        const eyeAfter = await scene(page, (s) => s.camera())
+        expect(Math.hypot(...eyeAfter.position.map((v, i) => v - eyeBefore.position[i])), 'eye level: a click on a POI pin is not a walk').toBeLessThan(1e-6)
+      }
+    }
 
     // Eye level: the same pins, and the nearest is in the picture when the camera faces it.
     await setView(page, { level: 'eye', az: 50, el: 2 })

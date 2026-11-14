@@ -1388,6 +1388,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       for (const cb of pickCbs) cb(hit.lat, hit.lon)
       return
     }
+    // A click on a point of interest's pin belongs to the page (its info box): it is not a walk.
+    if (nameAt(ndc)?.kind === 'poi') return
     const spot = site.pick(ndc, siteCam)
     if (spot) walkTo(spot.x, spot.y)
   }
