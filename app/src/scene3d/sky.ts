@@ -170,6 +170,12 @@ export class Sky {
     return (b === 'sun' ? this.sun : this.earth).getWorldPosition(new Vector3())
   }
 
+  /** Drawn radius over drawn distance of a body: its angular size as geometry computed it, whatever the lens. */
+  sizeRatio(b: SkyBody): number {
+    const m = b === 'sun' ? this.sun : this.earth
+    return m.scale.x / m.position.length()
+  }
+
   syncCamera(main: PerspectiveCamera) {
     this.camera.quaternion.copy(main.quaternion)
     this.camera.position.set(0, 0, 0)

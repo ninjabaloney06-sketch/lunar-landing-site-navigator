@@ -186,6 +186,9 @@ export class SiteWorld {
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
   private mastHeight = 1600
   readonly eyeHeight = OBSERVER_HEIGHT_M // spec: 1.75 m above the ground
+  // What groundZ reads: the data the terrain was built from.
+  private ground: { levels: Level[] | null; tile: TerrainTile | null; rSite: number } = { levels: null, tile: null, rSite: MOON_RADIUS_KM * 1000 }
+  private readonly tmp = new Vector3()
 
   constructor() {
     this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker)
@@ -212,6 +215,7 @@ export class SiteWorld {
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
     const levels = tile ? nestedLevels(tile) : null
+    this.ground = { levels, tile, rSite }
     if (levels) {
       // Nested levels reach ±300 km: no skirt, no ring ground; at eye level only the crest strip on the mask.
       this.addLevels(levels, rSite, line)
@@ -569,6 +573,38 @@ export class SiteWorld {
 
   mastTop(): Vector3 {
     return new Vector3(0, 0, this.mastHeight)
+  }
+
+  /**
+   * Terrain height (m, ENU z) under the ENU point (x, y), from the data the meshes are built from: the nested
+   * levels, or the 80 m tile inside its radius, and the smooth sphere through the site where neither has data.
+   * The drawn meshes are clamped to the mask sight line, so they are never above this height.
+   */
+  groundZ(x: number, y: number): number {
+    const { levels, tile, rSite } = this.ground
+    const rho = Math.hypot(x, y)
+    if (levels) {
+      const f = heightAt(levels, x, y)
+      if (f) return place(levels[f.li], x, y, f.h, rSite, this.tmp).z
+    } else if (tile && rho <= TILE_RADIUS_M) {
+      const h = tileHeight(tile, x, y)
+      if (h !== null) return sphereZ(rho, rSite, h)
+    }
+    return sphereZ(rho, rSite)
+  }
+
+  /** True when the 80 m tile (or a finer level) has terrain data under the ENU point (x, y). */
+  covers(x: number, y: number): boolean {
+    const { tile } = this.ground
+    return tile !== null && Math.hypot(x, y) <= TILE_RADIUS_M && tileHeight(tile, x, y) !== null
+  }
+
+  /** First terrain point along unit `dir` from `from` (ENU m) at the current level, or null. */
+  hit(from: Vector3, dir: Vector3): Vector3 | null {
+    this.raycaster.set(from, dir)
+    this.raycaster.far = Infinity
+    const targets = [...this.rays.both, ...(this.eyeMode ? this.rays.eye : this.rays.orbit)]
+    return this.raycaster.intersectObjects(targets, false)[0]?.point ?? null
   }
 
   /** True when terrain blocks the segment from `from` along unit `dir` before `maxDist` (m). */

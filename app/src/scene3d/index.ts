@@ -9,9 +9,13 @@
 
 import {
   ACESFilmicToneMapping,
+  MOUSE,
   PerspectiveCamera,
   Quaternion,
+  Ray,
   SRGBColorSpace,
+  Sphere,
+  TOUCH,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -20,8 +24,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
 import { loadTextures } from './assets'
+import { installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
-import { azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
+import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
 import { GlobeWorld } from './globe'
 import { SiteWorld } from './site'
 import { Sky } from './sky'
@@ -71,6 +76,11 @@ export const SITE_DEFAULT = { distKm: 17, el: 16, fov: 54, sunLeftDeg: 18 }
 const SITE_DIST_KM = { min: 2, max: 60 }
 const GLOBE_DIST_KM = { min: 3000, max: 20000, default: 6500 }
 const EYE_DEFAULT_EL = 3
+const EYE_FOV_MIN = 4 // narrowest lens at eye level, vertical degrees; the widest is the default field of view
+const EYE_ROTATE_SPEED = -0.3 // drag the view, not the camera
+const MOON_FLOOR_KM = 1 // the space camera stays this far above the 1737.4 km sphere (its near plane is 0.5 km)
+const BODY_FLOOR = 1.05 // and outside 1.05 radii of Earth and the Sun
+const FREE_MIN_DIST = 1e-4 // orbit distance limit once the wheel or a look-around has moved the camera
 const FLY_MS = 1500
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
@@ -111,16 +121,22 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   globeCam.up.set(0, 0, 1)
 
   const siteControls = new OrbitControls(siteCam, canvas)
-  siteControls.enablePan = false
-  siteControls.enableDamping = !testMode
-  siteControls.dampingFactor = 0.1
   const globeControls = new OrbitControls(globeCam, canvas)
-  globeControls.enablePan = false
-  globeControls.enableDamping = !testMode
-  globeControls.dampingFactor = 0.1
-  globeControls.minDistance = GLOBE_DIST_KM.min
-  globeControls.maxDistance = GLOBE_DIST_KM.max
+  for (const c of [siteControls, globeControls]) {
+    c.enablePan = false
+    c.enableDamping = !testMode
+    c.dampingFactor = 0.1
+    // OrbitControls keeps the left drag and the one-finger drag only. Middle, right, wheel and pinch belong
+    // to controls.ts and the viewpoint menu (three 0.170: a null action leaves the control idle).
+    c.enableZoom = false
+    c.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: null, RIGHT: null }
+    c.touches = { ONE: TOUCH.ROTATE, TWO: null }
+  }
   globeControls.rotateSpeed = 0.5
+  // Set once the wheel ('dist') or a look-around ('look') has taken a camera off its orbit around the site or
+  // the Moon's centre; cleared whenever a camera is placed (level change, site change, viewpoint).
+  const free = { site: { dist: false, look: false }, globe: { dist: false, look: false } }
+  let baseFov = SITE_DEFAULT.fov
 
   let level: SceneLevel = 'globe'
   let frame: SceneFrame | null = null
@@ -166,20 +182,102 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function setControls() {
     globeControls.enabled = level === 'globe' && !fly
     siteControls.enabled = level !== 'globe' && !fly
+    globeControls.minDistance = free.globe.dist ? FREE_MIN_DIST : GLOBE_DIST_KM.min
+    globeControls.maxDistance = free.globe.dist ? Infinity : GLOBE_DIST_KM.max
     if (level === 'eye') {
       siteControls.minDistance = siteControls.maxDistance = 0.01
-      siteControls.enableZoom = false
-      siteControls.rotateSpeed = -0.3 // drag the view, not the camera
+      // Zoomed in, the same drag turns the view by the same share of the picture.
+      siteControls.rotateSpeed = (EYE_ROTATE_SPEED * siteCam.fov) / baseFov
       siteControls.minPolarAngle = 0.02
       siteControls.maxPolarAngle = Math.PI - 0.02
     } else {
-      siteControls.minDistance = SITE_DIST_KM.min * 1000
-      siteControls.maxDistance = SITE_DIST_KM.max * 1000
-      siteControls.enableZoom = true
+      siteControls.minDistance = free.site.dist ? FREE_MIN_DIST : SITE_DIST_KM.min * 1000
+      siteControls.maxDistance = free.site.dist ? Infinity : SITE_DIST_KM.max * 1000
       siteControls.rotateSpeed = 0.5
       siteControls.minPolarAngle = 0.02
-      siteControls.maxPolarAngle = Math.PI / 2 - 0.005 // stay above the site's horizontal plane
+      // On its orbit the camera stays above the site's horizontal plane; after a look-around the floor in
+      // keepAboveGround() does that job.
+      siteControls.maxPolarAngle = free.site.look ? Math.PI - 0.02 : Math.PI / 2 - 0.005
     }
+  }
+
+  // ---------- free camera: look-around, dolly, eye-level zoom (controls.ts) ----------
+
+  const moonSphere = new Sphere(new Vector3(), MOON_RADIUS_KM)
+  const bodiesKm = () => (frame ? [v3(frame.state.earth_km), v3(frame.state.sun_km)] : [])
+  const groundBelow = (p: Vector3) => site.groundZ(p.x, p.y)
+
+  const siteRig: Rig = {
+    cam: siteCam,
+    ctl: siteControls,
+    mode: 'dolly',
+    surface: (p) => p.z - groundBelow(p),
+    allowed: (p) => p.z - groundBelow(p) >= site.eyeHeight - 1e-9,
+    far: SITE_DIST_KM.max * 1000,
+    free(what) {
+      if (level === 'eye') return
+      free.site.dist = true
+      if (what === 'look') free.site.look = true
+      setControls()
+    },
+    pivot: () => (level === 'eye' ? null : site.hit(siteCam.position, siteCam.getWorldDirection(new Vector3()))),
+    fovMax: baseFov,
+    fovMin: EYE_FOV_MIN,
+    fovChanged: () => setControls(),
+  }
+  const globeRig: Rig = {
+    cam: globeCam,
+    ctl: globeControls,
+    mode: 'dolly',
+    surface(p) {
+      const [e, s] = bodiesKm()
+      const moon = p.length() - MOON_RADIUS_KM
+      return e ? Math.min(moon, p.distanceTo(e) - EARTH_RADIUS_KM, p.distanceTo(s) - SUN_RADIUS_KM) : moon
+    },
+    allowed(p) {
+      const [e, s] = bodiesKm()
+      if (p.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) return false
+      return !e || (p.distanceTo(e) >= EARTH_RADIUS_KM * BODY_FLOOR && p.distanceTo(s) >= SUN_RADIUS_KM * BODY_FLOOR)
+    },
+    far: GLOBE_DIST_KM.max,
+    free(what) {
+      free.globe.dist = true
+      if (what === 'look') free.globe.look = true
+      setControls()
+    },
+    pivot: () => new Ray(globeCam.position, globeCam.getWorldDirection(new Vector3())).intersectSphere(moonSphere, new Vector3()),
+    fovMax: baseFov,
+    fovMin: EYE_FOV_MIN,
+    fovChanged: () => {},
+  }
+
+  /** The camera the wheel and the middle drag act on; null while a fly runs. */
+  function rig(): Rig | null {
+    if (fly || !frame) return null
+    if (level === 'globe') return globeRig
+    siteRig.mode = level === 'eye' ? 'zoom' : 'dolly'
+    siteRig.fovMax = baseFov
+    return siteRig
+  }
+
+  /** A left drag after a look-around may swing the camera into the ground or the Moon: put it back on the floor. */
+  function keepAboveGround() {
+    if (level === 'site' && free.site.dist && !siteRig.allowed(siteCam.position)) {
+      siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
+      return true
+    }
+    if (level === 'globe' && free.globe.dist && globeCam.position.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) {
+      globeCam.position.setLength(MOON_RADIUS_KM + MOON_FLOOR_KM)
+      return true
+    }
+    return false
+  }
+
+  /** Back to the default lens (the eye-level zoom does not follow the camera to another level). */
+  function resetZoom() {
+    if (siteCam.fov === baseFov) return
+    siteCam.fov = baseFov
+    siteCam.updateProjectionMatrix()
   }
 
   // ---------- frame / sky ----------
@@ -253,6 +351,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function placeSiteCam(az: number, el: number, distKm: number) {
     viewVersion++
+    free.site = { dist: false, look: false }
+    resetZoom()
+    setControls()
     siteCam.position.copy(enuDir(az + 180, el)).multiplyScalar(distKm * 1000)
     siteControls.target.set(0, 0, 0)
     siteCam.lookAt(siteControls.target)
@@ -261,6 +362,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function placeEyeCam(az: number, el: number) {
     viewVersion++
+    free.site = { dist: false, look: false }
     const eye = new Vector3(0, 0, site.eyeHeight)
     siteCam.position.copy(eye)
     siteControls.target.copy(eye).addScaledVector(enuDir(az, el), 0.01)
@@ -295,12 +397,14 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function setEyeView(az?: number, el?: number) {
+    resetZoom()
     setControls()
     placeEyeCam(az ?? currentHeading(), el ?? EYE_DEFAULT_EL)
     markDirty()
   }
 
   function setGlobeView(lat?: number, lon?: number, distKm?: number) {
+    free.globe = { dist: false, look: false }
     setControls()
     const sunLon = frame ? latLonOf(v3(frame.state.sun_km)).lon : 0
     const la = lat ?? -60
@@ -477,8 +581,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (disposed) return
     raf = requestAnimationFrame(loop)
     if (fly) stepFly(now)
+    if (freeCam.step()) markDirty()
     const moved = (inSpace() ? globeControls : siteControls).update()
     if (moved) markDirty()
+    if (!fly && keepAboveGround()) markDirty()
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
@@ -494,6 +600,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   siteControls.addEventListener('change', markDirty)
   globeControls.addEventListener('change', markDirty)
+  const freeCam = installFreeCam({ canvas, testMode, rig, heightPx: () => size.y, changed: markDirty })
 
   // ---------- input: globe picking ----------
 
@@ -501,7 +608,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // the harness binds them itself. The scene binds none, so a key never acts twice.
 
   let down: { x: number; y: number } | null = null
-  const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY })
+  const onDown = (e: PointerEvent) => (down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null)
   const onUp = (e: PointerEvent) => {
     if (!down || level !== 'globe' || fly || !globe) return
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
@@ -554,6 +661,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       ro.disconnect()
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointerup', onUp)
+      freeCam.dispose()
       siteControls.dispose()
       globeControls.dispose()
       renderer.dispose()
@@ -605,6 +713,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       setFov(fov) {
         viewVersion++
+        baseFov = fov
         for (const c of [siteCam, globeCam]) {
           c.fov = fov
           c.updateProjectionMatrix()
@@ -635,6 +744,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         markDirty()
       },
       renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }),
+      surfaceDist: () => (inSpace() ? globeRig : siteRig).surface(activeCam().position),
+      skySize: (b) => sky?.sizeRatio(b) ?? null,
       camera() {
         const cam = activeCam()
         cam.updateMatrixWorld(true)
