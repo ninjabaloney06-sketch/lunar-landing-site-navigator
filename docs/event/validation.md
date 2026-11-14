@@ -11,6 +11,88 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 | V4 | Real horizons vs PGDA averages (context) | open | — | — |
 | V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
 
+## How Leo checks V1, V2 and the station check (about 40 min)
+
+You need a browser and a calculator. Each link below opens a plain-text JPL Horizons table with every setting fixed: observer table, apparent azimuth/elevation (quantity 4), refraction off (`AIRLESS`), decimal degrees, UTC, 6-hour steps. Our values are already in the tables below; you type in the Horizons values and the differences. Edit this file on GitHub (pencil icon), or send the numbers to Isaac and the orchestrator copies them in.
+
+**Before comparing, check the header of every Horizons result** (copy these lines into the evidence box at the end; they replace the "settings screenshot" of build-plan §6):
+- `Target body name`: Sun (10) or Earth (399). Earth must be 399, never the Earth-Moon barycentre (3).
+- `Center body name`: Moon (301) for V1; Earth (399) for the station check.
+- `Center geodetic`: the site's east longitude, latitude, altitude (km), as in the link.
+- `Center pole/equ`: `MEAN_ME` for the Moon (the same frame as ours) or `ITRF93` for Earth. If it says anything else, stop and tell Isaac.
+- `Center radii`: 1737.4 km (Moon) or 6378.137 / 6356.752 km (Earth, WGS 84).
+- Column header `Azimuth__(a-app)__Elevation`: apparent az/el. Not RA/Dec.
+
+### V1: 10 site/time points, Sun and Earth (pass: every |Δ| < 0.05°)
+
+Links (each gives 5 rows: 00, 06, 12, 18, 24 UTC):
+- [V1-a Sun from Connecting Ridge, 14 Nov 2026](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27223.32%2C-89.46%2C0.00175%27&START_TIME=%272026-11-14%2000%3A00%27&STOP_TIME=%272026-11-15%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+- [V1-b Earth from Connecting Ridge, 14 Nov 2026](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27399%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27223.32%2C-89.46%2C0.00175%27&START_TIME=%272026-11-14%2000%3A00%27&STOP_TIME=%272026-11-15%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+- [V1-c Sun from Shackleton Rim Site04, 16 Aug 2027](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27188.13%2C-89.7668%2C0.00175%27&START_TIME=%272027-08-16%2000%3A00%27&STOP_TIME=%272027-08-17%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+- [V1-d Earth from Shackleton Rim Site04, 16 Aug 2027](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27399%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27188.13%2C-89.7668%2C0.00175%27&START_TIME=%272027-08-16%2000%3A00%27&STOP_TIME=%272027-08-17%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+
+Sites: Connecting Ridge −89.46°, −136.68° (= 223.32° E); Shackleton Rim Site04 −89.7668°, −171.87° (= 188.13° E); altitude 0.00175 km (1.75 m eye on the 1737.4 km sphere, as in our table). Δ = Horizons − ours. At these low elevations compare azimuth and elevation separately.
+
+| # | Site | UTC | Body | Our az | Our el | Horizons az | Horizons el | Δaz | Δel |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Connecting Ridge | 14 Nov 2026 00:00 | Sun | 263.2832 | 1.4935 | | | | |
+| 2 | Connecting Ridge | 14 Nov 2026 00:00 | Earth | 135.4222 | -5.0329 | | | | |
+| 3 | Connecting Ridge | 14 Nov 2026 06:00 | Sun | 260.2364 | 1.4651 | | | | |
+| 4 | Connecting Ridge | 14 Nov 2026 06:00 | Earth | 135.0767 | -4.7727 | | | | |
+| 5 | Connecting Ridge | 14 Nov 2026 12:00 | Sun | 257.1899 | 1.4369 | | | | |
+| 6 | Connecting Ridge | 14 Nov 2026 12:00 | Earth | 134.7297 | -4.5014 | | | | |
+| 7 | Connecting Ridge | 14 Nov 2026 18:00 | Sun | 254.1439 | 1.4090 | | | | |
+| 8 | Connecting Ridge | 14 Nov 2026 18:00 | Earth | 134.3825 | -4.2197 | | | | |
+| 9 | Connecting Ridge | 15 Nov 2026 00:00 | Sun | 251.0982 | 1.3815 | | | | |
+| 10 | Connecting Ridge | 15 Nov 2026 00:00 | Earth | 134.0362 | -3.9282 | | | | |
+| 11 | Shackleton Site04 | 16 Aug 2027 00:00 | Sun | 186.3703 | 0.0906 | | | | |
+| 12 | Shackleton Site04 | 16 Aug 2027 00:00 | Earth | 172.1676 | -0.8013 | | | | |
+| 13 | Shackleton Site04 | 16 Aug 2027 06:00 | Sun | 183.3231 | 0.0963 | | | | |
+| 14 | Shackleton Site04 | 16 Aug 2027 06:00 | Earth | 171.8156 | -0.4488 | | | | |
+| 15 | Shackleton Site04 | 16 Aug 2027 12:00 | Sun | 180.2760 | 0.1026 | | | | |
+| 16 | Shackleton Site04 | 16 Aug 2027 12:00 | Earth | 171.4660 | -0.0961 | | | | |
+| 17 | Shackleton Site04 | 16 Aug 2027 18:00 | Sun | 177.2291 | 0.1096 | | | | |
+| 18 | Shackleton Site04 | 16 Aug 2027 18:00 | Earth | 171.1193 | 0.2558 | | | | |
+| 19 | Shackleton Site04 | 17 Aug 2027 00:00 | Sun | 174.1822 | 0.1172 | | | | |
+| 20 | Shackleton Site04 | 17 Aug 2027 00:00 | Earth | 170.7763 | 0.6062 | | | | |
+
+### V2: one row by hand (pass: sign and size agree)
+
+1. Open [V2 sub-solar point on the Moon, 14 Nov 2026 12:00 UTC](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27301%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27500%40399%27&START_TIME=%272026-11-14%2012%3A00%27&STOP_TIME=%272026-11-14%2018%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%2715%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27). Columns `SunSub-LON` (east longitude) and `SunSub-LAT` give the sub-solar point λs, φs at 12:00.
+2. Rough check: at the pole, Sun elevation ≈ −φs. Our Connecting Ridge value at 12:00 is 1.4369°. Connecting Ridge is 0.54° from the pole, so the rough check can differ by up to ~0.5°.
+3. Exact, by calculator: sin(el) = sin φ · sin φs + cos φ · cos φs · cos(λ − λs), with φ = −89.46°, λ = 223.32°. Compare el with 1.4369°. Write your arithmetic in the evidence box.
+
+### Station check: Moon elevation at two DSN stations (tolerance: you set it)
+
+Links (Moon centre seen from the station, coordinates from `scripts/stations.csv`, WGS 84):
+- [S-mad Moon from Madrid DSS-54, 16 Aug 2027](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27301%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40399%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27355.745903169%2C40.425621681%2C0.837051%27&START_TIME=%272027-08-16%2000%3A00%27&STOP_TIME=%272027-08-17%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+- [S-can Moon from Canberra DSS-34, 16 Aug 2027](https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27301%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40399%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27148.981964419%2C-35.398478842%2C0.692020%27&START_TIME=%272027-08-16%2000%3A00%27&STOP_TIME=%272027-08-17%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27)
+
+Compare the Horizons elevation with our `madrid_ctr` / `canberra_ctr` columns (Moon centre). Our station positions use the IAU_EARTH rotation model, Horizons uses ITRF93 with Earth-orientation data, so expect small differences; set a tolerance, write it and your reason here.
+
+| UTC (16 Aug 2027) | Our Madrid el | Horizons Madrid el | Δ | Our Canberra el | Horizons Canberra el | Δ |
+|---|---|---|---|---|---|---|
+| 00:00 | 29.9062 | | | -34.3161 | | |
+| 06:00 | -16.4283 | | | -6.8698 | | |
+| 12:00 | -65.9508 | | | 61.1885 | | |
+| 18:00 | -10.0222 | | | 28.9276 | | |
+| 00:00 (17 Aug) | 34.9398 | | | -34.5199 | | |
+
+Also decide and write down:
+- Is IAU_EARTH acceptable for station positions, given the differences above?
+- Is the generic 6.0° minimum elevation (DSN 810-005 module 301, section 2.2.3) acceptable, or must the per-antenna horizon masks (module 301, Figures 10–25) be used?
+
+### Sign-off
+
+- All pass → in the status table at the top set `passed`, `Leo`, and the time. Any fail → `failed`, plus the row number and the largest Δ, and tell Isaac at once. V1 off by > 0.05° with no cause found by 16:30 → Brief A abort rule: Isaac and Leo decide the fallback.
+- Our tables come from Track A's working copy (12:21). If Track A changes `ephemeris.py` before it merges, the orchestrator reruns the tables and marks the change here.
+
+Evidence box (paste the Horizons header lines, V2 arithmetic, tolerance and notes):
+
+```text
+
+```
+
 ## V1 / V2 / station check — inputs (AI output, not validated)
 
 - Source: `scripts/ephemeris.py --site` on branch `track-a` (Track A agent, Opus 5.5), working copy at 12:21 CET, not yet merged. Regenerate after merge if ephemeris.py changes.
