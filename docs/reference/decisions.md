@@ -250,3 +250,7 @@ Source: https://www.spaceappschallenge.org/resources/project-submission-guide/ (
 3. **Public code link:** not required. "Link to Final Project" may be a website. → The repo stays private; final-project link = https://nasa.digi-works.org. Optional: request a FortiGuard web-filter classification for the site so judges' networks don't block it.
 
 Also: SI (AI) use must be marked in the project itself: code and data need an acknowledgement in descriptive text and metadata, images/videos a visible watermark. SI must not be used to come up with the idea. At least one NASA dataset is required for a Global Award. Global submission closes Sun 15 Nov 23:59 local; our local deadline 15:45 stays. Submit = tick Terms and "Confirm All Work is Original", then "Submit for Judging"; resubmission allowed until close.
+
+## Right settings sidebar removed — 14 Nov 2026
+
+**DECIDED — DO NOT REOPEN:** ninja confirmed that no feature requires a right settings sidebar. Remove it from the task scope, including the settings page/icon and the open decision about whether to build one. Keep direct core controls and the inline legend.
