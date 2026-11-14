@@ -2,6 +2,17 @@
 
 **Status: review draft, 14 November 2026.** The product choices below are from the team conversation; scientific results and the revised communications contract are not validated. This document authorizes no build or data download. Where a detail was delegated to the agent, it is marked as a proposed choice, not a team or Leo sign-off.
 
+## Mandatory site assessments — confirmed by ninja, 14 Nov 2026
+
+These are **must-do requirements, not bonuses**. This scope decision supersedes earlier optional/excluded treatment in the build plan and briefs; implementation and S's scientific validation remain open.
+
+- **Terrain slope:** assess landing-site terrain slope and exploration access terrain separately. Landing requires **slope ≤ 5°**: above 5° is unsuitable for landing; exactly 5° passes this slope criterion. Passing the slope criterion alone does not establish overall landing safety. Missing slope data leaves landing suitability unknown. Exploration requires **slope < 20°**; exactly 20° or above does not meet this requirement. Both thresholds are ninja's project criteria, not sourced NASA or vehicle safety limits. State the DEM resolution and measurement baseline; one site's slope alone does not establish route accessibility.
+- **Surface roughness and surrounding obstacles:** assess roughness and nearby hazards with sourced data, a stated assessment area, scale/resolution and detection limits. Missing or unresolved obstacles are unknown, not evidence of clear terrain.
+- **Thermal stability:** assess site-specific temperature variation and extremes over the relevant period using sourced observations or a documented model. Illumination alone is not a validated temperature or thermal-stability result; S must define and validate the interpretation.
+- **Scientific value, PSRs and accessibility:** explain site-specific scientific opportunities, identify relevant permanently shadowed regions (PSRs), and assess access from the site using terrain, slope and obstacles. Proximity alone does not establish reachability; PSR presence does not prove usable ice. Use the evidence rules in [lunar-interest-points.md](../reference/lunar-interest-points.md).
+
+For each assessment, show evidence/provenance and limitations, with explicit unknowns when data is missing. An unknown is honest reporting, not completion of the assessment. S reviews the methods and results; Q checks calculations and boundary cases; D integrates the results. Track completion in [TASKS.md](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026). Full automated route optimisation is not implied by the accessibility requirement.
+
 ## User and answer
 
 The primary user is a **mission planner** deciding which lunar site and mission period offer the best average communications coverage while providing enough sunlight and useful conditions for future operations.

@@ -1,0 +1,12 @@
+{
+ "site_id": "de-gerlache-rim-2",
+ "size": 500,
+ "spacing_m": 80.0,
+ "order": "row-major; row 0 = north edge; col 0 = west edge",
+ "height_ref": "metres relative to the site's ground height",
+ "nodata": -32768,
+ "illum_png": "de-gerlache-rim-2-illum.png",
+ "illum_map": "avgvisib_85s_060m_201608",
+ "illum_res_m": 60.0,
+ "dem": "LDEM_80S_20MPP_ADJ.TIF"
+}
