@@ -509,6 +509,11 @@ def sourced_hazards(site, hazards):
 
 DIVINER_TAB = "diviner/dlre_prp_south.tab"
 DIVINER_URL = "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/"
+DIVINER_TERMS = (
+    "public NASA PDS data; no licence or usage terms in the .lbl or .xml; NASA SMD policy SPD-41a "
+    "requires SMD-funded scientific information to be made publicly available "
+    "(https://science.nasa.gov/researchers/science-data/science-information-policy/); "
+    "cite the product as below")
 DIVINER_CITATION = ("Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, "
                     "LRO-L-DLRE-5-PRP-V2.0, 2018 (citation as given in the PDS catalogue prpds.cat); "
                     "method: Paige et al. 2010, Science 330 (cited in prpds.cat as p. 497)")
@@ -589,8 +594,12 @@ class PRPMesh:
 
 SITE_THERMAL_NOTES = {
     "shackleton-rim-site04": [
-        "Site-specific: annual maximum 319.6 K on a steep (~32 deg), intermittently lit inner wall "
-        "(average Sun visibility 0.11 in the 60 m map); annual mean 112.5 K. A sunward wall can be "
+        "Site-specific: annual maximum 319.6 K on a steep, intermittently lit inner wall; annual "
+        "mean 112.5 K. AI plausibility check (not validation): a plane fitted to the 5 m DEM over "
+        "the triangle's footprint slopes 32.1 deg facing azimuth 264 deg; with SPICE Sun positions "
+        "for 2009-09-15..2010-09-14 and this site's horizon mask it is lit 10.2 % of the time "
+        "(Sun-visibility map: 0.11) and the best incidence gives cos(i) = 0.554, a radiative "
+        "equilibrium of 333 K (albedo 0.12, emissivity 0.95, 1361 W/m2). A sunward wall can be "
         "hot at its annual maximum while cold on average; for Leo to confirm.",
     ],
 }
@@ -622,7 +631,7 @@ def thermal_block(site, psr, hazards, prp=None):
         "One mesh triangle (about 0.1-0.2 km2, Kaguya-derived DEM) is larger than the 100 m landing "
         "disk; sub-triangle slopes and shadows are averaged out.",
         "Frame: label says Moon-centered (planetocentric, east-positive, R = 1737.4 km); "
-        "MOON_ME assumed, Leo to confirm.",
+        "read as MOON_ME, confirmed by Leo (S) on 14 Nov 2026.",
         "temp_max_k minus temp_avg_k is not a temperature range (different depths and statistics); "
         "no range is given.",
         "The ice_depth column (model ice-stability depth) is not used; no ice is inferred.",
@@ -637,6 +646,7 @@ def thermal_block(site, psr, hazards, prp=None):
                 "temp_avg_k": None, "temp_max_k": None}
     fs = prp.spec["fields"]
     base["source"] = f"{DIVINER_CITATION}; {DIVINER_URL}{prp.tab_path.name if prp.tab_path else ''}"
+    base["terms"] = DIVINER_TERMS
     base["method"] = (
         "site unit vector tested against the vertices of every mesh triangle whose centre is within "
         f"{PRP_CANDIDATE_KM:.0f} km (great circle, R = {R_KM} km); values of the containing triangle; "

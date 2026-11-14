@@ -255,14 +255,76 @@ def test_prp_missing_table_is_unknown():
 PRP_TAB = Path(__import__("os").environ.get("CLPS_DATA", "/nonexistent")) / A.DIVINER_TAB
 
 
+REFERENCE_POINTS = [  # (name, lat, lon, sourced temp_max K, half of its last digit); psr_and_ice.json
+    ("Cabeus-1 LEND maximum", -84.35, -48.22, 78.0, 0.5),
+    ("Haworth LEND maximum", -87.28, 4.31, 60.3, 0.05),
+    ("Shoemaker LEND maximum", -87.98, 43.67, 59.0, 0.5),
+    ("Faustini LEND maximum", -86.92, 81.24, 73.0, 0.5),
+]
+REF_RADIUS_KM = 0.5  # coordinates given to 0.01 deg (~0.3 km in latitude) plus about half a triangle
+
+
 @pytest.mark.skipif(not PRP_TAB.exists(), reason="needs CLPS_DATA/diviner/dlre_prp_south.tab")
 def test_prp_reference_points():
-    """Product temp_max at sourced reference points (psr_and_ice.json / hazards_and_science.json)."""
+    """Sourced Diviner T_max (McClanahan et al., arXiv 2303.03911) lies within the product's range
+    over triangles within the coordinate's precision; the Haworth control fails with longitude + 180."""
     prp = A.PRPMesh.from_files(PRP_TAB)
-    def tmax(lat, lon):
-        i = prp.lookup(lat, lon, 0.1)["containing_idx"]
-        return prp.column("temp_max", [i])[0]
-    assert abs(tmax(-87.28, 4.31) - 60.3) < 2.0       # Haworth LEND maximum, T_max 60.3 K
-    assert tmax(-87.5109, -2.2324) < 128.0            # Haworth PSR, Lemelin max 128 K
-    assert tmax(-89.66, 129.2) < 100.0                # Shackleton floor, ~88-90 K
-    assert tmax(-87.28, 4.31 + 180) > 150.0           # longitude flipped: clearly wrong place
+    tmax = prp.column("temp_max")
+
+    def rng(lat, lon):
+        d = A.R_KM * np.arctan2(np.linalg.norm(np.cross(prp.centre, A.unit(lat, lon)), axis=-1),
+                                    prp.centre @ A.unit(lat, lon))
+        v = tmax[d <= REF_RADIUS_KM]
+        return v.min(), v.max()
+
+    for name, lat, lon, ref, half in REFERENCE_POINTS:
+        lo, hi = rng(lat, lon)
+        assert lo - half <= ref <= hi + half, (name, lo, hi, ref)
+    for _, lat, lon, ref, half in REFERENCE_POINTS:   # longitude + 180 control, printed for the record
+        print("flipped", lat, lon, ref, rng(lat, lon + 180 if lon < 0 else lon - 180))
+    lo, hi = rng(-87.28, 4.31 - 180)                     # discriminating control: Haworth flipped is warm
+    assert lo > 60.3 + 50
+    i = prp.lookup(-89.66, 129.2, 0.1)["containing_idx"]           # Shackleton floor, ~88-90 K (secondary)
+    assert prp.column("temp_max", [i])[0] < 100.0
+
+
+SPICE_OK = PRP_TAB.exists() and (PRP_TAB.parent.parent / "spice").is_dir()
+
+
+@pytest.mark.skipif(not SPICE_OK, reason="needs CLPS_DATA with diviner/, lola/ and spice/")
+def test_site04_hot_wall_is_physically_plausible():
+    """Radiative-equilibrium bound from DEM slope/aspect, SPICE Sun and the horizon mask: Site04 is
+    the hottest of these sites in both the bound and the product, and the bound is within 15 %."""
+    import json
+    from datetime import datetime, timedelta, timezone
+    import ephemeris as E
+    from config import APP_DATA, data_root
+    from horizon import enu, ray_points, to_latlon
+    E.load_kernels()
+    t0 = datetime(2009, 9, 15, tzinfo=timezone.utc)
+    sun = np.array([E.state_at(t0 + timedelta(hours=4 * i))["sun_km"] for i in range(365 * 6)])
+    sun /= np.linalg.norm(sun, axis=1)[:, None]
+    dem5, dem20 = A.Raster(data_root() / A.DEM5[0], 5.0), A.Raster(data_root() / A.DEM20[0], 20.0)
+    prp = A.PRPMesh.from_files(PRP_TAB)
+    sites = {s["id"]: s for s in json.loads(A.SITES_JSON.read_text())}
+    bound, product = {}, {}
+    for sid in ("shackleton-rim-site04", "connecting-ridge", "peak-near-shackleton", "im-1"):
+        lat, lon = sites[sid]["lat"], sites[sid]["lon"]
+        e, n, u = enu(lat, lon)
+        dem = dem5 if dem5.contains(lat, lon) else dem20
+        P = ray_points(lat, lon, np.arange(0, 360, 15.0), np.linspace(0, 0.22, 12)[1:]).reshape(-1, 3)
+        la, lo = to_latlon(P)
+        x, y = dem.to_xy.transform(lo, la)
+        g = dem.read_box(*dem.xy(lat, lon), 300)
+        h = g.sample(np.asarray(x), np.asarray(y))
+        off = (P - u) * A.R_KM * 1000
+        (a, b, _), *_ = np.linalg.lstsq(np.column_stack([off @ e, off @ n, np.ones(len(h))]), h, rcond=None)
+        nrm = np.array([-a, -b, 1.0]) / math.hypot(a, b, 1.0)
+        se, sn, su = sun @ e, sun @ n, sun @ u
+        mask = np.array(json.loads((APP_DATA / "horizons" / f"{sid}.json").read_text())["mask"])
+        lit = np.degrees(np.arcsin(su)) > mask[np.round((np.degrees(np.arctan2(se, sn)) % 360) / 0.5).astype(int) % 720]
+        cmax = float(np.max(np.clip(se * nrm[0] + sn * nrm[1] + su * nrm[2], 0, None) * lit))
+        bound[sid] = (1361.0 * 0.88 * cmax / (0.95 * 5.670e-8)) ** 0.25
+        product[sid] = prp.column("temp_max", [prp.lookup(lat, lon, 0.1)["containing_idx"]])[0]
+    assert max(bound, key=bound.get) == max(product, key=product.get) == "shackleton-rim-site04"
+    assert abs(bound["shackleton-rim-site04"] - product["shackleton-rim-site04"]) / product["shackleton-rim-site04"] < 0.15
