@@ -1,0 +1,18 @@
+{
+ "site_id": "haworth",
+ "level": "far",
+ "size": 301,
+ "spacing_m": 2000.0,
+ "order": "row-major; row 0 = north edge; col 0 = west edge",
+ "height_ref": "metres relative to the site's ground height",
+ "ground_m": 1550.87,
+ "height_scale_m": 0.25,
+ "nodata": -32768,
+ "illum_png": null,
+ "illum_map": null,
+ "illum_res_m": null,
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "resampling": "2 km box means of the 20 m DEM; ldem_16 cell means outside the polar DEM",
+ "fill_dem": "ldem_16_uint.tif",
+ "fill_fraction": 0.198
+}

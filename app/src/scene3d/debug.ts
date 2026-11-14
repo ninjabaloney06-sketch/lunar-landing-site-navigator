@@ -32,6 +32,9 @@ export interface DebugView {
   setGlobeTexture(m: 'real' | 'checker'): void
   setSites(sites: Site[]): void
   camera(): Record<string, unknown>
+  terrainInfo(): { levels: string[]; triangles: number }
+  setFlat(on: boolean): void
+  renderInfo(): { calls: number; triangles: number }
 }
 
 export interface SetViewOptions {
@@ -82,6 +85,14 @@ export function installDebug(v: DebugView) {
     pinSurface: (id: string) => v.pinSurface(id)?.toArray() ?? null,
     setSites: (s: Site[]) => v.setSites(s),
     setLevel: (l: SceneLevel) => v.setLevelNow(l),
+    terrainInfo: () => v.terrainInfo(),
+    setFlat: async (on: boolean) => {
+      v.setFlat(on)
+      v.renderNow()
+      await nextFrame()
+      await nextFrame()
+    },
+    renderInfo: () => v.renderInfo(),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api

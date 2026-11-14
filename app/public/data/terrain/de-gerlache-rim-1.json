@@ -8,5 +8,11 @@
  "illum_png": "de-gerlache-rim-1-illum.png",
  "illum_map": "avgvisib_85s_060m_201608",
  "illum_res_m": 60.0,
- "dem": "LDEM_80S_20MPP_ADJ.TIF"
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "ground_m": 1580.97,
+ "levels": [
+  "fine",
+  "mid",
+  "far"
+ ]
 }

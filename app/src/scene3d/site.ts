@@ -14,6 +14,13 @@
 //     the mask itself.
 // In both, tile and skirt vertices are clamped to the mask sight line from the eye: the 80 m tile mesh may
 // overshoot the 20 m DEM the mask was computed from, and must never hide a body the mask shows.
+//
+// With extra levels (tile.levels includes 'far', levels.ts): fine 20 m ⊂ 80 m tile ⊂ mid 400 m ⊂ far 2 km, nested
+// with square holes and zipper strips, real relief to ±300 km and no skirt. Site level draws the levels; eye level
+// draws the levels plus a crest strip on the mask (one short face per mask azimuth at its true distance, from the
+// terrain up to the mask sight line), so the silhouette from the eye is still the mask. Levels are clamped like
+// the tile, the new ones to the lowest sight line across their cell's azimuth span (a triangle between clamped
+// vertices must not fill a notch of the mask).
 
 import {
   BoxGeometry,
@@ -34,6 +41,7 @@ import {
 import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
+import { heightAt, levelGrid, levelMesh, nestedLevels, normalsOf, place, sphereZ, stitch, type Level, type LevelGrid } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
 const NO_HORIZON_RADIUS_M = 200_000 // smooth-sphere ground when a site has no horizon file
@@ -49,12 +57,8 @@ const MAST_WIDTH_PX = 1.6
 // angles (low polar Sun, camera looking toward it) three's GGX specular reaches ~10× the diffuse term and turns
 // flat far ground into a bright glare. Regolith does not forward-scatter like that, so the surface is diffuse only.
 const regolith = () => new MeshPhysicalMaterial({ color: 0x8b8781, roughness: 1, metalness: 0, specularIntensity: 0 })
-
-/** Sphere drop below the site's tangent plane at horizontal distance rho (m), exact: √(R² − ρ²) − R. */
-function sphereZ(rho: number, rSite: number, h = 0): number {
-  const r = rSite + h
-  return Math.sqrt(Math.max(r * r - rho * rho, 0)) - rSite
-}
+const RAD_TO_DEG = 180 / Math.PI
+const PROXY_STRIDE = 4 // ray proxies use every 4th vertex of a level
 
 function gridMesh(cols: number, rows: number, pos: Float32Array, wrap: boolean, ok?: Uint8Array): BufferGeometry {
   // pos: column-major (cols × rows × 3). Columns wrap around in azimuth when wrap is true.
@@ -126,6 +130,8 @@ interface SightLine {
   below(k: number, rho: number): number
   /** Same for an ENU point p (z ignored) at horizontal distance rho; azimuth from geometry.azEl. */
   belowAt(p: Vector3, rho: number): number
+  /** Lowest limit over the azimuths a grid cell of width `cell` (m) next to p spans (± cell/rho rad, ≤ 30°). */
+  belowCell(p: Vector3, rho: number, cell: number): number
 }
 
 /**
@@ -140,10 +146,21 @@ function sightLine(h: Horizon): SightLine {
     return d.z / Math.hypot(d.x, d.y)
   }
   const cols = Array.from({ length: 360 }, (_, k) => tanOf(k))
+  const n = h.mask.length
+  const samples = Array.from({ length: n }, (_, k) => tanOf(k * h.az_step))
   const lim = (tan: number, rho: number) => he + tan * rho - 0.0005 * rho - 0.05
   return {
     below: (k, rho) => lim(cols[((k % 360) + 360) % 360], rho),
     belowAt: (p, rho) => lim(tanOf(azElOfEnu(p).az), rho),
+    belowCell: (p, rho, cell) => {
+      const az = azElOfEnu(p).az
+      const half = Math.min((cell / rho) * RAD_TO_DEG, 30)
+      let t = tanOf(az)
+      for (let k = Math.floor((az - half) / h.az_step); k <= Math.ceil((az + half) / h.az_step); k++) {
+        t = Math.min(t, samples[((k % n) + n) % n])
+      }
+      return lim(t, rho)
+    },
   }
 }
 
@@ -155,6 +172,7 @@ export class SiteWorld {
   // Meshes used for occlusion tests (coarse proxy for the tile), per group.
   private readonly rays = { both: [] as Object3D[], orbit: [] as Object3D[], eye: [] as Object3D[] }
   private eyeMode = false
+  private levelNames: string[] = []
   private readonly marker = new Group()
   private readonly mast: Mesh
   private readonly cross: Mesh[]
@@ -162,6 +180,7 @@ export class SiteWorld {
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
+  private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
   private mastHeight = 1600
   readonly eyeHeight = OBSERVER_HEIGHT_M // spec: 1.75 m above the ground
 
@@ -186,8 +205,17 @@ export class SiteWorld {
       }
     }
     this.rays.both.length = this.rays.orbit.length = this.rays.eye.length = 0
+    this.levelNames = []
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
+    const levels = tile ? nestedLevels(tile) : null
+    if (levels) {
+      // Nested levels reach ±300 km: no skirt, no ring ground; at eye level only the crest strip on the mask.
+      this.addLevels(levels, rSite, line)
+      if (horizon) this.addCrests(horizon, levels, rSite)
+      return
+    }
+    if (tile) this.levelNames = ['tile']
     if (tile) this.addTile(tile, rSite, line)
     if (tile) this.addSkirt(tile, rSite, line, horizon ? 'orbit' : 'both')
     if (horizon) this.addRing(horizon, tile, rSite, tile ? 'eye' : 'both')
@@ -357,6 +385,106 @@ export class SiteWorld {
       }
     }
     this.addMesh(sphereNormals(gridMesh(n, rows, pos, true, ok), rSite), undefined, where)
+  }
+
+  /**
+   * Nested levels (levels.ts), each clamped to the mask sight line: the 80 m tile with its existing per-vertex
+   * clamp, the new levels with the cell-span clamp. Every outer level gets a square hole and a zipper strip to the
+   * next finer one. Ray proxies: every PROXY_STRIDE-th vertex, overlapping instead of leaving a gap at the holes.
+   */
+  private addLevels(levels: Level[], rSite: number, line: SightLine | null) {
+    this.levelNames = levels.map((l) => l.name)
+    const grids: LevelGrid[] = []
+    const full: BufferGeometry[] = []
+    levels.forEach((l, li) => {
+      const clamp = (p: Vector3, rho: number) =>
+        !line ? Infinity : l.name === 'tile' ? line.belowAt(p, rho) : line.belowCell(p, rho, l.spacing)
+      const g = levelGrid(l, rSite, clamp)
+      const inner = li > 0 ? levels[li - 1].ext : null
+      const geo = levelMesh(g, 1, inner, 'touching')
+      this.addMesh(geo, levelMesh(g, PROXY_STRIDE, inner, 'inside'))
+      grids.push(g)
+      full.push(geo)
+    })
+    for (let li = 1; li < levels.length; li++) {
+      this.addMesh(stitch(grids[li - 1], normalsOf(full[li - 1]), grids[li], normalsOf(full[li])))
+    }
+  }
+
+  /**
+   * Eye level with levels: per mask azimuth k one column foot F → crest T → back B. T sits on the mask sight line
+   * at the mask distance; F (just in front, on the terrain or lower) and B (just behind) stay below the line, so
+   * the silhouette from the eye is the mask, linear between samples, while the levels show the real ground.
+   */
+  private addCrests(h: Horizon, levels: Level[], rSite: number) {
+    const n = h.mask.length
+    const eye = new Vector3(0, 0, OBSERVER_HEIGHT_M)
+    const he = eye.z
+    const rows = 4 // F, T, T (doubled: the crest keeps a sharp edge in the vertex normals), B
+    const pos = new Float32Array(n * rows * 3)
+    const q = new Vector3()
+    const coarsest = levels[levels.length - 1].spacing
+    const nor = new Float32Array(n * rows * 3)
+    let o = 0
+    let on = 0
+    for (let k = 0; k < n; k++) {
+      const a = enuDir(k * h.az_step, 0)
+      const d = Number.isFinite(h.mask_dist_km[k]) && h.mask_dist_km[k] > 0 ? h.mask_dist_km[k] * 1000 : 5000
+      const t = eye.clone().addScaledVector(enuDir(k * h.az_step, h.mask[k]), d)
+      const rho = Math.hypot(t.x, t.y)
+      const slope = (t.z - he) / rho
+      const below = (r: number) => he + slope * r
+      const atT = heightAt(levels, a.x * rho, a.y * rho)
+      const sp = atT ? levels[atT.li].spacing : coarsest
+      const rF = Math.max(rho - 2 * sp, 0.6 * rho)
+      const f = heightAt(levels, a.x * rF, a.y * rF)
+      const zGround = f ? place(levels[f.li], a.x * rF, a.y * rF, f.h, rSite, q).z - SKIRT_SINK_M : below(rF) - 30
+      const zF = Math.min(zGround, below(rF) - 0.002 * rF - 0.5)
+      const rB = rho + sp
+      const zB = below(rB) - 0.01 * rB - 1
+      // Normals of the column's own radial profile: front slope (F → T, facing the eye) and back slope (T → B).
+      // Not the sphere's (a Sun behind the crest must not light its near slope) and not the mesh's (the faces
+      // joining two columns whose mask distances differ are connectors and would face sideways).
+      const front = new Vector3(-a.x * (t.z - zF), -a.y * (t.z - zF), rho - rF).normalize()
+      const back = new Vector3(a.x * (t.z - zB), a.y * (t.z - zB), rB - rho).normalize()
+      for (const [r, z, nv] of [
+        [rF, zF, front],
+        [rho, t.z, front],
+        [rho, t.z, back],
+        [rB, zB, back],
+      ] as const) {
+        pos[o++] = a.x * r
+        pos[o++] = a.y * r
+        pos[o++] = z
+        nor[on++] = nv.x
+        nor[on++] = nv.y
+        nor[on++] = nv.z
+      }
+    }
+    const g = gridMesh(n, rows, pos, true)
+    g.setAttribute('normal', new Float32BufferAttribute(nor, 3))
+    this.addMesh(g, undefined, 'eye')
+  }
+
+  /** Test helper: level names and triangle count of the terrain drawn at the current level. */
+  info(): { levels: string[]; triangles: number } {
+    let triangles = 0
+    for (const grp of [this.terrain, this.eyeMode ? this.eyeOnly : this.orbitOnly]) {
+      for (const c of grp.children) if (c.visible) triangles += ((c as Mesh).geometry.index?.count ?? 0) / 3
+    }
+    return { levels: [...this.levelNames], triangles }
+  }
+
+  /** Test helper (crack check): flat unlit grey terrain, so any background pixel inside the terrain is a gap. */
+  setFlat(on: boolean) {
+    for (const grp of [this.terrain, this.orbitOnly, this.eyeOnly]) {
+      for (const c of grp.children) {
+        const m = c as Mesh
+        if (!m.visible) continue
+        m.userData.lit ??= m.material
+        m.material = on ? this.flatMat : m.userData.lit
+      }
+    }
   }
 
   private addTile(t: TerrainTile, rSite: number, line: SightLine | null) {

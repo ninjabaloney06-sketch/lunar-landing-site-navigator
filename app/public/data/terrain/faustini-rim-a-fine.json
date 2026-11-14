@@ -1,0 +1,16 @@
+{
+ "site_id": "faustini-rim-a",
+ "level": "fine",
+ "size": 251,
+ "spacing_m": 20.0,
+ "order": "row-major; row 0 = north edge; col 0 = west edge",
+ "height_ref": "metres relative to the site's ground height",
+ "ground_m": 42.57,
+ "height_scale_m": 0.1,
+ "nodata": -32768,
+ "illum_png": null,
+ "illum_map": null,
+ "illum_res_m": null,
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "resampling": "bilinear samples of the 20 m DEM"
+}

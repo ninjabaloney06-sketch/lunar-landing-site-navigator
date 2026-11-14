@@ -40,19 +40,32 @@ export const loadStations = () => cached('stations', () => getJson<Station[]>('s
 export const loadHorizon = (file: string) => cached(`h:${file}`, () => getJson<Horizon>(`horizons/${file}`))
 export const loadEphem = (month: string) => cached(`e:${month}`, () => getJson<EphemMonth>(`ephem/${month}.json`))
 
-/** Terrain tile: terrain/<id>.json (TerrainMeta) + terrain/<id>.bin (little-endian Int16, size × size).
- *  null when the build has no tile for this site; the scene then draws its flat fallback. */
+/** One grid: terrain/<name>.json (TerrainMeta) + terrain/<name>.bin (little-endian Int16, size × size). */
+async function loadGrid(name: string): Promise<TerrainTile> {
+  const [meta, buf] = await Promise.all([
+    getJson<TerrainMeta>(`terrain/${name}.json`),
+    fetchData(`terrain/${name}.bin`).then((r) => r.arrayBuffer()),
+  ])
+  const n = meta.size * meta.size
+  if (buf.byteLength !== n * 2) throw new Error(`terrain/${name}.bin: ${buf.byteLength} bytes, expected ${n * 2}`)
+  const view = new DataView(buf)
+  const heights = new Int16Array(n)
+  for (let i = 0; i < n; i++) heights[i] = view.getInt16(i * 2, true)
+  return { meta, heights }
+}
+
+/** Terrain tile: terrain/<id>.json + .bin, plus the extra levels its meta lists (terrain/<id>-<level>.*,
+ *  fetched in parallel and attached as `levels`). null when the build has no tile for this site; the scene then
+ *  draws its flat fallback. A level that is missing or broken is left out: the scene renders the rest. */
 export function loadTerrain(siteId: string): Promise<TerrainTile | null> {
   return cached(`t:${siteId}`, async () => {
     try {
-      const meta = await getJson<TerrainMeta>(`terrain/${siteId}.json`)
-      const buf = await (await fetchData(`terrain/${siteId}.bin`)).arrayBuffer()
-      const n = meta.size * meta.size
-      if (buf.byteLength !== n * 2) throw new Error(`terrain/${siteId}.bin: ${buf.byteLength} bytes, expected ${n * 2}`)
-      const view = new DataView(buf)
-      const heights = new Int16Array(n)
-      for (let i = 0; i < n; i++) heights[i] = view.getInt16(i * 2, true)
-      return { meta, heights }
+      const base = await loadGrid(siteId)
+      const names = base.meta.levels ?? []
+      if (!names.length) return base
+      const levels = await Promise.all(names.map((l) => loadGrid(`${siteId}-${l}`).catch(() => null)))
+      const ok = levels.filter((t): t is TerrainTile => t !== null && t.meta.level !== undefined)
+      return ok.length ? { ...base, levels: ok } : base
     } catch (e) {
       if (e instanceof MissingDataError) return null
       throw e

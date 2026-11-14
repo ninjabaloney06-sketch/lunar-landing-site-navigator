@@ -1,8 +1,8 @@
 // C1 test harness (dev only, not in the production build): implements SceneDeps.loadFrame with data/load.ts +
 // geometry, the way C2's data layer does in the app. URL: ?test=1&site=<id>&utc=<ISO>&level=globe|site|eye.
 
-import { loadEphem, loadHorizon, loadSites } from '../data/load'
-import type { EphemMonth, Horizon, TerrainMeta, TerrainTile } from '../data/types'
+import { loadEphem, loadHorizon, loadSites, loadTerrain } from '../data/load'
+import type { EphemMonth, Horizon, TerrainTile } from '../data/types'
 import { interpolate } from '../geometry'
 import { mountScene, type SceneDeps, type SceneFrame, type SceneLevel } from './index'
 
@@ -29,19 +29,8 @@ const horizon = (file: string) => {
   return horizonCache.get(file)!
 }
 
-/** terrain/<id>.json (TerrainMeta) + terrain/<id>.bin (size² Int16, little-endian). Missing → null (flat fallback). */
-async function terrain(id: string): Promise<TerrainTile | null> {
-  try {
-    const base = `${import.meta.env.BASE_URL}data/terrain/${id}`
-    const meta = (await (await fetch(`${base}.json`)).json()) as TerrainMeta
-    const res = await fetch(`${base}.bin`)
-    const buf = await res.arrayBuffer()
-    if (!res.ok || buf.byteLength !== meta.size * meta.size * 2) return null
-    return { meta, heights: new Int16Array(buf) }
-  } catch {
-    return null
-  }
-}
+/** The app's loader (data/load.ts): 80 m tile plus the extra levels its meta lists. Missing → null (fallback). */
+const terrain = (id: string): Promise<TerrainTile | null> => loadTerrain(id).catch(() => null)
 
 // deps.sites is looked up on every load, so tests can add synthetic sites through __scene.setSites.
 const deps: SceneDeps = { sites: await loadSites(), loadFrame }

@@ -627,6 +627,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         deps.sites = sites
         globe?.setSites(sites, frame?.site?.id ?? null)
       },
+      terrainInfo: () => site.info(),
+      setFlat(on) {
+        site.setFlat(on)
+        markDirty()
+      },
+      renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }),
       camera() {
         const cam = activeCam()
         cam.updateMatrixWorld(true)

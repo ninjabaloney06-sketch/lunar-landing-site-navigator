@@ -1,0 +1,314 @@
+// Nested terrain levels around a site (track-terrain): fine 20 m (±2.5 km) ⊂ the 80 m tile (±20 km) ⊂ mid 400 m
+// (±60 km) ⊂ far 2 km (±300 km). All grids share the site's ENU axes and centre (row 0 = north, col 0 = west),
+// the Int16 format and ONE reference height (the 80 m tile's ground_m), so their squares nest on grid lines.
+//
+// Meeting without cracks or z-fighting: each outer level drops every cell that intersects the next inner level's
+// square (a square hole on its own grid lines, at most one outer cell wider than the inner square), and a zipper
+// strip joins the inner level's boundary ring to the outer hole's boundary ring. Strip vertices are the two
+// levels' own vertices (same positions, same normals), so the surface is watertight and nothing overlaps.
+//
+// Curvature: fine and 80 m tile keep the 80 m tile's existing placement, (x, y) in the tangent plane and
+// z = √((R_site + h)² − ρ²) − R_site. Mid and far blend from that placement (ρ ≤ 20 km) to the exact one by
+// ρ = 60 km: the grid point's radial line through the 1737.4 km sphere at (x, y, R)/|·|, radius R_site + h. At
+// 300 km the two differ by 4.4 km horizontally; within the blend band by < 0.1 km.
+//
+// Rim band: within MORPH_CELLS outer cells of its square's edge, an inner level's heights blend (smoothstep) into
+// the outer level's bilinear surface, so finer detail fades out instead of ending at a visible line. Both are
+// resamplings of the same DEM; nothing is invented.
+//
+// Nodata: a vertex a level has no data for takes the height of the next coarser level that has (the far level
+// is filled from ldem_16 outside the polar DEM), Catmull-Rom interpolated so the coarse cells do not show as
+// facets; a vertex no level covers stays a hole.
+
+import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three'
+import type { TerrainTile } from '../data/types'
+import { MOON_RADIUS_KM } from '../geometry'
+
+export type LevelName = 'fine' | 'tile' | 'mid' | 'far'
+
+export interface Level {
+  name: LevelName
+  size: number
+  spacing: number
+  half: number // (size − 1) / 2
+  ext: number // half-width of the sample square (m)
+  /** Heights relative to the site's ground (m) after the coarser-level fill; NaN = no level has data. */
+  h: Float32Array
+}
+
+const R_M = MOON_RADIUS_KM * 1000
+const BLEND_FROM_M = 20_000
+const BLEND_TO_M = 60_000
+const MORPH_CELLS = 6 // rim band of an inner level, in cells of the next outer level
+const STITCH_ORDER: LevelName[] = ['fine', 'tile', 'mid', 'far']
+
+/** Sphere drop below the site's tangent plane at horizontal distance rho (m), exact: √(R² − ρ²) − R. */
+export function sphereZ(rho: number, rSite: number, h = 0): number {
+  const r = rSite + h
+  return Math.sqrt(Math.max(r * r - rho * rho, 0)) - rSite
+}
+
+/**
+ * Levels of a tile, finest first, or null when the tile has no far level (the scene then draws the 80 m tile
+ * alone, exactly as before). A level that does not strictly contain the next finer one is left out.
+ */
+export function nestedLevels(tile: TerrainTile): Level[] | null {
+  const extra = new Map((tile.levels ?? []).map((t) => [t.meta.level, t]))
+  if (!extra.has('far')) return null
+  const raw: [LevelName, TerrainTile][] = []
+  for (const name of STITCH_ORDER) {
+    const t = name === 'tile' ? tile : extra.get(name)
+    if (!t || t.heights.length !== t.meta.size * t.meta.size) continue
+    const prev = raw[raw.length - 1]?.[1]
+    const ext = ((t.meta.size - 1) / 2) * t.meta.spacing_m
+    if (prev && !(ext > ((prev.meta.size - 1) / 2) * prev.meta.spacing_m && t.meta.spacing_m > prev.meta.spacing_m)) continue
+    raw.push([name, t])
+  }
+  if (raw[raw.length - 1]?.[0] !== 'far') return null
+  const levels: Level[] = raw.map(([name, t]) => {
+    const half = (t.meta.size - 1) / 2
+    return { name, size: t.meta.size, spacing: t.meta.spacing_m, half, ext: half * t.meta.spacing_m, h: new Float32Array(t.heights.length) }
+  })
+  // Coarsest first, so every level can fall back on the already-filled (and morphed) coarser ones.
+  for (let li = levels.length - 1; li >= 0; li--) {
+    const l = levels[li]
+    const t = raw[li][1]
+    const outer = levels[li + 1]
+    const band = outer ? MORPH_CELLS * outer.spacing : 0
+    const scale = t.meta.height_scale_m ?? 1
+    for (let i = 0; i < l.size; i++) {
+      for (let j = 0; j < l.size; j++) {
+        const x = (j - l.half) * l.spacing
+        const y = (l.half - i) * l.spacing
+        const v = t.heights[i * l.size + j]
+        // Nodata: the next coarser level with data, interpolated smoothly (bilinear would show its cells as facets).
+        let h = v !== t.meta.nodata ? v * scale : smoothHeightAt(levels, x, y, li + 1) ?? NaN
+        // Rim band: blend into the outer level's surface, which the inner rim then meets exactly.
+        const edge = l.ext - Math.max(Math.abs(x), Math.abs(y))
+        if (outer && edge < band && !Number.isNaN(h)) {
+          const o = levelHeight(outer, x, y)
+          if (o !== null) {
+            const b = edge / band
+            h = o + (h - o) * b * b * (3 - 2 * b)
+          }
+        }
+        l.h[i * l.size + j] = h
+      }
+    }
+  }
+  return levels
+}
+
+/** Catmull-Rom (bicubic) height of level l at ENU (x, y); bilinear where the 4 × 4 stencil leaves the data. */
+function smoothHeight(l: Level, x: number, y: number): number | null {
+  const fj = x / l.spacing + l.half
+  const fi = l.half - y / l.spacing
+  const j0 = Math.floor(fj)
+  const i0 = Math.floor(fi)
+  if (j0 < 1 || i0 < 1 || j0 + 2 > l.size - 1 || i0 + 2 > l.size - 1) return levelHeight(l, x, y)
+  const cr = (p0: number, p1: number, p2: number, p3: number, t: number) =>
+    p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0)))
+  const row = (i: number) => {
+    const o = i * l.size + j0
+    return cr(l.h[o - 1], l.h[o], l.h[o + 1], l.h[o + 2], fj - j0)
+  }
+  const v = cr(row(i0 - 1), row(i0), row(i0 + 1), row(i0 + 2), fi - i0)
+  return Number.isNaN(v) ? levelHeight(l, x, y) : v
+}
+
+function smoothHeightAt(levels: Level[], x: number, y: number, from: number): number | null {
+  for (let li = from; li < levels.length; li++) {
+    const h = smoothHeight(levels[li], x, y)
+    if (h !== null) return h
+  }
+  return null
+}
+
+/** Bilinear height of level l at ENU (x, y); null outside its square or next to a hole. */
+export function levelHeight(l: Level, x: number, y: number): number | null {
+  const fj = x / l.spacing + l.half
+  const fi = l.half - y / l.spacing
+  if (fj < 0 || fi < 0 || fj > l.size - 1 || fi > l.size - 1) return null
+  const j0 = Math.min(Math.floor(fj), l.size - 2)
+  const i0 = Math.min(Math.floor(fi), l.size - 2)
+  const dj = fj - j0
+  const di = fi - i0
+  const n = l.size
+  const q00 = l.h[i0 * n + j0]
+  const q01 = l.h[i0 * n + j0 + 1]
+  const q10 = l.h[(i0 + 1) * n + j0]
+  const q11 = l.h[(i0 + 1) * n + j0 + 1]
+  const v = (q00 * (1 - dj) + q01 * dj) * (1 - di) + (q10 * (1 - dj) + q11 * dj) * di
+  return Number.isNaN(v) ? null : v
+}
+
+/** Height from the finest level (index ≥ from) that covers (x, y), with that level's index. */
+export function heightAt(levels: Level[], x: number, y: number, from = 0): { h: number; li: number } | null {
+  for (let li = from; li < levels.length; li++) {
+    const h = levelHeight(levels[li], x, y)
+    if (h !== null) return { h, li }
+  }
+  return null
+}
+
+/** ENU position of a level sample at grid offset (x, y) with height h (curvature as in the header). */
+export function place(l: Level, x: number, y: number, h: number, rSite: number, out: Vector3): Vector3 {
+  const rho = Math.hypot(x, y)
+  out.set(x, y, sphereZ(rho, rSite, h))
+  if (l.name === 'fine' || l.name === 'tile' || rho <= BLEND_FROM_M) return out
+  const b = Math.min((rho - BLEND_FROM_M) / (BLEND_TO_M - BLEND_FROM_M), 1)
+  const w = b * b * (3 - 2 * b)
+  const s = (rSite + h) / Math.sqrt(rho * rho + R_M * R_M)
+  return out.set(out.x + (s * x - out.x) * w, out.y + (s * y - out.y) * w, out.z + (s * R_M - rSite - out.z) * w)
+}
+
+export interface LevelGrid {
+  level: Level
+  pos: Float32Array // size² × 3, row-major like the heights
+  ok: Uint8Array // 1 = vertex has a height
+}
+
+/** Placed (and clamped) vertices of a level. clamp(p, rho) returns the highest z allowed at p, or Infinity. */
+export function levelGrid(l: Level, rSite: number, clamp: (p: Vector3, rho: number) => number): LevelGrid {
+  const n = l.size
+  const pos = new Float32Array(n * n * 3)
+  const ok = new Uint8Array(n * n)
+  const p = new Vector3()
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const v = i * n + j
+      const h = l.h[v]
+      ok[v] = Number.isNaN(h) ? 0 : 1
+      place(l, (j - l.half) * l.spacing, (l.half - i) * l.spacing, ok[v] ? h : 0, rSite, p)
+      const rho = Math.hypot(p.x, p.y)
+      if (ok[v] && rho > 0) p.z = Math.min(p.z, clamp(p, rho))
+      pos[v * 3] = p.x
+      pos[v * 3 + 1] = p.y
+      pos[v * 3 + 2] = p.z
+    }
+  }
+  return { level: l, pos, ok }
+}
+
+/** Grid coordinate index range [k0, k1] of the hole an inner square of half-width ext cuts into level l. */
+function holeRange(l: Level, ext: number): [number, number] {
+  const k1 = Math.ceil(ext / l.spacing + l.half - 1e-6)
+  return [l.size - 1 - k1, k1]
+}
+
+/**
+ * Indexed mesh of a level with every `stride`-th vertex. inner = half-width of the next finer level's square:
+ * with drop 'touching', cells that intersect it are left out (the render mesh: a hole on grid lines); with
+ * 'inside', only cells entirely within it (ray proxies: an overlap instead of a gap).
+ */
+export function levelMesh(g: LevelGrid, stride: number, inner: number | null, drop: 'touching' | 'inside'): BufferGeometry {
+  const { level: l, pos, ok } = g
+  const n = l.size
+  const m = Math.floor((n - 1) / stride) + 1
+  const sub = new Float32Array(m * m * 3)
+  const subOk = new Uint8Array(m * m)
+  for (let ii = 0; ii < m; ii++) {
+    for (let jj = 0; jj < m; jj++) {
+      const v = ii * stride * n + jj * stride
+      const s = ii * m + jj
+      subOk[s] = ok[v]
+      sub[s * 3] = pos[v * 3]
+      sub[s * 3 + 1] = pos[v * 3 + 1]
+      sub[s * 3 + 2] = pos[v * 3 + 2]
+    }
+  }
+  const coord = (k: number) => (k * stride - l.half) * l.spacing // grid x of column k (= −y of row k)
+  const idx: number[] = []
+  for (let ii = 0; ii < m - 1; ii++) {
+    for (let jj = 0; jj < m - 1; jj++) {
+      const a = ii * m + jj // north-west
+      const b = a + 1 // north-east
+      const c = a + m // south-west
+      const d = c + 1
+      if (!(subOk[a] && subOk[b] && subOk[c] && subOk[d])) continue
+      if (inner !== null) {
+        const x0 = coord(jj)
+        const x1 = coord(jj + 1)
+        const y0 = -coord(ii + 1)
+        const y1 = -coord(ii)
+        const cut =
+          drop === 'touching'
+            ? x1 > -inner && x0 < inner && y1 > -inner && y0 < inner
+            : x0 >= -inner && x1 <= inner && y0 >= -inner && y1 <= inner
+        if (cut) continue
+      }
+      idx.push(a, c, b, b, c, d) // counter-clockwise seen from above
+    }
+  }
+  const geo = new BufferGeometry()
+  geo.setAttribute('position', new Float32BufferAttribute(sub, 3))
+  geo.setIndex(idx)
+  geo.computeVertexNormals()
+  geo.computeBoundingSphere()
+  return geo
+}
+
+/** Boundary ring of grid indices k0..k1 (both axes), clockwise from the north-west corner, with perimeter fraction. */
+function ring(n: number, k0: number, k1: number): { v: number[]; t: number[] } {
+  const v: number[] = []
+  const t: number[] = []
+  const w = k1 - k0
+  for (let j = k0; j < k1; j++) v.push(k0 * n + j), t.push((j - k0) / w / 4) // north edge, west → east
+  for (let i = k0; i < k1; i++) v.push(i * n + k1), t.push(0.25 + (i - k0) / w / 4) // east edge, north → south
+  for (let j = k1; j > k0; j--) v.push(k1 * n + j), t.push(0.5 + (k1 - j) / w / 4) // south edge, east → west
+  for (let i = k1; i > k0; i--) v.push(i * n + k0), t.push(0.75 + (k1 - i) / w / 4) // west edge, south → north
+  return { v, t }
+}
+
+/**
+ * Zipper strip between the inner level's boundary ring and the outer level's hole ring. Both rings are concentric
+ * axis-aligned squares walked clockwise from their north-west corners, so equal perimeter fractions face each
+ * other and the strip never folds. Positions and normals are copied from the two level meshes.
+ */
+export function stitch(inner: LevelGrid, innerNormals: Float32Array, outer: LevelGrid, outerNormals: Float32Array): BufferGeometry {
+  const ni = inner.level.size
+  const ri = ring(ni, 0, ni - 1)
+  const [k0, k1] = holeRange(outer.level, inner.level.ext)
+  const ro = ring(outer.level.size, k0, k1)
+  const nI = ri.v.length
+  const nO = ro.v.length
+  const pos = new Float32Array((nI + nO) * 3)
+  const nor = new Float32Array((nI + nO) * 3)
+  const ok = new Uint8Array(nI + nO)
+  const copy = (dst: number, g: LevelGrid, normals: Float32Array, v: number) => {
+    const bad = !(Math.abs(normals[v * 3 + 2]) > 0) // vertex in no triangle of its level: zero or NaN normal
+    for (let c = 0; c < 3; c++) {
+      pos[dst * 3 + c] = g.pos[v * 3 + c]
+      nor[dst * 3 + c] = bad ? (c === 2 ? 1 : 0) : normals[v * 3 + c]
+    }
+    ok[dst] = g.ok[v]
+  }
+  ri.v.forEach((v, k) => copy(k, inner, innerNormals, v))
+  ro.v.forEach((v, k) => copy(nI + k, outer, outerNormals, v))
+  const idx: number[] = []
+  const tri = (a: number, b: number, c: number) => {
+    if (ok[a] && ok[b] && ok[c]) idx.push(a, b, c)
+  }
+  let a = 0
+  let b = 0
+  while (a < nI || b < nO) {
+    const ta = a < nI ? (a + 1 < nI ? ri.t[a + 1] : 1) : Infinity
+    const tb = b < nO ? (b + 1 < nO ? ro.t[b + 1] : 1) : Infinity
+    if (ta <= tb) {
+      tri(a % nI, (a + 1) % nI, nI + (b % nO)) // inner edge + outer vertex (counter-clockwise seen from above)
+      a++
+    } else {
+      tri(a % nI, nI + ((b + 1) % nO), nI + (b % nO))
+      b++
+    }
+  }
+  const geo = new BufferGeometry()
+  geo.setAttribute('position', new Float32BufferAttribute(pos, 3))
+  geo.setAttribute('normal', new Float32BufferAttribute(nor, 3))
+  geo.setIndex(idx)
+  geo.computeBoundingSphere()
+  return geo
+}
+
+/** Vertex normals of a full-resolution level mesh (stride 1), for the strips. */
+export const normalsOf = (g: BufferGeometry) => g.attributes.normal.array as Float32Array
