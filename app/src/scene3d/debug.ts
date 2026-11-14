@@ -43,6 +43,7 @@ export interface DebugView {
   setAnimated(on: boolean): void
   advance(ms: number): void
   flying(): boolean
+  flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
   topView(): boolean
   named(): SceneName | null
   surfaceAt(x: number, y: number): { lat: number; lon: number } | null
@@ -132,6 +133,14 @@ export function installDebug(v: DebugView) {
     setAnimated: (on: boolean) => v.setAnimated(on),
     advance: (ms: number) => v.advance(ms),
     flying: () => v.flying(),
+    // A new frame as the app delivers it (update(frame)): the site and time change, the camera is not placed.
+    load: async (siteId: string, utc: string | number) => {
+      await v.load(siteId, typeof utc === 'number' ? utc : Date.parse(utc))
+      v.renderNow()
+    },
+    // The camera in one frame at every level (MOON_ME km and the orientation in MOON_ME), with the site scene's
+    // share of the picture (0 = space scene, 1 = site scene) and the site's position, for the fly between the scenes.
+    flyPose: () => v.flyPose(),
     topView: () => v.topView(),
     named: () => v.named(),
     surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),

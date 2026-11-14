@@ -9,6 +9,7 @@
 
 import {
   ACESFilmicToneMapping,
+  MathUtils,
   MOUSE,
   PerspectiveCamera,
   Quaternion,
@@ -36,6 +37,7 @@ import {
 import { loadTextures } from './assets'
 import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
+import { Dissolve } from './dissolve'
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
 import { GlobeWorld } from './globe'
 import { SiteWorld } from './site'
@@ -156,6 +158,15 @@ const BODY_FRAME = 5.5 // Earth and Sun viewpoints: camera this many body radii 
 const POINT_ABOVE_KM = GLOBE_DIST_KM.min // a point outside the terrain tile is looked at from this far from the Moon's centre
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
 const FLY_MS = 1500
+// The fly between the globe and the site (S3). Longer than the other flights: it covers a factor of about 280 in
+// distance, and at 2.4 s the picture never grows by more than about 12 % from one 60 Hz frame to the next.
+const DESCENT_MS = 2400
+const DESCENT_RANGE = 300 // the ratio of start to end distance the 2.4 s are for; a larger one takes longer in proportion to its logarithm
+// Share of the way toward the site over which the site scene fades in over the space scene. With the default
+// views the camera is about 270 km above the surface at 0.5 and about 17 km at 0.92, where the ±300 km of terrain
+// around the site fill the picture to the horizon; the fade takes about half a second.
+const DISSOLVE_FROM = 0.5
+const DISSOLVE_TO = 0.92
 const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the time cursor) is spread over this long
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
@@ -164,13 +175,24 @@ const BACKGROUND = 0x0b0d11
 interface Fly {
   cam: PerspectiveCamera // globeCam: a flight through space (MOON_ME km); siteCam: a walk in the site scene (ENU m)
   t0: number
-  p0: Vector3
-  p1: Vector3
-  q0: Quaternion
-  q1: Quaternion
-  k: number // > 1: the remaining distance shrinks geometrically (long flights between bodies); 1: plain ease
+  ms: number
+  /** Puts the camera where it is at eased progress e (0 = start, 1 = end). */
+  place: (e: number) => void
+  /**
+   * Set for the fly between the two scenes: what the site scene shows meanwhile (the terrain of the level at
+   * its site end, the mast, the ground cross) and its share of the picture, 0 = space scene only, 1 = site scene only.
+   */
+  site: { eye: boolean; mast: boolean; cross: boolean; mix: number; toSite: boolean } | null
   done: () => void
 }
+
+/** A camera pose in the space scene: position in MOON_ME km and orientation. */
+interface Pose {
+  p: Vector3
+  q: Quaternion
+}
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2) // cubic, every flight
 
 /** Throws when WebGL is unavailable; C2 then shows the horizon strip and the sentence. */
 export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle {
@@ -283,9 +305,17 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   const inSpace = () => level === 'globe' || (fly !== null && fly.cam === globeCam)
   const activeCam = () => (inSpace() ? globeCam : siteCam)
   // Eye-level terrain (mask ring or crest strip) is built for the landing site's eye point only: after a walk
-  // the site-level terrain is drawn and the mast is shown again, as from any other place.
-  const eyeTerrain = () => level === 'eye' && !stand
-  const showMast = () => level === 'site' || (level === 'eye' && stand !== null)
+  // the site-level terrain is drawn and the mast is shown again, as from any other place. During the fly
+  // between the scenes the site scene keeps what its end of the fly shows.
+  const eyeTerrain = () => (fly?.site ? fly.site.eye : level === 'eye' && !stand)
+  const showMast = () => (fly?.site ? fly.site.mast : level === 'site' || (level === 'eye' && stand !== null))
+  const showCross = () => (fly?.site ? fly.site.cross : level === 'site')
+  const dissolve = new Dissolve()
+  const setFov = (cam: PerspectiveCamera, fov: number) => {
+    if (cam.fov === fov) return
+    cam.fov = fov
+    cam.updateProjectionMatrix()
+  }
 
   function setControls() {
     globeControls.enabled = level === 'globe' && !fly && !top
@@ -390,19 +420,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // ---------- frame / sky ----------
 
-  function syncSky() {
+  const NO_TURN = new Quaternion()
+  function syncSky(which: 'space' | 'site' = inSpace() ? 'space' : 'site') {
     if (!sky || !frame) return
     sky.showBodies(!top)
     if (top && topView) {
       // The top view draws its own three bodies; the sky layer only supplies the stars behind them.
       topView.update(frame.state, globeCam, size.x, size.y)
-      sky.update(frame.state, new Vector3(), new Quaternion())
+      sky.update(frame.state, new Vector3(), NO_TURN)
       sky.syncCamera(topView.camera)
       return
     }
-    if (inSpace()) sky.update(frame.state, globeCam.position, new Quaternion())
+    if (which === 'space') sky.update(frame.state, globeCam.position, NO_TURN)
     else sky.update(frame.state, siteKm, meToEnu)
-    sky.syncCamera(activeCam())
+    sky.syncCamera(which === 'space' ? globeCam : siteCam)
   }
 
   // Terrain light levels as drawn: they ease toward the computed ones, so a jump of the time cursor across a
@@ -464,6 +495,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function applyFrame(f: SceneFrame) {
     const siteChanged = !builtFor || builtFor.site?.id !== f.site?.id
+    // The fly between the scenes ends at the site that is being replaced. On the way down, before the site
+    // scene is in the picture, it turns to the new site from where the camera is (the app asks for the site
+    // view first and delivers the site's frame a moment later); otherwise it ends at once.
+    const retarget = siteChanged && f.site !== null && fly?.site?.toSite === true && fly.site.mix === 0
+    if (siteChanged && fly?.site && !retarget) finishFly()
     frame = f
     if (f.site) {
       siteKm = v3(siteVector(f.site.lat, f.site.lon, (f.site.elev_m ?? 0) / 1000))
@@ -492,6 +528,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     } else if (siteChanged && level === 'eye') setEyeView()
     else if (siteChanged && level !== 'globe') setSiteView()
     if (wanted && f.site && !fly) setLevel(wanted, false)
+    if (retarget) {
+      fly = null
+      descendToSite()
+    }
     setControls()
     markDirty()
   }
@@ -635,8 +675,98 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return { p, q }
   }
 
+  /** k > 1: the remaining distance shrinks geometrically (long flights between bodies); 1: plain ease. */
   function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void, cam: PerspectiveCamera = globeCam, k = 1) {
-    fly = { cam, t0: nowMs(), p0, q0, p1, q1, k, done }
+    const place = (e: number) => {
+      // Between bodies the remaining distance shrinks geometrically, so the destination grows through the whole
+      // flight instead of in its last frames.
+      const along = k > 1.001 ? 1 - (k ** (1 - e) - 1) / (k - 1) : e
+      cam.position.lerpVectors(p0, p1, along)
+      cam.quaternion.slerpQuaternions(q0, q1, e)
+      // A walk never cuts through a hill on its way.
+      if (cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
+    }
+    fly = { cam, t0: nowMs(), ms: FLY_MS, place, site: null, done }
+    setControls()
+    markDirty()
+  }
+
+  /** The site camera as it stands, for the ground end of the fly between the scenes. */
+  function groundEnd() {
+    return {
+      ...sitePoseInMe(),
+      // Distance to what the camera looks at, km: the scale the fly ends on (17 km in the default site view).
+      distKm: Math.max(siteCam.position.distanceTo(siteControls.target) / 1000, 1),
+      fov: siteCam.fov,
+      shown: { eye: eyeTerrain(), mast: showMast(), cross: showCross() },
+    }
+  }
+
+  /** The space camera's pose in the site scene's frame and unit, so both scenes are drawn from the same place. */
+  function syncSiteCam() {
+    siteCam.position.copy(globeCam.position).sub(siteKm).applyQuaternion(meToEnu).multiplyScalar(1000)
+    siteCam.quaternion.multiplyQuaternions(meToEnu, globeCam.quaternion)
+    setFov(siteCam, globeCam.fov)
+    siteCam.updateMatrixWorld(true)
+  }
+
+  /**
+   * The fly between the globe and the site (S3), one continuous move, the same path in both directions.
+   * `space` is its end above the Moon, `ground` its end at the site (both MOON_ME km); u runs from 0 at the
+   * space end to 1 at the ground end.
+   *   position: around the Moon on the great circle between the two directions from its centre, with the
+   *     height falling in step, both by a(u) = (k − k^(1−u)) / (k − 1): what is left of the way shrinks
+   *     geometrically, so the ground grows at an even rate instead of rushing up in the last frames, and the
+   *     path never enters the Moon, wherever on the globe it starts.
+   *   orientation: the space view carried around the Moon with the camera (the Moon stays in the picture as it
+   *     turns underneath), then turned into the site view by s(u) = (k^u − 1) / (k − 1), which is the share
+   *     that keeps the site near the middle of the picture: s ≈ 1 / (1 + remaining way / final distance).
+   *   field of view: from the default lens to the site end's lens by s (only an eye-level zoom differs).
+   *   picture: the site scene fades in over the space scene between DISSOLVE_FROM and DISSOLVE_TO of u.
+   * k = height of the space end above the Moon over the distance the site camera looks from.
+   */
+  function startDescent(space: Pose, ground: ReturnType<typeof groundEnd>, toSite: boolean, done: () => void) {
+    const rHigh = space.p.length()
+    const rLow = ground.p.length()
+    const dirHigh = space.p.clone().normalize()
+    const dirLow = ground.p.clone().normalize()
+    const arc = new Quaternion().setFromUnitVectors(dirHigh, dirLow)
+    const k = MathUtils.clamp((rHigh - MOON_RADIUS_KM) / ground.distKm, 1, 1e6)
+    // Longer where there is more to cover, so no frame moves or turns more than in the default fly: more than a
+    // quarter of the way around the Moon (to 1.4 times from the far side; half the chord between the two
+    // directions is the sine of half the angle between them), and a larger range of distance (from eye level).
+    const ms =
+      DESCENT_MS * Math.max(1, dirHigh.distanceTo(dirLow) / 2 / Math.SQRT1_2) * Math.max(1, Math.log(k) / Math.log(DESCENT_RANGE))
+    const part = new Quaternion()
+    // The turn from the carried space view (once it has arrived above the site) into the site view: fixed for the
+    // whole fly, so no frame chooses between two ways round.
+    const turn = arc.clone().multiply(space.q).invert().multiply(ground.q)
+    const partTurn = new Quaternion()
+    const shown = { ...ground.shown, mix: toSite ? 0 : 1, toSite }
+    const place = (e: number) => {
+      const u = toSite ? e : 1 - e
+      const a = k > 1.001 ? (k - k ** (1 - u)) / (k - 1) : u
+      const s = k > 1.001 ? (k ** u - 1) / (k - 1) : u
+      part.slerpQuaternions(NO_TURN, arc, a)
+      globeCam.position.copy(dirHigh).applyQuaternion(part).multiplyScalar(rHigh + (rLow - rHigh) * a)
+      globeCam.quaternion.multiplyQuaternions(part, space.q).multiply(partTurn.slerpQuaternions(NO_TURN, turn, s))
+      setFov(globeCam, baseFov + (ground.fov - baseFov) * s)
+      shown.mix = MathUtils.smoothstep(u, DISSOLVE_FROM, DISSOLVE_TO)
+      syncSiteCam()
+    }
+    fly = {
+      cam: globeCam,
+      t0: nowMs(),
+      ms,
+      place,
+      site: shown,
+      done() {
+        setFov(globeCam, baseFov)
+        done()
+      },
+    }
+    place(0)
+    globeCam.updateMatrixWorld(true)
     setControls()
     markDirty()
   }
@@ -672,31 +802,49 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return true
   }
 
+  /** From where the space camera is down to the default view of the current site. */
+  function descendToSite() {
+    const from = { p: globeCam.position.clone(), q: globeCam.quaternion.clone() }
+    level = 'site'
+    setSiteView()
+    const ground = groundEnd()
+    const keep = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
+    level = 'globe' // the space camera leads the fly; the site scene fades in over it
+    startDescent(from, ground, true, () => {
+      level = 'site'
+      siteCam.position.copy(keep.p)
+      siteCam.quaternion.copy(keep.q)
+      setFov(siteCam, ground.fov)
+      siteControls.update()
+    })
+  }
+
   function stepFly(now: number) {
     if (!fly) return
-    const t = Math.min((now - fly.t0) / FLY_MS, 1)
-    const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2 // ease in-out cubic
-    // Between bodies the remaining distance shrinks geometrically, so the destination grows through the whole
-    // flight instead of in its last frames.
-    const along = fly.k > 1.001 ? 1 - (fly.k ** (1 - e) - 1) / (fly.k - 1) : e
-    fly.cam.position.lerpVectors(fly.p0, fly.p1, along)
-    fly.cam.quaternion.slerpQuaternions(fly.q0, fly.q1, e)
-    // A walk never cuts through a hill on its way.
-    if (fly.cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
+    const t = Math.min((now - fly.t0) / fly.ms, 1)
+    fly.place(easeInOut(t))
     fly.cam.updateMatrixWorld(true)
     markDirty()
     if (t >= 1) {
-      const done = fly.done
-      fly = null
-      done()
-      setControls()
+      finishFly()
       if (wanted && wanted !== level) setLevel(wanted)
     }
+  }
+
+  /** Ends the running fly at its destination. */
+  function finishFly() {
+    if (!fly) return
+    const done = fly.done
+    fly = null
+    done()
+    setControls()
+    markDirty()
   }
 
   /** To a pose in the space scene, from wherever the camera is. `place` puts globeCam and its controls there. */
   function flyInSpace(place: () => void, animate: boolean) {
     const from = level === 'globe' ? { p: globeCam.position.clone(), q: globeCam.quaternion.clone() } : sitePoseInMe()
+    const ground = level === 'globe' ? null : groundEnd()
     const was = level
     level = 'globe'
     wanted = null
@@ -704,20 +852,23 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (animate) {
       const to = { p: globeCam.position.clone(), q: globeCam.quaternion.clone() }
       const target = globeControls.target.clone()
+      const arrive = () => {
+        globeCam.position.copy(to.p)
+        globeControls.target.copy(target)
+        globeCam.lookAt(target)
+        globeControls.update()
+      }
       globeCam.position.copy(from.p)
       globeCam.quaternion.copy(from.q)
       const k = from.p.distanceTo(to.p) / Math.max(to.p.distanceTo(target), 1)
-      startFly(
+      // From the site to a view of the Moon: the fly between the scenes, backwards.
+      if (ground && target.lengthSq() === 0) startDescent(to, ground, false, arrive)
+      else startFly(
         from.p,
         from.q,
         to.p,
         to.q,
-        () => {
-          globeCam.position.copy(to.p)
-          globeControls.target.copy(target)
-          globeCam.lookAt(target)
-          globeControls.update()
-        },
+        arrive,
         globeCam,
         k,
       )
@@ -778,13 +929,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const prev = level
     if (next === 'globe') {
       if (prev !== 'globe' && animate) {
-        const from = sitePoseInMe()
+        const ground = groundEnd()
         level = 'globe'
         setGlobeView()
         const to = { p: globeCam.position.clone(), q: globeCam.quaternion.clone() }
-        globeCam.position.copy(from.p)
-        globeCam.quaternion.copy(from.q)
-        startFly(from.p, from.q, to.p, to.q, () => {
+        startDescent(to, ground, false, () => {
           globeCam.position.copy(to.p)
           globeCam.lookAt(0, 0, 0)
           globeControls.update()
@@ -794,17 +943,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         setGlobeView()
       }
     } else if (next === 'site') {
-      if (prev === 'globe' && animate) {
-        const p0 = globeCam.position.clone()
-        const q0 = globeCam.quaternion.clone()
-        level = 'site'
-        setSiteView()
-        const to = sitePoseInMe()
-        level = 'globe' // render the space scene during the fly
-        startFly(p0, q0, to.p, to.q, () => {
-          level = 'site'
-        })
-      } else {
+      if (prev === 'globe' && animate) descendToSite()
+      else {
         level = 'site'
         setSiteView()
       }
@@ -859,9 +999,15 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       const head = globe.pinTop(frame.site.id)
       if (!head) return null
       const sp = toScreen(head, globeCam)
-      return { ...sp, visible: sp.visible && globe.pinsVisible && !globe.occluded(globeCam.position, head) }
+      const pin = { ...sp, visible: sp.visible && globe.pinsVisible && !globe.occluded(globeCam.position, head) }
+      // During the fly between the scenes the label goes from the pin's head to the mast's top with the fade.
+      const mix = fly?.site?.mast ? fly.site.mix : 0
+      if (mix <= 0) return pin
+      site.updateMarker(siteCam, size.y, true, showCross())
+      const mast = toScreen(site.mastTop(), siteCam)
+      return { x: pin.x + (mast.x - pin.x) * mix, y: pin.y + (mast.y - pin.y) * mix, visible: mix < 0.5 ? pin.visible : mast.visible }
     }
-    site.updateMarker(siteCam, size.y, showMast(), level === 'site')
+    site.updateMarker(siteCam, size.y, showMast(), showCross())
     const mast = site.mastTop()
     const sp = toScreen(mast, siteCam)
     if (!showMast()) return { ...sp, visible: false } // the mast is hidden while standing on the site
@@ -884,28 +1030,50 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // ---------- render loop ----------
 
-  function render() {
+  /** The space scene (or the top view) from the space camera. */
+  function drawSpace() {
     if (!sky || !globe) return
-    site.setEyeMode(eyeTerrain())
-    const cam = activeCam()
-    if (inSpace()) {
-      globe.updatePins(globeCam, size.y)
-      // Far enough to keep the Moon in the picture from the Earth and Sun viewpoints; unchanged near the Moon.
-      const far = Math.max(2e5, 2 * globeCam.position.length() + 1e4)
-      if (globeCam.far !== far) {
-        globeCam.far = far
-        globeCam.updateProjectionMatrix()
-      }
-    } else {
-      site.updateMarker(siteCam, size.y, showMast(), level === 'site')
-      site.updateMarks(siteCam, size.y)
+    globe.updatePins(globeCam, size.y)
+    // Far enough to keep the Moon in the picture from the Earth and Sun viewpoints; unchanged near the Moon.
+    const far = Math.max(2e5, 2 * globeCam.position.length() + 1e4)
+    if (globeCam.far !== far) {
+      globeCam.far = far
+      globeCam.updateProjectionMatrix()
     }
-    syncSky()
+    syncSky('space')
     renderer.clear()
     if (frame) sky.render(renderer)
     renderer.clearDepth()
     if (top && topView) renderer.render(topView.scene, topView.camera)
-    else renderer.render(inSpace() ? globe.scene : site.scene, cam)
+    else renderer.render(globe.scene, globeCam)
+  }
+
+  /** The site scene from the site camera. */
+  function drawSite() {
+    if (!sky) return
+    site.updateMarker(siteCam, size.y, showMast(), showCross())
+    site.updateMarks(siteCam, size.y)
+    syncSky('site')
+    renderer.clear()
+    if (frame) sky.render(renderer)
+    renderer.clearDepth()
+    renderer.render(site.scene, siteCam)
+  }
+
+  function render() {
+    if (!sky || !globe) return
+    site.setEyeMode(eyeTerrain())
+    // The fly between the scenes: one scene alone at its ends, both in between, the site scene laid over the
+    // space scene with its share of the picture.
+    const mix = fly?.site ? fly.site.mix : inSpace() ? 0 : 1
+    if (mix <= 0) drawSpace()
+    else if (mix >= 1) drawSite()
+    else {
+      drawSite()
+      dissolve.capture(renderer)
+      drawSpace()
+      dissolve.draw(renderer, mix)
+    }
   }
 
   // ---------- names of pins and user points, the Moon point under the pointer ----------
@@ -982,11 +1150,14 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (fly) stepFly(nowMs())
     if (light.easing) stepLight()
     if (freeCam.step(dtMs)) markDirty()
+    // A fly owns its camera: OrbitControls.update() would put the camera back on its orbit (inside the distance
+    // limits, looking at the orbit target) after every step of the flight.
+    if (fly) return
     const ctl = inSpace() ? globeControls : siteControls
     // The orbit drag eases with the same time constant as the wheel and the look-around, whatever the frame rate.
     ctl.dampingFactor = easeShare(dtMs)
     if (ctl.update()) markDirty()
-    if (!fly && keepAboveGround()) markDirty()
+    if (keepAboveGround()) markDirty()
   }
 
   let lastMs = performance.now()
@@ -1159,6 +1330,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       freeCam.dispose()
       siteControls.dispose()
       globeControls.dispose()
+      dissolve.dispose()
       renderer.dispose()
       canvas.remove()
       fpsEl?.remove()
@@ -1256,6 +1428,18 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         dirty = false
       },
       flying: () => fly !== null,
+      flyPose() {
+        const space = inSpace()
+        const pose = space ? { p: globeCam.position, q: globeCam.quaternion } : sitePoseInMe()
+        return {
+          flying: fly !== null,
+          mix: fly?.site ? fly.site.mix : space ? 0 : 1,
+          position: pose.p.toArray(),
+          quaternion: pose.q.toArray(),
+          fov: activeCam().fov,
+          site: siteKm.toArray(),
+        }
+      },
       topView: () => top,
       named,
       surfaceAt(x, y) {

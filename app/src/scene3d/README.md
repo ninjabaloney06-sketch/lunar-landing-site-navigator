@@ -24,3 +24,8 @@ Terrain light (S2): at site and eye level the sunlight is the share of the Sun's
 (geometry.discFraction, the app's own number, read only), from full down to 12 %, plus an even night fill that
 takes over as the disc goes; earthshine follows Earth's disc the same way. A change eases over 500 ms
 (index.ts LIGHT_EASE_MS); directions and computed numbers are never eased. The globe has no such switch.
+Flights (S3): a fly owns its camera; OrbitControls.update() is not called while one runs (it used to pull the
+camera back onto its orbit every frame: the globe → site fly stopped 3000 km from the Moon's centre and cut, the
+walk jumped to its end). The fly between the globe and the site (index.ts startDescent, 2.4 s) goes around the
+Moon on a great circle with the height falling geometrically, turns into the site view as it arrives, and
+cross-dissolves the two scenes drawn from the same pose (dissolve.ts); back is the same path reversed.

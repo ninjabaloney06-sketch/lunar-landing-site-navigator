@@ -1,0 +1,180 @@
+// Pins drawn in numbers (S4): the points of interest on the globe and in the site scene, and the other landing
+// sites near the current one in the site scene. Three instanced meshes for any number of pins (stems, round
+// heads, triangular heads), a constant size on screen, and nothing allocated per frame.
+//
+// Shapes: 'site' is the landing-site pin, a stem with a round head. 'poi' is a short stem with a triangle that
+// always faces the camera, tip down: it reads as a triangle from every side, so it is not mistaken for the round
+// head of a site pin or the square head of a user point.
+
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Color,
+  Float32BufferAttribute,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  Quaternion,
+  SphereGeometry,
+  Vector3,
+  type PerspectiveCamera,
+  type Vector2,
+} from 'three'
+
+export interface PinItem {
+  /** What named() reports: a point of interest (its ScenePoi id) or a landing site (its id in sites.json). */
+  kind: 'poi' | 'site'
+  id: string
+  name: string
+  shape: 'site' | 'poi'
+  /** Where the pin stands and the unit vector its stem points along, in the scene's frame and unit. */
+  base: Vector3
+  up: Vector3
+  color: string | number
+}
+
+const STEM_W_PX = 1.6
+const SITE_LEN_PX = 26 // the globe's site pin (globe.ts)
+const SITE_HEAD_PX = 3.2
+const POI_LEN_PX = 12
+const POI_HEAD_PX = 5.5 // circumradius of the triangle
+const Z = new Vector3(0, 0, 1)
+const H = Math.sqrt(3) / 2
+
+/** Unit triangle in the xy plane, one corner straight down, facing +z. */
+function triangle(): BufferGeometry {
+  const g = new BufferGeometry()
+  g.setAttribute('position', new Float32BufferAttribute([0, -1, 0, H, 0.5, 0, -H, 0.5, 0], 3))
+  g.setAttribute('normal', new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3))
+  return g
+}
+
+export class PinField {
+  readonly group = new Group()
+  private items: PinItem[] = []
+  private turn: Quaternion[] = [] // stem direction of each pin
+  private slot = new Int32Array(0) // index of each pin's head in its head mesh
+  private heads = new Float32Array(0) // head centre of each pin after update(), xyz
+  private stems: InstancedMesh | null = null
+  private round: InstancedMesh | null = null
+  private tri: InstancedMesh | null = null
+  private readonly mat = new MeshBasicMaterial({ color: 0xffffff, toneMapped: false })
+  private readonly stemGeo = new BoxGeometry(1, 1, 1).translate(0, 0, 0.5)
+  private readonly roundGeo = new SphereGeometry(1, 12, 8)
+  private readonly triGeo = triangle()
+  // Scratch values for update() and nearest(): nothing is allocated per frame.
+  private readonly m = new Matrix4()
+  private readonly p = new Vector3()
+  private readonly s = new Vector3()
+  private readonly camUp = new Vector3()
+  private readonly still = new Quaternion()
+
+  get count() {
+    return this.items.length
+  }
+
+  set(items: PinItem[]) {
+    for (const mesh of [this.stems, this.round, this.tri]) {
+      if (!mesh) continue
+      this.group.remove(mesh)
+      mesh.dispose()
+    }
+    this.stems = this.round = this.tri = null
+    this.items = items
+    this.turn = items.map((it) => new Quaternion().setFromUnitVectors(Z, it.up))
+    this.slot = new Int32Array(items.length)
+    this.heads = new Float32Array(items.length * 3)
+    if (!items.length) return
+    const nRound = items.filter((it) => it.shape === 'site').length
+    const mesh = (geo: BufferGeometry, n: number) => {
+      const im = new InstancedMesh(geo, this.mat, n)
+      im.frustumCulled = false // the instances move every frame; the pins are few
+      this.group.add(im)
+      return im
+    }
+    this.stems = mesh(this.stemGeo, items.length)
+    if (nRound) this.round = mesh(this.roundGeo, nRound)
+    if (nRound < items.length) this.tri = mesh(this.triGeo, items.length - nRound)
+    const c = new Color()
+    let r = 0
+    let t = 0
+    items.forEach((it, i) => {
+      c.set(it.color)
+      this.stems!.setColorAt(i, c)
+      if (it.shape === 'site') {
+        this.slot[i] = r
+        this.round!.setColorAt(r++, c)
+      } else {
+        this.slot[i] = t
+        this.tri!.setColorAt(t++, c)
+      }
+    })
+  }
+
+  /** Constant size on screen: call before drawing and before head() or nearest(). */
+  update(cam: PerspectiveCamera, heightPx: number) {
+    if (!this.stems) return
+    const { items, m, p, s, heads } = this
+    const scale = 2 / (cam.projectionMatrix.elements[5] * heightPx)
+    this.camUp.setFromMatrixColumn(cam.matrixWorld, 1)
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i]
+      const perPx = Math.max(cam.position.distanceTo(it.base), 1e-6) * scale
+      const site = it.shape === 'site'
+      const len = (site ? SITE_LEN_PX : POI_LEN_PX) * perPx
+      const w = STEM_W_PX * perPx
+      this.stems.setMatrixAt(i, m.compose(it.base, this.turn[i], s.set(w, w, len)))
+      p.copy(it.base).addScaledVector(it.up, len)
+      if (site) {
+        this.round!.setMatrixAt(this.slot[i], m.compose(p, this.still, s.setScalar(SITE_HEAD_PX * perPx)))
+      } else {
+        // The triangle faces the camera, its lower corner on the top of the stem.
+        const r = POI_HEAD_PX * perPx
+        p.addScaledVector(this.camUp, r)
+        this.tri!.setMatrixAt(this.slot[i], m.compose(p, cam.quaternion, s.setScalar(r)))
+      }
+      heads[i * 3] = p.x
+      heads[i * 3 + 1] = p.y
+      heads[i * 3 + 2] = p.z
+    }
+    this.stems.instanceMatrix.needsUpdate = true
+    if (this.round) this.round.instanceMatrix.needsUpdate = true
+    if (this.tri) this.tri.instanceMatrix.needsUpdate = true
+  }
+
+  item(i: number): PinItem | null {
+    return this.items[i] ?? null
+  }
+
+  indexOf(kind: PinItem['kind'], id: string): number {
+    return this.items.findIndex((it) => it.kind === kind && it.id === id)
+  }
+
+  /** Head centre of pin i as of the last update(), in the scene's frame. */
+  head(i: number, out: Vector3): Vector3 {
+    return out.fromArray(this.heads, i * 3)
+  }
+
+  /**
+   * The pin of the given kind whose head is nearest to the pointer within radiusPx, −1 if none. `hidden` is
+   * asked only for heads inside the radius (it may be a ray test against terrain).
+   */
+  nearest(kind: PinItem['kind'], ndc: Vector2, cam: PerspectiveCamera, widthPx: number, heightPx: number, radiusPx: number, hidden: (head: Vector3) => boolean): number {
+    let best = -1
+    let bestD = radiusPx
+    const { items, p, s } = this
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind !== kind) continue
+      s.fromArray(this.heads, i * 3)
+      p.copy(s).project(cam)
+      if (p.z > 1 || p.z < -1) continue
+      const d = Math.hypot(((p.x - ndc.x) / 2) * widthPx, ((p.y - ndc.y) / 2) * heightPx)
+      if (d < bestD && !hidden(s)) {
+        bestD = d
+        best = i
+      }
+    }
+    return best
+  }
+}
