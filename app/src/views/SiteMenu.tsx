@@ -6,10 +6,11 @@ import type { Site } from '../data/types'
 import type { UserPoint } from '../state'
 import { fmtCoords, parseCoords } from './format'
 
+// Every group in the site contract has a home, so no site is unreachable (UX-04).
 const GROUPS: { title: string; groups: Site['group'][] }[] = [
   { title: 'Artemis regions, NASA 2024', groups: ['artemis-2024'] },
-  { title: 'Artemis regions, 2022 only', groups: ['artemis-2022'] },
-  { title: 'NASA reference points', groups: ['reference'] },
+  { title: 'Artemis regions, NASA 2022', groups: ['artemis-2022'] },
+  { title: 'Reference points', groups: ['reference'] },
   { title: 'Landers', groups: ['clps', 'commercial', 'international', 'apollo'] },
 ]
 
@@ -27,7 +28,11 @@ export function SiteMenu({ sites, currentId, points, onSelect, onClose }: Props)
   const input = useRef<HTMLInputElement>(null)
   const root = useRef<HTMLDivElement>(null)
 
-  useEffect(() => input.current?.focus(), [])
+  useEffect(() => {
+    input.current?.focus()
+    // The selected site may sit far down the list (reference points): show it on open.
+    root.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' })
+  }, [])
 
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
@@ -44,7 +49,7 @@ export function SiteMenu({ sites, currentId, points, onSelect, onClose }: Props)
     () =>
       GROUPS.map((g) => ({
         title: g.title,
-        items: sites.filter((s) => g.groups.includes(s.group) && (coords.kind !== 'none' || !q || s.name.toLowerCase().includes(q))),
+        items: sites.filter((s) => g.groups.includes(s.group) && (coords.kind !== 'none' || !q || `${s.name} ${s.label ?? ''}`.toLowerCase().includes(q))),
       })).filter((g) => g.items.length > 0),
     [sites, q, coords.kind],
   )
@@ -68,7 +73,7 @@ export function SiteMenu({ sites, currentId, points, onSelect, onClose }: Props)
   }
 
   return (
-    <div ref={root} className="popover menu" role="dialog" aria-label="Choose a site" onKeyDown={onKey}>
+    <div ref={root} className="popover menu site-menu" role="dialog" aria-label="Choose a site" onKeyDown={onKey}>
       <div className="menu-search">
         <input
           ref={input}
@@ -113,8 +118,10 @@ export function SiteMenu({ sites, currentId, points, onSelect, onClose }: Props)
                   onPointerEnter={() => setActive(i)}
                   onClick={() => onSelect(s.id)}
                 >
-                  <span className="opt-name">{s.name}</span>
-                  <span className="opt-meta mono">{fmtCoords(s.lat, s.lon)}</span>
+                  <span className="opt-name">
+                    {s.name}
+                    {s.label && <span className="opt-label"> {s.label}</span>}
+                  </span>
                 </div>
               )
             })}

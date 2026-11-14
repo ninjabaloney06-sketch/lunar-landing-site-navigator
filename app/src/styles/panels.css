@@ -24,8 +24,8 @@
 }
 
 .field:focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--muted);
 }
 
 .btn {
@@ -76,7 +76,8 @@
   left: 0;
   box-sizing: border-box;
   width: min(360px, calc(100vw - var(--s-8)));
-  max-height: min(600px, calc(100vh - 260px));
+  /* Ends above the answer sentence at desktop heights, as in the mockup. */
+  max-height: max(240px, calc(100dvh - 420px));
   overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -93,6 +94,19 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* Site menu: search and "Add a point" stay put, only the list scrolls. */
+.site-menu {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.site-menu .menu-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .menu-search {
@@ -131,7 +145,7 @@
   gap: var(--s-3);
   width: 100%;
   box-sizing: border-box;
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-2) var(--s-4);
   cursor: pointer;
   text-align: left;
 }
@@ -158,6 +172,12 @@
 
 .opt-meta {
   flex: none;
+  font-size: var(--t-small);
+  color: var(--faint);
+}
+
+.opt-label {
+  display: block;
   font-size: var(--t-small);
   color: var(--faint);
 }
@@ -308,13 +328,17 @@
   color: var(--muted);
 }
 
+.finder-form .btn {
+  justify-self: start;
+}
+
 .finder-results {
   margin-top: var(--s-4);
 }
 
 .compare-pick {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
   margin-bottom: var(--s-3);
 }
@@ -418,8 +442,7 @@
     border-left: 0;
   }
 
-  .finder-form,
-  .compare-pick {
+  .finder-form {
     grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -129,7 +129,7 @@ export function Drawer(p: Props) {
             {site.name}
           </h2>
           <p className="quiet">
-            {period.label} · cursor {fmtDateTime(p.cursorMs)}
+            {period.label} · {fmtDateTime(p.cursorMs)}
           </p>
         </div>
         <button ref={closeBtn} className="btn" type="button" onClick={p.onClose}>
@@ -154,7 +154,7 @@ export function Drawer(p: Props) {
           <thead>
             <tr>
               <th scope="col">Station</th>
-              <th scope="col">Now</th>
+              <th scope="col">State</th>
               <th scope="col">Elev. from site</th>
               <th scope="col">Moon elev. at station</th>
             </tr>
@@ -274,6 +274,7 @@ export function Drawer(p: Props) {
             Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
             station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
           </li>
+          {!site.horizon && <li>This site has no terrain horizon in this build yet; the horizon is drawn flat.</li>}
           {ready && results.results.source === 'sample' && <li>This build shows invented sample values in place of computed ones.</li>}
         </ul>
       </section>

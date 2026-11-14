@@ -37,7 +37,11 @@ function cell(st: ResultsState, get: (s: Summary) => string) {
 
 export function Compare({ site, periodId, periodLabel, sites, periods, stations, ids, current, sample, onSwitch }: Props) {
   const [otherSite, setOtherSite] = useState(site.id)
-  const [otherPeriod, setOtherPeriod] = useState(() => periods.find((p) => p.id !== periodId)?.id ?? periodId)
+  // Default: the next named period (Shackleton Aug 2027 → Sep 2027, the required same-site comparison).
+  const [otherPeriod, setOtherPeriod] = useState(() => {
+    const i = periods.findIndex((p) => p.id === periodId)
+    return periods.length ? periods[(i + 1) % periods.length].id : periodId
+  })
   const os = sites.find((s) => s.id === otherSite) ?? site
   const op = periods.find((p) => p.id === otherPeriod) ?? periods[0]
   const other = useResults(op ? { site: os, stations, ids, startMs: Date.parse(op.start_utc), endMs: Date.parse(op.end_utc) } : null)

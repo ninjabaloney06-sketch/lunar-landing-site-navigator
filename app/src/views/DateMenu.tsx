@@ -70,7 +70,10 @@ export function DateMenu({ periods, currentPeriodId, cursorMs, onPeriod, onCusto
               className={`opt${p.id === currentPeriodId ? ' is-selected' : ''}`}
               onClick={() => onPeriod(p.id)}
             >
-              <span className="opt-name">{p.label}</span>
+              <span className="opt-name">
+                {p.label}
+                {p.reason && <span className="opt-label"> {p.reason}</span>}
+              </span>
             </button>
           </li>
         ))}

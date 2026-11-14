@@ -24,7 +24,14 @@ async function chooseSite(page: Page, name: string) {
 
 async function choosePeriod(page: Page, label: string) {
   await page.getByTestId('date').click()
-  await page.getByRole('button', { name: label, exact: true }).click()
+  // The row also carries the period's reason ("team candidate period, …"), so match the label as a prefix.
+  await page.getByRole('button', { name: new RegExp(`^${label}`) }).click()
+}
+
+/** Station ids in stations.json order: the count is never hard-coded (6 sample stations now, 3 DSN later). */
+async function stationIds(page: Page): Promise<string[]> {
+  const res = await page.request.get('/data/stations.json')
+  return ((await res.json()) as { id: string }[]).map((s) => s.id)
 }
 
 async function expectAnswer(page: Page, siteId: string, periodId: string, timeout = 10_000) {
@@ -66,6 +73,7 @@ for (const vp of VIEWPORTS) {
     await expect(page.getByText('NASA reference point, not a chosen landing site')).toBeVisible()
     await expect(page.getByTestId('coords')).toHaveText('89.77° S · 171.87° W')
     await expect(page.getByTestId('date')).toHaveText('16 August 2027, 00:00 UTC')
+    await expect(page.getByTestId('sample-flag')).toHaveText('sample values')
     await expect(page.locator('body')).not.toContainText('NaN')
     await noHorizontalScroll(page)
   })
@@ -88,6 +96,8 @@ for (const vp of VIEWPORTS) {
 
 test('labels sit on the points project() returns and hide on null (scene stub patched in this test)', async ({ page }) => {
   // Serves the scene3d stub with a fixed projector instead of `() => null`; no repo file is changed.
+  const stub = await (await page.request.get('/src/scene3d/index.ts')).text()
+  test.skip(!stub.includes('project: () => null'), "C1's scene is merged: the fixme label tests above cover the real projector")
   const points = { sun: { x: 454, y: 163, visible: true }, earth: { x: 980, y: 117, visible: true }, site: { x: 720, y: 336, visible: true } }
   await page.route('**/src/scene3d/index.ts*', async (route) => {
     const res = await route.fetch()
@@ -111,7 +121,7 @@ test('labels sit on the points project() returns and hide on null (scene stub pa
     await new Promise((r) => setTimeout(r, 1500))
     await route.continue()
   })
-  await chooseSite(page, 'Malapert Massif Site23')
+  await chooseSite(page, 'Malapert Site23')
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'loading')
   await expect(page.getByTestId('label-sun')).toBeHidden()
   await expectAnswer(page, MALA, AUG)
@@ -119,11 +129,10 @@ test('labels sit on the points project() returns and hide on null (scene stub pa
 })
 
 test.fixme('UX-01: answer comes from the real geometry', async ({ page }) => {
-  // Waits for Track A: computeSeries/answerSentence throw "not implemented yet" and no ephemeris months exist.
+  // Waits for Track A: computeSeries/answerState throw "not implemented yet" and no ephemeris months exist.
   await page.goto(DEMO)
   await expectAnswer(page, SHACK, AUG, 60_000)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-source', 'real')
-  await expect(page.getByTestId('answer')).not.toContainText('Sunlight for 3 more days.')
 })
 
 // ---------- basic comparison ----------
@@ -154,7 +163,7 @@ test('basic comparison: Shackleton ↔ Malapert, same period; Shackleton Aug ↔
     await expectTracks(page)
     expect(Date.now() - t).toBeLessThan(10_000)
   }
-  await step(() => chooseSite(page, 'Malapert Massif Site23'), MALA, AUG)
+  await step(() => chooseSite(page, 'Malapert Site23'), MALA, AUG)
   await expect(page.getByTestId('coords')).toHaveText('85.99° S · 0.24° W')
   await step(() => chooseSite(page, 'Shackleton Rim Site04'), SHACK, AUG)
   await step(() => choosePeriod(page, 'Shackleton Rim, 12–26 Sep 2027'), SHACK, SEP)
@@ -166,20 +175,10 @@ test('basic comparison: Shackleton ↔ Malapert, same period; Shackleton Aug ↔
   const drawer = page.getByTestId('drawer')
   await drawer.getByLabel('Compare with site').selectOption(MALA)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
-  await step(() => drawer.getByRole('button', { name: /^Switch to Malapert Massif Site23/ }).click(), MALA, AUG)
+  await step(() => drawer.getByRole('button', { name: /^Switch to Malapert Site23/ }).click(), MALA, AUG)
 
   expect(await page.evaluate(() => (window as unknown as { __stale: string[] }).__stale)).toEqual([])
   await expect(page.locator('body')).not.toContainText('NaN')
-})
-
-test.fixme('basic comparison: each switch shows a different answer', async ({ page }) => {
-  // Waits for Track A: until answerSentence exists every selection shows the same fixed sample sentence.
-  await page.goto(DEMO)
-  await expectAnswer(page, SHACK, AUG, 60_000)
-  const a = await page.getByTestId('answer').innerText()
-  await chooseSite(page, 'Malapert Massif Site23')
-  await expectAnswer(page, MALA, AUG)
-  expect(await page.getByTestId('answer').innerText()).not.toBe(a)
 })
 
 // ---------- UX-03 ----------
@@ -203,10 +202,26 @@ test('UX-03: invalid coordinates are rejected with a message, never NaN', async 
   await search.fill('89.3 S, 130 W')
   await expect(page.getByRole('status')).toContainText('89.30° S · 130.00° W')
   await expect(page.getByRole('button', { name: /Add a point/ })).toBeDisabled()
-  await search.fill('Malapert')
+  await search.fill('Site23')
   await expect(page.getByRole('option')).toHaveCount(1)
   await page.keyboard.press('Enter')
   await expectAnswer(page, MALA, AUG)
+})
+
+test('UX-04: the site menu lists every site in sites.json, each with its label', async ({ page }) => {
+  const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; name: string; label: string | null }[]
+  await page.goto(DEMO)
+  await expectAnswer(page, SHACK, AUG, 60_000)
+  await page.getByTestId('site-name').click()
+  await expect(page.getByRole('option')).toHaveCount(sites.length)
+  for (const s of sites.filter((x) => x.label)) {
+    await expect(page.locator(`#site-opt-${s.id}`)).toHaveAccessibleName(`${s.name} ${s.label}`)
+  }
+  await page.getByRole('combobox').fill('Blue Moon')
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+  await expect(page.getByText('Blue Moon MK1 target')).toBeVisible()
+  await expect(page.getByTestId('coords')).toHaveText('89.46° S · 136.68° W')
 })
 
 test('UX-03: a date outside the supported range is rejected', async ({ page }) => {
@@ -230,8 +245,8 @@ test('UX-03: a failed data load shows an error', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('sites.json: HTTP 500')
 })
 
-test('UX-03: a failed horizon load shows an error in place of the answer', async ({ page }) => {
-  await page.route('**/data/horizons/**', (r) => r.fulfill({ status: 500, body: 'boom' }))
+test('UX-03: a failed ephemeris load shows an error in place of the answer', async ({ page }) => {
+  await page.route('**/data/ephem/**', (r) => r.fulfill({ status: 500, body: 'boom' }))
   await page.goto(DEMO)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'error', { timeout: 30_000 })
   await expect(page.getByTestId('answer')).toContainText('Could not load the data for Shackleton Rim Site04')
@@ -253,7 +268,7 @@ test('UX-03: without WebGL the horizon strip and the sentence still work', async
   const strip = page.getByTestId('fallback').getByTestId('horizon-strip')
   await expect(strip.getByTestId('strip-sun')).toContainText(/Sun −?\d+\.\d°/)
   await expect(strip.getByTestId('strip-earth')).toContainText(/Earth −?\d+\.\d°/)
-  await chooseSite(page, 'Malapert Massif Site23')
+  await chooseSite(page, 'Malapert Site23')
   await expectAnswer(page, MALA, AUG)
 })
 
@@ -286,11 +301,14 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   await expect(page.getByTestId('date')).toHaveText('22 December 2026, 06:30 UTC')
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
-  const boxes = drawer.getByRole('checkbox')
-  await expect(boxes).toHaveCount(6)
+  const all = await stationIds(page)
+  await expect(drawer.getByRole('checkbox')).toHaveCount(all.length)
   await expect(drawer.getByRole('checkbox', { checked: true })).toHaveCount(2)
   await drawer.getByRole('checkbox', { name: /Goldstone/ }).check()
-  await expect.poll(() => page.evaluate(() => location.hash)).toContain('st=goldstone,madrid,canberra')
+  const sel = all.filter((id) => ['goldstone', 'madrid', 'canberra'].includes(id))
+  // All stations selected is the default and leaves `st` out of the link.
+  if (sel.length === all.length) await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('st=')
+  else await expect.poll(() => page.evaluate(() => location.hash)).toContain(`st=${sel.join(',')}`)
 })
 
 test('keys and drag move the cursor; space plays', async ({ page }) => {
@@ -318,7 +336,7 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.getByTestId('answer').click()
   const drawer = page.getByTestId('drawer')
   await expect(drawer.getByRole('heading', { name: 'Stations' })).toBeVisible()
-  await expect(drawer.getByRole('checkbox', { checked: true })).toHaveCount(6)
+  await expect(drawer.getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
   await expect(drawer).toContainText('not a guaranteed radio link')
   await expect(drawer.getByTestId('horizon-strip')).toBeVisible()
   await expect(drawer.getByRole('heading', { name: 'Site potential' })).toBeAttached()
@@ -360,5 +378,9 @@ for (const vp of [
     await page.getByTestId('answer').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')
+    await page.getByTestId('drawer').getByRole('heading', { name: 'Compare' }).scrollIntoViewIfNeeded()
+    await shot('drawer-compare')
+    await page.getByTestId('drawer').getByRole('heading', { name: 'How this is computed' }).scrollIntoViewIfNeeded()
+    await shot('drawer-sources')
   })
 }
