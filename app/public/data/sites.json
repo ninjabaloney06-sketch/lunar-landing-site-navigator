@@ -262,7 +262,7 @@
   "label": "intended landing site, not touchdown",
   "lat": -84.78,
   "lon": 29.13,
-  "frame_note": "intended site as quoted by LROC (26 Feb 2025); frame not stated (MOON_ME assumed); actual touchdown 84.7906 S 29.1957 E is about 0.37 km away",
+  "frame_note": "intended site as quoted by LROC (26 Feb 2025); frame not stated (MOON_ME assumed); actual touchdown 84.7906 S 29.1957 E (LROC image 1408); NASA: more than 400 m from the intended site",
   "elev_m": null,
   "slope_deg": null,
   "horizon": null,
