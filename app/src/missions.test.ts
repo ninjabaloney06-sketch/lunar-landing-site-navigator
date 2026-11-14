@@ -1,0 +1,31 @@
+// Saved missions are stored as link text and read back through parseHash: anything else in storage is ignored.
+import { describe, expect, it } from 'vitest'
+import { MAX_MISSIONS, missionKey, missionOf, parseMissions } from './missions'
+import { parseHash } from './state'
+
+describe('saved missions', () => {
+  it('a mission is the name, site, dates, stations and goal of a link, without cursor, view, drawer or points', () => {
+    const hs = parseHash('#site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&t=2027-09-14T06:00Z&st=madrid,canberra&view=eye&drawer=details&pts=1,2&name=Massif+survey&goal=cold-trap')
+    const m = missionOf(hs)
+    expect(m).toEqual({ site: 'malapert-massif', period: 'custom', from: Date.UTC(2027, 8, 12), days: 10, st: ['madrid', 'canberra'], name: 'Massif survey', goal: 'cold-trap' })
+    expect(missionKey(m)).toBe('site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&st=madrid,canberra&name=Massif+survey&goal=cold-trap')
+    expect(parseMissions(JSON.stringify([missionKey(m)]))).toEqual([m])
+  })
+
+  it('ignores what is not a list of strings, drops duplicates and stops at the maximum', () => {
+    expect(parseMissions(null)).toEqual([])
+    expect(parseMissions('{not json')).toEqual([])
+    expect(parseMissions('{"a":1}')).toEqual([])
+    expect(parseMissions(JSON.stringify([42, null, 'name=A', 'name=A', 'name=B']))).toHaveLength(2)
+    const many = Array.from({ length: MAX_MISSIONS + 5 }, (_, i) => `name=M${i}`)
+    expect(parseMissions(JSON.stringify(many))).toHaveLength(MAX_MISSIONS)
+  })
+
+  it('a broken entry falls back to the defaults of a link, never NaN', () => {
+    const [m] = parseMissions(JSON.stringify(['site=Nope!&period=zzz&days=999&goal=biology&from=garbage']))
+    expect(m.site).toBeNull()
+    expect(m.from).toBeNull()
+    expect(Number.isFinite(m.days)).toBe(true)
+    expect(m.goal).toBe('light')
+  })
+})

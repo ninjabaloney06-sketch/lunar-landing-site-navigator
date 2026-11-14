@@ -5,19 +5,22 @@
 // C4 part 3): a name, a place and a role, never numbers. A user point has no horizon file, and nothing is
 // computed for it with a flat horizon or a neighbour's.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Site, Station } from '../data/types'
+import type { Period, Site, Station } from '../data/types'
+import { MAX_MISSIONS, missionKey } from '../missions'
+import type { MissionState } from '../missions'
 import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
 import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
 import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
+import { resolvePeriod } from './period'
 import { SLOPE_BASELINE, slopeOf } from './slope'
 import { StationChecklist } from './Stations'
 import { useSummaries } from './useSummaries'
 import type { SummaryEntry } from './useSummaries'
 
-const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
+export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
   { id: 'any', label: 'Any', rule: 'station coverage, then sunlight' },
   {
     id: 'water-ice',
@@ -69,6 +72,12 @@ interface Props {
   onToggleStation(id: string): void
   onPlay(): void
   onClose(): void
+  periods: Period[]
+  missions: MissionState[] // saved in this browser
+  missionSaved: boolean // the mission on screen is one of them
+  onAddMission(): void
+  onLoadMission(m: MissionState): void
+  onRemoveMission(key: string): void
   onAddPoint(lat: number, lon: number): void
   onPointName(i: number, name: string): void
   onPointRole(i: number, role: PointRole | null): void
@@ -295,7 +304,47 @@ export function MissionPanel(p: Props) {
             {dateError}
           </p>
         )}
+        <div className="mp-save">
+          <button type="button" className="btn" data-testid="add-mission" disabled={p.missionSaved || p.missions.length >= MAX_MISSIONS} onClick={p.onAddMission}>
+            Add mission
+          </button>
+          <span className="quiet" aria-live="polite">
+            {p.missionSaved
+              ? 'Saved in this browser.'
+              : p.missions.length >= MAX_MISSIONS
+                ? `At most ${MAX_MISSIONS} saved missions.`
+                : 'Keeps name, site, dates, stations and goal in this browser.'}
+          </span>
+        </div>
       </div>
+
+      {p.missions.length > 0 && (
+        <section className="mp-sec" aria-labelledby="mp-missions" data-testid="saved-missions">
+          <h3 id="mp-missions" className="mp-h">
+            Saved missions
+          </h3>
+          <ul className="plain">
+            {p.missions.map((m) => {
+              const key = missionKey(m)
+              const name = m.name ?? DEFAULT_MISSION_NAME
+              const where = sites.find((s) => s.id === m.site)?.name ?? site.name
+              return (
+                <li key={key} className="ms-row" data-mission={key}>
+                  <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
+                    {name}
+                  </button>
+                  <button type="button" className="mp-close ms-del" aria-label={`Remove ${name}`} onClick={() => p.onRemoveMission(key)}>
+                    ×
+                  </button>
+                  <span className="quiet ms-what">
+                    {where} · {resolvePeriod(m, p.periods).label}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
 
       <fieldset className="mp-sec mp-goals">
         <legend className="mp-h">Science goal</legend>

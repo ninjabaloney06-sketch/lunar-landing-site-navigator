@@ -71,7 +71,7 @@ test.describe('C4 part 1: camera controls (harness, 1280 × 720)', () => {
   })
 
   test('wheel moves the camera along the view direction and stops at the floor (1.75 m above terrain; the Moon is never entered)', async ({ page }) => {
-    test.setTimeout(180_000)
+    test.setTimeout(480_000) // about 30 s alone
     await openHarness(page)
     // Site level: look down at the ground beside the site.
     const a = await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ site: 'connecting-ridge', utc: '2027-08-16T12:00:00Z', level: 'site', az: 40, el: 35, dist: 6 }))
@@ -120,7 +120,7 @@ test.describe('C4 part 1: camera controls (harness, 1280 × 720)', () => {
   })
 
   test('eye level: wheel changes the field of view, not the position; the Sun and Earth keep their computed size', async ({ page }) => {
-    test.setTimeout(180_000)
+    test.setTimeout(480_000) // about 30 s alone; each wheel event waits for a software-GL frame, minutes when two suites share the machine
     await openHarness(page)
     const a = await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ site: 'connecting-ridge', utc: '2027-08-16T12:00:00Z', level: 'eye', az: 120, el: 3, fov: 54 }))
     const size = await scene(page, (s) => [s.skySize('sun'), s.skySize('earth')])

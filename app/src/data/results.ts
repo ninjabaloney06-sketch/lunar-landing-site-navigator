@@ -45,16 +45,18 @@ async function horizonOf(site: Site): Promise<Horizon> {
 // The series holds every station; a different selection reuses it and only recomputes coverage.
 const seriesCache = new Map<string, Promise<Series>>()
 
+async function buildSeries(site: Site, stations: Station[], startMs: number, endMs: number): Promise<Series> {
+  const [horizon, months] = await Promise.all([horizonOf(site), loadMonthsFor(startMs, endMs)])
+  if (!months) throw new NoDataError('No data for these dates in this build.')
+  const geo: SiteGeo = { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
+  return computeSeries(months, geo, horizon, stations, startMs, endMs)
+}
+
 function getSeries(site: Site, stations: Station[], startMs: number, endMs: number): Promise<Series> {
   const key = `${site.id}|${startMs}|${endMs}`
   let p = seriesCache.get(key)
   if (!p) {
-    p = (async () => {
-      const [horizon, months] = await Promise.all([horizonOf(site), loadMonthsFor(startMs, endMs)])
-      if (!months) throw new NoDataError('No data for these dates in this build.')
-      const geo: SiteGeo = { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
-      return computeSeries(months, geo, horizon, stations, startMs, endMs)
-    })()
+    p = buildSeries(site, stations, startMs, endMs)
     seriesCache.set(key, p)
     p.catch(() => seriesCache.delete(key))
     if (seriesCache.size > 12) seriesCache.delete(seriesCache.keys().next().value as string)
@@ -74,6 +76,21 @@ export async function computeResults(input: ResultsInput): Promise<Results> {
     summary: summarize(series, ids),
     answerAt: (utcMs) => answerSentence(answerState(series, ids, utcMs)),
   }
+}
+
+/** One row of the comparison table: the summary and the sunlit windows of a site over a span. */
+export interface RowResult {
+  summary: Summary
+  sun: Window[]
+}
+
+/** summarize() and windows(…, 'sun') on the computeSeries() series for the input. keepSeries = false builds the
+ *  series, reads the two results and lets it go: a whole year is 17 520 samples per site, and the table has a
+ *  row per site. The mission's own span keeps its series, shared with the answer and the Mission panel. */
+export async function computeRow(input: ResultsInput, keepSeries = true): Promise<RowResult> {
+  const { site, stations, ids, startMs, endMs } = input
+  const series = await (keepSeries ? getSeries : buildSeries)(site, stations, startMs, endMs)
+  return { summary: summarize(series, ids), sun: windows(series, 'sun') }
 }
 
 export type ResultsState =

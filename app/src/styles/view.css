@@ -161,7 +161,156 @@
   width: auto;
 }
 
+/* ---------- saved missions in the Mission panel ---------- */
+
+.mp-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  padding-left: calc(var(--s-12) + var(--s-3));
+}
+
+.ms-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--s-8);
+  align-items: center;
+  gap: 0 var(--s-2);
+  padding: var(--s-1) 0;
+}
+
+.ms-load {
+  justify-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ms-what {
+  grid-column: 1 / -1;
+}
+
+/* ---------- comparison table for all sites (Details drawer) ---------- */
+
+.site-table > .quiet {
+  margin: 0 0 var(--s-3);
+}
+
+.st-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3) var(--s-6);
+}
+
+.st-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.st-pick legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--s-1);
+  padding: 0;
+}
+
+.st-pick input {
+  accent-color: var(--fg);
+}
+
+.site-table .st-progress {
+  min-height: 18px;
+  margin: var(--s-3) 0 var(--s-2);
+}
+
+.st-tbl th[scope='row'] {
+  overflow-wrap: anywhere;
+}
+
+.st-tbl .st-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.st-tbl thead .st-num {
+  white-space: normal;
+}
+
+.st-tbl .st-graph {
+  width: var(--s-10);
+  padding-right: 0;
+  text-align: right;
+}
+
+.st-tbl .st-graph input {
+  accent-color: var(--sun);
+}
+
+.st-tbl tr.is-current .st-name {
+  font-weight: 500;
+}
+
+.st-rank {
+  color: var(--muted);
+}
+
+.st-find {
+  display: block;
+  color: var(--muted);
+}
+
+.st-tbl .st-group {
+  padding-top: var(--s-5);
+  color: var(--faint);
+}
+
+.st-graphs {
+  margin: var(--s-5) 0 0;
+}
+
+.st-graphs figcaption {
+  margin-bottom: var(--s-2);
+}
+
+.st-graph-row {
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) 0;
+  font-size: var(--t-small);
+}
+
+.st-graph-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.st-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-left: calc(9rem + var(--s-3));
+}
+
 @media (max-width: 640px) {
+  .mp-save {
+    padding-left: 0;
+  }
+
+  .st-graph-row {
+    grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  }
+
+  .st-axis {
+    margin-left: calc(6rem + var(--s-3));
+  }
+
   .tl-tools {
     gap: var(--s-4);
   }
