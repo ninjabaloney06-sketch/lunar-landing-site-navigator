@@ -4,8 +4,10 @@
   moon_normal_2k.png   2048 x 1024 tangent-space normal map from ldem_16_uint.tif (LOLA 16 px/deg)
   earth_2k.jpg         2048 x 1024 from world.200411.3x5400x2700.jpg (Blue Marble NG)
 
+  stars_4k.jpg         4096 x 2048 from starmap_2020_4k.exr (Deep Star Maps 2020, SVS 4851, J2000 celestial)
+
 All maps keep the source's equirectangular layout and orientation (no flips, no mirroring).
-stars_4k.jpg is not produced: the EXR driver is missing from this venv (see the report).
+stars_4k.jpg needs the OpenEXR package (rasterio has no EXR driver); without it the star map is skipped.
 """
 import math
 import sys
@@ -69,10 +71,28 @@ def earth():
     return out
 
 
+def stars():
+    """Tone-map the linear float star map to 8-bit: clip to 0..1, display gamma 2.2. No rescaling of colours."""
+    try:
+        import OpenEXR
+    except ImportError:
+        print("stars_4k.jpg skipped: OpenEXR is not installed", file=sys.stderr)
+        return None
+    src = data_root() / "textures" / "starmap_2020_4k.exr"
+    rgb = OpenEXR.File(str(src)).channels()["RGB"].pixels.astype(np.float32)
+    assert rgb.shape == (2048, 4096, 3), rgb.shape
+    img = (np.clip(rgb, 0.0, 1.0) ** (1 / 2.2) * 255.0 + 0.5).astype(np.uint8)
+    out = OUT / "stars_4k.jpg"
+    Image.fromarray(img, "RGB").save(out, "JPEG", quality=85, optimize=True, progressive=True)
+    return out
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for make in (moon_color, moon_normal, earth):
+    for make in (moon_color, moon_normal, earth, stars):
         path = make()
+        if path is None:
+            continue
         size_mb = path.stat().st_size / 1e6
         print(f"{path.relative_to(REPO)}: {size_mb:.2f} MB")
         if size_mb > 3.0:
