@@ -7,6 +7,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
+import { EXAMPLE } from '../src/views/examples'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -339,6 +340,51 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
   await page.goto('/#site=Nope!&period=zzz&t=garbage&st=,,&view=sideways&pts=999,1')
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await expect(page.locator('body')).not.toContainText('NaN')
+})
+
+// ---------- U6: greyed examples in the free-text fields; each is accepted exactly as shown ----------
+
+test('U6: the examples in the search, name, date and point-name fields are accepted as typed', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${SEP}`)
+  await expectAnswer(page, RIDGE, SEP, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  // Coordinates: Connecting Ridge, as sites.json and the header give them.
+  const search = panel.getByRole('combobox', { name: 'Search a site or type coordinates' })
+  await expect(search).toHaveAttribute('placeholder', `Site name, or e.g. ${EXAMPLE.coords}`)
+  await search.fill(EXAMPLE.coords)
+  await expect(panel.getByRole('status')).toContainText('89.46° S · 136.68° W')
+  await expect(page.getByTestId('coords')).toHaveText('89.46° S · 136.68° W')
+  await search.press('Enter') // typed coordinates add a point
+  await expect(panel.getByTestId('point')).toHaveCount(1)
+  // Point name.
+  const pointName = panel.getByTestId('point').getByRole('textbox')
+  await pointName.fill('')
+  await expect(pointName).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.point}`)
+  await pointName.fill(EXAMPLE.point)
+  await expect(panel.getByRole('button', { name: new RegExp(`^Select ${EXAMPLE.point},`) })).toBeVisible()
+  // Mission name.
+  const name = panel.getByLabel('Name', { exact: true })
+  await name.fill('')
+  await expect(name).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.name}`)
+  await name.fill(EXAMPLE.name)
+  await expect(page.getByTestId('mission')).toHaveText(EXAMPLE.name)
+  // Dates: from the September period, the Start example moves the mission to start on 16 Aug (its length kept), and
+  // the End example makes it 16–29 Aug, the named August period.
+  const start = panel.getByLabel('Start', { exact: true })
+  const end = panel.getByLabel('End', { exact: true })
+  await start.fill('')
+  await expect(start).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.start}`)
+  await start.fill(EXAMPLE.start)
+  await start.press('Enter')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('from=2027-08-16T00:00Z')
+  await end.fill('')
+  await expect(end).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.end}`)
+  await end.fill(EXAMPLE.end)
+  await end.press('Enter')
+  await expect(end).toHaveValue(EXAMPLE.end)
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain(`period=${AUG}`)
 })
 
 // ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search ----------
