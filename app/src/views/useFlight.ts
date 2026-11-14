@@ -1,14 +1,14 @@
 // The mission plan for the current choices and its playback clock (Flight plan tab).
 // The plan is computed from the same DE440 ephemeris files as everything else; nothing here invents a number:
-// missing ephemeris months give a plain message. Computing a mission takes a few seconds (every phase is
-// integrated), so it runs after the "Computing…" state has been painted. The clock advances on animation frames
+// missing ephemeris months give a plain message. Computing a mission takes seconds (every phase is integrated
+// and aimed by iteration), so it runs in a Web Worker. The clock advances on animation frames
 // into a plain object the 3D scene reads directly, and into React state only about 15 times a second.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadMonthsFor } from '../data/load'
 import { makeFlightEphemeris } from '../flight/ephemeris'
 import type { ArchitectureSpec, LaunchVehicleSpec, SpacecraftSpec } from '../flight/hardware'
-import { planMission } from '../flight/mission'
-import { FlightPlanError } from '../flight/types'
+import { runPlan } from '../flight/planWorker'
+import type { PlanReply, PlanRequest } from '../flight/planWorker'
 import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
 import { DAY_MS } from '../state'
 import type { MissionStatus } from './FlightPanel'
@@ -16,9 +16,48 @@ import { DEFAULT_SPEED } from './flightFormat'
 
 // Ephemeris loaded around the mission: it starts about a week before touchdown and ends about a week after
 // leaving the Moon.
-const LEAD_DAYS = 10
-const TAIL_DAYS = 10
+const LEAD_DAYS = 12
+const TAIL_DAYS = 16
 const UI_INTERVAL_MS = 66
+
+// One worker computes missions off the main thread. A new request replaces the one still running: its answer
+// would be for choices the user has already changed.
+let worker: Worker | null = null
+let pending: { id: number; resolve(r: PlanReply): void } | null = null
+let seq = 0
+
+function compute(req: Omit<PlanRequest, 'id'>): Promise<PlanReply> {
+  const id = ++seq
+  if (pending) {
+    worker?.terminate()
+    worker = null
+    pending.resolve({ id: pending.id, ok: false, message: 'superseded', expected: false })
+    pending = null
+  }
+  try {
+    if (!worker) {
+      worker = new Worker(new URL('../flight/planWorker.ts', import.meta.url), { type: 'module' })
+      worker.onmessage = (e: MessageEvent<PlanReply>) => {
+        if (pending && pending.id === e.data.id) {
+          pending.resolve(e.data)
+          pending = null
+        }
+      }
+      worker.onerror = (e) => {
+        pending?.resolve({ id: pending.id, ok: false, message: e.message || 'the planning worker stopped', expected: false })
+        pending = null
+        worker = null
+      }
+    }
+  } catch {
+    // no workers here (an old browser, a test page): compute on the page after it has painted "Computingâ€¦"
+    return new Promise((resolve) => window.setTimeout(() => resolve(runPlan({ ...req, id })), 30))
+  }
+  return new Promise((resolve) => {
+    pending = { id, resolve }
+    worker!.postMessage({ ...req, id })
+  })
+}
 
 export interface FlightInput {
   active: boolean // the tab is open: nothing is loaded or computed before
@@ -68,39 +107,30 @@ export function useFlight(input: FlightInput): Flight {
     const key = settledKey
     const endMs = earliestTouchdownMs + (surfaceStayDays + returnWindowDays + TAIL_DAYS) * DAY_MS
     loadMonthsFor(earliestTouchdownMs - LEAD_DAYS * DAY_MS, endMs)
-      .then(
-        (months) =>
-          // let the "Computing…" state reach the screen before the main thread is busy
-          new Promise<MissionStatus>((resolve) => {
-            window.setTimeout(() => {
-              if (!months) {
-                resolve({ state: 'error', message: 'No ephemeris for these dates in this build. A mission needs the months from a week before touchdown to a week after leaving the Moon.' })
-                return
-              }
-              try {
-                const i = latest.current
-                const plan = planMission({
-                  pad: i.pad,
-                  target: i.target,
-                  ephem: makeFlightEphemeris(months),
-                  architecture: i.architecture,
-                  launchVehicle: i.launchVehicle,
-                  capsule: i.capsule,
-                  lander: i.lander,
-                  earliestTouchdownMs,
-                  surfaceStayDays,
-                  returnWindowDays,
-                  maxTransferDays,
-                })
-                resolve({ state: 'ready', plan })
-              } catch (e) {
-                const err = e as Error
-                // FlightPlanError and the simulators' own error classes carry a message meant for the reader
-                resolve({ state: 'error', message: err instanceof FlightPlanError || /Error$/.test(err.name) ? err.message : `Could not compute the mission. ${err.message}` })
-              }
-            }, 30)
-          }),
-      )
+      .then(async (months): Promise<MissionStatus> => {
+        if (!months) {
+          return { state: 'error', message: 'No ephemeris for these dates in this build. A mission needs the months from a week before touchdown to a week after leaving the Moon.' }
+        }
+        const i = latest.current
+        const reply = await compute({
+          months,
+          rendezvous: i.architecture.rendezvous,
+          input: {
+            pad: i.pad,
+            target: i.target,
+            architecture: { id: i.architecture.id, name: i.architecture.name },
+            launchVehicle: i.launchVehicle,
+            capsule: i.capsule,
+            lander: i.lander,
+            earliestTouchdownMs,
+            surfaceStayDays,
+            returnWindowDays,
+            maxTransferDays,
+          },
+        })
+        if (!reply.ok) return { state: 'error', message: reply.expected ? reply.message : `Could not compute the mission. ${reply.message}` }
+        return { state: 'ready', plan: { ...reply.plan, ephem: makeFlightEphemeris(months) } }
+      })
       .catch((e: Error): MissionStatus => ({ state: 'error', message: `Could not load the ephemeris. ${e.message}` }))
       .then((status) => alive && setState({ key, status }))
     return () => {
@@ -133,7 +163,7 @@ export function useFlight(input: FlightInput): Flight {
     const step = (now: number) => {
       const dt = Math.min(now - last, 100) // a background tab must not jump the flight ahead
       last = now
-      const t = Math.min(plan.endMs, clock.timeMs + dt * speed) // real ms × (simulated s per real s) = simulated ms
+      const t = Math.min(plan.endMs, clock.timeMs + dt * speed) // real ms Ã— (simulated s per real s) = simulated ms
       clock.timeMs = t
       if (t >= plan.endMs) {
         setTimeMs(t)

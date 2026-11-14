@@ -83,11 +83,8 @@ const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
-// Mission designs the planner can fly today: capsule and lander meeting in low lunar orbit. The halo-orbit
-// designs are listed with the reason they are not available.
-const FLYABLE = (a: (typeof ARCHITECTURES)[number]) => a.rendezvous === 'llo'
-const DEFAULT_ARCHITECTURE_ID = ARCHITECTURES.find(FLYABLE)?.id ?? ARCHITECTURES[0].id
-const NRHO_REASON = 'This design meets in a near-rectilinear halo orbit, which the planner does not fly yet.'
+// The mission design a fresh link opens with: the current NASA plan (SLS, Orion, a lander waiting in the halo orbit).
+const DEFAULT_ARCHITECTURE_ID = (ARCHITECTURES.find((a) => a.id === 'artemis-starship') ?? ARCHITECTURES[0]).id
 type LatLon = { latDeg: number; lonDeg: number }
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
@@ -194,7 +191,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         : { id: site.id, name: site.name, latDeg: site.lat, lonDeg: site.lon },
     [site, siteMode, customSite],
   )
-  const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket && FLYABLE(a)) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
+  const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
   const flight = useFlight({
     active: inFlight,
     pad,
@@ -458,13 +455,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           )}
           {inFlight && menu === null && (
             <FlightPanel
-              architectures={ARCHITECTURES.map((a) => ({
-                id: a.id,
-                name: a.name,
-                note: a.note,
-                available: FLYABLE(a),
-                unavailableReason: FLYABLE(a) ? null : NRHO_REASON,
-              }))}
+              architectures={ARCHITECTURES.map((a) => ({ id: a.id, name: a.name, note: a.note, available: true, unavailableReason: null }))}
               architectureId={architecture.id}
               onArchitecture={(id) => patch({ rocket: id === DEFAULT_ARCHITECTURE_ID ? null : id })}
               pads={LAUNCHPADS}
