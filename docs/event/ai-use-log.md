@@ -19,6 +19,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 12:15–12:40 | Claude Code (Haiku 5.5, subagent; account owner unconfirmed) | ninja (orchestrator) | Track B-h: sites.csv/sites.py, terrain_tiles.py, textures.py | scripts/sites.csv, scripts/sites.py, app/public/data/sites.json, app/public/data/terrain/, app/public/textures/ | none (orchestrator re-ran checks and an independent tile-orientation check; Leo/Otto to review) | Rejected: frame_note claimed IM-2 touchdown "about 0.37 km" from the intended site (own arithmetic, contradicts NASA's "more than 400 m"); replaced. ldem_16_uint height scale (0.5 m/DN) assumed, not sourced; affects only the normal-map strength. Tile heights reference the site height with a ~10 m offset on the steep Shackleton rim. |
 
+| Sat 12:21 | Codex (account owner unconfirmed) | ninja | Evaluated the pasted Claude whiteboard summary against current spec, briefs and handoff; added a prioritised backlog with owners/evidence, corrected stale acceptance and finder gates | TASKS.md; BUILD_LOG.md | none | Original eight photos and prior uncommitted changes unavailable; no photo transcription verified, prior operator identity inferred or implementation marked complete. Preserved approved header and existing track ownership; Markdown references and diff checked. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
