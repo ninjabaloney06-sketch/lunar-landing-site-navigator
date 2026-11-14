@@ -21,6 +21,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 12:21 | Codex (account owner unconfirmed) | ninja | Evaluated the pasted Claude whiteboard summary against current spec, briefs and handoff; added a prioritised backlog with owners/evidence, corrected stale acceptance and finder gates | TASKS.md; BUILD_LOG.md | none | Original eight photos and prior uncommitted changes unavailable; no photo transcription verified, prior operator identity inferred or implementation marked complete. Preserved approved header and existing track ownership; Markdown references and diff checked. |
 
+| Sat 12:27 | Codex (account owner unconfirmed) | ninja | Removed settings sidebar/page/icon tasks and the related open decision; recorded ninja’s scope decision | TASKS.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; retained direct core controls and inline legend. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
