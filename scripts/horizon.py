@@ -19,7 +19,6 @@ import argparse
 import csv
 import json
 import math
-import resource
 import sys
 import time
 from dataclasses import dataclass
@@ -239,6 +238,11 @@ def inside_dem(lat, lon, dem_path):
 
 
 def peak_rss_bytes():
+    # `resource` exists only on Unix; on Windows the memory guard is skipped (0 = unknown).
+    try:
+        import resource
+    except ImportError:
+        return 0
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return rss if sys.platform == "darwin" else rss * 1024
 

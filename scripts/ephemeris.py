@@ -74,6 +74,8 @@ def load_kernels():
             if line.strip():
                 digest, name = line.split()
                 sums[name] = digest
+    else:
+        print(f"WARNING: {sums_file} missing; kernel checksums are NOT verified", file=sys.stderr)
     prov = []
     for name in KERNELS:
         path = spice_dir / name

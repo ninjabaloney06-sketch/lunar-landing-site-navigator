@@ -476,7 +476,7 @@
   "id": "shackleton-rim-site04",
   "name": "Shackleton Rim Site04",
   "group": "reference",
-  "label": "NASA reference point, not a chosen landing site",
+  "label": "NASA reference point, not a landing site: this DEM-polygon centre lies on the inner crater wall (31.8° slope in LOLA)",
   "lat": -89.7668,
   "lon": -171.87,
   "frame_note": "frame not stated in source (coordinates generated from the PGDA LOLA DEM files, Data Book A2.1); MOON_ME assumed - Leo to verify",

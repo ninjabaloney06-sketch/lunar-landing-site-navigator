@@ -308,3 +308,89 @@ def union_intervals(intervals):
 
 def total_length(intervals):
     return sum(b - a for a, b in union_intervals(intervals))
+
+
+# ---------- windows and summaries (mirrors geometry/index.ts computeWindows / summarize) ----------
+# Python reference for V5/V8 (review 14 Nov: the build plan's edge refinement existed only in TypeScript).
+# State scanned every 1 min (5 min for spans over 31 days, never coarser than the ephemeris step) on the
+# interpolated ephemeris; each change is bisected to EDGE_TOL_MS; the edge is the midpoint of the last bracket.
+# Events shorter than the scan step can be missed, exactly as in the app.
+
+HOUR_MS = 3_600_000
+SCAN_FINE_MS = 60_000
+SCAN_COARSE_MS = 5 * 60_000
+EDGE_TOL_MS = 10_000
+
+
+def _js_round(x):
+    """Math.round for the positive millisecond values used here (Python's round() rounds half to even)."""
+    return math.floor(x + 0.5)
+
+
+def state_at(kind, months, site, horizon, stations, station_ids, utc_ms):
+    """'lit'/'dark', 'visible'/'hidden' or 'covered'/'none'/'unknown' at one instant."""
+    state = interpolate(months, utc_ms)
+    if kind == "coverage":
+        selected = [s for s in stations if s["id"] in station_ids]
+        return coverage_state(sample(state, site, horizon, selected), station_ids)
+    smp = sample(state, site, horizon, [])
+    if kind == "sun":
+        return "lit" if smp["sun"]["lit"] else "dark"
+    if kind == "earth":
+        return "visible" if smp["earth"]["visible"] else "hidden"
+    raise ValueError(kind)
+
+
+def windows(months, site, horizon, stations, kind, station_ids, start_ms, end_ms, step_min=30):
+    """Contiguous [start, end) runs of one state, clipped to [start_ms, end_ms). Same algorithm and constants
+    as the app (geometry/index.ts computeWindows with months), so edges agree to about EDGE_TOL_MS."""
+    def f(t):
+        return state_at(kind, months, site, horizon, stations, station_ids, t)
+
+    fine = end_ms - start_ms <= 31 * 24 * HOUR_MS
+    scan = min(step_min * 60_000, SCAN_FINE_MS if fine else SCAN_COARSE_MS)
+    times = []
+    k = 0
+    while start_ms + k * scan < end_ms:
+        times.append(start_ms + k * scan)
+        k += 1
+    if not times:
+        return []
+    states = [f(t) for t in times]
+    out = []
+    cur, start = states[0], times[0]
+    for k in range(1, len(states)):
+        if states[k] == cur:
+            continue
+        lo, hi, a = times[k - 1], times[k], states[k - 1]
+        while hi - lo > EDGE_TOL_MS:
+            mid = lo + (hi - lo) / 2
+            if f(mid) == a:
+                lo = mid
+            else:
+                hi = mid
+        edge = _js_round(lo + (hi - lo) / 2)
+        out.append({"kind": kind, "startMs": start, "endMs": edge, "state": cur})
+        start, cur = edge, states[k]
+    out.append({"kind": kind, "startMs": start, "endMs": end_ms, "state": cur})
+    return out
+
+
+def summarize(sun_ws, earth_ws, cov_ws, start_ms, end_ms):
+    """Time-weighted percentages and longest runs (hours) over [start_ms, end_ms), as summarize() in the app."""
+    total = end_ms - start_ms
+
+    def pct(ws, state):
+        return 100 * sum(w["endMs"] - w["startMs"] for w in ws if w["state"] == state) / total
+
+    def longest(ws, state):
+        return max([(w["endMs"] - w["startMs"]) / HOUR_MS for w in ws if w["state"] == state], default=0.0)
+
+    return {
+        "litPct": pct(sun_ws, "lit"),
+        "earthVisiblePct": pct(earth_ws, "visible"),
+        "coveragePct": pct(cov_ws, "covered"),
+        "unknownPct": pct(cov_ws, "unknown"),
+        "longestDarkH": longest(sun_ws, "dark"),
+        "longestGapH": longest(cov_ws, "none"),
+    }

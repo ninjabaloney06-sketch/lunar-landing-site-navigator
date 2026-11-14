@@ -38,9 +38,16 @@ DEM_NAME = "LDEM_80S_20MPP_ADJ.TIF"
 SITES_CSV = REPO / "scripts" / "sites.csv"
 OUT = APP_DATA / "terrain"
 
-# Illumination maps (PGDA average visibility), chosen by site latitude (Brief B step 5).
+# Illumination maps (PGDA average visibility). Brief B step 5 chose the 60 m 85S map south of 85 S, but the
+# overlays built from it do not line up with the terrain: on all 14 tiles from that map, lit fraction and local
+# relief are uncorrelated (|r| <= 0.07, under any flip or rotation), while the 4 tiles from the 75S map give
+# r = +0.31..+0.52 (review 14 Nov; tests/test_illum_overlay.py). The 85S georeferencing (its PDS3 label as read
+# by GDAL) is suspect. Until it is checked against a known feature, every site uses the 75S map at 120 m
+# (south of 75 S; check that the run reports illum_valid=1.000 for the polar sites, and rerun
+# tests/test_illum_overlay.py). Set USE_85S = True only after the 85S map passes that test.
 MAP_85S = ("avgvisib_85s_060m_201608", "avgvisib_85s_060m_201608.lbl", 60.0)
 MAP_75S = ("avgvisib_75s_120m_201608", "AVGVISIB_75S_120M_201608.LBL", 120.0)
+USE_85S = False
 
 
 def load_sites():
@@ -164,7 +171,7 @@ def main():
             if not site_centre_inside(dem, dem_tr, np.array([lat]), np.array([lon])):
                 report.append((site_id, "skipped: site centre outside the DEM"))
                 continue
-            if lat < -85.0:
+            if USE_85S and lat < -85.0:
                 illum = {"src": m85, "meta": MAP_85S}
                 illum_tr = m85_tr
             else:

@@ -52,7 +52,7 @@
   "datum": "GRS80 ellipsoid, ITRF2014, epoch 2026.0",
   "min_elev_deg": 12.5,
   "source_url": "https://ddor.nav.isas.jaxa.jp/station_coordinates/",
-  "source_label": "JAXA Station Coordinates page (H. Takeuchi, updated 11 Jan 2026): geodetic GRS80 coordinates of the antenna reference point, ellipsoidal height; min elev = highest value of JAXA's downlink horizon mask for this antenna (UDSC_horizon_mask.xls on the same page: -1 to 12.5 deg, peak at az 265 and 282), applied to all azimuths, so conservative",
+  "source_label": "JAXA Station Coordinates page (H. Takeuchi, updated 11 Jan 2026): geodetic GRS80 coordinates of the antenna reference point, ellipsoidal height; min elev = highest value of JAXA's downlink horizon mask for this antenna (UDSC_horizon_mask.xls on the same page: -1 to 12.5 deg, peak at az 265 and 282), applied to all azimuths, so conservative; 2026 operating status not confirmed: JAXA's GREAT page says the 64 m has exceeded its design life and is in operation at least till JFY 2023, with the Misasa 54 m as successor (https://www.isas.jaxa.jp/home/great/english/profile1001en.html)",
   "link_state_inputs": "unknown"
  },
  {

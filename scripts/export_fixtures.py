@@ -25,7 +25,7 @@ T0 = datetime(2026, 11, 1, tzinfo=timezone.utc)
 T1 = datetime(2028, 1, 1, tzinfo=timezone.utc)
 SAMPLE_HORIZON = "sample-site.json"
 
-# Fixture sites. The three in app/public/data/sites.json, Connecting Ridge (agent-briefs, Brief A done-check),
+# Fixture sites. The sites in app/public/data/sites.json (18 on 14 Nov), Connecting Ridge (agent-briefs, Brief A done-check),
 # and one synthetic elevated point that exercises the elev_m path (test input only, not a real site).
 EXTRA_SITES = [
     {"id": "connecting-ridge", "lat": -89.46, "lon": -136.68, "elev_m": None},
