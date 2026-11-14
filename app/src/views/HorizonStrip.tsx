@@ -1,5 +1,6 @@
-// Horizon strip (build-plan §5.2): terrain mask over azimuth 0–360°, elevation −2…+10°, with the Sun and
-// Earth at the cursor. Exact values on hover or tap. Also the full fallback view when WebGL is unavailable.
+// Horizon strip (build-plan §5.2): terrain mask over azimuth 0–360°, elevation −2…+10° (taller when the
+// site's terrain mask rises above 9°, so a 32° crater wall is not flattened at 10°), with the Sun and
+// Earth at the cursor. A body below the axis is pinned to the bottom edge as a hollow dot; its label keeps the true value. Exact values on hover or tap. Also the full fallback view when WebGL is unavailable.
 import { area, line, scaleLinear } from 'd3'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { maskAt } from '../geometry'
@@ -8,7 +9,15 @@ import type { Horizon } from '../data/types'
 import { fmtDeg } from './format'
 
 const EL_MIN = -2
-const EL_MAX = 10
+const EL_MAX_DEFAULT = 10
+
+/** Top of the axis: 10°, or the terrain mask's maximum + 1° rounded up to the tick step. */
+function axisTop(horizon: Horizon | null): { top: number; step: number } {
+  const maxMask = horizon ? Math.max(...horizon.mask) : 0
+  if (!(maxMask + 1 > EL_MAX_DEFAULT)) return { top: EL_MAX_DEFAULT, step: 2 }
+  const step = maxMask + 1 <= 24 ? 4 : 8
+  return { top: Math.ceil((maxMask + 1) / step) * step, step }
+}
 const AZ_TICKS: [number, string][] = [
   [0, 'N'],
   [90, 'E'],
@@ -39,7 +48,13 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
 
   const m = { l: 36, r: 8, t: 12, b: 24 }
   const x = useMemo(() => scaleLinear().domain([0, 360]).range([m.l, Math.max(m.l + 1, width - m.r)]), [width, m.l, m.r])
-  const y = useMemo(() => scaleLinear().domain([EL_MIN, EL_MAX]).range([height - m.b, m.t]).clamp(true), [height, m.b, m.t])
+  const { top: elMax, step: tickStep } = useMemo(() => axisTop(horizon), [horizon])
+  const y = useMemo(() => scaleLinear().domain([EL_MIN, elMax]).range([height - m.b, m.t]).clamp(true), [height, m.b, m.t, elMax])
+  const ticks = useMemo(() => {
+    const out: number[] = []
+    for (let v = 0; v <= elMax; v += tickStep) out.push(v)
+    return out
+  }, [elMax, tickStep])
 
   const paths = useMemo(() => {
     const pts: [number, number][] = []
@@ -98,7 +113,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
             onPointerDown={onPointer}
             onPointerLeave={() => setHoverAz(null)}
           >
-            {[0, 2, 4, 6, 8, 10].map((v) => (
+            {ticks.map((v) => (
               <g key={v}>
                 <line className={v === 0 ? 'strip-zero' : 'strip-grid'} x1={m.l} x2={width - m.r} y1={y(v)} y2={y(v)} />
                 <text className="strip-tick" x={m.l - 6} y={y(v)} dy="0.32em" textAnchor="end">
@@ -121,7 +136,11 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
               const o = i > 0 ? bodies[0] : null
               const below = !!o && Math.abs(x(o.az) - cx) < 96 && Math.abs(y(o.el) - cy) < 24
               return (
-                <g key={b.key} className={`strip-body strip-${b.key}`} data-testid={`strip-${b.key}`}>
+                <g
+                  key={b.key}
+                  className={`strip-body strip-${b.key}${b.el < EL_MIN ? ' is-below' : ''}`}
+                  data-testid={`strip-${b.key}`}
+                >
                   <circle cx={cx} cy={cy} r={4} />
                   <text x={right ? cx - 8 : cx + 8} y={below ? cy + 16 : cy - 8} textAnchor={right ? 'end' : 'start'}>
                     <tspan className="strip-body-name">{b.name}</tspan> <tspan className="strip-body-num">{fmtDeg(b.el)}</tspan>

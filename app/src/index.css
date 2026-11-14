@@ -13,6 +13,9 @@ body,
 
 body {
   font: 400 var(--t-ui) / 1.45 var(--font-sans);
+  /* Nothing on the screen can be highlighted by dragging (ninja, 14 Nov); form fields stay editable. */
+  -webkit-user-select: none;
+  user-select: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -92,6 +95,19 @@ a:hover {
 
 .notice {
   padding: var(--s-10);
+}
+
+/* Shown over the scene when a site's 3D frame failed to load (SceneView). */
+.scene-msg {
+  position: absolute;
+  top: var(--s-2);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(36rem, calc(100% - 32px));
+  margin: 0;
+  padding: var(--s-2);
+  background: var(--bg-veil);
+  pointer-events: none;
 }
 
 .notice-title {
@@ -224,6 +240,37 @@ a:hover {
   text-decoration-color: var(--fg);
 }
 
+.actions {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-2);
+}
+
+.details-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-veil);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.details-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.details-btn:hover {
+  border-color: var(--muted);
+}
+
+.details-btn:active {
+  border-color: var(--fg);
+}
+
 .find {
   flex: none;
   font-weight: 500;
@@ -258,18 +305,23 @@ a:hover {
   pointer-events: auto;
 }
 
+/* The answer: one small line directly above the Light and Comms tracks, wrapping to two on narrow screens. */
+.tl-answer {
+  grid-column: 2;
+  min-width: 0;
+}
+
 .answer {
-  display: block;
-  margin: 0;
-  max-width: 100%;
-  font: 400 var(--t-display) / 1.2 var(--font-serif);
-  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--s-6);
+  margin: 0 0 var(--s-3);
+  min-height: 20px;
+  font: 500 var(--t-ui) / 20px var(--font-sans);
 }
 
 .answer-line {
   display: block;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
 }
 
 .answer-sun {
@@ -280,28 +332,18 @@ a:hover {
   color: var(--comms);
 }
 
-button.answer:hover .answer-line {
-  text-decoration-line: underline;
-}
-
 .answer.is-loading {
   color: var(--faint);
 }
 
 .answer.is-error {
-  font: 400 var(--t-ui) / 1.45 var(--font-sans);
+  font-weight: 400;
   color: var(--error);
-  min-height: 77px;
-}
-
-.answer.is-loading {
-  min-height: 77px;
 }
 
 .answer.is-empty {
-  font: 400 var(--t-ui) / 1.45 var(--font-sans);
+  font-weight: 400;
   color: var(--muted);
-  min-height: 77px;
 }
 
 .timeline {
@@ -369,8 +411,8 @@ button.answer:hover .answer-line {
 
 .tl-cursor {
   position: absolute;
-  top: calc(-1 * var(--s-8));
-  height: calc(var(--s-8) + var(--s-2) + 4px + var(--s-3) + 4px);
+  top: 0;
+  height: calc(var(--s-2) + 4px + var(--s-3) + 4px + var(--s-1));
   width: 1px;
   transform: translateX(-50%);
   background: var(--fg);
@@ -465,16 +507,6 @@ button.answer:hover .answer-line {
     padding: var(--s-16) var(--s-4) var(--s-3);
   }
 
-  .answer {
-    font-size: var(--t-display-sm);
-  }
-
-  .answer.is-loading,
-  .answer.is-error,
-  .answer.is-empty {
-    min-height: 58px;
-  }
-
   .timeline {
     grid-template-columns: var(--s-12) minmax(0, 1fr);
     margin-top: var(--s-8);
@@ -488,7 +520,17 @@ button.answer:hover .answer-line {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .find {
+  .find,
+  .details-btn {
     transition: none;
   }
 }
+
+/* Form fields keep normal text selection so values can be edited and replaced. */
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+

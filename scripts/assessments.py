@@ -509,9 +509,14 @@ def sourced_hazards(site, hazards):
 
 DIVINER_TAB = "diviner/dlre_prp_south.tab"
 DIVINER_URL = "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/"
+DIVINER_TERMS = (
+    "public NASA PDS data; no licence or usage terms in the .lbl or .xml; NASA SMD policy SPD-41a "
+    "requires SMD-funded scientific information to be made publicly available "
+    "(https://science.nasa.gov/researchers/science-data/science-information-policy/); "
+    "cite the product as below")
 DIVINER_CITATION = ("Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, "
                     "LRO-L-DLRE-5-PRP-V2.0, 2018 (citation as given in the PDS catalogue prpds.cat); "
-                    "method: Paige et al. 2010, Science 330 (cited in prpds.cat as p. 497)")
+                    "method: Paige et al. 2010, Science 330(6003), 479 (prpds.cat prints p. 497)")
 PRP_CANDIDATE_KM = 3.0         # triangle centres searched for the containing triangle
 PRP_FIELDS = ("tri1_x", "tri1_y", "tri1_z", "tri2_x", "tri2_y", "tri2_z", "tri3_x", "tri3_y", "tri3_z",
               "tri_clon", "tri_clat", "temp_avg", "temp_max")
@@ -589,9 +594,14 @@ class PRPMesh:
 
 SITE_THERMAL_NOTES = {
     "shackleton-rim-site04": [
-        "Site-specific: annual maximum 319.6 K on a steep (~32 deg), intermittently lit inner wall "
-        "(average Sun visibility 0.11 in the 60 m map); annual mean 112.5 K. A sunward wall can be "
-        "hot at its annual maximum while cold on average; for Leo to confirm.",
+        "Site-specific: annual maximum 319.6 K on a steep, intermittently lit inner wall; annual "
+        "mean 112.5 K. AI plausibility check (not validation): a plane fitted to the 5 m DEM over "
+        "the triangle's footprint slopes 32.1 deg facing azimuth 264 deg; with SPICE Sun positions "
+        "for 2009-09-15..2010-09-14 and this site's horizon mask it is lit 10.2 % of the time "
+        "(Sun-visibility map: 0.11) and the best incidence gives cos(i) = 0.554, a radiative "
+        "equilibrium of 333 K (albedo 0.12, emissivity 0.95, 1361 W/m2). A sunward wall can be "
+        "hot at its annual maximum while cold on average. Numbers accepted by Leo (S), 14 Nov 2026, "
+        "as reported by ninja.",
     ],
 }
 
@@ -622,7 +632,7 @@ def thermal_block(site, psr, hazards, prp=None):
         "One mesh triangle (about 0.1-0.2 km2, Kaguya-derived DEM) is larger than the 100 m landing "
         "disk; sub-triangle slopes and shadows are averaged out.",
         "Frame: label says Moon-centered (planetocentric, east-positive, R = 1737.4 km); "
-        "MOON_ME assumed, Leo to confirm.",
+        "read as MOON_ME, confirmed by Leo (S) on 14 Nov 2026.",
         "temp_max_k minus temp_avg_k is not a temperature range (different depths and statistics); "
         "no range is given.",
         "The ice_depth column (model ice-stability depth) is not used; no ice is inferred.",
@@ -637,6 +647,7 @@ def thermal_block(site, psr, hazards, prp=None):
                 "temp_avg_k": None, "temp_max_k": None}
     fs = prp.spec["fields"]
     base["source"] = f"{DIVINER_CITATION}; {DIVINER_URL}{prp.tab_path.name if prp.tab_path else ''}"
+    base["terms"] = DIVINER_TERMS
     base["method"] = (
         "site unit vector tested against the vertices of every mesh triangle whose centre is within "
         f"{PRP_CANDIDATE_KM:.0f} km (great circle, R = {R_KM} km); values of the containing triangle; "
@@ -685,7 +696,7 @@ def sha_lookup(root):
     out = {}
     for f in [root / d / "SHA256SUMS.txt" for d in ("lola", "illumination", "diviner")]:
         if f.exists():
-            for line in f.read_text().splitlines():
+            for line in f.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     h, name = line.split()
                     out[name.lower()] = h
@@ -696,7 +707,7 @@ def label_version(path):
     p = Path(path)
     if p.suffix.lower() != ".lbl":
         return None
-    for line in p.read_text(errors="replace").splitlines():
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
         if line.strip().startswith("PRODUCT_VERSION_ID"):
             return line.split("=")[1].strip().strip('"')
     return None
@@ -704,12 +715,12 @@ def label_version(path):
 
 def build(root=None, sites=None):
     root = Path(root) if root else data_root()
-    sites = sites if sites is not None else json.loads(SITES_JSON.read_text())
+    sites = sites if sites is not None else json.loads(SITES_JSON.read_text(encoding="utf-8"))
     dem20 = Raster(root / DEM20[0], DEM20[1])
     dem5 = Raster(root / DEM5[0], DEM5[1])
     illum = [Raster(root / p, r, crs_override=DEM_CRS if fix else None) for p, r, fix in ILLUM_MAPS]
-    psr_items = json.loads((RESEARCH / "psr_and_ice.json").read_text())["items"]
-    hazards = json.loads((RESEARCH / "hazards_and_science.json").read_text())["items"]
+    psr_items = json.loads((RESEARCH / "psr_and_ice.json").read_text(encoding="utf-8"))["items"]
+    hazards = json.loads((RESEARCH / "hazards_and_science.json").read_text(encoding="utf-8"))["items"]
     shas = sha_lookup(root)
     tab = root / DIVINER_TAB
     prp = PRPMesh.from_files(tab) if tab.exists() else None
@@ -741,8 +752,9 @@ def build(root=None, sites=None):
                       "note": "triangle mesh, 2,880,000 triangles, square to 80 S"})
     meta = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "generator": "scripts/assessments.py (AI-built, not validated by S; code not checked by Q)",
-        "validation_status": "not validated",
+        "generator": "scripts/assessments.py (AI-built)",
+        "validation_status": ("code reviewed by Otto (Q) and numbers accepted by Leo (S), 14 Nov 2026, "
+                              "as reported by ninja for commit 6650ed1; no written sign-off in the repo"),
         "frame": "MOON_ME planetocentric, east-positive longitude, sphere R = 1737.4 km",
         "files": files,
         "thresholds": {
@@ -774,7 +786,7 @@ def build(root=None, sites=None):
 def main():
     t0 = time.perf_counter()
     res = build()
-    OUT_JSON.write_text(json.dumps(res, separators=(",", ":"), ensure_ascii=False) + "\n")
+    OUT_JSON.write_text(json.dumps(res, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {OUT_JSON} ({OUT_JSON.stat().st_size / 1024:.0f} KB, {len(res['sites'])} sites) in {time.perf_counter() - t0:.1f} s")
 
 

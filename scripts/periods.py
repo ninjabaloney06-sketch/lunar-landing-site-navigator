@@ -45,7 +45,7 @@ def build() -> list[dict]:
 
 def main() -> None:
     path = APP_DATA / "periods.json"
-    path.write_text(json.dumps(build(), indent=1, ensure_ascii=False) + "\n")
+    path.write_text(json.dumps(build(), indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {path}")
 
 

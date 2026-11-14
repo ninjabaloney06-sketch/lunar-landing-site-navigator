@@ -95,8 +95,12 @@ export function Drawer(p: Props) {
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `${site.id}_${new Date(period.startMs).toISOString().slice(0, 10)}.csv`
+    // Firefox and Safari need the link in the document, and revoking the URL right after click() can cancel
+    // the download there: revoke it a moment later.
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(a.href)
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
   }
 
   const copyLink = async () => {
@@ -193,7 +197,15 @@ export function Drawer(p: Props) {
 
       <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
         <h3 id="sec-finder">Find better dates</h3>
-        <Finder site={site} stations={p.stations} ids={p.ids} fromMs={period.startMs} onShow={p.onShowWindow} />
+        {/* keyed: a site, station or period change starts a fresh finder, so old results never show under a new site */}
+        <Finder
+          key={`${site.id}|${p.ids.join(',')}|${period.startMs}`}
+          site={site}
+          stations={p.stations}
+          ids={p.ids}
+          fromMs={period.startMs}
+          onShow={p.onShowWindow}
+        />
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-compare">
@@ -258,7 +270,8 @@ export function Drawer(p: Props) {
             Frame: {site.frame_note}.
           </li>
           <li>
-            Terrain: LOLA south-pole elevation model, 20 m per pixel (
+            Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
+            beyond; the 3D scene uses an 80 m mesh (
             <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
               Barker et al. 2023
             </a>
@@ -266,7 +279,18 @@ export function Drawer(p: Props) {
             <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
               data
             </a>
-            ). The horizon is searched up to 300 km in every direction for an eye 1.75 m above the ground.
+            ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground, but only as
+            far as the elevation model reaches (it ends at 80° S).
+            {ready && results.results.series.horizon && results.results.series.horizon.truncated.length > 0 && (
+              <>
+                {' '}
+                <strong data-testid="truncated-note">
+                  At this site the model ends before 300 km in {results.results.series.horizon.truncated.length} of{' '}
+                  {results.results.series.horizon.mask.length} directions, so distant terrain there is missing and
+                  sunlight and Earth visibility in those directions may be overstated.
+                </strong>
+              </>
+            )}
           </li>
           <li>
             Sun and Earth: JPL DE440 ephemeris (

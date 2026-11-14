@@ -6,7 +6,7 @@ Research done 31 Oct 2026 (AI, Claude Code) for ninja. Planning input only: noth
 
 - **Challenge:** Lunar Landing Site Navigator (badge "10 - CLPS"): "compare lunar south-pole landing sites and dates, visualizing Sun and Earth positions relative to the local horizon to assess solar power potential and direct-to-Earth communication windows" for mission planners, educators and the public ([README](../../README.md), [challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/)).
 - **Award category:** the repo does not name one, and the 2026 categories arrive with the Judging & Awards Guide on 13 Nov (`docs/reference/decisions.md`, "Open questions"). The repo lists the 2025 award set. Our output is a tool that turns NASA lunar data into numbers, so the closest awards are **Best Use of Data**, **Best Use of Science** and **Best Use of Technology**. I gave first priority to winners in those three, and to winners of the lunar data visualisation challenge "Make a Moonquake Map" (2022) / "2.0" (2023), which is the closest past challenge to ours.
-- **Constraints:** 4 school students (all under 18) with a school Betreuerin. About 29 build hours on site (Sat 10:30 → Sun 15:45 local deadline, submit by 15:00), with at least 6 h sleep each. Nothing built before Sat 09:00. Local judges pitch from 16:00, then the global funnel. The repo is private. Static JSON + static frontend.
+- **Constraints:** 4 school students (all under 18) with a school Betreuerin. About 29 build hours on site (Sat 10:30 → Sun 15:45 local deadline, submit by 15:00), with at least 6 h sleep each (31 Oct plan; since 13 Nov two 3-hour sleep shifts, decisions.md). Nothing built before Sat 09:00. Local judges pitch from 16:00, then the global funnel. The repo is private. Static JSON + static frontend.
 
 ## How judging works (official text)
 
@@ -85,9 +85,9 @@ All ten are Global Winners. Award and challenge come from NASA's own announcemen
 ## What is different about us
 
 - **Our brief is a decision tool for mission planners, not outreach.** The Moonquake winners were exploration and outreach pieces. P3/P4 transfer (pick site + dates → power and comms windows); P8 does not. A game or 3D globe would cost hours we need for validated numbers. The sky plot already shows "what you'd see standing there".
-- **About 29 h, minors, 6 h sleep each.** In 2022 the submission window ran from Sat 09:00 to Sun 23:59 local, about 39 h (2022 Submission Guide); SkyShield was built in about 30 h. We stop at Sun 15:45. We copy only cheap patterns: P1, P2, P6 and P7 cost hours, not features.
+- **About 29 h, minors, 6 h sleep each** (31 Oct; superseded 13 Nov by two 3-hour shifts). In 2022 the submission window ran from Sat 09:00 to Sun 23:59 local, about 39 h (2022 Submission Guide); SkyShield was built in about 30 h. We stop at Sun 15:45. We copy only cheap patterns: P1, P2, P6 and P7 cost hours, not features.
 - **Validity is our hard part, and our edge.** Wrong horizon or Earth numbers would fail Validity outright (the 27 Oct tools run showed Horizons gives plausible wrong answers). P5 supports keeping S's gates exactly as they are.
-- **The repo is private by rule (AGENTS.md).** If the 2026 guide repeats 2022's "public link to final project", we need a decision on what gets published. The hosted static app is public anyway; code is the open question for Isaac.
+- **The repo is private by rule (AGENTS.md)** (31 Oct; ninja decided on 14 Nov that it goes public after submission). If the 2026 guide repeats 2022's "public link to final project", we need a decision on what gets published. The hosted static app is public anyway; code is the open question for Isaac.
 - **Local judging comes first.** Local judges pick the nominees from a live pitch plus the submission. The 2022 guide says the demo is often seen first, so the 30 s demo and the 16:00 pitch both matter.
 - **2026 categories and limits are unknown until 13 Nov.** All format items below default to the 2022 rules and must be re-checked then.
 

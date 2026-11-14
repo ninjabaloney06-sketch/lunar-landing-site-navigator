@@ -55,8 +55,15 @@ SITES_CSV = REPO / "scripts" / "sites.csv"
 OUT = APP_DATA / "terrain"
 
 # Illumination maps (PGDA average visibility), chosen by site latitude (Brief B step 5).
+# The 85S (60 m) label states CENTER_LONGITUDE = 180 and GDAL reads it as lon_0 = 180, but the data line up with
+# lon_0 = 0: the 14 overlays built that way did not correlate with terrain relief at all (|r| <= 0.07; 75S tiles
+# r = +0.31..+0.52; tests/test_illum_overlay.py), and assessments.py (ILLUM_CRS_NOTE) found the same with lon_0 = 0
+# giving r = 0.98 against the 120 m map. So the 85S map is read with the DEM's CRS (lon_0 = 0), as in assessments.py.
+# Leo to confirm, as there. Set USE_85S = False to fall back to the 75S map (120 m) for every site.
 MAP_85S = ("avgvisib_85s_060m_201608", "avgvisib_85s_060m_201608.lbl", 60.0)
 MAP_75S = ("avgvisib_75s_120m_201608", "AVGVISIB_75S_120M_201608.LBL", 120.0)
+USE_85S = True
+READ_85S_WITH_DEM_CRS = True
 
 # Extra levels: name -> (size, spacing_m, resampling). Sizes are odd, so grid lines fall on multiples
 # of the spacing and each level's square nests on the next one's grid lines (scene stitching).
@@ -344,7 +351,7 @@ def write_level(site_id, name, h_int, ground, filled, scale):
     if filled.any():
         meta["fill_dem"] = FILL_NAME
         meta["fill_fraction"] = round(float(filled.mean()), 3)
-    (OUT / f"{site_id}-{name}.json").write_text(json.dumps(meta, indent=1) + "\n")
+    (OUT / f"{site_id}-{name}.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
 
 
 def main(argv=None):
@@ -361,8 +368,8 @@ def main(argv=None):
         dem_tr = Transformer.from_crs(dem_crs.geodetic_crs, dem_crs, always_xy=True)
         polar = PolarAverage(dem)
         fill = Ldem16(data_root() / "textures" / FILL_NAME)
-        m85_tr = Transformer.from_crs(CRS.from_wkt(m85.crs.to_wkt()).geodetic_crs,
-                                      CRS.from_wkt(m85.crs.to_wkt()), always_xy=True)
+        m85_crs = dem_crs if READ_85S_WITH_DEM_CRS else CRS.from_wkt(m85.crs.to_wkt())
+        m85_tr = Transformer.from_crs(m85_crs.geodetic_crs, m85_crs, always_xy=True)
         m75_tr = Transformer.from_crs(CRS.from_wkt(m75.crs.to_wkt()).geodetic_crs,
                                       CRS.from_wkt(m75.crs.to_wkt()), always_xy=True)
         for site_id, lat, lon in load_sites():
@@ -371,7 +378,7 @@ def main(argv=None):
             if not site_centre_inside(dem, dem_tr, np.array([lat]), np.array([lon])):
                 report.append((site_id, "skipped: site centre outside the DEM"))
                 continue
-            if lat < -85.0:
+            if USE_85S and lat < -85.0:
                 illum = {"src": m85, "meta": MAP_85S}
                 illum_tr = m85_tr
             else:
@@ -406,11 +413,13 @@ def main(argv=None):
                 "illum_png": f"{site_id}-illum.png",
                 "illum_map": illum_name,
                 "illum_res_m": illum_res,
+                "illum_crs": ("DEM CRS (lon_0 = 0), label's lon_0 = 180 overridden"
+                              if illum_name == MAP_85S[0] and READ_85S_WITH_DEM_CRS else "as labelled"),
                 "dem": DEM_NAME,
                 "ground_m": round(ground, 2),
                 "levels": list(LEVELS),
             }
-            (OUT / f"{site_id}.json").write_text(json.dumps(meta, indent=1) + "\n")
+            (OUT / f"{site_id}.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
             report.append((site_id,
                            f"dem_valid={valid.mean():.3f} illum_valid={illum_ok.mean():.3f} "
                            f"h_min={h_int[valid].min() if valid.any() else 'na'} "
