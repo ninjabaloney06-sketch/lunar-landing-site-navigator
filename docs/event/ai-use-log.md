@@ -10,6 +10,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 11:19 | Codex (account owner unconfirmed) | ninja | Deleted 9 merged remote and 6 merged local branches; moved PDF generators to scripts/tools/ and updated paths and layout guide | Git branches, scripts/tools/, README.md, AGENTS.md, related documentation | none | Verified ancestry against fetched main, merged PRs, Python syntax, output roots and references. First remote deletion attempt included the symbolic origin alias and failed atomically; corrected and completed. |
 
+| Sat 11:32 | Codex (account owner unconfirmed) | project operator | Researched 15 lunar interest categories; specified sourced nearby-interest infographic and evidence/access rules | docs/reference/lunar-interest-points.md; docs/event/spec.md | none | No dataset ingestion, computed distances, route validation or app implementation. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
