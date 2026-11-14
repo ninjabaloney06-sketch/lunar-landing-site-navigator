@@ -93,3 +93,5 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Recorded mandatory CLPS assessments: exploration slope < 20°, roughness/obstacles, thermal stability, scientific value with PSRs/accessibility; updated task checklist, spec, plan and briefs; implementation and science checks remain open.
 
 - 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Reordered TASKS dependencies and handoffs: windows/summaries before finder checks, acceptance before deploy, submission artifacts before submit, continuation before new features; preserved active phase 4 byte-for-byte and all completed task entries.
+
+- 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Recorded landing-site slope ≤ 5° (above fails, exactly 5° passes only the slope criterion, missing data unknown), preserved exploration < 20°, and updated spec, tasks, build plan, briefs and decision; implementation and science validation remain open.
