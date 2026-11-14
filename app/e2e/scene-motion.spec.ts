@@ -73,6 +73,7 @@ test.describe('S1: eased camera input (site level, 1280 × 720)', () => {
   const SITE_VIEW = { ...RIDGE, level: 'site', az: 40, el: 35, dist: 6 }
 
   test('the wheel: the eased step takes many frames, never overshoots and lands where the whole step lands', async ({ page }) => {
+    test.setTimeout(300_000) // about 55 s alone, as below
     await open(page)
     const a = await setView(page, SITE_VIEW)
     await page.mouse.move(640, 360)
@@ -109,6 +110,7 @@ test.describe('S1: eased camera input (site level, 1280 × 720)', () => {
   })
 
   test('the middle-drag and the orbit drag keep turning after the release and end where the unsmoothed drag ends', async ({ page }) => {
+    test.setTimeout(300_000) // about 50 s alone: every frame of the test clock is a software-GL frame; minutes when other suites share the machine
     await open(page)
     const drag = async (button: 'middle' | 'left') => {
       await page.mouse.move(640, 360)
@@ -130,7 +132,7 @@ test.describe('S1: eased camera input (site level, 1280 × 720)', () => {
       await scene(page, (s) => s.setAnimated(true))
       await drag(button)
       expect(angleDeg((await camera(page)).forward, a.forward), `${button}: nothing moves until the clock does`).toBeLessThan(1e-6)
-      const path = await advance(page, 150)
+      const path = await advance(page, 100) // 1.7 s: ten time constants
       const turned = path.map((c) => angleDeg(a.forward, c.forward))
       expect(turned[0], `${button}: first frame after the release is part of the turn`).toBeGreaterThan(0.03 * total)
       expect(turned[0]).toBeLessThan(0.25 * total)
