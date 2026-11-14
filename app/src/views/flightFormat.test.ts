@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SPEED, SPEEDS, fmtDayTime, fmtDuration, fmtElapsed, fmtKms, fmtTonnes, fmtUtc } from './flightFormat'
+import { DEFAULT_SPEED, SPEEDS, fmtDayTime, fmtDuration, fmtElapsed, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
 
 describe('fmtKms', () => {
   it('uses two decimals, three below 0.1 km/s', () => {
@@ -55,10 +55,46 @@ describe('fmtDayTime', () => {
   })
 })
 
+describe('fmtKm', () => {
+  it('rounds to whole kilometres and groups thousands', () => {
+    expect(fmtKm(100)).toBe('100 km')
+    expect(fmtKm(405760.4)).toBe('405,760 km')
+    expect(fmtKm(1837.6)).toBe('1,838 km')
+  })
+})
+
+describe('fmtMetres', () => {
+  it('uses one decimal below 10 m', () => {
+    expect(fmtMetres(3.21)).toBe('3.2 m')
+    expect(fmtMetres(0)).toBe('0.0 m')
+  })
+  it('uses whole metres from 10 m', () => {
+    expect(fmtMetres(42.4)).toBe('42 m')
+    expect(fmtMetres(9.97)).toBe('10 m')
+    expect(fmtMetres(999.4)).toBe('999 m')
+  })
+  it('switches to kilometres from 1000 m', () => {
+    expect(fmtMetres(1000)).toBe('1.0 km')
+    expect(fmtMetres(999.6)).toBe('1.0 km')
+    expect(fmtMetres(1420)).toBe('1.4 km')
+  })
+})
+
 describe('SPEEDS', () => {
-  it('lists the seven steps and defaults to 4 h/s', () => {
-    expect(SPEEDS.map((s) => s.label)).toEqual(['1 min/s', '5 min/s', '15 min/s', '1 h/s', '4 h/s', '12 h/s', '1 day/s'])
-    expect(SPEEDS.map((s) => s.value)).toEqual([60, 300, 900, 3600, 14400, 43200, 86400])
+  it('lists the nine steps from real time to 1 day/s and defaults to 4 h/s', () => {
+    expect(SPEEDS.map((s) => s.label)).toEqual([
+      'real time',
+      '10 s/s',
+      '1 min/s',
+      '5 min/s',
+      '15 min/s',
+      '1 h/s',
+      '4 h/s',
+      '12 h/s',
+      '1 day/s',
+    ])
+    expect(SPEEDS.map((s) => s.value)).toEqual([1, 10, 60, 300, 900, 3600, 14400, 43200, 86400])
+    expect(SPEEDS.some((s) => s.value === DEFAULT_SPEED)).toBe(true)
     expect(DEFAULT_SPEED).toBe(14400)
   })
 })

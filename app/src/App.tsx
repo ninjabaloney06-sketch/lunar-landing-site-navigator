@@ -8,11 +8,12 @@ import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
+import { LAUNCH_VEHICLES } from './flight/launchVehicles'
 import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
-import type { LandingTarget } from './flight/types'
-import { DEFAULT_VEHICLE_ID, VEHICLES } from './flight/vehicles'
+import { ARCHITECTURES, SPACECRAFT } from './flight/spacecraft'
+import type { LandingTarget, Launchpad } from './flight/types'
 import { webglAvailable } from './scene3d'
-import type { FlightFocus } from './scene3d'
+import type { BodyPick, FlightFocus } from './scene3d'
 import {
   cleanName,
   COVERAGE_END_MS,
@@ -82,12 +83,12 @@ const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
-const FLIGHT_FOCUS: { id: FlightFocus; label: string }[] = [
-  { id: 'overview', label: 'Whole flight' },
-  { id: 'earth', label: 'Earth' },
-  { id: 'moon', label: 'Moon' },
-  { id: 'rocket', label: 'Rocket' },
-]
+// Mission designs the planner can fly today: capsule and lander meeting in low lunar orbit. The halo-orbit
+// designs are listed with the reason they are not available.
+const FLYABLE = (a: (typeof ARCHITECTURES)[number]) => a.rendezvous === 'llo'
+const DEFAULT_ARCHITECTURE_ID = ARCHITECTURES.find(FLYABLE)?.id ?? ARCHITECTURES[0].id
+const NRHO_REASON = 'This design meets in a near-rectilinear halo orbit, which the planner does not fly yet.'
+type LatLon = { latDeg: number; lonDeg: number }
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -140,6 +141,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     return { id: p.id, label: fmtRange(startMs, endMs), startMs, endMs }
   }, [hs.period, hs.from, hs.days, periods])
 
+  const missionDays = Math.round((period.endMs - period.startMs) / DAY_MS)
   const lastStep = period.endMs - STEP_MS
   const snap = useCallback(
     (ms: number) => {
@@ -163,7 +165,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const ctxStart = Math.max(COVERAGE_START_MS, period.startMs - CONTEXT_DAYS * DAY_MS)
   const ctxEnd = Math.min(COVERAGE_END_MS, period.endMs + CONTEXT_DAYS * DAY_MS)
   const context = useResults({ site, stations, ids, startMs: ctxStart, endMs: ctxEnd })
-  const missionDays = Math.round((period.endMs - period.startMs) / DAY_MS)
   const slope = slopeOf(site)
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
@@ -171,16 +172,63 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   // ---------- Flight plan tab: launchpad → this mission's site, touching down at the mission start ----------
   const inFlight = hs.view === 'flight'
-  const pad = LAUNCHPADS.find((x) => x.id === hs.pad) ?? LAUNCHPADS.find((x) => x.id === DEFAULT_PAD_ID) ?? LAUNCHPADS[0]
-  const vehicle = VEHICLES.find((x) => x.id === hs.rocket) ?? VEHICLES.find((x) => x.id === DEFAULT_VEHICLE_ID) ?? VEHICLES[0]
-  const target: LandingTarget = useMemo(() => ({ id: site.id, name: site.name, latDeg: site.lat, lonDeg: site.lon }), [site])
-  const flight = useFlight({ active: inFlight, pad, vehicle, target, landingMs: period.startMs, maxTransferDays: hs.tmax })
+  const [customPad, setCustomPad] = useState<LatLon | null>(null)
+  const [customSite, setCustomSite] = useState<LatLon | null>(null)
+  const [siteMode, setSiteMode] = useState<'mission' | 'custom'>('mission')
+  const [picking, setPicking] = useState<'pad' | 'site' | null>(null)
+  const [returnWindowDays, setReturnWindowDays] = useState(0)
+  const [panelCollapsed, setPanelCollapsed] = useState(false)
+  const pad: Launchpad = useMemo(() => {
+    if (hs.pad === 'custom' && customPad) {
+      return {
+        id: 'custom', name: 'Chosen launch point', site: fmtCoords(customPad.latDeg, customPad.lonDeg), latDeg: customPad.latDeg, lonDeg: customPad.lonDeg,
+        source: { label: 'Coordinates chosen in this app', url: '' },
+      }
+    }
+    return LAUNCHPADS.find((x) => x.id === hs.pad) ?? LAUNCHPADS.find((x) => x.id === DEFAULT_PAD_ID) ?? LAUNCHPADS[0]
+  }, [hs.pad, customPad])
+  const target: LandingTarget = useMemo(
+    () =>
+      siteMode === 'custom' && customSite
+        ? { id: 'custom', name: 'Chosen landing point', latDeg: customSite.latDeg, lonDeg: customSite.lonDeg }
+        : { id: site.id, name: site.name, latDeg: site.lat, lonDeg: site.lon },
+    [site, siteMode, customSite],
+  )
+  const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket && FLYABLE(a)) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
+  const flight = useFlight({
+    active: inFlight,
+    pad,
+    target,
+    architecture,
+    launchVehicle: LAUNCH_VEHICLES.find((v) => v.id === architecture.launchVehicleId)!,
+    capsule: SPACECRAFT.find((v) => v.id === architecture.capsuleId)!,
+    lander: SPACECRAFT.find((v) => v.id === architecture.landerId)!,
+    earliestTouchdownMs: period.startMs,
+    surfaceStayDays: missionDays,
+    returnWindowDays,
+    maxTransferDays: hs.tmax,
+  })
   const [trueScale, setTrueScale] = useState(true)
   const [flightFocus, setFlightFocus] = useState<FlightFocus>('overview')
   const [flightViewKey, setFlightViewKey] = useState(0)
   const flightScene: FlightScene = useMemo(
-    () => ({ plan: flight.plan, trueScale, clock: flight.clock, focus: flightFocus, viewKey: flightViewKey }),
-    [flight.plan, flight.clock, trueScale, flightFocus, flightViewKey],
+    () => ({ plan: flight.plan, trueScale, clock: flight.clock, focus: flightFocus, viewKey: flightViewKey, picking: picking !== null }),
+    [flight.plan, flight.clock, trueScale, flightFocus, flightViewKey, picking],
+  )
+  // A click on Earth or the Moon while the panel waits for one: the launch point or the landing point.
+  const onFlightPick = useCallback(
+    (hit: BodyPick) => {
+      if (picking === 'pad' && hit.body === 'earth') {
+        setCustomPad({ latDeg: hit.latDeg, lonDeg: hit.lonDeg })
+        patch({ pad: 'custom' })
+        setPicking(null)
+      } else if (picking === 'site' && hit.body === 'moon') {
+        setCustomSite({ latDeg: hit.latDeg, lonDeg: hit.lonDeg })
+        setSiteMode('custom')
+        setPicking(null)
+      }
+    },
+    [picking, patch],
   )
 
   const deps = useMemo(() => ({ sites, loadFrame: makeLoadFrame(sites) }), [sites])
@@ -306,6 +354,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             flight={flightScene}
             onUnavailable={onUnavailable}
             onPick={onPick}
+            onFlightPick={onFlightPick}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -409,24 +458,48 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           )}
           {inFlight && menu === null && (
             <FlightPanel
+              architectures={ARCHITECTURES.map((a) => ({
+                id: a.id,
+                name: a.name,
+                note: a.note,
+                available: FLYABLE(a),
+                unavailableReason: FLYABLE(a) ? null : NRHO_REASON,
+              }))}
+              architectureId={architecture.id}
+              onArchitecture={(id) => patch({ rocket: id === DEFAULT_ARCHITECTURE_ID ? null : id })}
               pads={LAUNCHPADS}
               padId={pad.id}
-              onPad={(id) => patch({ pad: id === DEFAULT_PAD_ID ? null : id })}
-              vehicles={VEHICLES}
-              vehicleId={vehicle.id}
-              onVehicle={(id) => patch({ rocket: id === DEFAULT_VEHICLE_ID ? null : id })}
+              onPad={(id) => {
+                if (id === 'custom' && !customPad) setCustomPad({ latDeg: pad.latDeg, lonDeg: pad.lonDeg })
+                patch({ pad: id === DEFAULT_PAD_ID ? null : id })
+              }}
+              customPad={customPad}
+              onCustomPad={setCustomPad}
               target={target}
-              landingMs={period.startMs}
+              siteMode={siteMode}
+              onSiteMode={(m) => {
+                if (m === 'custom' && !customSite) setCustomSite({ latDeg: site.lat, lonDeg: site.lon })
+                setSiteMode(m)
+              }}
+              onCustomSite={setCustomSite}
+              earliestTouchdownMs={period.startMs}
+              surfaceStayDays={missionDays}
+              returnWindowDays={returnWindowDays}
+              onReturnWindowDays={setReturnWindowDays}
               maxTransferDays={hs.tmax}
               onMaxTransferDays={(tmax) => patch({ tmax })}
               status={flight.status}
               trueScale={trueScale}
               onTrueScale={setTrueScale}
+              picking={picking}
+              onPicking={setPicking}
               onChangeSite={() => {
                 setPanelAtStations(false)
                 setMenu('mission')
               }}
               onSeek={flight.seek}
+              collapsed={panelCollapsed}
+              onCollapsed={setPanelCollapsed}
             />
           )}
         </div>
@@ -485,32 +558,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               timeMs={flight.timeMs}
               playing={flight.playing}
               speed={flight.speed}
+              focus={flightFocus}
               onPlaying={flight.setPlaying}
               onSeek={flight.seek}
               onSpeed={flight.setSpeed}
+              onFocus={(f) => {
+                // "Whole flight" again while it is already chosen puts the camera back where it started.
+                if (f === 'overview' && flightFocus === 'overview') setFlightViewKey((k) => k + 1)
+                setFlightFocus(f)
+              }}
             />
           )}
           <footer className="foot">
-            <p className="flight-focus">
-              <span>Look at</span>
-              {FLIGHT_FOCUS.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  className="link"
-                  data-testid={`focus-${f.id}`}
-                  aria-pressed={flightFocus === f.id}
-                  onClick={() => {
-                    // "Whole flight" again while it is already chosen puts the camera back where it started.
-                    if (f.id === 'overview' && flightFocus === 'overview') setFlightViewKey((k) => k + 1)
-                    setFlightFocus(f.id)
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
-              <span>· drag to turn, scroll to zoom · gravity of Earth, Moon and Sun, ephemeris JPL DE440</span>
-            </p>
+            <p>Gravity of Earth, Moon and Sun · ephemeris JPL DE440 · drag to turn, scroll to zoom</p>
             <p className="foot-sample" data-testid="flight-flag">
               Planning estimate — not validated
             </p>

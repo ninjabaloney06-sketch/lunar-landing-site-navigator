@@ -177,3 +177,91 @@ export interface FlightState {
 }
 
 export class FlightPlanError extends Error {}
+
+// ---------------------------------------------------------------------------------------------------------
+// Whole mission (mission.ts): launch, flight to the Moon, landing, surface stay, ascent, docking, flight home.
+// Two craft are followed: the capsule (the crewed spacecraft; it carries the lander until undocking and again
+// after docking) and the lander. Every phase is a leg with its own integrated path; every burn is an event with
+// what it delivered and what it used.
+
+export type CraftId = 'capsule' | 'lander'
+
+export interface MissionLeg {
+  id: string // 'ascent', 'parking', 'tli', 'translunar', 'loi', 'lunar-orbit', 'descent', 'surface', 'lunar-ascent', 'tei', 'transearth', ...
+  label: string // phase name shown to the user
+  craft: CraftId
+  frame: 'earth' | 'moon' // track positions are relative to this body's centre, J2000 axes, km
+  powered: boolean // an engine is firing along this leg
+  track: Track
+}
+
+export interface MissionEvent {
+  id: string
+  short: string // 'TLI', 'LOI', 'PDI', 'TEI', 'EI', …
+  label: string // official term: 'Trans-Lunar Injection (TLI)'
+  utcMs: number
+  craft: CraftId
+  kind: 'burn' | 'event'
+  by: string | null // the stage or engine that fires, official name
+  dvKms: number | null // integrated thrust acceleration, losses included
+  propellantKg: number | null
+  durationS: number | null
+  massAfterKg: number | null
+}
+
+/** Propellant a stage or module needs for this mission against what it can carry. */
+export interface PropellantUse {
+  element: string // official name
+  usedKg: number
+  capacityKg: number
+}
+
+export interface MissionFacts {
+  launchAzimuthDeg: number
+  parkingInclDeg: number
+  parkingPerigeeKm: number
+  parkingApogeeKm: number
+  ascentLossKms: { gravity: number; drag: number; steering: number } | null
+  transferDays: number // TLI ignition → LOI cut-off
+  moonDistKm: number
+  vInfKms: number
+  lunarPeriluneKm: number
+  lunarApoluneKm: number
+  lunarInclDeg: number
+  orbitBeforeLandingH: number // LOI cut-off → touchdown
+  landingMissM: number | null // distance from the asked point at touchdown
+  surfaceStayDays: number
+  returnPlaneOffDeg: number // how far the lunar orbit's plane is from the way home at departure
+  returnDays: number // TEI ignition → Entry Interface
+  entry: { speedKms: number; fpaDeg: number; latDeg: number; lonDeg: number }
+  missionDays: number // liftoff → Entry Interface
+}
+
+export interface MissionPlan {
+  pad: Launchpad
+  target: LandingTarget
+  ephem: FlightEphemeris
+  architecture: { id: string; name: string; launchVehicle: string; capsule: string; lander: string }
+  launchMs: number
+  touchdownMs: number
+  lunarLiftoffMs: number
+  dockingMs: number
+  endMs: number // Entry Interface
+  legs: MissionLeg[] // capsule legs are contiguous from launchMs to endMs; lander legs run from undocking to docking
+  events: MissionEvent[] // sorted by time
+  propellant: PropellantUse[]
+  facts: MissionFacts
+  /** Things the reader has to know: propellant shortfalls, an expensive return geometry, assumptions that bite. */
+  notes: string[]
+  sources: SourceRef[]
+}
+
+/** Where a craft is at an instant. While the lander is docked it is where the capsule is. */
+export interface CraftState {
+  frame: 'earth' | 'moon'
+  pos: Vec3
+  legId: string
+  label: string
+  powered: boolean
+  docked: boolean // lander only: riding with the capsule
+}

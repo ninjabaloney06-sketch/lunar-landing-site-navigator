@@ -63,13 +63,24 @@
 
 /* ---------- Flight panel: docked under the header, ends above the playback bar, scrolls inside itself ---------- */
 
+/* As wide as the Mission panel: the events table has five columns. */
 .flight-panel {
-  width: min(420px, calc(100vw - var(--s-8)));
-  max-height: max(240px, calc(100dvh - 340px));
+  width: min(440px, calc(100vw - var(--s-8)));
+  max-height: max(240px, calc(100dvh - 400px));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: var(--s-4);
+}
+
+/* Collapsed: only the head, as wide as its text, so the 3D view stays free in small windows. */
+.flight-panel.is-collapsed {
+  width: max-content;
+  max-width: calc(100vw - var(--s-8));
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  padding-bottom: var(--s-3);
 }
 
 /* Camera focus choices in the footer line: plain text buttons, the chosen one in the text colour. */
@@ -93,17 +104,28 @@
   display: none;
 }
 
+/* Title at the left, "Hide" / "Show" at the right. */
 .flight-head {
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-6);
   padding-bottom: 0;
 }
 
-.flight-head .quiet {
-  margin: var(--s-1) 0 0;
+.flight-collapse {
+  flex: none;
+  font-size: var(--t-small);
+  color: var(--muted);
 }
 
-/* Labels are wider than the Mission panel's: "Launchpad", "Touchdown" */
+.flight-intro {
+  margin: var(--s-1) 0 0;
+  padding: 0 var(--s-4);
+}
+
+/* Labels are wider than the Mission panel's: "Mission design", "Landing point" */
 .flight-panel .mp-field {
-  grid-template-columns: var(--s-24) minmax(0, 1fr);
+  grid-template-columns: calc(var(--s-24) + var(--s-3)) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -133,6 +155,11 @@
   overflow-wrap: anywhere;
 }
 
+/* A second value line under the first: "planned …" under "not before …" */
+.flight-line-next {
+  padding-top: 0;
+}
+
 .flight-sub {
   display: block;
   margin-top: var(--s-1);
@@ -140,17 +167,108 @@
   color: var(--muted);
 }
 
+/* Landing point: the mission's site (with "Change") or free coordinates. */
+.flight-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s-3);
+}
+
+/* Latitude and longitude of a free point: two short number fields in one row. */
+.flight-coords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+}
+
+.flight-coord {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.flight-coord .field {
+  width: var(--s-24);
+  padding: var(--s-1) var(--s-2);
+}
+
+.flight-coord .field[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+/* "Pick on Earth", "Pick on the Moon": in the text colour while the 3D view waits for the click. */
+.flight-pick {
+  color: var(--muted);
+}
+
+.flight-pick[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
+.flight-hint {
+  margin: 0;
+}
+
+/* The coordinates in use, under the choice that produced them. */
+.flight-used {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-status {
+  padding-top: var(--s-4);
+}
+
+/* Notes of the plan are warnings (a propellant shortfall, an expensive return): text colour and a rule, no fill. */
+.flight-notes {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-4) var(--s-4) 0;
+  font-size: var(--t-small);
+  color: var(--fg);
+}
+
+.flight-notes li {
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--fg);
+  overflow-wrap: anywhere;
+}
+
+/* Events and propellant tables: the name wraps, the numbers do not. */
 .flight-burns th,
-.flight-burns td {
+.flight-burns td,
+.flight-propellant th,
+.flight-propellant td {
   white-space: nowrap;
 }
 
-.flight-burns .flight-name {
+.flight-burns thead th {
+  white-space: normal;
+}
+
+.flight-burns .flight-name,
+.flight-propellant .flight-name {
+  white-space: normal;
   font-weight: 400;
   color: var(--fg);
 }
 
-.flight-num {
+/* An event without a burn (touchdown, docking, Entry Interface) is lighter than a burn. */
+.flight-burns tr[data-kind='event'] .flight-name {
+  color: var(--muted);
+}
+
+/* The time is a button that jumps the playback there: date above time, to leave the name its width. */
+.flight-time span {
+  display: block;
+}
+
+/* Numbers are right-aligned (.tbl aligns its cells left). */
+.flight-num,
+.tbl .flight-num {
   text-align: right;
 }
 
@@ -161,6 +279,17 @@
 }
 
 .flight-burns tfoot .flight-num {
+  color: var(--fg);
+}
+
+/* Propellant: quiet rows; a stage that needs more than it carries is in the text colour. */
+.flight-propellant tbody .flight-name,
+.flight-propellant tbody td {
+  color: var(--muted);
+}
+
+.flight-propellant tbody .is-short .flight-name,
+.flight-propellant tbody .is-short td {
   color: var(--fg);
 }
 
@@ -188,6 +317,10 @@
   color: var(--fg);
 }
 
+.flight-fact-line {
+  display: block;
+}
+
 .flight-sources {
   margin-top: var(--s-3);
   font-size: var(--t-small);
@@ -197,18 +330,25 @@
   margin-bottom: var(--s-2);
 }
 
-/* ---------- Flight transport: the bottom bar; one row on desktop, wrapping on phones ---------- */
+/* ---------- Flight transport: the bottom bar. Row 1: play, readout, scrubber. Row 2: Look at, speed. ---------- */
 
 .flight-transport {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-4) var(--s-6);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
   box-sizing: border-box;
   width: 100%;
   padding: var(--s-3) var(--s-4);
   background: var(--bg-veil);
   border-top: 1px solid var(--line);
+}
+
+.flight-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-6);
+  min-width: 0;
 }
 
 .flight-play {
@@ -217,10 +357,12 @@
   transition: border-color var(--dur-fast) var(--ease-out);
 }
 
+/* Elapsed time and UTC on one line, the phase under them. The two widths are fixed in characters and the
+   phase adds none, so the scrubber beside the readout does not move while the flight plays. */
 .flight-readout {
-  display: flex;
+  display: grid;
   flex: none;
-  flex-wrap: wrap;
+  grid-template-columns: max-content max-content;
   align-items: baseline;
   gap: 0 var(--s-4);
 }
@@ -230,20 +372,27 @@
 }
 
 .flight-elapsed {
+  min-width: 16ch;
   font-size: var(--t-ui);
   color: var(--fg);
 }
 
+.flight-utc {
+  min-width: 22ch;
+}
+
 .flight-phase {
+  grid-column: 1 / -1;
+  contain: inline-size;
   font-size: var(--t-small);
   color: var(--muted);
 }
 
 .flight-track {
   position: relative;
-  flex: 1 1 0;
+  flex: 1 1 calc(var(--s-24) * 3);
   min-width: 0;
-  padding-top: var(--s-6);
+  padding-top: var(--s-10);
 }
 
 .flight-ticks {
@@ -251,13 +400,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: var(--s-6);
+  height: var(--s-10);
 }
 
-/* A 1px tick above the track; the button is the hit area. Labels sit above the tick. */
+/* A 1px tick above the track; the button is the hit area. Labels sit above the tick, one line higher when
+   the neighbouring label is in the way (LOI and touchdown, docking and TEI). */
 .flight-tick {
   position: absolute;
-  top: var(--s-2);
+  top: var(--s-6);
   bottom: 0;
   width: var(--s-2);
   transform: translateX(-50%);
@@ -288,6 +438,10 @@
   color: var(--muted);
   white-space: nowrap;
   pointer-events: none;
+}
+
+.flight-tick-text.is-raised {
+  bottom: calc(100% + var(--s-3));
 }
 
 /* Scrubber: a 1px --track line with a 2px --fg bar for the thumb */
@@ -329,16 +483,32 @@
   background: var(--fg);
 }
 
+/* Look at: what the camera follows. The header tabs' segmented control, used as a radio group. */
+.flight-look-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  min-width: 0;
+}
+
+.flight-look .tab[aria-checked='true'] {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
 .flight-speed-field {
   display: flex;
   flex: none;
   align-items: center;
   gap: var(--s-3);
+  margin-left: auto;
   cursor: pointer;
 }
 
+/* Room for the longest step, "real time" */
 .flight-speed-field .mono {
-  min-width: var(--s-16);
+  min-width: 9ch;
 }
 
 .flight-speed {
@@ -357,22 +527,56 @@
     border-radius: 0;
   }
 
-  .flight-transport {
-    gap: var(--s-3) var(--s-4);
-    padding: var(--s-3) var(--s-4);
+  /* Collapsed it is a small box again, not a full-width sheet. */
+  .flight-panel.is-collapsed {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
   }
 
-  .flight-track {
-    order: 3;
+  .flight-row {
+    gap: var(--s-3) var(--s-4);
+  }
+
+  /* Play and the readout share the first line (the readout wraps inside itself on phones), the scrubber takes
+     the next one, then Look at over the full width, then the speed. */
+  .flight-readout {
+    display: flex;
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .flight-elapsed,
+  .flight-utc {
+    min-width: 0;
+  }
+
+  .flight-phase {
     flex-basis: 100%;
   }
 
-  .flight-speed-field {
-    margin-left: auto;
+  .flight-track {
+    flex-basis: 100%;
+  }
+
+  .flight-look-field {
+    flex: 1 1 100%;
+  }
+
+  .flight-look {
+    flex: 1 1 auto;
+  }
+
+  .flight-look .tab {
+    flex: 1 1 auto;
+    padding: var(--s-2);
+    font-size: var(--t-small);
+    text-align: center;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tab,
   .flight-play,
   .flight-tick::before {
     transition: none;
@@ -381,4 +585,9 @@
   .flight-panel {
     animation: none;
   }
+}
+
+/* The 3D view waits for a click on Earth or the Moon. */
+.scene.is-picking canvas {
+  cursor: crosshair;
 }

@@ -21,12 +21,12 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
-import type { FlightPlan } from '../flight/types'
+import type { MissionPlan } from '../flight/types'
 import { qconj, qrot, scale } from '../flight/vec'
 import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
 import { loadTextures } from './assets'
 import { installDebug, type DebugView } from './debug'
-import { FlightWorld, type FlightAnchor } from './flight'
+import { FlightWorld, type BodyPick, type FlightAnchor } from './flight'
 import { azElOfEnu, enuDir, enuToMeQuat, latLonOf, quat, v3 } from './frames'
 import { GlobeWorld } from './globe'
 import { SiteWorld } from './site'
@@ -34,7 +34,8 @@ import { Sky } from './sky'
 
 export type SceneLevel = 'globe' | 'site' | 'eye' | 'flight'
 /** What the flight camera turns about: the whole transfer, or a body or the rocket, which it then follows. */
-export type FlightFocus = 'overview' | 'earth' | 'moon' | 'rocket'
+export type FlightFocus = 'overview' | 'earth' | 'moon' | 'capsule' | 'lander'
+export type { BodyPick } from './flight'
 export type { FlightAnchor } from './flight'
 
 export interface SceneFrame {
@@ -64,12 +65,14 @@ export interface SceneHandle {
   onCameraChange(cb: () => void): () => void
   onPick(cb: (lat: number, lon: number) => void): () => void
   // Flight level (additive, 14 Nov): the plan to draw, the simulated instant, and label points on its objects.
-  setFlight(plan: FlightPlan | null, trueScale: boolean): void
+  setFlight(plan: MissionPlan | null, trueScale: boolean): void
   setFlightTime(utcMs: number): void
   projectFlight(name: FlightAnchor): ScreenPoint | null
   /** Back to the default flight view (the whole transfer). */
   resetFlightView(): void
   setFlightFocus(focus: FlightFocus): void
+  /** A click (not a drag) on Earth or the Moon in the flight view: the body and the point on it. */
+  onFlightPick(cb: (pick: BodyPick) => void): () => void
   dispose(): void
 }
 
@@ -98,12 +101,13 @@ const FLIGHT = {
   viewSide: 0.643,
   fit: 1.3,
   panelPx: 470,
-  minDistKm: 2500,
+  minDistKm: 0.5, // close enough to watch a liftoff or a touchdown
   maxDistKm: 3e6,
   reframeCos: 0.9986, // re-frame when the transfer plane has turned by more than 3 deg
   // Camera distance when a focus is chosen: Earth with its parking orbit, the Moon with its 100 km orbit, the
   // rocket with enough of its path to see where it is going.
-  focusKm: { earth: 42000, moon: 13000, rocket: 30000 },
+  // the capsule and the lander with enough of their path to see where they are going.
+  focusKm: { earth: 42000, moon: 13000, capsule: 30000, lander: 400 },
 }
 const AU_KM = 149_597_870.7
 const ORIGIN = new Vector3()
@@ -149,7 +153,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   siteControls.dampingFactor = 0.1
   // Flight camera (J2000, km). Its controls are built per plan: OrbitControls reads camera.up once, and "up" here
   // is the transfer plane's normal.
-  const flightCam = new PerspectiveCamera(FLIGHT.fov, 1, 20, 1e7)
+  const flightCam = new PerspectiveCamera(FLIGHT.fov, 1, 0.01, 1e7) // logarithmic depth: 10 m to ten million km
   flightCam.up.set(0, 0, 1)
   let flightControls: OrbitControls | null = null
   const globeControls = new OrbitControls(globeCam, canvas)
@@ -166,12 +170,15 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let sky: Sky | null = null
   let globe: GlobeWorld | null = null
   let flight: FlightWorld | null = null
-  let flightPlan: FlightPlan | null = null
+  let flightPlan: MissionPlan | null = null
+  const flightPickCbs = new Set<(pick: BodyPick) => void>()
   let flightTrueScale = false
   let flightMs = 0
   let flightFramed: Vector3 | null = null // transfer-plane normal the flight camera was last framed for
   let flightFocus: FlightFocus = 'overview'
   const focusAt = new Vector3() // where the followed object was when the camera last moved with it
+  const focusUp = new Vector3() // the followed craft's direction from the body it is close to, at that moment
+  let focusUpValid = false
   const site = new SiteWorld()
   let siteKm = new Vector3()
   let enuToMe = new Quaternion()
@@ -385,7 +392,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     c.enableDamping = !testMode
     c.dampingFactor = 0.1
     c.rotateSpeed = 0.5
-    c.zoomSpeed = 2 // from the whole transfer down to a lunar orbit is a factor of 100
+    c.zoomSpeed = 2.5 // from the whole transfer down to a launchpad is a factor of a million
     c.zoomToCursor = true
     c.minDistance = FLIGHT.minDistKm
     c.maxDistance = FLIGHT.maxDistKm
@@ -407,13 +414,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     markDirty()
   }
 
-  function setFlight(plan: FlightPlan | null, trueScale: boolean) {
+  function setFlight(plan: MissionPlan | null, trueScale: boolean) {
     flightPlan = plan
     flightTrueScale = trueScale
     if (!flight) return // applied once the textures are in
     flight.setPlan(plan, trueScale)
     if (plan) {
-      flightMs = Math.min(plan.landingMs, Math.max(plan.launchMs, flightMs))
+      flightMs = Math.min(plan.endMs, Math.max(plan.launchMs, flightMs))
       flight.setTime(flightMs)
     }
     const vf = flight.viewFrame()
@@ -430,9 +437,22 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (level === 'flight') markDirty()
   }
 
-  /** Turns the camera about a body or the rocket, from the direction it is looking from now. */
+  /** The body a point is close to (within three radii of its centre), if any. */
+  function bodyNear(p: Vector3): { centre: Vector3; radius: number } | null {
+    if (!flight) return null
+    const moon = flight.anchor('moon')
+    const moonR = flight.bodyRadius('moon')
+    const earthR = flight.bodyRadius('earth')
+    if (moon && p.distanceTo(moon) < 3 * moonR) return { centre: moon, radius: moonR }
+    if (p.length() < 3 * earthR) return { centre: ORIGIN.clone(), radius: earthR }
+    return null
+  }
+
+  /** Turns the camera about a body or a craft. A body is seen from the direction the camera looks from now. A
+   *  craft close to a body is seen from outside that body, so the body is never between the camera and the craft. */
   function setFlightFocus(focus: FlightFocus) {
     flightFocus = focus
+    focusUpValid = false
     if (focus === 'overview') {
       setFlightView()
       return
@@ -441,24 +461,62 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const p = flight?.anchor(focus)
     if (!p || !flightControls) return
     const dir = flightCam.position.clone().sub(flightControls.target).normalize()
+    // A craft keeps the viewing distance the user already chose once it is close; a body gets its own.
+    const now = flightCam.position.distanceTo(flightControls.target)
+    const craft = focus === 'capsule' || focus === 'lander'
+    const dist = craft && now < FLIGHT.focusKm.capsule ? now : FLIGHT.focusKm[focus]
+    const body = craft ? bodyNear(p) : null
+    if (body) {
+      const up = p.clone().sub(body.centre).normalize()
+      const side = dir.clone().addScaledVector(up, -dir.dot(up)) // the part of the old direction along the ground
+      if (side.lengthSq() < 1e-6) side.copy(flightCam.up).addScaledVector(up, -flightCam.up.dot(up))
+      dir.copy(side.normalize()).multiplyScalar(0.8).addScaledVector(up, 0.6).normalize() // 37° above the local horizon
+      focusUp.copy(up)
+      focusUpValid = true
+    }
     flightControls.target.copy(p)
-    flightCam.position.copy(p).addScaledVector(dir, FLIGHT.focusKm[focus])
+    flightCam.position.copy(p).addScaledVector(dir, dist)
     flightCam.lookAt(p)
     flightControls.update()
     focusAt.copy(p)
     markDirty()
   }
 
-  /** Moves camera and target along with the followed object, so the user's own turning and zooming stay. */
+  /** Moves camera and target along with the followed object, so the user's own turning and zooming stay. Around
+   *  a body the view also turns with the craft's position over it: the camera stays on the craft's side. */
   function followFocus() {
     if (flightFocus === 'overview' || !flight || !flightControls) return
     const p = flight.anchor(flightFocus)
     if (!p) return
     const d = p.clone().sub(focusAt)
     if (d.lengthSq() === 0) return
-    flightCam.position.add(d)
+    const offset = flightCam.position.clone().sub(flightControls.target)
+    const body = flightFocus === 'capsule' || flightFocus === 'lander' ? bodyNear(p) : null
+    if (body) {
+      const up = p.clone().sub(body.centre).normalize()
+      if (focusUpValid) offset.applyQuaternion(new Quaternion().setFromUnitVectors(focusUp, up))
+      focusUp.copy(up)
+      focusUpValid = true
+    } else focusUpValid = false
     flightControls.target.add(d)
+    flightCam.position.copy(flightControls.target).add(offset)
     focusAt.copy(p)
+  }
+
+  /** The camera never goes below the surface of Earth or the Moon: a globe seen from inside is invisible. */
+  function keepOutside() {
+    if (!flight || !flightPlan) return
+    const moon = flight.anchor('moon')
+    const bodies: [Vector3, number][] = [[ORIGIN, flight.bodyRadius('earth')]]
+    if (moon) bodies.push([moon, flight.bodyRadius('moon')])
+    for (const [centre, radius] of bodies) {
+      const d = flightCam.position.clone().sub(centre)
+      const min = radius + 0.05 // 50 m above the surface
+      if (d.lengthSq() < min * min) {
+        flightCam.position.copy(centre).addScaledVector(d.lengthSq() > 0 ? d.normalize() : new Vector3(0, 0, 1), min)
+        markDirty()
+      }
+    }
   }
 
   /** True when the sphere blocks the segment from `from` to `to`. */
@@ -476,6 +534,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!p || !moon) return null
     const earthR = flight.bodyRadius('earth')
     const moonR = flight.bodyRadius('moon')
+    if (name === 'lander' && !flight.landerApart()) return null
     if (name === 'earth' || name === 'moon' || name === 'arrival') {
       // The label sits above the body (or the ring): its top edge as the camera sees it.
       const up = new Vector3(0, 1, 0).applyQuaternion(flightCam.quaternion)
@@ -674,6 +733,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (fly) stepFly(now)
     const controls = level === 'flight' ? flightControls : inSpace() ? globeControls : siteControls
     if (controls?.update()) markDirty()
+    if (level === 'flight') keepOutside()
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
@@ -698,12 +758,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let down: { x: number; y: number } | null = null
   const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY })
   const onUp = (e: PointerEvent) => {
-    if (!down || level !== 'globe' || fly || !globe) return
+    if (!down || (level !== 'globe' && level !== 'flight') || fly || !globe) return
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
     down = null
     if (moved > 5) return
     const r = canvas.getBoundingClientRect()
     const ndc = new Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
+    if (level === 'flight') {
+      // ray through the clicked pixel
+      flightCam.updateMatrixWorld(true)
+      const dir = new Vector3(ndc.x, ndc.y, 0.5).unproject(flightCam).sub(flightCam.position).normalize()
+      const hit = flight?.pick(flightCam.position, dir)
+      if (hit) for (const cb of flightPickCbs) cb(hit)
+      return
+    }
     const hit = globe.pick(ndc, globeCam, size)
     if (hit) for (const cb of pickCbs) cb(hit.lat, hit.lon)
   }
@@ -751,6 +819,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     projectFlight,
     resetFlightView: () => setFlightFocus('overview'),
     setFlightFocus,
+    onFlightPick(cb) {
+      flightPickCbs.add(cb)
+      return () => flightPickCbs.delete(cb)
+    },
     dispose() {
       disposed = true
       cancelAnimationFrame(raf)

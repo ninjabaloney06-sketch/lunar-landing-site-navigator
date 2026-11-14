@@ -1,33 +1,42 @@
-// The flight plan for the current choices and its playback clock (Flight plan tab).
+// The mission plan for the current choices and its playback clock (Flight plan tab).
 // The plan is computed from the same DE440 ephemeris files as everything else; nothing here invents a number:
-// missing ephemeris months give a plain message. The clock advances on animation frames into a plain object
-// the 3D scene reads directly, and into React state only about 15 times a second (the readout and scrubber).
+// missing ephemeris months give a plain message. Computing a mission takes a few seconds (every phase is
+// integrated), so it runs after the "Computing…" state has been painted. The clock advances on animation frames
+// into a plain object the 3D scene reads directly, and into React state only about 15 times a second.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadMonthsFor } from '../data/load'
 import { makeFlightEphemeris } from '../flight/ephemeris'
-import { planFlight } from '../flight/plan'
-import { DEFAULT_OPTIONS, FlightPlanError } from '../flight/types'
-import type { FlightPlan, LandingTarget, Launchpad, Vehicle } from '../flight/types'
+import type { ArchitectureSpec, LaunchVehicleSpec, SpacecraftSpec } from '../flight/hardware'
+import { planMission } from '../flight/mission'
+import { FlightPlanError } from '../flight/types'
+import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
 import { DAY_MS } from '../state'
-import type { FlightStatus } from './FlightPanel'
+import type { MissionStatus } from './FlightPanel'
 import { DEFAULT_SPEED } from './flightFormat'
 
-// Ephemeris loaded around touchdown: the flight starts about a week earlier (longer with a slow parking coast).
-const LEAD_DAYS = 9
+// Ephemeris loaded around the mission: it starts about a week before touchdown and ends about a week after
+// leaving the Moon.
+const LEAD_DAYS = 10
+const TAIL_DAYS = 10
 const UI_INTERVAL_MS = 66
 
 export interface FlightInput {
   active: boolean // the tab is open: nothing is loaded or computed before
   pad: Launchpad
-  vehicle: Vehicle
   target: LandingTarget
-  landingMs: number
+  architecture: ArchitectureSpec
+  launchVehicle: LaunchVehicleSpec
+  capsule: SpacecraftSpec
+  lander: SpacecraftSpec
+  earliestTouchdownMs: number
+  surfaceStayDays: number
+  returnWindowDays: number
   maxTransferDays: number | null
 }
 
 export interface Flight {
-  status: FlightStatus
-  plan: FlightPlan | null
+  status: MissionStatus
+  plan: MissionPlan | null
   clock: { timeMs: number }
   timeMs: number
   playing: boolean
@@ -38,37 +47,69 @@ export interface Flight {
 }
 
 export function useFlight(input: FlightInput): Flight {
-  const { active, pad, vehicle, target, landingMs, maxTransferDays } = input
-  const key = `${pad.id}|${vehicle.id}|${target.id}|${landingMs}|${maxTransferDays}`
-  const [state, setState] = useState<{ key: string; status: FlightStatus }>({ key: '', status: { state: 'loading' } })
+  const { active, pad, target, architecture, earliestTouchdownMs, surfaceStayDays, returnWindowDays, maxTransferDays } = input
+  const key = [
+    pad.id, pad.latDeg.toFixed(4), pad.lonDeg.toFixed(4), target.latDeg.toFixed(4), target.lonDeg.toFixed(4), architecture.id,
+    earliestTouchdownMs, surfaceStayDays, returnWindowDays, maxTransferDays,
+  ].join('|')
+  const [state, setState] = useState<{ key: string; status: MissionStatus }>({ key: '', status: { state: 'loading' } })
+  const latest = useRef(input)
+  latest.current = input
+  // Typed coordinates change with every keystroke; a mission is only computed once they have settled.
+  const [settledKey, setSettledKey] = useState(key)
+  useEffect(() => {
+    const id = window.setTimeout(() => setSettledKey(key), 450)
+    return () => window.clearTimeout(id)
+  }, [key])
 
   useEffect(() => {
     if (!active) return
     let alive = true
-    loadMonthsFor(landingMs - LEAD_DAYS * DAY_MS, landingMs + DAY_MS)
-      .then((months): FlightStatus => {
-        if (!months) return { state: 'error', message: 'No ephemeris for these dates in this build. The flight starts about a week before touchdown.' }
-        const plan = planFlight({
-          pad,
-          vehicle,
-          target,
-          options: { ...DEFAULT_OPTIONS, landingMs, maxTransferDays },
-          ephem: makeFlightEphemeris(months),
-        })
-        return { state: 'ready', plan }
-      })
-      .catch((e: Error): FlightStatus => ({
-        state: 'error',
-        message: e instanceof FlightPlanError ? e.message : `Could not compute the flight plan. ${e.message}`,
-      }))
+    const key = settledKey
+    const endMs = earliestTouchdownMs + (surfaceStayDays + returnWindowDays + TAIL_DAYS) * DAY_MS
+    loadMonthsFor(earliestTouchdownMs - LEAD_DAYS * DAY_MS, endMs)
+      .then(
+        (months) =>
+          // let the "Computing…" state reach the screen before the main thread is busy
+          new Promise<MissionStatus>((resolve) => {
+            window.setTimeout(() => {
+              if (!months) {
+                resolve({ state: 'error', message: 'No ephemeris for these dates in this build. A mission needs the months from a week before touchdown to a week after leaving the Moon.' })
+                return
+              }
+              try {
+                const i = latest.current
+                const plan = planMission({
+                  pad: i.pad,
+                  target: i.target,
+                  ephem: makeFlightEphemeris(months),
+                  architecture: i.architecture,
+                  launchVehicle: i.launchVehicle,
+                  capsule: i.capsule,
+                  lander: i.lander,
+                  earliestTouchdownMs,
+                  surfaceStayDays,
+                  returnWindowDays,
+                  maxTransferDays,
+                })
+                resolve({ state: 'ready', plan })
+              } catch (e) {
+                const err = e as Error
+                // FlightPlanError and the simulators' own error classes carry a message meant for the reader
+                resolve({ state: 'error', message: err instanceof FlightPlanError || /Error$/.test(err.name) ? err.message : `Could not compute the mission. ${err.message}` })
+              }
+            }, 30)
+          }),
+      )
+      .catch((e: Error): MissionStatus => ({ state: 'error', message: `Could not load the ephemeris. ${e.message}` }))
       .then((status) => alive && setState({ key, status }))
     return () => {
       alive = false
     }
-    // the inputs are fully described by key
-  }, [active, key])
+    // the inputs are fully described by the settled key
+  }, [active, settledKey])
 
-  const status: FlightStatus = state.key === key ? state.status : { state: 'loading' }
+  const status: MissionStatus = state.key === key ? state.status : { state: 'loading' }
   const plan = status.state === 'ready' ? status.plan : null
 
   const clock = useRef({ timeMs: 0 }).current
@@ -92,9 +133,9 @@ export function useFlight(input: FlightInput): Flight {
     const step = (now: number) => {
       const dt = Math.min(now - last, 100) // a background tab must not jump the flight ahead
       last = now
-      const t = Math.min(plan.landingMs, clock.timeMs + dt * speed) // real ms × (simulated s per real s) = simulated ms
+      const t = Math.min(plan.endMs, clock.timeMs + dt * speed) // real ms × (simulated s per real s) = simulated ms
       clock.timeMs = t
-      if (t >= plan.landingMs) {
+      if (t >= plan.endMs) {
         setTimeMs(t)
         setPlaying(false)
         return
@@ -112,7 +153,7 @@ export function useFlight(input: FlightInput): Flight {
   const seek = useCallback(
     (utcMs: number) => {
       if (!plan) return
-      const t = Math.min(plan.landingMs, Math.max(plan.launchMs, utcMs))
+      const t = Math.min(plan.endMs, Math.max(plan.launchMs, utcMs))
       clock.timeMs = t
       setTimeMs(t)
     },
@@ -120,7 +161,7 @@ export function useFlight(input: FlightInput): Flight {
   )
 
   return useMemo(
-    () => ({ status, plan, clock, timeMs: plan ? Math.min(plan.landingMs, Math.max(plan.launchMs, timeMs)) : timeMs, playing, speed, setPlaying, setSpeed, seek }),
+    () => ({ status, plan, clock, timeMs: plan ? Math.min(plan.endMs, Math.max(plan.launchMs, timeMs)) : timeMs, playing, speed, setPlaying, setSpeed, seek }),
     // status is fully described by state and key
     [state, key, plan, clock, timeMs, playing, speed, seek],
   )

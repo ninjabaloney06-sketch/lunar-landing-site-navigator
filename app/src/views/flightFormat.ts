@@ -17,6 +17,18 @@ export function fmtTonnes(kg: number): string {
   return `${t.toFixed(Math.abs(t) < 1 ? 2 : 1)} t`
 }
 
+/** "100 km", "405,760 km": whole kilometres, thousands grouped with a comma. */
+export function fmtKm(v: number): string {
+  return `${Math.round(v).toLocaleString('en-US')} km`
+}
+
+/** "3.2 m" below 10 m, "42 m" below 1000 m, "1.4 km" from there. */
+export function fmtMetres(v: number): string {
+  if (Math.abs(v) < 9.95) return `${v.toFixed(1)} m`
+  if (Math.round(Math.abs(v)) < 1000) return `${Math.round(v)} m`
+  return `${(v / 1000).toFixed(1)} km`
+}
+
 /** "45 s", "8 min 30 s", "8 min", "4 h 12 min", "4 h", "4 d 23 h", "4 d". Zero units are left out. */
 export function fmtDuration(seconds: number): string {
   const s = Math.max(0, Math.round(seconds))
@@ -52,7 +64,7 @@ export function fmtUtc(ms: number): string {
   return `${d.getUTCDate()} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`
 }
 
-/** "16 Aug, 07:42" for the burn times in the table and the timeline ticks. */
+/** "16 Aug, 07:42" for the event times in the table. */
 export function fmtDayTime(ms: number): string {
   const d = new Date(ms)
   return `${d.getUTCDate()} ${MONTHS_SHORT[d.getUTCMonth()]}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
@@ -60,6 +72,8 @@ export function fmtDayTime(ms: number): string {
 
 /** Simulated seconds per real second. */
 export const SPEEDS: { value: number; label: string }[] = [
+  { value: 1, label: 'real time' },
+  { value: 10, label: '10 s/s' },
   { value: 60, label: '1 min/s' },
   { value: 300, label: '5 min/s' },
   { value: 900, label: '15 min/s' },

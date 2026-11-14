@@ -1,20 +1,22 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
 // "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top. A label is hidden whenever
 // project() returns null or a point that is not visible. On the flight level the labels are Earth, Moon, the
-// launchpad, the landing site and the two burns that shape the transfer (TLI, LOI).
+// launchpad, the landing point, the lander while it is on its own, and the burns that shape the flight
+// (TLI, LOI, TEI).
 import { useEffect, useRef, useState } from 'react'
-import type { FlightPlan } from '../flight/types'
+import type { MissionPlan } from '../flight/types'
 import { mountScene } from '../scene3d'
-import type { FlightAnchor, FlightFocus, SceneDeps, SceneHandle, SceneLevel, ScreenPoint } from '../scene3d'
+import type { BodyPick, FlightAnchor, FlightFocus, SceneDeps, SceneHandle, SceneLevel, ScreenPoint } from '../scene3d'
 import { fmtDeg } from './format'
 
 /** What the flight level draws. `clock` is read on every animation frame, so playback never re-renders React. */
 export interface FlightScene {
-  plan: FlightPlan | null
+  plan: MissionPlan | null
   trueScale: boolean
   clock: { timeMs: number }
   focus: FlightFocus // what the camera turns about and follows
   viewKey: number // changes when the default flight view is asked for again
+  picking: boolean // the next click on Earth or the Moon chooses a launchpad or a landing point
 }
 
 interface Props {
@@ -27,6 +29,7 @@ interface Props {
   flight: FlightScene
   onUnavailable(): void
   onPick(lat: number, lon: number): void // a click on the globe (scene contract: a pin reports its site's coordinates)
+  onFlightPick(pick: BodyPick): void // a click on Earth or the Moon in the flight view
 }
 
 function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
@@ -39,13 +42,15 @@ function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
   el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`
 }
 
-const FLIGHT_LABELS: FlightAnchor[] = ['earth', 'moon', 'arrival', 'pad', 'site', 'tli', 'loi']
+const FLIGHT_LABELS: FlightAnchor[] = ['earth', 'moon', 'arrival', 'pad', 'site', 'lander', 'tli', 'loi', 'tei']
 
-export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, onUnavailable, onPick }: Props) {
+export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, onUnavailable, onPick, onFlightPick }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
   pick.current = onPick
+  const flightPick = useRef(onFlightPick)
+  flightPick.current = onFlightPick
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
@@ -70,6 +75,7 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
     h.setFlight(flightRef.current.plan, flightRef.current.trueScale)
     h.setFlightFocus(flightRef.current.focus)
     const offPick = h.onPick((lat, lon) => pick.current(lat, lon))
+    const offFlightPick = h.onFlightPick((p) => flightPick.current(p))
     let raf = 0
     const tick = () => {
       h.setFlightTime(flightRef.current.clock.timeMs)
@@ -83,6 +89,7 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
     return () => {
       cancelAnimationFrame(raf)
       offPick()
+      offFlightPick()
       handle.current = null
       h.dispose()
     }
@@ -133,10 +140,17 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
       </div>
     </div>
   )
+  const above = (name: FlightAnchor, text: string, ghost = false) => (
+    <div ref={(el) => void (flightEls.current[name] = el)} className="obj" hidden>
+      <div className={`obj-box obj-body${ghost ? ' obj-ghost' : ''}`} data-testid={`label-flight-${name}`}>
+        {ghost ? text : <span className="obj-name">{text}</span>}
+      </div>
+    </div>
+  )
 
   return (
     <>
-      <div ref={host} className="scene" data-testid="scene" />
+      <div ref={host} className={`scene${view === 'flight' && flight.picking ? ' is-picking' : ''}`} data-testid="scene" />
       {failedFor === siteId && view !== 'flight' && (
         <p className="msg scene-msg" role="status" data-testid="scene-stale">
           The 3D view could not load this site and may still show the previous one. The numbers and timeline are
@@ -164,25 +178,15 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
         </div>
         {view === 'flight' && plan && (
           <>
-            <div ref={(el) => void (flightEls.current.earth = el)} className="obj" hidden>
-              <div className="obj-box obj-body" data-testid="label-flight-earth">
-                <span className="obj-name">Earth</span>
-              </div>
-            </div>
-            <div ref={(el) => void (flightEls.current.moon = el)} className="obj" hidden>
-              <div className="obj-box obj-body" data-testid="label-flight-moon">
-                <span className="obj-name">Moon</span>
-              </div>
-            </div>
-            <div ref={(el) => void (flightEls.current.arrival = el)} className="obj" hidden>
-              <div className="obj-box obj-body obj-ghost" data-testid="label-flight-arrival">
-                Moon at arrival
-              </div>
-            </div>
+            {above('earth', 'Earth')}
+            {above('moon', 'Moon')}
+            {above('arrival', 'Moon at arrival', true)}
             {tag('pad', plan.pad.name)}
             {tag('site', plan.target.name)}
+            {tag('lander', 'Lander')}
             {tag('tli', 'TLI')}
             {tag('loi', 'LOI')}
+            {tag('tei', 'TEI')}
           </>
         )}
       </div>
