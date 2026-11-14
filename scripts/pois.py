@@ -145,6 +145,22 @@ KEY_LABELS = {
     "formation_model_age_Ga": "Formation model age, Ga",
     "N1_per_km2": "N1 per km²",
     "floor_retention_age_Ga": "Floor retention age, Ga",
+    # additional-sites (researched 14 Nov evening)
+    "as_printed": "As printed in the source",
+    "pgda_site_id": "PGDA site ID",
+    "pgda_site_name": "PGDA site name",
+    "pgda_study_sites_record": "PGDA study-sites record",
+    "source_document": "Source document",
+    "same_position_within_0_01_deg": "Same position within 0.01°",
+    "region_name": "Region name",
+    "roi_id": "Region ID",
+    "published_version_doi": "Published version, DOI",
+    "also_printed_in": "Also printed in",
+    "impact_time_as_printed": "Impact time, as printed",
+    "impact_date_as_printed": "Impact date, as printed",
+    "other_published_estimates_cited_in_same_abstract": "Other published estimates cited in the same abstract",
+    "fills_gap_in": "Fills gap in",
+    "significance_as_printed": "Significance, as printed",
 }
 
 

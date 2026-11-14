@@ -5052,6 +5052,1606 @@
   "siteId": null
  },
  {
+  "id": "landing:pgda78_dm1_centre",
+  "name": "DM1: Amundsen rim (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -84.2287,
+  "lon": 69.44396,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'DM1', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "DM1"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Amundsen rim"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_dm1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'DM1', Name 'Amundsen Rim', Latitude -84.2287, Longitude 69.44396"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:amundsen_rim (alt_coordinates: computed from Trek polygon)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_dm2_centre",
+  "name": "DM2: Nobile rim 2 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -83.954,
+  "lon": 58.82206,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'DM2', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "DM2"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Nobile rim 2"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_dm2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'DM2', Name 'Nobile Rim 2', Latitude -83.954, Longitude 58.82206"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:nobile_rim_2 (alt_coordinates: computed from Trek polygon), scripts/sites.csv:nobile-rim-2"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_haworth_centre",
+  "name": "Haworth: None (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -86.7639,
+  "lon": -22.777,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'Haworth', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Haworth"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_haworth"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'Haworth', Name '(Haworth is its name)', Latitude -86.7639, Longitude -22.777"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:haworth (alt_coordinates: computed from Trek polygon)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm1_centre",
+  "name": "LM1: Shackleton Rim B (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -89.5244,
+  "lon": 56.30993,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM1', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM1"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shackleton Rim B"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM1', Name 'Shackleton Rim B', Latitude -89.5244, Longitude 56.30993"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm2_centre",
+  "name": "LM2: Shoemaker Rim A (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.0792,
+  "lon": 11.88866,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM2', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM2"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim A"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM2', Name 'Shoemaker Rim A', Latitude -88.0792, Longitude 11.88866"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm3_centre",
+  "name": "LM3: Shoemaker Rim B (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.3828,
+  "lon": 16.58734,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM3', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM3"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim B"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm3"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM3', Name 'Shoemaker Rim B', Latitude -88.3828, Longitude 16.58734"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm4_centre",
+  "name": "LM4: Shoemaker Rim C (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.9645,
+  "lon": 37.23483,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM4', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM4"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim C"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm4"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM4', Name 'Shoemaker Rim C', Latitude -88.9645, Longitude 37.23483"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm5_centre",
+  "name": "LM5: Shoemaker Rim D (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.632,
+  "lon": 74.62375,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM5', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM5"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim D"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm5"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM5', Name 'Shoemaker Rim D', Latitude -88.632, Longitude 74.62375"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm6_centre",
+  "name": "LM6: Shoemaker Rim E (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -87.9458,
+  "lon": 71.27421,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM6', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM6"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim E"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm6"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM6', Name 'Shoemaker Rim E', Latitude -87.9458, Longitude 71.27421"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm7_centre",
+  "name": "LM7: Faustini Rim A (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -87.8897,
+  "lon": 90.0,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 57 of 70, row 'LM7', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM7"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Faustini Rim A"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm7"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 57: Shorthand 'LM7', Name 'Faustini Rim A', Latitude -87.8897, Longitude 90"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:faustini_rim_a (alt_coordinates: computed from Trek polygon)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_lm8_centre",
+  "name": "LM8: Shoemaker Rim F (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -87.3417,
+  "lon": 60.25512,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'LM8', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "LM8"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Shoemaker Rim F"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_lm8"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'LM8', Name 'Shoemaker Rim F', Latitude -87.3417, Longitude 60.25512"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_npa_centre",
+  "name": "NPA: Cabeus exterior wall 1 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -86.9243,
+  "lon": -71.5651,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'NPA', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "NPA"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Cabeus exterior wall 1"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_npa"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'NPA', Name 'Cabeus Exterior Wall 1', Latitude -86.9243, Longitude -71.5651"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_npb_centre",
+  "name": "NPB: Amundsen 1 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -83.9046,
+  "lon": 89.53545,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'NPB', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "NPB"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Amundsen 1"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_npb"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'NPB', Name 'Amundsen 1', Latitude -83.9046, Longitude 89.53545"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_npc_centre",
+  "name": "NPC: Idel'son L crater 1 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -84.5397,
+  "lon": 126.9045,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'NPC', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "NPC"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Idel'son L crater 1"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_npc"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'NPC', Name 'Idel'son L Crater 1', Latitude -84.5397, Longitude 126.9045"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_npd_centre",
+  "name": "NPD: Malapert crater 1 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -84.8034,
+  "lon": 8.387032,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'NPD', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "NPD"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Malapert crater 1"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_npd"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'NPD', Name 'Malapert Crater 1', Latitude -84.8034, Longitude 8.387032"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site01_centre",
+  "name": "Site01: Connecting ridge (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -89.4632,
+  "lon": -137.49,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R01 or Site01', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site01"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Connecting ridge"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site01"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R01 or Site01', Name 'Connecting Ridge', Latitude -89.4632, Longitude -137.49"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:connecting_ridge, scripts/sites.csv:connecting-ridge"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site06_centre",
+  "name": "Site06: Nobile rim 1 (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -85.4381,
+  "lon": 37.36667,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R06 or Site06', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site06"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Nobile rim 1"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site06"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R06 or Site06', Name 'Nobile Rim 1', Latitude -85.4381, Longitude 37.36667"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:nobile_rim_1, scripts/sites.csv:nobile-rim-1"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site07_centre",
+  "name": "Site07: Peak near Shackleton (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.811,
+  "lon": 123.6901,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R07 or Site07', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site07"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Peak near Shackleton"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site07"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R07 or Site07', Name 'Peak Near Shackleton', Latitude -88.811, Longitude 123.6901"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:peak_near_shackleton (alt_coordinates: computed from Trek polygon (Trek label 'Peak Near Shakleton' sic))"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site11_centre",
+  "name": "Site11: de Gerlache rim (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.6834,
+  "lon": -67.9321,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R11 or Site11', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site11"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "de Gerlache rim"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site11"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R11 or Site11', Name 'de Gerlache Rim 1', Latitude -88.6834, Longitude -67.9321"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:de_gerlache_rim_1"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site20_centre",
+  "name": "Site20: Leibnitz beta plateau (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -85.4266,
+  "lon": 31.74276,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R20 or Site20', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site20"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Leibnitz beta plateau"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site20"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R20 or Site20', Name 'Leibnitz Beta Plateau', Latitude -85.4266, Longitude 31.74276"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:leibnitz_beta_plateau, scripts/sites.csv:leibnitz-beta-plateau"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site20v2_centre",
+  "name": "Site20v2: Leibnitz beta plateau, extended boundaries (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -85.4266,
+  "lon": 31.74276,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R20v2 or Site20v2', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site20v2"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Leibnitz beta plateau, extended boundaries"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site20v2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R20v2 or Site20v2', Name 'Leibnitz Beta Plateau, extended boundaries', Latitude -85.4266, Longitude 31.74276"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:leibnitz_beta_plateau, scripts/sites.csv:leibnitz-beta-plateau"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_site42_centre",
+  "name": "Site42: de Gerlache-Kocher massif (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -85.8296,
+  "lon": -116.322,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'R42 or Site42', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Site42"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "de Gerlache-Kocher massif"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_site42"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'R42 or Site42', Name 'de Gerlache-Kocher Massif', Latitude -85.8296, Longitude -116.322"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:de_gerlache_kocher_massif (alt_coordinates: computed from Trek polygon)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_shoemaker_centre",
+  "name": "Shoemaker: None (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -87.1835,
+  "lon": 62.83502,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'Shoemaker', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "Shoemaker"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_shoemaker"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'Shoemaker', Name '(Shoemaker is its name)', Latitude -87.1835, Longitude 62.83502"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_sl2_centre",
+  "name": "SL2: de Gerlache rim (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -88.23,
+  "lon": -64.6284,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'SL2', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "SL2"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "de Gerlache rim"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_sl2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'SL2', Name 'de Gerlache Rim 2', Latitude -88.23, Longitude -64.6284"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:de_gerlache_rim_2"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:pgda78_sl3_centre",
+  "name": "SL3: Connecting ridge extension (DEM polygon centre)",
+  "group": "landing",
+  "category": "pgda_study_site",
+  "lat": -89.0324,
+  "lon": -101.999,
+  "summary": "Lunar Surface Data Book Table A2-2 'Lunar South Pole Features', p. 58 of 70, row 'SL3', columns Latitude/Longitude. Printed in decimal degrees, south negative, longitude -180..180; no conversion except lon_east_360 = lon + 360 where negative.",
+  "facts": [
+   {
+    "label": "PGDA site ID",
+    "value": "SL3"
+   },
+   {
+    "label": "PGDA site name",
+    "value": "Connecting ridge extension"
+   },
+   {
+    "label": "PGDA study-sites record",
+    "value": "pgda78_sl3"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "Table A2-2, p. 58: Shorthand 'SL3', Name 'Connecting Ridge Extension', Latitude -89.0324, Longitude -101.999"
+   },
+   {
+    "label": "Source document",
+    "value": "NASA Lunar Surface Data Book, ACD-50044 Rev. A, effective 19 May 2023 (NTRS 20230007818)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:connecting_ridge_extension"
+   }
+  ],
+  "evidence": "official (NASA document on NTRS, table)",
+  "limitations": "Centre point of the original PGDA DEM polygon, not a landing point (Data Book section A2.1: centre points 'accurate to 5 to 10 meters'). The Data Book names no frame; it says the coordinates were generated from the DEM files at pgda.gsfc.nasa.gov/products/81, whose page states MOON_ME, DE421 for its GeoTIFFs. Same position as an existing record listed in properties.same_position_within_0_01_deg (there computed from the Trek polygon or used as an app site); this item adds the NASA-printed value.",
+  "sources": [
+   "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+   "https://pgda.gsfc.nasa.gov/products/78"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_cr1",
+  "name": "Connecting Ridge CR1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -89.4679,
+  "lon": -137.411,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row CR1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 89.°4679S, 222.°5890E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Connecting Ridge"
+   },
+   {
+    "label": "Region ID",
+    "value": "CR1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Connecting Ridge', ID 'CR1', Geodetic Lat (°) -89.4679, Lon (°) -137.411, Polar stereographic X (km) -10.92, Y (km) -11.88"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row CR1, column 'Center coordinate (Latitude, Longitude)': 89.°4679S, 222.°5890E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists CR1 among 'six LUPEX candidate sites'."
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "landing-sites.json:connecting_ridge"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision. Within 0.01 deg of existing record(s) in properties.same_position_within_0_01_deg, which carry a different source or meaning; drop this item if they are judged the same point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_gr1",
+  "name": "de Gerlache Rim GR1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -88.6952,
+  "lon": -68.2846,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row GR1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 88.°6952S, 291.°7154E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "de Gerlache Rim"
+   },
+   {
+    "label": "Region ID",
+    "value": "GR1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'de Gerlache Rim', ID 'GR1', Geodetic Lat (°) -88.6952, Lon (°) -68.2846, Polar stereographic X (km) -36.76, Y (km) 14.64"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row GR1, column 'Center coordinate (Latitude, Longitude)': 88.°6952S, 291.°7154E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists GR1 among 'six LUPEX candidate sites'."
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_lp1",
+  "name": "Leibnitz beta Plateau LP1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -85.4596,
+  "lon": 31.78053,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row LP1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 85.°4596S, 31.°78053E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Leibnitz beta Plateau"
+   },
+   {
+    "label": "Region ID",
+    "value": "LP1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Leibnitz beta Plateau', ID 'LP1', Geodetic Lat (°) -85.4596, Lon (°) 31.78053, Polar stereographic X (km) 72.55, Y (km) 117.1"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row LP1, column 'Center coordinate (Latitude, Longitude)': 85.°4596S, 31.°78053E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists LP1 among 'six LUPEX candidate sites'."
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_mp1",
+  "name": "Malapert Peak MP1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -85.9756,
+  "lon": -2.11241,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row MP1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 85.°9756S, 357.°8876E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Malapert Peak"
+   },
+   {
+    "label": "Region ID",
+    "value": "MP1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Malapert Peak', ID 'MP1', Geodetic Lat (°) -85.9756, Lon (°) -2.11241, Polar stereographic X (km) -4.48, Y (km) 121.8"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row MP1, column 'Center coordinate (Latitude, Longitude)': 85.°9756S, 357.°8876E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists MP1 among 'six LUPEX candidate sites'."
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_mp2",
+  "name": "Malapert Peak MP2 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -86.0265,
+  "lon": 2.757964,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row MP2, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 86.°0265S, 2.°757964E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Malapert Peak"
+   },
+   {
+    "label": "Region ID",
+    "value": "MP2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Malapert Peak', ID 'MP2', Geodetic Lat (°) -86.0265, Lon (°) 2.757964, Polar stereographic X (km) 5.8, Y (km) 120.4"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row MP2, column 'Center coordinate (Latitude, Longitude)': 86.°0265S, 2.°757964E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists MP2 among 'six LUPEX candidate sites'."
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_sr1",
+  "name": "Shackleton Rim SR1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -89.7755,
+  "lon": -156.448,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row SR1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Shackleton Rim"
+   },
+   {
+    "label": "Region ID",
+    "value": "SR1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Shackleton Rim', ID 'SR1', Geodetic Lat (°) -89.7755, Lon (°) -156.448, Polar stereographic X (km) -2.72, Y (km) -6.24"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "illumination-sites.json:gl18_s_surface, illumination-sites.json:maz11_s_surface, illumination-sites.json:gl18_s_2m_max_vis"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Within 0.01 deg of existing record(s) in properties.same_position_within_0_01_deg, which carry a different source or meaning; drop this item if they are judged the same point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_sr2",
+  "name": "Shackleton Rim SR2 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -89.689,
+  "lon": -162.351,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row SR2, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Shackleton Rim"
+   },
+   {
+    "label": "Region ID",
+    "value": "SR2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Shackleton Rim', ID 'SR2', Geodetic Lat (°) -89.689, Lon (°) -162.351, Polar stereographic X (km) -2.84, Y (km) -9"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Same position within 0.01°",
+    "value": "illumination-sites.json:gl18_s_2m_max_illum, landing-sites.json:connecting_ridge_shackleton_junction, science-features.json:feat_connecting_ridge_junction"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Within 0.01 deg of existing record(s) in properties.same_position_within_0_01_deg, which carry a different source or meaning; drop this item if they are judged the same point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_gr2",
+  "name": "de Gerlache Rim GR2 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -89.0073,
+  "lon": -94.7636,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row GR2, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360. Same centre printed in Hemmi et al. 2025 Table 1 as 89.°0073S, 265.°2364E (0-360 E).",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "de Gerlache Rim"
+   },
+   {
+    "label": "Region ID",
+    "value": "GR2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'de Gerlache Rim', ID 'GR2', Geodetic Lat (°) -89.0073, Lon (°) -94.7636, Polar stereographic X (km) -30, Y (km) -2.48"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   },
+   {
+    "label": "Also printed in",
+    "value": "Hemmi et al. 2025, PSJ 6, 264, Table 1 'List of Source Image Datasets', row GR2, column 'Center coordinate (Latitude, Longitude)': 89.°0073S, 265.°2364E (AAS degree-over-decimal notation; same value as De Rosa after 0-360 to -180..180 conversion). JAXA JLPEDA lists GR2 among 'six LUPEX candidate sites'."
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table); also primary (PSJ 2025 table) and official (JAXA data page)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point. Hemmi et al. 2025 say these ROIs were 'proposed by the ESA Lunar Lander project'; JAXA's data page calls them LUPEX candidate sites; neither is a LUPEX landing decision.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587",
+   "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
+   "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_sr3",
+  "name": "Shackleton Rim SR3 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -89.812,
+  "lon": 52.125,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row SR3, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Shackleton Rim"
+   },
+   {
+    "label": "Region ID",
+    "value": "SR3"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Shackleton Rim', ID 'SR3', Geodetic Lat (°) -89.812, Lon (°) 52.125, Polar stereographic X (km) 4.48, Y (km) 3.48"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_sv1",
+  "name": "Shackleton Vicinity SV1 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -88.8247,
+  "lon": 124.1359,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row SV1, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Shackleton Vicinity"
+   },
+   {
+    "label": "Region ID",
+    "value": "SV1"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Shackleton Vicinity', ID 'SV1', Geodetic Lat (°) -88.8247, Lon (°) 124.1359, Polar stereographic X (km) 29.48, Y (km) -20"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_lp2",
+  "name": "Leibnitz beta Plateau LP2 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -85.2934,
+  "lon": 37.0304,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row LP2, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Leibnitz beta Plateau"
+   },
+   {
+    "label": "Region ID",
+    "value": "LP2"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Leibnitz beta Plateau', ID 'LP2', Geodetic Lat (°) -85.2934, Lon (°) 37.0304, Polar stereographic X (km) 86, Y (km) 114"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:derosa12_lp3",
+  "name": "Leibnitz beta Plateau LP3 (ESA Lunar Lander Region of Interest centre)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -85.5566,
+  "lon": 37.4649,
+  "summary": "De Rosa et al. 2012 (arXiv preprint), Table 2 'Coordinates of the centre point of the Regions of Interest', row LP3, columns Geodetic Lat/Lon. Printed in decimal degrees, longitude -180..180; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "Region name",
+    "value": "Leibnitz beta Plateau"
+   },
+   {
+    "label": "Region ID",
+    "value": "LP3"
+   },
+   {
+    "label": "As printed in the source",
+    "value": "De Rosa et al. 2012 Table 2: Region name 'Leibnitz beta Plateau', ID 'LP3', Geodetic Lat (°) -85.5566, Lon (°) 37.4649, Polar stereographic X (km) 82, Y (km) 107"
+   },
+   {
+    "label": "Published version, DOI",
+    "value": "https://doi.org/10.1016/j.pss.2012.08.002 (related DOI shown on the arXiv abstract page; published version not opened)"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, arXiv preprint table)",
+  "limitations": "Centre point of a Region of Interest studied for ESA's Lunar Lander project (cancelled 2012), not a selected or flown landing point.",
+  "sources": [
+   "https://arxiv.org/pdf/1208.5587",
+   "https://arxiv.org/abs/1208.5587"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:chandrayaan_1_mip_impact_stooke2021",
+  "name": "Chandrayaan-1 Moon Impact Probe impact site (Jawahar Point), refined",
+  "group": "landing",
+  "category": "mission_landing_actual",
+  "lat": -89.55,
+  "lon": -122.93,
+  "summary": "Stooke, Ahmed and Subramanian, LPSC 52 (2021) abstract 1013, Introduction: 'Impact occurred on the Earth-facing slope of the Connecting Ridge (Spudis Ridge) near 89.55° S, 122.93° W'. Converted: S -> negative latitude, W -> negative longitude.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "near 89.55° S, 122.93° W"
+   },
+   {
+    "label": "Impact date, as printed",
+    "value": "14 November (2008)"
+   },
+   {
+    "label": "Other published estimates cited in the same abstract",
+    "value": "89.76° S, 39.40° W (UN COPUOS registration, 2009) and 89.54° S, 44.71° W (ISRO 2015 Lunar Science Atlas); cited values, not added as items"
+   }
+  ],
+  "evidence": "primary (conference abstract, LPSC 2021)",
+  "limitations": "Approximate impact point projected downrange of the last MIP image; the abstract says the impact crater 'has not yet been found in LROC NAC images'. Not an ISRO-published value.",
+  "sources": [
+   "https://www.hou.usra.edu/meetings/lpsc2021/pdf/1013.pdf"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:lunar_prospector_impact_nssdca",
+  "name": "Lunar Prospector end-of-mission impact",
+  "group": "landing",
+  "category": "mission_landing_actual",
+  "lat": -87.7,
+  "lon": 42.0,
+  "summary": "NSSDCA spacecraft page 1998-001A, description: 'near the lunar south pole, at approximately 87.7 S, 42.0 E.' Converted: S -> negative latitude.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "at approximately 87.7 S, 42.0 E"
+   },
+   {
+    "label": "Impact time, as printed",
+    "value": "31 July 1999 at 9:52:02 UT"
+   },
+   {
+    "label": "Fills gap in",
+    "value": "landing-sites.json:lunar_prospector_impact"
+   }
+  ],
+  "evidence": "official (NASA NSSDCA page)",
+  "limitations": "Approximate targeted impact point ('approximately'); the page names no crater. Fills the coordinate gap of landing-sites.json record lunar_prospector_impact.",
+  "sources": [
+   "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1998-001A"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:chandrayaan_2_vikram_impact",
+  "name": "Chandrayaan-2 Vikram lander impact site",
+  "group": "landing",
+  "category": "mission_landing_actual",
+  "lat": -70.881,
+  "lon": 22.784,
+  "summary": "LROC featured image 1131 'Vikram Lander Found': '...found the impact site (70.8810°S, 22.7840°E, 834 m elevation)'. Converted: S -> negative latitude.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "70.8810°S, 22.7840°E, 834 m elevation"
+   }
+  ],
+  "evidence": "official (LROC instrument-team page)",
+  "limitations": "Crash site, not a soft landing. About 70.9 S: outside the 80-90 S terrain cap.",
+  "sources": [
+   "https://lroc.im-ldi.com/images/1131"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:chandrayaan_2_vikram_intended",
+  "name": "Chandrayaan-2 Vikram lander targeted landing site",
+  "group": "landing",
+  "category": "mission_landing_intended",
+  "lat": -70.8,
+  "lon": 23.5,
+  "summary": "LROC featured image 1128 'Obscured in the Lunar Highlands?' (26 Sep 2019): '(70.8°S latitude, 23.5°E longitude'. Converted: S -> negative latitude.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "70.8°S latitude, 23.5°E longitude"
+   }
+  ],
+  "evidence": "official (LROC instrument-team page)",
+  "limitations": "Planned target as stated by LROC, rounded to 0.1 deg; not reached. Outside the 80-90 S terrain cap.",
+  "sources": [
+   "https://lroc.im-ldi.com/images/1128"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:kaguya_impact",
+  "name": "KAGUYA (SELENE) main orbiter impact",
+  "group": "landing",
+  "category": "mission_landing_actual",
+  "lat": -65.5,
+  "lon": 80.4,
+  "summary": "JAXA press release 'KAGUYA (SELENE) Slam Crashed to the Moon', 11 Jun 2009: 'Location: 65.5 degrees south latitude, 80.4 degrees east longitude, near GILL crater.' Converted: south -> negative latitude.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "65.5 degrees south latitude, 80.4 degrees east longitude, near GILL crater"
+   },
+   {
+    "label": "Impact time, as printed",
+    "value": "3:25 a.m. on June 11, 2009 (Japan Standard Time)"
+   }
+  ],
+  "evidence": "official (JAXA press release)",
+  "limitations": "Controlled impact, rounded to 0.1 deg; the release does not say whether the value is the planned or the confirmed point. 65.5 S: far outside the 80-90 S terrain cap; context only.",
+  "sources": [
+   "https://global.jaxa.jp/press/2009/06/20090611_kaguya_e.html"
+  ],
+  "siteId": null
+ },
+ {
+  "id": "landing:kumari22_site011_l1",
+  "name": "Site 011 station L1 (landing site)",
+  "group": "landing",
+  "category": "literature_point_site",
+  "lat": -88.65,
+  "lon": -67.12,
+  "summary": "Kumari et al. 2022, PSJ 3, 224, Table 3 'Details of Potential Stations Near Site 011', row L1, columns Longitude -67.12 / Latitude -88.65, Type 'Landing Site'. Printed as signed decimal degrees; no conversion except lon_east_360.",
+  "facts": [
+   {
+    "label": "As printed in the source",
+    "value": "Table 3: Name L1 | Longitude −67.12 | Latitude −88.65 | Type Landing Site | EZ 2 km"
+   },
+   {
+    "label": "Significance, as printed",
+    "value": "Safer landing site away from hazardous boulder-rich region at point of highest illumination"
+   }
+  ],
+  "evidence": "primary (peer-reviewed paper, table)",
+  "limitations": "A suggested landing point inside candidate site 011 (de Gerlache Rim 1 area), not a NASA selection; the paper names no coordinate frame and rounds to 0.01 deg.",
+  "sources": [
+   "https://iopscience.iop.org/article/10.3847/PSJ/ac88c2"
+  ],
+  "siteId": null
+ },
+ {
   "id": "science:feat_shackleton",
   "name": "Shackleton crater",
   "group": "science",
