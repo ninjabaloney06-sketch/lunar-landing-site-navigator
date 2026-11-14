@@ -17,6 +17,29 @@ Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.
 
 Everything else is reference: physics [primer](docs/reference/primer.md), [site sources](docs/reference/sources.md), [data guide](docs/reference/data-guide.md), [existing tools](docs/reference/existing-tools.md), [inspiration](docs/reference/inspiration.md), [past winners](docs/reference/past-winners.md), [setup and needs](docs/reference/setup.md), [learning](docs/reference/learning.md), [decisions and reasons](docs/reference/decisions.md), [one-page plan PDF](docs/event/NASA-Heilbronn-CLPS.pdf). Finished audits and checklists are in [docs/archive/](docs/archive). Code goes only in `scripts/` and `app/`. Agents read [AGENTS.md](AGENTS.md) and log in [BUILD_LOG.md](BUILD_LOG.md).
 
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `app/` | React frontend, frontend tests, and build/deploy configuration |
+| `app/public/data/` | Small JSON data consumed by the app |
+| `scripts/` | Python data pipeline and its dependency lock file |
+| `scripts/tests/` | Python contract and pipeline tests |
+| `scripts/tools/` | Plan and pitch PDF generators |
+| `docs/event/` | Active weekend plans, spec, submission material, and AI-use log |
+| `docs/reference/` | Sources, science background, setup, and decisions |
+| `docs/archive/` | Completed audits and checklists; retained for reference |
+| `private/` | Local private material; ignored by git |
+
+Keep raw datasets outside the repository and register them in `docs/reference/data-sources.md`. Generated dependencies, build output, and caches are ignored by git.
+
+PDF commands, run from the repository root (require `reportlab`):
+
+```sh
+python3 scripts/tools/make_pdf.py
+python3 scripts/tools/make_pitch_pdf.py
+```
+
 ## Challenge in short (checked 11 Nov, re-checked 13 Nov 2026)
 
 - **Required:** Sun and Earth positions relative to the horizon at a selected landing site on a chosen date.

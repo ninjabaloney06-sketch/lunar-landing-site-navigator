@@ -2,7 +2,7 @@
 
 Drafted 13 Nov before the event on ninja's decision (exception to the pre-event rule, see [decisions.md](../reference/decisions.md)). Problem, approach and limits come from work done before the event. Everything about the built app is a **[Sunday]** slot: fill it from [validation.md](validation.md), the checkpoint clips and the final app. Never show a placeholder at the pitch.
 
-`python3 scripts/make_pitch_pdf.py` turns the slide section below into `docs/event/pitch-backup-slides.pdf`. Edit this file, not the PDF. Format the script reads: `## Slide N · Title`, then `- ` bullets, then an optional `Say:` line (speaker notes, not printed on slides).
+`python3 scripts/tools/make_pitch_pdf.py` turns the slide section below into `docs/event/pitch-backup-slides.pdf`. Edit this file, not the PDF. Format the script reads: `## Slide N · Title`, then `- ` bullets, then an optional `Say:` line (speaker notes, not printed on slides).
 
 Rules: at most 7 slides (2022 demo limit, until the 2026 guide says otherwise; [submission-check-13nov.md](submission-check-13nov.md)). No names, photos or voices of team members (all under 18). Every number below has its source in the repo; do not add numbers that have none.
 

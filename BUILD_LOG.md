@@ -78,3 +78,4 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Codex, device: ninja's Mac / Guest123) · Incorporated Leo's 100%-efficiency payload energy, calculation details and route/burn request into the parked assessment.
 - 2026-11-14 · AI (Codex, device: ninja's Mac / Guest123) · Added the AI-use logging rule for agents and started the event log.
 - 2026-11-14 · AI (Codex + Claude Code, device: ninja's Mac / Guest123) · Spec review draft docs/event/spec.md from team interview; kickoff recordings re-transcribed locally, judging/admin facts added. Needs Isaac + Leo sign-off.
+- 2026-11-14 · AI (Codex, device: ninja's Mac / Guest123) · Deleted 9 fully merged remote and 6 local branches; separated PDF tools into scripts/tools/ and documented repository layout; syntax, output roots and path references verified.

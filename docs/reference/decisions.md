@@ -239,7 +239,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 
 ## Pitch deck drafted before the event (13 Nov 2026)
 
-**DECIDED by ninja, 13 Nov:** draft the full 7-slide backup deck before Saturday (second exception to the pre-event rule, after the build plan). Agent flagged that slides are a judged submission artifact; ninja chose the full deck over an outline only. Limits: problem, timed-tool results, approach and known limits only; every fact about the built app (screenshot, measured error, validated sites, cut features) stays a visible [Sunday] slot in [pitch-outline.md](../event/pitch-outline.md) until it exists. Regenerate with `python3 scripts/make_pitch_pdf.py`.
+**DECIDED by ninja, 13 Nov:** draft the full 7-slide backup deck before Saturday (second exception to the pre-event rule, after the build plan). Agent flagged that slides are a judged submission artifact; ninja chose the full deck over an outline only. Limits: problem, timed-tool results, approach and known limits only; every fact about the built app (screenshot, measured error, validated sites, cut features) stays a visible [Sunday] slot in [pitch-outline.md](../event/pitch-outline.md) until it exists. Regenerate with `python3 scripts/tools/make_pitch_pdf.py`.
 
 ## 2026 Project Submission Guide read (14 Nov 2026, 09:35)
 

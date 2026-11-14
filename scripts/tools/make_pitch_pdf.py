@@ -4,7 +4,7 @@ from pathlib import Path
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "docs" / "event" / "pitch-outline.md"
 OUT = ROOT / "docs" / "event" / "pitch-backup-slides.pdf"
 

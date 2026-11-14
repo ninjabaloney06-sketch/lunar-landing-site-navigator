@@ -38,7 +38,7 @@ A device agent states which machine it is on (`data computer`, `Isaac's laptop`,
 
 | Path | Content |
 |---|---|
-| `scripts/` | All Python: data pipeline (`ephemeris.py`, `horizon.py`, `windows.py`, …), tooling (`make_pdf.py`), tests in `scripts/tests/` |
+| `scripts/` | All Python: data pipeline (`ephemeris.py`, `horizon.py`, `windows.py`, …), document tooling in `scripts/tools/`, tests in `scripts/tests/` |
 | `app/` | The web app (created at the event). Pipeline output goes to `app/public/data/` (small JSON only) |
 | `docs/event/` | Everything for the weekend: build plan, event plan, team checklists, where-when, templates; spec, validation and AI-use log are created here at the event |
 | `docs/reference/` | Background: primer, sources, data guide and raw-data register (`data-sources.md`), existing tools (+ `screenshots/`), decisions |
@@ -81,4 +81,4 @@ Small text edits inside the repo (code, Markdown, JSON < 10 MB) and reading publ
 
 ## Regenerating the PDF
 
-`python3 scripts/make_pdf.py` writes `docs/event/NASA-Heilbronn-CLPS.pdf` (needs `reportlab`). Edit the script, not the PDF.
+`python3 scripts/tools/make_pdf.py` writes `docs/event/NASA-Heilbronn-CLPS.pdf` (needs `reportlab`). Edit the script, not the PDF.

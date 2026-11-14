@@ -75,7 +75,7 @@ Hard rules:
 ## Brief 0 — Scaffold (Haiku 5.5, Otto drives, ~30 min)
 
 ```text
-TASK: Create the empty project skeleton so four agents can work in parallel without touching shared files afterwards. Nothing in this repo exists yet except docs/ and scripts/make_pdf.py — there is no app/ and no scripts/tests/.
+TASK: Create the empty project skeleton so four agents can work in parallel without touching shared files afterwards. Nothing in this repo exists yet except docs/ and scripts/tools/make_pdf.py — there is no app/ and no scripts/tests/.
 
 TRAPS (read first):
 - package.json and the lockfile are frozen after this brief. Install every dependency listed below now, with exact versions (no ^ or ~), so later agents never edit package.json.
