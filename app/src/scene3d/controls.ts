@@ -63,6 +63,8 @@ export interface FreeCam {
   step(dtMs: number): boolean
   /** Easing on or off. Off (test mode): every input lands whole in the frame of its event. */
   setSmooth(on: boolean): void
+  /** Drops the input that is still pending: the camera was placed somewhere else, and it was not meant for there. */
+  cancel(): void
   /** Test and API entry: factor > 1 = closer or narrower. */
   zoomBy(factor: number): void
   lookBy(dxPx: number, dyPx: number): void
@@ -282,6 +284,10 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
     setSmooth(on) {
       smooth = on
       pending = turn.x = turn.y = 0
+    },
+    cancel() {
+      pending = turn.x = turn.y = 0
+      repivot = false
     },
     zoomBy,
     lookBy,

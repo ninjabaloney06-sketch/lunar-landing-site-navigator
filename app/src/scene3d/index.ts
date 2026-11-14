@@ -179,6 +179,7 @@ const DESCENT_RANGE = 300 // the ratio of start to end distance the 2.4 s are fo
 const DISSOLVE_FROM = 0.5
 const DISSOLVE_TO = 0.92
 const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the time cursor) is spread over this long
+const AWAIT_SITE_MS = 2000 // longest the fly to a just-picked site waits for that site's data
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
@@ -281,6 +282,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let dirty = true
   let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
   let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
+  // A click on another site's pin on the globe: the app asks for the site view at once and delivers that site's
+  // frame a moment later. The fly waits for the frame (at most AWAIT_SITE_MS), so it goes to the right site.
+  let awaiting: { id: string; until: number } | null = null
   const markDirty = () => {
     dirty = true
     viewVersion++
@@ -566,7 +570,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       setGlobeView()
     } else if (siteChanged && level === 'eye') setEyeView()
     else if (siteChanged && level !== 'globe') setSiteView()
-    if (wanted && f.site && !fly) setLevel(wanted, false)
+    if (awaiting && f.site?.id === awaiting.id) {
+      // The picked site is here: now the fly (or, in test mode, the change of level) that was asked for.
+      awaiting = null
+      if (wanted && !fly) setLevel(wanted)
+    } else if (wanted && f.site && !fly && !awaiting) setLevel(wanted, false)
     if (retarget) {
       fly = null
       descendToSite()
@@ -647,6 +655,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function placeSiteCam(az: number, el: number, distKm: number) {
     viewVersion++
+    freeCam.cancel()
     free.site = { dist: false, look: false }
     follow = null
     stand = null
@@ -661,6 +670,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function placeEyeCam(az: number, el: number, at: Vector3 | null = null) {
     viewVersion++
+    freeCam.cancel()
     free.site = { dist: false, look: false }
     follow = null
     setTop(false)
@@ -706,6 +716,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function setGlobeView(lat?: number, lon?: number, distKm?: number) {
+    freeCam.cancel()
     free.globe = { dist: false, look: false }
     follow = null
     setTop(false)
@@ -727,6 +738,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * the camera is, so nothing is added to the scene.
    */
   function setBodyView(body: 'earth' | 'sun', centerKm: Vector3, radiusKm: number, from: Vector3) {
+    freeCam.cancel()
     free.globe = { dist: true, look: true } // not on the orbit around the Moon: the distance limits do not apply
     follow = { body, at: centerKm.clone(), dest: null }
     setTop(false)
@@ -747,6 +759,14 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return { p, q }
   }
 
+  /**
+   * An orbit drag still gliding when a fly starts would wait in the controls (nothing reads them during the fly)
+   * and play out after the landing: it ends here. three 0.170 keeps it in OrbitControls' _sphericalDelta.
+   */
+  function stopGlide() {
+    for (const c of [siteControls, globeControls]) (c as unknown as { _sphericalDelta: { set(r: number, phi: number, theta: number): void } })._sphericalDelta.set(0, 0, 0)
+  }
+
   /** k > 1: the remaining distance shrinks geometrically (long flights between bodies); 1: plain ease. */
   function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void, cam: PerspectiveCamera = globeCam, k = 1) {
     const place = (e: number) => {
@@ -758,6 +778,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       // A walk never cuts through a hill on its way.
       if (cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
     }
+    stopGlide()
     fly = { cam, t0: nowMs(), ms: FLY_MS, place, site: null, done }
     setControls()
     markDirty()
@@ -803,7 +824,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const dirHigh = space.p.clone().normalize()
     const dirLow = ground.p.clone().normalize()
     const arc = new Quaternion().setFromUnitVectors(dirHigh, dirLow)
-    const k = MathUtils.clamp((rHigh - MOON_RADIUS_KM) / ground.distKm, 1, 1e6)
+    const k = MathUtils.clamp((rHigh - MOON_RADIUS_KM) / ground.distKm, 1, 1e12) // 9e6 from the Sun viewpoint
     // Longer where there is more to cover, so no frame moves or turns more than in the default fly: more than a
     // quarter of the way around the Moon (to 1.4 times from the far side; half the chord between the two
     // directions is the sine of half the angle between them), and a larger range of distance (from eye level).
@@ -815,6 +836,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const turn = arc.clone().multiply(space.q).invert().multiply(ground.q)
     const partTurn = new Quaternion()
     const shown = { ...ground.shown, mix: toSite ? 0 : 1, toSite }
+    stopGlide()
     const place = (e: number) => {
       const u = toSite ? e : 1 - e
       const a = k > 1.001 ? (k - k ** (1 - u)) / (k - 1) : u
@@ -881,6 +903,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     setSiteView()
     const ground = groundEnd()
     const keep = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
+    // Drawn once now, from where the fly will end: the terrain is uploaded and its programs are compiled before
+    // the clock of the fly starts, not in the middle of it. The frame that follows draws over it.
+    site.setEyeMode(false)
+    drawSite()
     level = 'globe' // the space camera leads the fly; the site scene fades in over it
     startDescent(from, ground, true, () => {
       level = 'site'
@@ -899,7 +925,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     markDirty()
     if (t >= 1) {
       finishFly()
-      if (wanted && wanted !== level) setLevel(wanted)
+      const next = wanted
+      wanted = null // also when it is the level the fly ended at: a later frame must not apply it again
+      if (next && next !== level) setLevel(next)
     }
   }
 
@@ -936,7 +964,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       globeCam.quaternion.copy(from.q)
       const k = from.p.distanceTo(to.p) / Math.max(to.p.distanceTo(target), 1)
       // From the site to a view of the Moon: the fly between the scenes, backwards.
-      if (ground && target.lengthSq() === 0) startDescent(to, ground, false, arrive)
+      if (ground && target.lengthSq() === 0) {
+        drawSpace() // as in descendToSite: the globe is ready before the fly starts
+        startDescent(to, ground, false, arrive)
+      }
       else startFly(
         from.p,
         from.q,
@@ -1000,6 +1031,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       wanted = next
       return
     }
+    if (awaiting && next !== 'globe' && level === 'globe' && frame?.site?.id !== awaiting.id && performance.now() < awaiting.until) {
+      wanted = next
+      return
+    }
+    awaiting = null
     wanted = null
     const prev = level
     if (next === 'globe') {
@@ -1008,6 +1044,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         level = 'globe'
         setGlobeView()
         const to = { p: globeCam.position.clone(), q: globeCam.quaternion.clone() }
+        drawSpace() // as in descendToSite: the globe is ready before the fly starts
         startDescent(to, ground, false, () => {
           globeCam.position.copy(to.p)
           globeCam.lookAt(0, 0, 0)
@@ -1267,6 +1304,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   /** One frame of every animation, dtMs after the previous one. */
   function tick(dtMs: number) {
+    if (awaiting && performance.now() >= awaiting.until) {
+      // The picked site's data did not come in time: go to the site that is loaded.
+      awaiting = null
+      if (wanted && !fly && frame?.site) setLevel(wanted)
+    }
     if (fly) stepFly(nowMs())
     if (light.easing) stepLight()
     if (freeCam.step(dtMs)) markDirty()
@@ -1339,7 +1381,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     if (level === 'globe') {
       const hit = globe.pick(ndc, globeCam, size)
-      if (hit) for (const cb of pickCbs) cb(hit.lat, hit.lon)
+      if (!hit) return
+      // A pin reports its site's own coordinates: remember which site was picked, if it is another one.
+      const picked = deps.sites.find((s) => s.lat === hit.lat && s.lon === hit.lon)
+      awaiting = picked && picked.id !== frame?.site?.id ? { id: picked.id, until: performance.now() + AWAIT_SITE_MS } : null
+      for (const cb of pickCbs) cb(hit.lat, hit.lon)
       return
     }
     const spot = site.pick(ndc, siteCam)

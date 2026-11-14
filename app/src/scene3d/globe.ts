@@ -174,8 +174,13 @@ export class GlobeWorld {
     } else this.moon.material = this.moonMat
   }
 
+  private sitesDrawn: Site[] | null = null
+
   setSites(sites: Site[], selectedId: string | null) {
     this.selected = selectedId
+    // Called on every frame update: the pins are rebuilt only for another list of sites.
+    if (sites === this.sitesDrawn) return
+    this.sitesDrawn = sites
     for (const p of this.pins) this.pinGroup.remove(p.group)
     this.pins.length = 0
     const stemMat = new MeshBasicMaterial({ color: 0xd9d6cf, toneMapped: false })

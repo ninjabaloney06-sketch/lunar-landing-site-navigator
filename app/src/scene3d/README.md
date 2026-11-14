@@ -49,3 +49,7 @@ Sun viewpoints and the flights to them), visible: false off screen or behind Ear
 Bodies hiding each other (S9): of Earth and the Sun the sky layer draws the one nearer to the observer in front;
 one that is nearer than the Moon (at its own viewpoint) is drawn after the Moon, over it. project() and
 labelPoint() report visible: false for the Sun, Earth or Moon whose centre is behind another body.
+After the review (14 Nov): a click on another site's pin on the globe makes the fly wait for that site's frame
+(at most 2 s) instead of starting toward the old site; an orbit glide and eased wheel or look input are dropped
+when a fly starts or a camera is placed; each scene is drawn once before the fly between them starts, so the
+first fly does not stall on uploads; the globe's site pins are rebuilt only for another list of sites.

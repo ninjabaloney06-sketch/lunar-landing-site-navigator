@@ -299,6 +299,65 @@ test.describe('S3: the fly between the globe and the site is one continuous move
     expect(angleDeg(arrived.forward, im1Default.forward)).toBeLessThan(1e-6)
   })
 
+  test('a pin of another site clicked on the globe: the fly waits for that site and goes straight to it; nothing is left over afterwards', async ({ page }) => {
+    test.setTimeout(240_000)
+    await open(page)
+    const im1Default = await setView(page, { site: 'im-1', utc: RIDGE.utc, level: 'site' })
+    await setView(page, { ...RIDGE, level: 'globe', el: -35, az: 0, dist: 5000 })
+    await scene(page, (s) => s.setAnimated(true))
+    // An orbit drag that is still gliding when the pin is clicked.
+    await page.mouse.move(300, 200)
+    await page.mouse.down()
+    await page.mouse.move(330, 205)
+    await page.mouse.move(380, 215)
+    await page.mouse.up()
+    await advance(page, 3)
+    // Find the head of IM-1's pin: along the pin from its foot, away from the Moon's centre on screen, where
+    // hovering names it.
+    const pin = (await page.evaluate(() => (window as unknown as { __scene: { projectPin(id: string): Pt } }).__scene.projectPin('im-1')))!
+    const centre = (await page.evaluate(() => (window as unknown as { __scene: { projectMe(p: number[]): Pt } }).__scene.projectMe([0, 0, 0])))!
+    const out = Math.hypot(pin.x - centre.x, pin.y - centre.y)
+    let head: { x: number; y: number } | null = null
+    for (let r = 0; r <= 30 && !head; r += 3) {
+      const at = { x: pin.x + ((pin.x - centre.x) / out) * r, y: pin.y + ((pin.y - centre.y) / out) * r }
+      await page.mouse.move(at.x, at.y)
+      await frames(page)
+      const n = await page.evaluate(() => (window as unknown as { __scene: { named(): { name: string } | null } }).__scene.named())
+      if (n && /IM-1/.test(n.name)) head = at
+    }
+    expect(head, 'the head of IM-1\'s pin').not.toBeNull()
+    await page.mouse.click(head!.x, head!.y)
+    // The app now asks for the site view; the new site's frame is not there yet: the fly waits.
+    await scene(page, (s) => s.handle().setLevel('site'))
+    await advance(page, 5)
+    expect(await scene(page, (s) => s.flying()), 'no fly toward the old site').toBe(false)
+    expect(await scene(page, (s) => s.level())).toBe('globe')
+    const waiting = await scene(page, (s) => s.flyPose())
+    await scene(page, (s) => s.load('im-1', '2027-08-16T12:00:00Z'))
+    expect(await scene(page, (s) => s.flying()), 'the fly starts with the picked site\'s frame').toBe(true)
+    const down = await runFly(page)
+    expect(dist(down[0].position, waiting.position), 'from where the camera waited').toBeLessThan(1e-6)
+    checkContinuous(down, 'globe → picked site')
+    expect(await scene(page, (s) => s.level())).toBe('site')
+    const arrived = await camera(page)
+    expect(dist(arrived.position, im1Default.position)).toBeLessThan(1e-3)
+    // Nothing plays out after the landing: not the orbit glide from before the fly, not a level asked for twice.
+    await scene(page, (s) => s.handle().setLevel('site'))
+    const rest = await advance(page, 30)
+    expect(dist(rest[rest.length - 1].position, arrived.position), 'the camera rests after the fly').toBeLessThan(1e-6)
+    await scene(page, (s) => s.load('im-1', '2027-08-16T13:00:00Z'))
+    await advance(page, 2)
+    expect(dist((await camera(page)).position, arrived.position), 'a new time does not place the camera again').toBeLessThan(1e-6)
+    // Wheel input still easing when the level changes is dropped: the eye-level lens stays the default.
+    await page.mouse.move(640, 360)
+    await page.mouse.wheel(0, -300)
+    await advance(page, 2)
+    await scene(page, (s) => s.handle().setLevel('eye'))
+    const eye = await advance(page, 30)
+    expect(eye[eye.length - 1].level).toBe('eye')
+    expect(eye[eye.length - 1].fov, 'the wheel input from site level does not zoom the eye-level lens').toBe(54)
+  })
+
   test('the picture: no frame of the fly stands out from its neighbours, and the last frame is the site view', async ({ page }) => {
     test.setTimeout(400_000)
     const { PNG } = await import('pngjs')
