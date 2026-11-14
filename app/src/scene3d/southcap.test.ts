@@ -1,10 +1,10 @@
 // Cap mesh for the globe (southcap.ts): synthetic surfaces with known heights, then the shipped base raster.
-import { Vector3 } from 'three'
+import { Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { type CapIo, type SouthCap, capXY, openCap } from '../data/southcap'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
 import { SPHERE_TO_BODY, latLonOf } from './frames'
-import { CAP_GEOMETRY_DEFAULTS, type CapSurface, capGeometry, capVertex, globeWithoutCap } from './southcap'
+import { CAP_GEOMETRY_DEFAULTS, type CapSurface, capGeometry, capSurfacePoint, capVertex, globeWithoutCap, matchRimNormals } from './southcap'
 import source from './southcap.ts?raw'
 
 const HALF = 304_000
@@ -141,6 +141,47 @@ describe('capGeometry on synthetic surfaces', () => {
     expect(uv.getY(0)).toBe(1)
   })
 
+  it('capSurfacePoint: on the mesh along the radial line, everywhere in the cap; null outside it', () => {
+    const g = capGeometry(flat(2000), small)
+    for (const [lat, lon] of [[-90, 0], [-89.99, 33], [-85, -179.9], [-85, 180], [-82.5, 0.7], [-80.02, 91], [-80, 45]]) {
+      const s = siteVector(lat, lon, 0)
+      const u = new Vector3(s[0], s[1], s[2]).normalize()
+      const p = capSurfacePoint(g, -80, u, small)
+      expect(p, `${lat}, ${lon}`).not.toBeNull()
+      expect(p!.clone().normalize().distanceTo(u)).toBeLessThan(1e-9)
+      // Flat 2 km relief: the mesh is at 1739.4 km inside the blend band, fading to 1737.4 km at the rim.
+      expect(p!.length()).toBeLessThanOrEqual(MOON_RADIUS_KM + 2 + 1e-3)
+      if (lat < -81) expect(p!.length()).toBeCloseTo(MOON_RADIUS_KM + 2, 2)
+    }
+    const s = siteVector(-79.5, 10, 0)
+    expect(capSurfacePoint(g, -80, new Vector3(s[0], s[1], s[2]).normalize(), small)).toBeNull()
+  })
+
+  it('matchRimNormals: the sphere’s normal-mapped normal at the rim, the relief beyond the band, a blend between', () => {
+    // A slope of 0.1 toward +x everywhere; a normal map that leans every normal toward local north by 0.2.
+    const g = capGeometry({ heightXY: (x) => 0.1 * x, halfWidthM: HALF, northLat: -80 }, small)
+    const before = g.getAttribute('normal').clone()
+    matchRimNormals(g, -80, () => [0, 0.2, Math.sqrt(1 - 0.04)], 60, small)
+    const n = (v: number) => vec(g, 'normal', v)
+    const rimRho = capXY(-80, 0)[1]
+    for (const j of [0, 50, 128, 200]) {
+      const rim = capVertex(small.rings, j, small.sectors)
+      const u = vec(g, 'position', rim).normalize()
+      const c = Math.hypot(u.x, u.y) // cos(80°)
+      const north = new Vector3(-u.x * u.z, -u.y * u.z, c * c).divideScalar(c)
+      // three’s frame at 80° S: north scaled by 2 cos φ (the longer gradient, east, is 1).
+      const want = north.multiplyScalar(0.2 * 2 * c).addScaledVector(u, Math.sqrt(1 - 0.04)).normalize()
+      expect(n(rim).distanceTo(want), `rim ${j}`).toBeLessThan(1e-6)
+      expect(n(capVertex(small.rings + 1, j, small.sectors)).distanceTo(want), `lip ${j}`).toBeLessThan(1e-6)
+      // Beyond 60 km from the rim: unchanged.
+      for (let i = 1; i < small.rings; i++) {
+        if (rimRho - (rimRho * i) / small.rings < 60_000) continue
+        const v = capVertex(i, j, small.sectors)
+        expect(n(v).distanceTo(new Vector3().fromBufferAttribute(before, v))).toBe(0)
+      }
+    }
+  })
+
   it('uses no trigonometry (scene3d rule: angles go through geometry/)', () => {
     expect(source).not.toMatch(/Math\.(sin|cos|tan|asin|acos|atan|atan2)\b/)
     expect(source).not.toMatch(/Matrix[34]/)
@@ -179,6 +220,17 @@ describe('capGeometry on the shipped base raster', () => {
     const n = g.getAttribute('normal')
     for (let i = 0; i < n.count; i += 97) worst = Math.max(worst, Math.abs(vec(g, 'normal', i).length() - 1))
     expect(worst).toBeLessThan(1e-5)
+    // capSurfacePoint agrees with a ray cast against the whole mesh (three's Raycaster), on real relief.
+    const mesh = new Mesh(g, new MeshBasicMaterial())
+    const ray = new Raycaster()
+    for (const [lat, lon] of [[-89.46, -136.68], [-85.98, -0.26], [-88.0, 120.3], [-81.3, -45.1], [-89.99, 10]]) {
+      const s = siteVector(lat, lon, 0)
+      const u = new Vector3(s[0], s[1], s[2]).normalize()
+      ray.set(u.clone().multiplyScalar(MOON_RADIUS_KM + 50), u.clone().negate())
+      const want = ray.intersectObject(mesh)[0]?.point
+      const got = capSurfacePoint(g, cap.northLat, u)
+      expect(got && want && got.distanceTo(want), `${lat}, ${lon}`).toBeLessThan(1e-6)
+    }
     // real relief: normals are not all radial
     const tilt = vec(g, 'normal', capVertex(20, 100)).dot(vec(g, 'position', capVertex(20, 100)).normalize())
     expect(tilt).toBeLessThan(1)

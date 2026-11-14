@@ -66,3 +66,12 @@ point's cap terrain has it among its levels. 15–28 tiles (2.0–3.7 MB) per si
 __scene.nearLevel(true); __scene.nearReady() resolves when the current site's job has ended. Level normals come from
 the grids and blend across each rim band like the heights (levels.ts levelNormals); data next to a nodata fill (im-1:
 the polar DEM ends 4 km north of the site) blend into the fill over the same band. tileHeight applies height_scale_m.
+F1 south polar cap on the globe: once data/southcap.ts loadCap() resolves, globe.ts swaps the sphere for
+globeWithoutCap() and adds capGeometry() (400 m relief, cap_color_2k.webp) south of 80° S; without the cap data the
+whole sphere stays, and the checker texture always shows the whole sphere. Within 120 km of the rim
+(southcap.ts RIM_SHADING_KM) the cap's normals fade into the normal the sphere's normal map gives there (three's
+cotangent frame reproduced in matchRimNormals), so 80° S does not show as a ring. Site pins, user points and POIs
+stand on the drawn relief (capSurfacePoint), the pin region's tint is mixed into the cap's own pixels by its shader
+(the overlay's 9 %, so it lies exactly on the relief; the boundary line stays at the rim, where the cap is on the
+sphere), picking and the right-click hit test both meshes, and the space camera's floor is 1 km above the relief. In test mode
+handle.ready waits for the cap, so every test sees the same globe.

@@ -379,6 +379,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // ---------- free camera: look-around, dolly, eye-level zoom (controls.ts) ----------
 
   const moonSphere = new Sphere(new Vector3(), MOON_RADIUS_KM)
+  // The Moon's surface under a space-camera position, km from its centre: the cap's relief south of its edge
+  // (wave 3), the 1737.4 km sphere elsewhere.
+  const moonGround = (p: Vector3) => globe?.groundRadius(p) ?? MOON_RADIUS_KM
   const bodiesKm = () => (frame ? [v3(frame.state.earth_km), v3(frame.state.sun_km)] : [])
   const groundBelow = (p: Vector3) => site.groundZ(p.x, p.y)
 
@@ -406,12 +409,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     mode: 'dolly',
     surface(p) {
       const [e, s] = bodiesKm()
-      const moon = p.length() - MOON_RADIUS_KM
+      const moon = p.length() - moonGround(p)
       return e ? Math.min(moon, p.distanceTo(e) - EARTH_RADIUS_KM, p.distanceTo(s) - SUN_RADIUS_KM) : moon
     },
     allowed(p) {
       const [e, s] = bodiesKm()
-      if (p.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) return false
+      if (p.length() < moonGround(p) + MOON_FLOOR_KM) return false
       return !e || (p.distanceTo(e) >= EARTH_RADIUS_KM * BODY_FLOOR && p.distanceTo(s) >= SUN_RADIUS_KM * BODY_FLOOR)
     },
     // The Moon's limit is its orbit maximum, 20 000 km from its centre; Earth and the Sun get the same number of
@@ -447,9 +450,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
       return true
     }
-    if (level === 'globe' && free.globe.dist && globeCam.position.length() < MOON_RADIUS_KM + MOON_FLOOR_KM - FLOOR_TOLERANCE_KM) {
-      globeCam.position.setLength(MOON_RADIUS_KM + MOON_FLOOR_KM)
-      return true
+    if (level === 'globe' && free.globe.dist) {
+      const floor = moonGround(globeCam.position) + MOON_FLOOR_KM
+      if (globeCam.position.length() < floor - FLOOR_TOLERANCE_KM) {
+        globeCam.position.setLength(floor)
+        return true
+      }
     }
     return false
   }
@@ -1521,6 +1527,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (disposed) return
     sky = new Sky(tex)
     globe = new GlobeWorld(tex)
+    // The cap mesh replaces the sphere's pole once its data are in (wave 3): draw again then.
+    globe.capReady.then(markDirty)
     topView = new TopView(tex)
     globe.setSites(deps.sites, null)
     globe.setMarkers(markers)
@@ -1530,6 +1538,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (pending) applyFrame(pending)
     pending = null
     raf = requestAnimationFrame(loop)
+    // Test mode: the globe a test sees is the same every run, with the cap if its data exist.
+    return testMode ? globe.capReady : undefined
   })
 
   function update(f: SceneFrame) {
@@ -1760,6 +1770,17 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
       walkTo: (x, y) => walkTo(x, y),
+      capInfo: () => globe?.capInfo() ?? null,
+      globeHit(x, y) {
+        const r = canvas.getBoundingClientRect()
+        return globe && inSpace() ? globe.hitAt(toNdc(r.left + x, r.top + y), globeCam) : null
+      },
+      moonGround: (p) => moonGround(new Vector3(p[0], p[1], p[2])),
+      setCap(on) {
+        globe?.useCap(on)
+        markDirty()
+      },
+      subSolar: () => (frame ? latLonOf(v3(frame.state.sun_km)) : null),
       nearLevel(on) {
         nearOn = on
         if (on) requestNear()

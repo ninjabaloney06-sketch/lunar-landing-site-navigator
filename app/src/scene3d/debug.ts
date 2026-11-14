@@ -60,6 +60,11 @@ export interface DebugView {
   nearLevel(on: boolean): Promise<void>
   nearReady(): Promise<void>
   levelSpecs(): { name: string; size: number; spacing: number; ext: number }[]
+  capInfo(): { loaded: boolean; visible: boolean; vertices: number; northLat: number | null; sphereSouthLat: number; sphereFaces: number; tint: number } | null
+  globeHit(x: number, y: number): { point: number[]; mesh: 'cap' | 'sphere' } | null
+  moonGround(p: number[]): number
+  setCap(on: boolean): void
+  subSolar(): { lat: number; lon: number } | null
 }
 
 export interface SetViewOptions {
@@ -177,6 +182,15 @@ export function installDebug(v: DebugView) {
     nearLevel: (on: boolean) => v.nearLevel(on),
     nearReady: () => v.nearReady(),
     levelSpecs: () => v.levelSpecs(),
+    // F1: the south polar cap on the globe (loaded, drawn, its vertex count, its edge, the pin region's tint
+    // mixed into it) and the southernmost latitude of the sphere's faces; the Moon point under a screen position with the mesh it is on (globe
+    // level); the radius (km) of the drawn surface under a MOON_ME point, the space camera's floor.
+    capInfo: () => v.capInfo(),
+    globeHit: (x: number, y: number) => v.globeHit(x, y),
+    moonGround: (p: number[]) => v.moonGround(p),
+    // The cap off and on again (before/after pictures), and the sub-solar point (planetocentric degrees).
+    setCap: (on: boolean) => v.setCap(on),
+    subSolar: () => v.subSolar(),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api

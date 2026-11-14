@@ -434,6 +434,94 @@ test.describe('terrain levels (track-terrain)', () => {
   })
 })
 
+test.describe('F1: the south polar cap on the globe (wave 3)', () => {
+  type CapInfo = { loaded: boolean; visible: boolean; vertices: number; northLat: number | null; sphereSouthLat: number; sphereFaces: number; tint: number }
+  type Hit = { point: number[]; mesh: 'cap' | 'sphere' } | null
+  const R = 1737.4
+  const latOf = (p: number[]) => Math.asin(p[2] / Math.hypot(...p)) / D2R
+
+  test('the cap replaces the sphere south of 80° S, rays at the pole hit it, pins stand on it, the checker shows the whole sphere', async ({ page }) => {
+    test.setTimeout(300_000)
+    fs.mkdirSync(SHOTS, { recursive: true })
+    await open(page)
+    // ninja's screenshot (14 Nov): Connecting Ridge selected, 20 Aug 2027 07:30 UTC, the pole in view under a low Sun.
+    await setView(page, { site: DEMO, utc: '2027-08-20T07:30:00Z', level: 'globe' })
+    const info = (await call<CapInfo>(page, 'capInfo'))!
+    console.log(`F1 cap: ${JSON.stringify(info)}`)
+    expect(info.loaded && info.visible, 'the cap mesh is in the globe scene').toBe(true)
+    expect(info.vertices).toBe(1 + 257 * 768) // southcap.ts defaults: the pole, 256 rings and the lip, 768 sectors
+    expect(info.northLat).toBe(-80)
+    expect(info.sphereSouthLat, 'no sphere face south of 80° S').toBeGreaterThan(-80 - 1e-4)
+    // The default globe view, and closer with the pole in view (about the framing of ninja's screenshot).
+    for (const [name, v] of [['default', null], ['close', { level: 'globe', el: -62, az: 12, dist: 3300 }]] as const) {
+      if (v) await setView(page, v)
+      await page.screenshot({ path: `${SHOTS}/f1-globe-pole-${name}-after.png` })
+      await call(page, 'setCap', false)
+      await call(page, 'advance', 0)
+      expect((await call<CapInfo>(page, 'capInfo'))!.sphereSouthLat, 'without the cap: the whole sphere').toBeLessThan(-89.9)
+      await page.screenshot({ path: `${SHOTS}/f1-globe-pole-${name}-before.png` })
+      await call(page, 'setCap', true)
+      await call(page, 'advance', 0)
+    }
+
+    // A ray at the pole: the camera above 89.9° S, the pole at the screen point the space camera projects it to.
+    await setView(page, { level: 'globe', el: -89.9, az: 0, dist: 4000 })
+    const ground = await call<number>(page, 'moonGround', [0, 0, -R])
+    const pole = (await call<{ x: number; y: number; visible: boolean }>(page, 'projectMe', [0, 0, -ground]))!
+    expect(pole.visible).toBe(true)
+    const hit = (await call<Hit>(page, 'globeHit', pole.x, pole.y))!
+    expect(hit.mesh, 'the ray at the pole hits the cap').toBe('cap')
+    expect(latOf(hit.point)).toBeLessThan(-89.9)
+    expect(Math.abs(Math.hypot(...hit.point) - ground), 'on the relief as drawn').toBeLessThan(0.05)
+    expect(Math.abs(ground - R), 'relief, not the sphere').toBeGreaterThan(0.1)
+    const menuHit = await call<{ lat: number; lon: number } | null>(page, 'surfaceAt', pole.x, pole.y)
+    expect(menuHit!.lat, 'the right-click hit at the pole').toBeLessThan(-89.9)
+
+    // The site pin stands on the relief at Connecting Ridge (1944.6 m above the sphere, sites.json).
+    const foot = (await call<number[]>(page, 'pinSurface', DEMO))!
+    expect(Math.abs(Math.hypot(...foot) - (R + 1.9446)), 'site pin foot on the relief (400 m base, km)').toBeLessThan(0.15)
+    expect(Math.abs(Math.hypot(...foot) - (await call<number>(page, 'moonGround', foot)))).toBeLessThan(1e-6)
+    // The pin region's tint is the cap's own surface (mixed into its pixels at the overlay's 9 %), off with the
+    // region; the boundary line stays at the 80° S rim, where the cap lies on the sphere.
+    expect(info.tint).toBe(0.09)
+    await call(page, 'showRegion', false)
+    expect((await call<CapInfo>(page, 'capInfo'))!.tint).toBe(0)
+    await call(page, 'showRegion', true)
+    const region = (await call<{ boundary: number[][]; cap: number[][] }>(page, 'region'))!
+    for (const v of region.boundary) expect(Math.hypot(...v) - (await call<number>(page, 'moonGround', v))).toBeCloseTo(0.4, 3)
+
+    // Checker (T16): the whole sphere, no cap; the ray at the pole hits the sphere.
+    await setView(page, { level: 'globe', el: -89.9, az: 0, dist: 4000, texture: 'checker' })
+    const chk = (await call<CapInfo>(page, 'capInfo'))!
+    expect(chk.visible, 'checker: the cap is hidden').toBe(false)
+    expect(chk.sphereSouthLat, 'checker: the whole sphere').toBeLessThan(-89.9)
+    const flat = (await call<{ x: number; y: number }>(page, 'projectMe', [0, 0, -R]))!
+    const hit2 = (await call<Hit>(page, 'globeHit', flat.x, flat.y))!
+    expect(hit2.mesh).toBe('sphere')
+    expect(Math.hypot(...hit2.point)).toBeCloseTo(R, 2)
+    await setView(page, { level: 'globe', texture: 'real' })
+    expect((await call<CapInfo>(page, 'capInfo'))!.visible).toBe(true)
+  })
+
+  test('screenshots: the rim at 80° S close up at full Sun and at the terminator, the pin region on the cap', async ({ page }) => {
+    fs.mkdirSync(SHOTS, { recursive: true })
+    await open(page)
+    await setView(page, { site: DEMO, utc: '2027-08-20T07:30:00Z', level: 'globe' })
+    const sunLon = (await call<{ lat: number; lon: number }>(page, 'subSolar'))!.lon
+    // Full Sun: the rim on the sunlit meridian; the terminator: 90° from it.
+    for (const [name, lon] of [['full-sun', sunLon], ['terminator', sunLon + 90]] as const) {
+      await setView(page, { level: 'globe', el: -74, az: lon, dist: 2600 })
+      await page.screenshot({ path: `${SHOTS}/f1-rim-80S-${name}.png` })
+      await call(page, 'showRegion', false)
+      await call(page, 'advance', 0)
+      await page.screenshot({ path: `${SHOTS}/f1-rim-80S-${name}-no-region.png` })
+      await call(page, 'showRegion', true)
+    }
+    await setView(page, { level: 'globe', el: -70, az: sunLon + 30, dist: 4200 })
+    await page.screenshot({ path: `${SHOTS}/f1-pin-region-on-cap.png` })
+  })
+})
+
 test.describe('screenshots (1440 × 900)', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 

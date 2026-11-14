@@ -20,9 +20,10 @@
 //
 // No trigonometry here: directions come from geometry.siteVector, the projection from data/southcap.ts.
 
-import { BufferAttribute, BufferGeometry, SphereGeometry, Vector3 } from 'three'
-import { capUnitOfXY, capXY } from '../data/southcap'
+import { BufferAttribute, BufferGeometry, Ray, SphereGeometry, Vector3 } from 'three'
+import { capUnitOfXY, capXY, capXYOfUnit } from '../data/southcap'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
+import { latLonOf } from './frames'
 
 /** What the mesh needs from the cap data (data/southcap.ts SouthCap has exactly these). */
 export interface CapSurface {
@@ -166,5 +167,93 @@ export function globeWithoutCap(radiusKm: number, widthSegments: number, heightS
   return geo
 }
 
+/**
+ * Width of the band inside the rim over which the shading goes from the sphere's normal map to the real relief,
+ * km. Wider than the height fade (30 km): the relief shades darker than the normal map under a high Sun (measured
+ * at 80.5–81.5° S on the sunward meridian, 20 Aug 2027 07:30 UTC: 110 against 123 of 255), and a change of that
+ * size over 30 km read as a ring; over 120 km (80° S to about 84° S) it does not.
+ */
+export const RIM_SHADING_KM = 120
+
+/** A sample of an equirectangular normal map at texture coordinates (u, v): the decoded vector, components −1 … 1. */
+export type NormalSampler = (u: number, v: number) => [number, number, number]
+
+/**
+ * Shading at the rim as on the sphere beside it (wave 3). Within `bandKm` of the rim (the heights fade to the sphere
+ * within the first `blendKm`), the cap's normals fade (smoothstep) into the normal the globe's sphere has there with its
+ * equirectangular normal map (map u = 0.5 + lon / 360, v = (lat + 90) / 180). three's tangent frame without a
+ * tangent attribute (normalmap_pars_fragment.glsl getTangentFrame) is the surface gradients of u (east) and
+ * v (north) scaled together so that the longer one is 1: east × min(1, 1 / (2 cos φ)) and north × min(1, 2 cos φ),
+ * where cos φ is the horizontal length of the unit position (no angles). At the rim the cap is shaded like the
+ * sphere, so the 80° S circle does not show as a ring; inward the real relief takes over. The lip copies the rim.
+ */
+export function matchRimNormals(geo: BufferGeometry, northLat: number, sample: NormalSampler, bandKm = RIM_SHADING_KM, options: CapGeometryOptions = {}) {
+  const o = { ...CAP_GEOMETRY_DEFAULTS, ...options }
+  const rimRho = capXY(northLat, 0)[1]
+  const blendM = bandKm * 1000
+  const pos = geo.getAttribute('position')
+  const nor = geo.getAttribute('normal')
+  const u = new Vector3()
+  const n = new Vector3()
+  const m = new Vector3()
+  for (let i = o.rings; i >= 1; i--) {
+    const t = Math.min(Math.max((rimRho - (rimRho * i) / o.rings) / blendM, 0), 1)
+    if (t >= 1) break
+    const w = t * t * (3 - 2 * t)
+    for (let j = 0; j < o.sectors; j++) {
+      const v = capVertex(i, j, o.sectors)
+      u.fromBufferAttribute(pos, v).normalize()
+      const c = Math.hypot(u.x, u.y)
+      const [mx, my, mz] = sample(j / o.sectors, (latLonOf(u).lat + 90) / 180)
+      const te = Math.min(1, 1 / (2 * c)) / c // east = (−u_y, u_x, 0) / c
+      const tn = Math.min(1, 2 * c) / c // north = (−u_x u_z, −u_y u_z, c²) / c
+      m.set(-u.y * te * mx - u.x * u.z * tn * my + u.x * mz, u.x * te * mx - u.y * u.z * tn * my + u.y * mz, c * c * tn * my + u.z * mz).normalize()
+      n.fromBufferAttribute(nor, v).sub(m).multiplyScalar(w).add(m).normalize()
+      nor.setXYZ(v, n.x, n.y, n.z)
+      if (i === o.rings) nor.setXYZ(capVertex(o.rings + 1, j, o.sectors), n.x, n.y, n.z)
+    }
+  }
+  nor.needsUpdate = true
+}
+
 /** Vertex index of ring i (1 … rings = the rim; rings + 1 = the lip), sector j, in capGeometry's order. */
 export const capVertex = (i: number, j: number, sectors = CAP_GEOMETRY_DEFAULTS.sectors) => 1 + (i - 1) * sectors + j
+
+/**
+ * The point of a capGeometry() mesh (built with the same northLat and options) on the radial line along the unit
+ * MOON_ME direction u: where a pin's foot stands on the relief as drawn, between the mesh's own vertices. Finds the
+ * mesh quad from u's projected radius (ring) and longitude (sector) and intersects the ray with its two triangles,
+ * then with the neighbouring quads (a chord between two vertices of a ring runs inside the ring's circle). null
+ * outside the cap.
+ */
+export function capSurfacePoint(geo: BufferGeometry, northLat: number, u: Vector3, options: CapGeometryOptions = {}): Vector3 | null {
+  const o = { ...CAP_GEOMETRY_DEFAULTS, ...options }
+  const [x, y] = capXYOfUnit(u.x, u.y, u.z)
+  const rimRho = capXY(northLat, 0)[1]
+  const fi = (Math.hypot(x, y) / rimRho) * o.rings
+  if (fi > o.rings * (1 + 1e-9)) return null // the edge itself counts (rounding)
+  const i0 = Math.min(Math.floor(fi), o.rings - 1)
+  const j0 = Math.floor(((latLonOf(u).lon + 180) / 360) * o.sectors)
+  const pos = geo.getAttribute('position')
+  const ray = new Ray(u.clone().multiplyScalar(MOON_RADIUS_KM + 50), u.clone().negate())
+  const a = new Vector3()
+  const b = new Vector3()
+  const c = new Vector3()
+  const hit = new Vector3()
+  const vert = (i: number, j: number, out: Vector3) => out.fromBufferAttribute(pos, i === 0 ? 0 : capVertex(i, ((j % o.sectors) + o.sectors) % o.sectors, o.sectors))
+  const tri = (p: [number, number], q: [number, number], r: [number, number]) =>
+    ray.intersectTriangle(vert(...p, a), vert(...q, b), vert(...r, c), false, hit) !== null
+  // Quad (i, j) lies between rings i and i + 1 (ring 0 = the pole) and sectors j and j + 1.
+  const quad = (i: number, j: number) =>
+    i < 0 || i >= o.rings
+      ? false
+      : i === 0
+        ? tri([0, 0], [1, j + 1], [1, j])
+        : tri([i, j], [i, j + 1], [i + 1, j]) || tri([i, j + 1], [i + 1, j + 1], [i + 1, j])
+  for (const [di, dj] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+    if (quad(i0 + di, j0 + dj)) return hit.clone()
+  }
+  // Exactly on the rim (the ray grazes a Float32 vertex from outside): the nearest vertex's radius.
+  const lonF = ((latLonOf(u).lon + 180) / 360) * o.sectors
+  return u.clone().multiplyScalar(vert(Math.min(Math.round(fi), o.rings), Math.round(lonF), a).length())
+}
