@@ -240,3 +240,13 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 ## Pitch deck drafted before the event (13 Nov 2026)
 
 **DECIDED by ninja, 13 Nov:** draft the full 7-slide backup deck before Saturday (second exception to the pre-event rule, after the build plan). Agent flagged that slides are a judged submission artifact; ninja chose the full deck over an outline only. Limits: problem, timed-tool results, approach and known limits only; every fact about the built app (screenshot, measured error, validated sites, cut features) stays a visible [Sunday] slot in [pitch-outline.md](../event/pitch-outline.md) until it exists. Regenerate with `python3 scripts/make_pitch_pdf.py`.
+
+## 2026 Project Submission Guide read (14 Nov 2026, 09:35)
+
+Source: https://www.spaceappschallenge.org/resources/project-submission-guide/ (dated 13 Nov 2026).
+
+1. **Demo limit:** video ≤ 30 s or slide deck ≤ 7 slides incl. title and intro. Exceeding either makes the project ineligible for Global Judging. English, or English subtitles on a video.
+2. **Links without login:** yes. Demo and final-project links must open with no password, permission or registration. Images (JPG/PNG/GIF ≤ 10 MB) can be uploaded to the page; videos and documents cannot.
+3. **Public code link:** not required. "Link to Final Project" may be a website. → The repo stays private; final-project link = https://nasa.digi-works.org. Optional: request a FortiGuard web-filter classification for the site so judges' networks don't block it.
+
+Also: SI (AI) use must be marked in the project itself: code and data need an acknowledgement in descriptive text and metadata, images/videos a visible watermark. SI must not be used to come up with the idea. At least one NASA dataset is required for a Global Award. Global submission closes Sun 15 Nov 23:59 local; our local deadline 15:45 stays. Submit = tick Terms and "Confirm All Work is Original", then "Submit for Judging"; resubmission allowed until close.
