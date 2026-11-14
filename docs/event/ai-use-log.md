@@ -47,6 +47,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:30 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Correction: the integrator's earlier rows and notes in spec.md and validation.md carried clock times up to an hour too late (written from an estimate, not from the machine clock); fixed to the real times | docs/event/ai-use-log.md; docs/event/spec.md; docs/event/validation.md | none | AI error, corrected by the same session. |
 
+| Sat 12:20–13:45 | Claude Code desktop app (account owner unconfirmed) | project operator | Web research in six parallel threads on NASA lunar south-pole data: programmes and candidate regions, illumination/Earth visibility/thermal, water ice and resources, science/astrobiology/hazards, landing windows, datasets and APIs | docs/reference/research/notes/ (reference only; not used by the app) | none | Not validated. Notes list their own gaps: several primary papers and NASA PDFs could not be opened; south-polar solstice dates and some region-centre coordinates are derived by the AI, not published; some 2026 programme status items rest on secondary sources. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
