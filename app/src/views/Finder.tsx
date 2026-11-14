@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { FINDER_DEFAULTS, finder } from '../geometry'
 import type { FinderResult, FinderThresholds } from '../geometry'
-import { loadHorizon, loadMonthsFor } from '../data/load'
+import { loadMonthsFor } from '../data/load'
+import { finderInputs } from '../data/results'
 import type { Site, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { COVERAGE_END_MS, DAY_MS } from '../state'
@@ -69,8 +70,8 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
         setRun({ status: 'message', text: 'This build has no ephemeris for these dates yet, so the finder cannot run.' })
         return
       }
-      const horizon = site.horizon ? await loadHorizon(site.horizon) : null
-      const result = finder(months, { lat: site.lat, lon: site.lon, elev_m: site.elev_m }, horizon, stations, ids, fromMs, latestMs, t)
+      const { geo, horizon } = await finderInputs(site)
+      const result = finder(months, geo, horizon, stations, ids, fromMs, latestMs, t)
       setRun({ status: 'done', result, t })
     } catch (err) {
       setRun({

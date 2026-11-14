@@ -16,6 +16,7 @@ import { inPinRegion } from '../scene3d/region'
 import type { Poi } from '../data/pois'
 import { PoiInfo } from './PoiInfo'
 import { REGION_TEXT } from './poiLayer'
+import { SITE_REGION_TEXT } from './custom'
 import { ViewMenu, VIEWPOINTS } from './ViewMenu'
 import type { ViewItem } from './ViewMenu'
 import { fmtDeg } from './format'
@@ -52,6 +53,7 @@ interface Props {
   onTopView(on: boolean): void // the not-to-scale top view is shown
   canAddPoint: boolean // false when the list of user points is full
   onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
+  onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
   pois: ScenePoi[] // points of interest to draw ([] = layer off)
   poiById: Map<string, Poi> | null // records for the info box; null until pois.json is loaded
 }
@@ -77,7 +79,7 @@ function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
 }
 
 export function SceneView(props: Props) {
-  const { deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint, pois, poiById } = props
+  const { deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
@@ -86,8 +88,12 @@ export function SceneView(props: Props) {
   cb.current = { onLevel, clickGuard, onTopView }
   const name = useRef<HTMLDivElement>(null)
   const nameText = useRef<HTMLDivElement>(null)
-  // Right-click menu: where it opened and the Moon point under it.
-  const [ctx, setCtx] = useState<SceneMenu | null>(null)
+  // Right-click menu: where it opened, the Moon point under it, and the user point named() reports at that moment
+  // (the hovered marker, the last tapped one, or the one selected in the Mission panel: the point whose name label
+  // is showing), whose place can become the landing site.
+  const [ctx, setCtx] = useState<(SceneMenu & { point: number | null }) | null>(null)
+  const pointsNow = useRef(points)
+  pointsNow.current = points
   const ctxOpen = useRef(false)
   ctxOpen.current = ctx !== null
   const ctxClosedAt = useRef(0)
@@ -138,9 +144,13 @@ export function SceneView(props: Props) {
     // A press that closes the right-click menu is not also a click on the scene.
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
     const offTop = h.onTopView((on) => cb.current.onTopView(on))
-    const offMenu = h.onMenu((m) => setCtx(m))
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
+    const offMenu = h.onMenu((m) => {
+      const n = namedNow()
+      const i = n && !n.poiId ? pointsNow.current.findIndex((q) => q.name === n.name) : -1
+      setCtx({ ...m, point: i >= 0 ? i : null })
+    })
     const poiOf = (n: SceneName | null) => (n && n.poiId && byId.current?.has(n.poiId) ? n.poiId : null)
     const testHook = new URLSearchParams(window.location.search).has('test')
     if (testHook) {
@@ -289,6 +299,8 @@ export function SceneView(props: Props) {
     }
   }, [deps, siteId, utcMs])
 
+  const ctxPoint = ctx && ctx.point !== null ? (points[ctx.point] ?? null) : null
+
   return (
     <>
       <div ref={host} className="scene" data-testid="scene" />
@@ -341,7 +353,14 @@ export function SceneView(props: Props) {
           label="View"
           testId="scene-menu"
           at={ctx}
-          note={ctx.hit && !inPinRegion(ctx.hit.lat) ? `Points can be added only ${REGION_TEXT}.` : undefined}
+          note={
+            [
+              ctx.hit && !inPinRegion(ctx.hit.lat) ? `Points can be added only ${REGION_TEXT}.` : null,
+              ctxPoint && !inPinRegion(ctxPoint.lat) ? SITE_REGION_TEXT : null,
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
           items={[
             {
               // Disabled when the pointer is not on the Moon (sky, or another body in view) or outside the pin region.
@@ -351,6 +370,10 @@ export function SceneView(props: Props) {
               title: ctx.hit && !inPinRegion(ctx.hit.lat) ? `Points can be added only ${REGION_TEXT}.` : undefined,
               onSelect: () => ctx.hit && onAddPoint(ctx.hit.lat, ctx.hit.lon),
             },
+            // Only on a user point inside the pin region; outside it the note says why.
+            ...(ctxPoint && inPinRegion(ctxPoint.lat)
+              ? [{ id: 'set-site', label: `Set ${ctxPoint.name} as landing site`, onSelect: () => onSetSite(ctxPoint.lat, ctxPoint.lon) }]
+              : []),
             ...viewpointItems(points, (v) => handle.current?.goTo(v)),
           ]}
           onClose={closeCtx}

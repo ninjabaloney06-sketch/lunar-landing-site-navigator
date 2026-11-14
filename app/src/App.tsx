@@ -44,6 +44,8 @@ import { fmtCoords, fmtDateTime, fmtDeg } from './views/format'
 import { resolvePeriod } from './views/period'
 import { missionKey, missionOf, useMissions } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
+import { approxText, footTerrain, useCustomSite } from './views/custom'
+import { customSiteId } from './data/customSite'
 import './styles/mission.css'
 import './styles/view.css'
 import './styles/poi.css'
@@ -131,7 +133,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const clickGuard = useCallback(() => !menuOpen.current && performance.now() - menuClosedAt.current > 400, [])
   const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
-  const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  // A custom landing site (data/customSite.ts) lives in the link as its id; its height and slope arrive with capHorizon.
+  const custom = useCustomSite(hs.site)
+  const site = custom?.site ?? sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  const customReady = custom?.status === 'ready' ? custom : null
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
   // Saved missions (this browser only): listed in the Mission panel and as rows of the comparison table.
   const missions = useMissions()
@@ -288,6 +293,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     },
     [hs.pts, patch],
   )
+  // "Set as landing site" (typed coordinates, a user point's row, the right-click menu on a user point): only
+  // inside the pin region, where customSiteId gives an id.
+  const setCustomSite = useCallback(
+    (lat: number, lon: number) => {
+      const id = customSiteId(lat, lon)
+      if (!id) return
+      setMenu(null)
+      patch({ site: id, view: 'site' })
+    },
+    [patch],
+  )
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
   // globe), then the six viewpoints of the right-click menu.
@@ -354,6 +370,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onTopView={setTopView}
             canAddPoint={hs.pts.length < MAX_POINTS}
             onAddPoint={addUserPoint}
+            onSetSite={setCustomSite}
             pois={visiblePois}
             poiById={poiData.status === 'ready' ? poiData.byId : null}
           />
@@ -434,6 +451,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onLoadMission={(m) => patch({ ...m, t: null })}
               onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
+              onSetSite={(lat, lon) => {
+                setCustomSite(lat, lon)
+                missionBtn.current?.focus()
+              }}
               onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
               onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
               onPointSelect={setSelPoint}
@@ -516,6 +537,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             </span>
           </p>
         )}
+        {/* A custom site: its slope (no Mission panel row shows it) and why its numbers are approximate. */}
+        {customReady && (
+          <p className="custom-note" data-testid="custom-note">
+            {slope.state !== 'fail' && slope.deg !== null && (
+              <span data-testid="custom-slope">
+                Slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°.{' '}
+              </span>
+            )}
+            <span data-testid="approx-note">{approxText(customReady.horizon.computed)}.</span>
+          </p>
+        )}
         <Timeline
           answer={
             ready && answer ? (
@@ -568,8 +600,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
         <footer className="foot">
-          <p>
-            Terrain LOLA 20 m (160 m beyond 20 km) · ephemeris JPL DE440 ·{' '}
+          <p data-testid="foot-sources">
+            {/* A custom site: the spacings capHorizon used (nothing while it computes); a prepared site: its fixed text. */}
+            {custom ? (customReady ? `${footTerrain(customReady.horizon.computed)} · ` : '') : 'Terrain LOLA 20 m (160 m beyond 20 km) · '}
+            ephemeris JPL DE440 ·{' '}
             <button type="button" className="link" onClick={() => patch({ drawer: 'sources' })}>
               how this is computed
             </button>
@@ -613,6 +647,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         <Drawer
           section={hs.drawer}
           site={site}
+          customHorizon={customReady?.horizon ?? null}
           period={period}
           cursorMs={cursor}
           sites={sites}

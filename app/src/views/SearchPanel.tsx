@@ -76,10 +76,11 @@ export function SearchPanel(p: Props) {
     () => (pois.status === 'ready' && extra !== null ? searchCandidates(sites, extra, pois.pois) : sites.map((s) => ({ site: s, selfPoiId: null }))),
     [pois, extra, sites],
   )
-  // The mission's site first, then the rest in list order: the row a user is looking at fills in first.
+  // The mission's site first (when it is a candidate: a custom site is not), then the rest in list order: the row a
+  // user is looking at fills in first.
   const computeOrder = useMemo(() => {
     const all = candidates.map((c) => c.site)
-    return [site, ...all.filter((s) => s.id !== site.id)]
+    return all.some((s) => s.id === site.id) ? [site, ...all.filter((s) => s.id !== site.id)] : all
   }, [candidates, site])
   const rows = useSiteRows(computeOrder, stations, ids, period.startMs, period.endMs, false)
 
