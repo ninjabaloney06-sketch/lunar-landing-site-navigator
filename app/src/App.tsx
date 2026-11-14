@@ -34,6 +34,7 @@ import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
 import { PoiKey, PoiToggle } from './views/PoiControl'
 import { pinCounts, scenePois, usePois } from './views/poiLayer'
+import { SearchPanel } from './views/SearchPanel'
 import { SceneView, viewpointItems } from './views/SceneView'
 import type { SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
@@ -170,8 +171,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
 
-  // Points of interest: pois.json is fetched the first time the layer is switched on (off by default).
-  const poiData = usePois(hs.poi !== null)
+  // Points of interest: pois.json is fetched the first time the layer or the search is opened (layer off by default).
+  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
   const visiblePois = useMemo(
     () => (poiData.status === 'ready' && hs.poi ? scenePois(poiData.pois, hs.poi, sites) : []),
     [poiData, hs.poi, sites],
@@ -468,6 +469,16 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         <div className="actions-col">
           <div className="actions">
             <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />
+            <button
+              type="button"
+              className="find"
+              data-testid="search-open"
+              aria-haspopup="dialog"
+              aria-expanded={hs.drawer === 'search'}
+              onClick={() => patch({ drawer: 'search' })}
+            >
+              Search
+            </button>
             <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
               Find better dates
             </button>
@@ -568,6 +579,23 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           )}
         </footer>
       </div>
+
+      {hs.drawer === 'search' && (
+        <SearchPanel
+          sites={sites}
+          stations={stations}
+          ids={ids}
+          site={site}
+          period={period}
+          pois={poiData}
+          // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
+          onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
+          onShowPoi={(poi, groups) =>
+            patch({ view: 'globe', drawer: null, poi: [...new Set([...(hs.poi ?? []), ...groups, poi.group])] })
+          }
+          onClose={() => patch({ drawer: null })}
+        />
+      )}
 
       {hs.drawer === 'docs' && (
         <Suspense fallback={null}>

@@ -5,7 +5,8 @@ import type { Poi, PoiGroup } from '../data/pois'
 import type { Site } from '../data/types'
 import type { Summary } from './index'
 import { MOON_RADIUS_KM } from './index'
-import { BEST_COUNT, type SearchOptions, distanceKm, poisNear, searchSites } from './poiSearch'
+import type { SearchSite } from '../data/pois'
+import { BEST_COUNT, type SearchOptions, distanceKm, poisNear, searchCandidates, searchSites } from './poiSearch'
 
 function site(id: string, lon: number, slope_deg: number | null = 2, lat = -80): Site {
   return {
@@ -127,6 +128,15 @@ describe('searchSites: counts', () => {
     expect(Object.keys(r.counts)).toEqual(['water', 'landing', 'hazard'])
     expect(r.groupsCovered).toBe(2)
     expect(r.nearTotal).toBe(3)
+  })
+
+  it('a candidate made from a POI (selfPoiId) does not count that POI, but counts the others', () => {
+    const c = site('poi-water-x', 0)
+    const pois = [poi('water:x', 'water', c.lat, c.lon), poi('water:y', 'water', c.lat + 0.01, c.lon)]
+    const [r] = searchSites([{ site: c, summary: sum(60, 40), selfPoiId: 'water:x' }], pois, { ...OPTS, groups: ['water'] })
+    expect(r.counts).toEqual({ water: 1 })
+    const [plain] = searchSites([{ site: c, summary: sum(60, 40) }], pois, { ...OPTS, groups: ['water'] })
+    expect(plain.counts).toEqual({ water: 2 })
   })
 
   it('a record of another site is counted', () => {
@@ -316,5 +326,36 @@ describe('searchSites: purity', () => {
     const out = searchSites(rows, pois, opts)
     expect(JSON.stringify({ rows, pois, opts })).toBe(before)
     expect(ids(out)).toEqual(['a', 'b'])
+  })
+})
+
+describe('searchCandidates (search-sites.json fixture)', () => {
+  // Same shape as the terrain track's file: a Site plus poi_id; id "poi-<group>-<record id>".
+  const extra = (id: string, poiId: string, lat: number): SearchSite => ({ ...site(id, 10, 3, lat), poi_id: poiId })
+  const sites = [site('ridge', 0, 3, -89), site('massif', 20, 4, -86)]
+  const pois = [
+    poi('water:a', 'water', -88, 10),
+    poi('landing:ridge_record', 'landing', -89, 0, 'ridge'), // the POI is an app site
+    poi('cold-trap:b', 'cold-trap', -87, 10),
+  ]
+  it('lists every site, then each POI point whose POI is shown and is not an app site, once', () => {
+    const fixture = [
+      extra('poi-water-a', 'water:a', -88),
+      extra('poi-landing-ridge-record', 'landing:ridge_record', -89), // listed once, as the site
+      extra('poi-science-north', 'science:north', -70), // its POI is not shown (outside the pin region)
+      extra('poi-cold-trap-b', 'cold-trap:b', -87),
+      extra('poi-water-a', 'water:a', -88), // duplicate entry
+    ]
+    const c = searchCandidates(sites, fixture, pois)
+    expect(c.map((x) => x.site.id)).toEqual(['ridge', 'massif', 'poi-water-a', 'poi-cold-trap-b'])
+    expect(c.map((x) => x.selfPoiId)).toEqual([null, null, 'water:a', 'cold-trap:b'])
+  })
+  it('without the file the candidates are the sites only', () => {
+    expect(searchCandidates(sites, [], pois).map((x) => x.site.id)).toEqual(['ridge', 'massif'])
+  })
+  it('a candidate does not count its own POI', () => {
+    const c = searchCandidates(sites, [extra('poi-water-a', 'water:a', -88)], pois)
+    const rows = searchSites(c.map((x) => ({ ...x, summary: sum(50, 50) })), pois, { ...OPTS, groups: ['water'], radiusKm: 5 })
+    expect(rows.find((r) => r.siteId === 'poi-water-a')!.counts).toEqual({ water: 0 })
   })
 })

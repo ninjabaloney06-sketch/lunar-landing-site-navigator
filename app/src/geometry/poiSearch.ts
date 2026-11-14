@@ -8,10 +8,10 @@
 // No weighted score other than the declared litPct + coveragePct sum for 'both'.
 //
 // Counts per site: POIs of the selected groups within radiusKm (inclusive) of (site.lat, site.lon) on the
-// 1737.4 km sphere, except a POI whose siteId is the site's own id (that record is the site itself). The caller
-// passes only the POIs that may be shown. The slope rule (and its 5 deg limit) is rankSites', not repeated here.
+// 1737.4 km sphere, except the candidate's own record: a POI whose siteId is the site's id, or whose id is the row's
+// selfPoiId (a candidate made from that POI). The caller passes only the POIs that may be shown. The slope rule (and its 5 deg limit) is rankSites', not repeated here.
 
-import type { Poi, PoiGroup } from '../data/pois'
+import type { Poi, PoiGroup, SearchSite } from '../data/pois'
 import type { Site, Vec3 } from '../data/types'
 import { MOON_RADIUS_KM, rankSites, siteVector } from './index'
 import type { SlopeState, Summary } from './index'
@@ -86,20 +86,20 @@ const shareDescNullLast = (a: SearchRow, b: SearchRow) =>
   a.share === b.share ? 0 : a.share === null ? 1 : b.share === null ? -1 : b.share - a.share
 
 export function searchSites(
-  rows: { site: Site; summary: Summary | null }[],
+  rows: { site: Site; summary: Summary | null; selfPoiId?: string | null }[],
   pois: Poi[],
   opts: SearchOptions,
 ): SearchRow[] {
   const groups = [...new Set(opts.groups)]
   const selected = pois.filter((p) => groups.includes(p.group))
 
-  const all: SearchRow[] = rows.map(({ site, summary }) => {
+  const all: SearchRow[] = rows.map(({ site, summary, selfPoiId }) => {
     // rankSites owns the slope rule and the finite-number guard for the summary values.
     const { ranked, failed, unknown } = rankSites([{ site, summary }], 'any')
     const r = [...ranked, ...failed, ...unknown][0]
     const counts: Partial<Record<PoiGroup, number>> = {}
     for (const g of groups) counts[g] = 0
-    const near = poisNear(selected, site.lat, site.lon, opts.radiusKm).filter((p) => p.siteId !== site.id)
+    const near = poisNear(selected, site.lat, site.lon, opts.radiusKm).filter((p) => p.siteId !== site.id && p.id !== selfPoiId)
     for (const p of near) counts[p.group] = (counts[p.group] ?? 0) + 1
     return {
       siteId: site.id,
@@ -136,4 +136,21 @@ export function searchSites(
     .filter((r) => !r.passes)
     .sort((a, b) => compareKeys(coverKeys(a), coverKeys(b)) || shareDescNullLast(a, b) || bySiteId(a, b))
   return [...ranked, ...noData, ...failing]
+}
+
+/** The search's candidates: every app site, then every POI point with a horizon of its own (search-sites.json) whose
+ *  POI is among `pois` (the shown ones, inside the pin region). A POI that is one of the app's sites appears once, as
+ *  the site; a duplicate id is listed once. selfPoiId: the POI a candidate was made from (it never counts itself). */
+export function searchCandidates(sites: Site[], extra: SearchSite[], pois: Poi[]): { site: Site; selfPoiId: string | null }[] {
+  const siteIds = new Set(sites.map((s) => s.id))
+  const byId = new Map(pois.map((p) => [p.id, p]))
+  const seen = new Set(siteIds)
+  const out: { site: Site; selfPoiId: string | null }[] = sites.map((site) => ({ site, selfPoiId: null }))
+  for (const s of extra) {
+    const p = byId.get(s.poi_id)
+    if (!p || (p.siteId !== null && siteIds.has(p.siteId)) || seen.has(s.id)) continue
+    seen.add(s.id)
+    out.push({ site: s, selfPoiId: s.poi_id })
+  }
+  return out
 }
