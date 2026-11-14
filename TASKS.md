@@ -16,6 +16,8 @@ Roles: **S** = science lead: physics, orbital and coordinate math, horizon geome
 
 Preparation status reconciled25Oct: the six AI-only writing artifacts already exist in merged `c56eb24`; human physics/source sign-off, timed tools run, per-device checks and future guide reads remain unchecked.
 
+IMPORTANT: When clicking on the potential landing sight, use advanced rocket simulation to 100% accurately tell the needed energy to get to this landing sight from the certain picked starting point on earth with the best flight strategy with a simulated Payload to compare different landing sights by how convenient and fuel efficient they are. Use data from the space launch system efficiency and mass for certain energy in fuel to accurately predict how much energy is roughly needed.
+
 ## Phase 0 — Organisation (now → 1 Nov)
 
 - [x] `[AI+H]` `device` **I** — Register the 3-person team on the CLPS challenge page from Isaac's Space Apps account and invite S and D. Isaac approves before submitting and accepts the participation terms personally.
