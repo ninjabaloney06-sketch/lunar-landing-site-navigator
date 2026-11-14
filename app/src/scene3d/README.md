@@ -37,3 +37,6 @@ reports a hovered or tapped POI with its poiId; a site pin wins over a user poin
 Pin region (S5): on the globe the cap south of region.ts PIN_REGION_NORTH_LAT is marked by a 1.5 px line on its
 boundary and a 9 % tint, both unlit in the colour of the user points and built from geometry.siteVector at the
 constant's latitude (globe.ts buildRegion). Picking is unchanged; the views decide where a point may be added.
+Zoom limits (S6): the wheel's outer limit is around the nearest body (20 000 km from the Moon's centre, the same
+11.5 radii for Earth and the Sun), not around the scene origin, which blocked one direction at the Earth and Sun
+viewpoints depending on the Moon's phase. A trackpad pinch (wheel + ctrlKey) zooms by e^(−deltaY/100).

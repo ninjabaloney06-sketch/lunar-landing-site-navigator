@@ -19,8 +19,12 @@ export interface Rig {
   surface(p: Vector3): number
   /** False where the camera may not be: under the floor or inside a body. */
   allowed(p: Vector3): boolean
-  /** Outer limit: the wheel never moves the camera farther than this from the scene origin. */
-  far: number
+  /**
+   * Outer limit: how far out p is, 1 = on the limit (around the site at site level; around the nearest of the
+   * Moon, Earth and the Sun in space). The wheel never moves the camera from inside a limit to outside it,
+   * and a camera that is outside (a flight put it there) only moves inward.
+   */
+  reach(p: Vector3): number
   /** Called before the camera is moved off its orbit, so index.ts relaxes the orbit limits first. */
   free(what: 'look' | 'dolly'): void
   /** Surface point under the screen centre, if any: the orbit pivot after a look-around. */
@@ -48,6 +52,7 @@ const STEP = 0.128 // ln of the zoom factor per wheel notch: one notch covers 12
  */
 export const RESPONSE_MS = 160
 export const easeShare = (dtMs: number) => (dtMs > 0 ? 1 - Math.exp(-dtMs / RESPONSE_MS) : 0)
+const PINCH_LN_PER_PX = 0.01 // a trackpad pinch (wheel with ctrlKey): the browsers' own convention, factor e^(−deltaY/100)
 const ZOOM_REST = 1e-4 // ln of the zoom factor below which the rest lands at once (0.01 % of the distance)
 const LOOK_REST = 0.05 // same for the look-around, px
 const POLE_LIMIT = 0.9998 // |cos| of the angle between the view and the up axis: 1.1° from straight up or down
@@ -106,7 +111,8 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
     // Straight toward the surface this divides the remaining distance by `factor`, so it never arrives.
     let s = r.surface(p0) * (1 - 1 / factor)
     const at = (t: number) => p0.clone().addScaledVector(f, s * t)
-    const ok = (p: Vector3) => r.allowed(p) && (p.length() <= r.far || p.length() <= p0.length())
+    const out0 = r.reach(p0)
+    const ok = (p: Vector3) => r.allowed(p) && (r.reach(p) <= 1 || r.reach(p) <= out0)
     if (!ok(at(1))) {
       // Stop on the limit: largest part of the step that stays allowed.
       let lo = 0
@@ -197,6 +203,8 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
   const onWheel = (e: WheelEvent) => {
     e.preventDefault()
     if (!host.rig()) return
+    // A pinch on a trackpad arrives as a wheel event with ctrlKey and a small delta: fingers apart = closer.
+    if (e.ctrlKey && e.deltaMode === 0) return queueZoom(MathUtils.clamp(-e.deltaY * PINCH_LN_PER_PX, -0.5, 0.5))
     const notches = MathUtils.clamp(e.deltaMode === 1 ? e.deltaY / 3 : e.deltaY / 100, -4, 4)
     queueZoom(-notches * STEP) // wheel up = closer
   }

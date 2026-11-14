@@ -156,6 +156,7 @@ const EYE_ROTATE_SPEED = -0.3 // drag the view, not the camera
 const MOON_FLOOR_KM = 1 // the space camera stays this far above the 1737.4 km sphere (its near plane is 0.5 km)
 const BODY_FLOOR = 1.05 // and outside 1.05 radii of Earth and the Sun
 const FREE_MIN_DIST = 1e-4 // orbit distance limit once the wheel or a look-around has moved the camera
+const BODY_OUTER = GLOBE_DIST_KM.max / MOON_RADIUS_KM // outer zoom limit around a body, in its radii: the Moon's 20 000 km
 const BODY_FRAME = 5.5 // Earth and Sun viewpoints: camera this many body radii from the centre (disc about 10° in radius)
 const POINT_ABOVE_KM = GLOBE_DIST_KM.min // a point outside the terrain tile is looked at from this far from the Moon's centre
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
@@ -356,7 +357,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     mode: 'dolly',
     surface: (p) => p.z - groundBelow(p),
     allowed: (p) => p.z - groundBelow(p) >= site.eyeHeight - 1e-9,
-    far: SITE_DIST_KM.max * 1000,
+    reach: (p) => p.length() / (SITE_DIST_KM.max * 1000),
     free(what) {
       if (level === 'eye') return
       free.site.dist = true
@@ -382,7 +383,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       if (p.length() < MOON_RADIUS_KM + MOON_FLOOR_KM) return false
       return !e || (p.distanceTo(e) >= EARTH_RADIUS_KM * BODY_FLOOR && p.distanceTo(s) >= SUN_RADIUS_KM * BODY_FLOOR)
     },
-    far: GLOBE_DIST_KM.max,
+    // The Moon's limit is its orbit maximum, 20 000 km from its centre; Earth and the Sun get the same number of
+    // their own radii (11.5), so their viewpoints (5.5 radii) zoom in and out like the Moon's.
+    reach(p) {
+      const [e, s] = bodiesKm()
+      const moon = p.length() / GLOBE_DIST_KM.max
+      return e ? Math.min(moon, p.distanceTo(e) / (EARTH_RADIUS_KM * BODY_OUTER), p.distanceTo(s) / (SUN_RADIUS_KM * BODY_OUTER)) : moon
+    },
     free(what) {
       free.globe.dist = true
       if (what === 'look') free.globe.look = true
