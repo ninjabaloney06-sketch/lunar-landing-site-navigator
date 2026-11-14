@@ -34,6 +34,7 @@ import {
   siteVector,
   type BodyState,
 } from '../geometry'
+import { loadCap } from '../data/southcap'
 import { loadTextures } from './assets'
 import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
@@ -42,6 +43,7 @@ import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonO
 import { GlobeWorld } from './globe'
 import { POI_NEAR_KM, type PinItem } from './pins'
 import { SiteWorld } from './site'
+import { inPinRegion } from './region'
 import { Sky } from './sky'
 import { TopView } from './topview'
 
@@ -180,6 +182,7 @@ const DISSOLVE_FROM = 0.5
 const DISSOLVE_TO = 0.92
 const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the time cursor) is spread over this long
 const AWAIT_SITE_MS = 2000 // longest the fly to a just-picked site waits for that site's data
+const NEAR_CACHE = 6 // near terrain levels kept for sites visited before (0.5 MB each)
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
@@ -574,6 +577,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
       placeMarkers()
       placePois()
+      requestNear()
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
     applyLights(siteChanged)
@@ -593,6 +597,62 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       descendToSite()
     }
     setControls()
+    markDirty()
+  }
+
+  // ---------- the near terrain level (wave 3) ----------
+
+  // A prepared site's files have no near level (160 m to ±40 km, between the 80 m tile and mid): it is built from
+  // the south-cap 80 m tiles (data/southcap.ts nearLevel) after the site is shown, and the terrain is built once
+  // more with it, never during a fly (then when the fly ends). The first picture never waits for it; without the
+  // cap data nothing changes. A custom point's cap terrain has the level already. In test mode it is fetched only
+  // after __scene.nearLevel(true), so every other test sees the same terrain on every run.
+  let nearOn = !testMode
+  let nearJob: Promise<void> = Promise.resolve()
+  let nearWaiting: TerrainTile | null = null
+  const nearCache = new Map<string, TerrainTile>()
+
+  function requestNear() {
+    const s = frame?.site
+    const t = frame?.terrain
+    if (!nearOn || !s || !t?.levels?.length || t.levels.some((l) => l.meta.level === 'near') || typeof t.meta.ground_m !== 'number' || !inPinRegion(s.lat)) return
+    const id = t.meta.site_id
+    const ground = t.meta.ground_m
+    const known = nearCache.get(id)
+    nearJob = (known ? Promise.resolve(known) : loadCap().then((c) => c.nearLevel(s.lat, s.lon, ground, id)))
+      .then((near) => {
+        if (!near || disposed) return
+        if (!known) {
+          nearCache.set(id, near)
+          if (nearCache.size > NEAR_CACHE) nearCache.delete(nearCache.keys().next().value as string)
+        }
+        // The site may have changed while the tiles came in.
+        if (builtFor?.site?.id !== s.id || builtFor.terrain?.meta.site_id !== id) return
+        const withNear: TerrainTile = { ...t, levels: [...(t.levels ?? []), near] }
+        if (fly) nearWaiting = withNear
+        else applyNear(withNear)
+      })
+      .catch(() => undefined)
+  }
+
+  /** The site's terrain once more, with the near level; what stands on it is placed again. */
+  function applyNear(t: TerrainTile) {
+    nearWaiting = null
+    if (!frame?.site || !builtFor || builtFor.terrain?.meta.site_id !== t.meta.site_id) return
+    site.build(frame.horizon, t, frame.site.elev_m)
+    builtFor = { ...builtFor, terrain: t }
+    placeMarkers()
+    placePois()
+    // A camera standing on the ground beyond the 80 m tile (after a walk) stands on the new ground.
+    if (stand && level === 'eye') {
+      const dz = site.groundZ(stand.x, stand.y) + site.eyeHeight - stand.z
+      if (dz !== 0) {
+        stand.z += dz
+        siteCam.position.z += dz
+        siteControls.target.z += dz
+        siteCam.updateMatrixWorld(true)
+      }
+    }
     markDirty()
   }
 
@@ -962,6 +1022,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const done = fly.done
     fly = null
     done()
+    if (nearWaiting) applyNear(nearWaiting)
     setControls()
     markDirty()
   }
@@ -1699,6 +1760,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
       walkTo: (x, y) => walkTo(x, y),
+      nearLevel(on) {
+        nearOn = on
+        if (on) requestNear()
+        return nearJob
+      },
+      nearReady: () => nearJob,
+      levelSpecs: () => site.levelSpecs(),
       camera() {
         const cam = activeCam()
         cam.updateMatrixWorld(true)

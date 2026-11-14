@@ -12,7 +12,8 @@
 //
 // capTerrain(lat, lon) builds what loadTerrain(siteId) returns for a prepared site (scripts/terrain_tiles.py:
 // local ENU plane, row 0 = north, col 0 = west, heights relative to the point's ground height), so scene3d/site.ts
-// renders it unchanged. capHorizon(lat, lon) follows scripts/horizon.py (720 azimuths, its ray distances to
+// renders it unchanged, plus a 'near' level (160 m, ±40 km, from 2 × 2 means of the 80 m tiles) between the 80 m
+// grid and mid. SouthCap.nearLevel() builds that level alone for a prepared site, relative to its own ground_m. capHorizon(lat, lon) follows scripts/horizon.py (720 azimuths, its ray distances to
 // 300 km, eye 1.75 m, elevation over the curved surface, slope over a 100 m baseline) on coarser terrain than the
 // pipeline's 20 m DEM: an APPROXIMATE mask, labelled as such in the returned object. Measured differences against
 // the 18 pipeline horizons: southcap.test.ts. Nothing here is validated by the science lead.
@@ -27,13 +28,17 @@ const DEG = Math.PI / 180
 const NODATA = -32768
 const ORDER = 'row-major; row 0 = north edge; col 0 = west edge'
 const HEIGHT_REF = "metres relative to the site's ground height"
-const HEIGHT_SCALES = [0.1, 0.25, 0.5, 1] // m per Int16 unit, as terrain_tiles.py (the 80 m tile keeps 1 m)
+const HEIGHT_SCALES = [0.1, 0.25, 0.5, 1] // m per Int16 unit, as terrain_tiles.py
+const TILE_SCALES = [0.25, 0.5, 1] // the 80 m grid: the 80 m tiles' own 0.25 m steps where its relief fits Int16
 const MAX_TILES = 200 // tiles kept in memory per level (131 kB each); the least recently requested go first
 
 // Site grids, as scripts/terrain_tiles.py (SIZE/SPACING_M and LEVELS); fine is 40 m here, not 20 m.
 const TILE_GRID = { size: 500, spacing: 80 }
 const FINE_GRID = { size: 251, spacing: 40 }
 const MID_GRID = { size: 301, spacing: 400 }
+// Between the 80 m grid (±20 km) and mid (wave 3, 14 Nov): 160 m to ±40 km, 2 × 2 means of the 80 m cap tiles.
+const NEAR_GRID = { size: 501, spacing: 160 }
+const NEAR_BLOCK = NEAR_GRID.spacing / TILE_GRID.spacing
 const FAR_GRID = { size: 301, spacing: 2000 }
 
 // Horizon, as scripts/horizon.py.
@@ -204,17 +209,22 @@ class TileLevel {
     return this.exists(Math.floor((this.info.y0_m - y) / t), Math.floor((x - this.info.x0_m) / t))
   }
 
-  /** Fetch the existing tiles that bilinear samples at the projected points xy (x0, y0, x1, y1, ...) touch. */
-  async ensurePoints(xy: Float64Array): Promise<void> {
-    const { spacing_m: s, tile_size: n, x0_m, y0_m } = this.info
+  /**
+   * Fetch the existing tiles that bilinear samples at the projected points xy (x0, y0, x1, y1, ...) touch; with
+   * k > 1, bilinear samples of the k × k block means (sampleMeans).
+   */
+  async ensurePoints(xy: Float64Array, k = 1): Promise<void> {
+    const { spacing_m, tile_size: n, x0_m, y0_m } = this.info
+    const s = spacing_m * k
     const keys = new Set<number>()
     for (let i = 0; i < xy.length; i += 2) {
       const c0 = Math.floor((xy[i] - x0_m) / s - 0.5)
       const r0 = Math.floor((y0_m - xy[i + 1]) / s - 0.5)
-      const ta = Math.floor(r0 / n)
-      const tb = Math.floor((r0 + 1) / n)
-      const tc = Math.floor(c0 / n)
-      const td = Math.floor((c0 + 1) / n)
+      // Blocks r0 and r0 + 1 cover the level's rows r0·k … (r0 + 2)·k − 1.
+      const ta = Math.floor((r0 * k) / n)
+      const tb = Math.floor(((r0 + 2) * k - 1) / n)
+      const tc = Math.floor((c0 * k) / n)
+      const td = Math.floor(((c0 + 2) * k - 1) / n)
       keys.add(ta * 4096 + tc)
       if (tb !== ta || td !== tc) keys.add(ta * 4096 + td).add(tb * 4096 + tc).add(tb * 4096 + td)
     }
@@ -303,6 +313,40 @@ class TileLevel {
     const dc = fc - c0
     const dr = fr - r0
     return (this.v(r0, c0) * (1 - dc) + this.v(r0, c0 + 1) * dc) * (1 - dr) + (this.v(r0 + 1, c0) * (1 - dc) + this.v(r0 + 1, c0 + 1) * dc) * dr
+  }
+
+  /** Mean of the valid samples of the k × k block (r, c) of this level; NaN when none (nodata, tile not in memory). */
+  private mean(k: number, r: number, c: number): number {
+    let s = 0
+    let n = 0
+    for (let a = 0; a < k; a++) {
+      for (let b = 0; b < k; b++) {
+        const q = this.v(r * k + a, c * k + b)
+        if (!Number.isNaN(q)) (s += q), n++
+      }
+    }
+    return n ? s / n : NaN
+  }
+
+  /**
+   * Bilinear sample of this level's k × k block means at projected metres (the near level: 160 m from the 80 m
+   * tiles, blocks aligned on the level's grid, so a block never spans two tiles). NaN outside or next to a block
+   * without data.
+   */
+  sampleMeans(k: number, x: number, y: number): number {
+    const i = this.info
+    const s = i.spacing_m * k
+    const fc = (x - i.x0_m) / s - 0.5
+    const fr = (i.y0_m - y) / s - 0.5
+    const c0 = Math.floor(fc)
+    const r0 = Math.floor(fr)
+    if (!(c0 >= 0 && r0 >= 0 && c0 + 1 < Math.floor(i.width / k) && r0 + 1 < Math.floor(i.height / k))) return NaN
+    const dc = fc - c0
+    const dr = fr - r0
+    return (
+      (this.mean(k, r0, c0) * (1 - dc) + this.mean(k, r0, c0 + 1) * dc) * (1 - dr) +
+      (this.mean(k, r0 + 1, c0) * (1 - dc) + this.mean(k, r0 + 1, c0 + 1) * dc) * dr
+    )
   }
 }
 
@@ -501,13 +545,74 @@ export class SouthCap {
     return chain
   }
 
+  private describe(res: number): string {
+    if (res === this.base.spacing) return `the south-cap ${res} m base (${this.meta.base.resampling})`
+    if (res === this.outer.spacing) return `the south-cap ${res} m outer raster (${this.meta.outer.resampling})`
+    if (res === FAR_GRID.spacing) return `2 km means of the south-cap 400 m base`
+    const tiles = (m: number) => this.meta.levels.find((l) => l.spacing_m === m)?.resampling ?? ''
+    if (res === NEAR_GRID.spacing) return `${NEAR_BLOCK} × ${NEAR_BLOCK} means (${res} m) of the south-cap ${TILE_GRID.spacing} m tiles (${tiles(TILE_GRID.spacing)})`
+    return `the south-cap ${res} m tiles (${tiles(res)})`
+  }
+
+  /**
+   * One site grid: bilinear samples of the chain at the grid's projected points, heights relative to `ground` in
+   * Int16 steps of the finest scale in `scales` that holds the grid's relief. level = undefined for the 80 m grid.
+   */
+  private grid(siteId: string, ground: number, g: { size: number; spacing: number }, xy: Float64Array, chain: [number, Sampler][], scales: number[], level?: 'fine' | 'near' | 'mid' | 'far') {
+    const { h, share, source_res_m, valid } = this.sampleXY(xy, chain)
+    if (!valid) return null
+    let peak = 0
+    for (let i = 0; i < h.length; i++) if (!Number.isNaN(h[i])) peak = Math.max(peak, Math.abs(h[i] - ground))
+    const scale = scales.find((s) => peak / s <= 32767) ?? 1
+    const heights = new Int16Array(h.length)
+    for (let i = 0; i < h.length; i++) heights[i] = Number.isNaN(h[i]) ? NODATA : Math.round((h[i] - ground) / scale)
+    const others = Object.keys(share).filter((k) => Number(k) !== source_res_m)
+    const meta: CapTerrainMeta = {
+      site_id: siteId,
+      size: g.size,
+      spacing_m: g.spacing,
+      order: ORDER,
+      height_ref: HEIGHT_REF,
+      nodata: NODATA,
+      illum_png: null,
+      illum_map: null,
+      illum_res_m: null,
+      dem: `south-cap raster, ${source_res_m} m (from ${source_res_m === this.outer.spacing ? this.meta.outer.source.file : this.meta.source.file})`,
+      ground_m: Math.round(ground * 100) / 100,
+      height_scale_m: scale,
+      resampling:
+        `bilinear samples of ${this.describe(source_res_m)}` +
+        (others.length ? `; ${others.map((k) => `${(share[k] * 100).toFixed(1)} % from ${this.describe(Number(k))}`).join(', ')}` : ''),
+      cap: { from: 'south-cap raster', source_res_m, share, validated: false },
+    }
+    if (level) meta.level = level
+    return { meta, heights }
+  }
+
+  /**
+   * The near level of a site (wave 3): 501 × 501 at 160 m (±40 km) in the site's ENU grid, bilinear samples of
+   * 2 × 2 means of the 80 m cap tiles, heights relative to `groundM` (a prepared site: its own ground_m, so the
+   * level nests with the pipeline's files). Where no 80 m tile has data the samples are nodata (the scene fills
+   * them from the coarser levels). null outside the cap, or when no 80 m tile covers any of it.
+   */
+  async nearLevel(lat: number, lon: number, groundM: number, siteId = capSiteId(lat, lon)): Promise<(TerrainTile & { meta: CapTerrainMeta }) | null> {
+    if (this.height(lat, lon) === null || Math.abs(lat) > 89.9999) return null
+    const l80 = this.levels.filter((l) => l.info.spacing_m === TILE_GRID.spacing)
+    if (!l80.length) return null
+    const xy = this.gridXY(lat, lon, NEAR_GRID)
+    await Promise.all(l80.map((l) => l.ensurePoints(xy, NEAR_BLOCK)))
+    const chain = l80.map((l): [number, Sampler] => [NEAR_GRID.spacing, (x, y) => l.sampleMeans(NEAR_BLOCK, x, y)])
+    return this.grid(siteId, groundM, NEAR_GRID, xy, chain, HEIGHT_SCALES, 'near')
+  }
+
   /**
    * Terrain of any point in the cap, in the shape loadTerrain(siteId) returns: the 80 m grid (500 × 500, ±20 km)
-   * from the 80 m tiles, mid (400 m, ±60 km) from the base, far (2 km, ±300 km) from 2 km means of the base and
-   * the outer raster beyond it, and where 40 m tiles exist a fine level (251 × 251 at 40 m, ±5 km). Heights are
-   * relative to the point's ground height (finest raster at the point). Each meta names the cap raster its
-   * samples came from (`cap.source_res_m`, `resampling`): if the 80 m tiles could not be loaded the 80 m grid is
-   * filled from the 400 m base and says so. null outside the cap.
+   * from the 80 m tiles, in their 0.25 m steps (height_scale_m), near (160 m, ±40 km) from 2 × 2 means of the
+   * 80 m tiles, mid (400 m, ±60 km) from the base, far (2 km, ±300 km) from 2 km means of the base and the outer
+   * raster beyond it, and where 40 m tiles exist a fine level (251 × 251 at 40 m, ±5 km). Heights are relative to
+   * the point's ground height (finest raster at the point). Each meta names the cap raster its samples came from
+   * (`cap.source_res_m`, `resampling`): if the 80 m tiles could not be loaded the 80 m grid is filled from the
+   * 400 m base and says so, and there is no near level. null outside the cap.
    */
   async terrain(lat: number, lon: number, siteId = capSiteId(lat, lon)): Promise<CapTerrainTile | null> {
     if (this.height(lat, lon) === null || Math.abs(lat) > 89.9999) return null
@@ -525,55 +630,20 @@ export class SouthCap {
     }
     if (Number.isNaN(ground)) return null
 
-    const describe = (res: number) =>
-      res === this.base.spacing
-        ? `the south-cap ${res} m base (${this.meta.base.resampling})`
-        : res === this.outer.spacing
-          ? `the south-cap ${res} m outer raster (${this.meta.outer.resampling})`
-          : res === FAR_GRID.spacing
-            ? `2 km means of the south-cap 400 m base`
-            : `the south-cap ${res} m tiles (${this.meta.levels.find((l) => l.spacing_m === res)?.resampling ?? ''})`
-    const build = (g: { size: number; spacing: number }, xy: Float64Array, chain: [number, Sampler][], level?: 'fine' | 'mid' | 'far') => {
-      const { h, share, source_res_m, valid } = this.sampleXY(xy, chain)
-      if (!valid) return null
-      let peak = 0
-      for (let i = 0; i < h.length; i++) if (!Number.isNaN(h[i])) peak = Math.max(peak, Math.abs(h[i] - ground))
-      // The 80 m grid keeps 1 m units: site.ts reads its Int16 values as metres.
-      const scale = level ? (HEIGHT_SCALES.find((s) => peak / s <= 32767) ?? 1) : 1
-      const heights = new Int16Array(h.length)
-      for (let i = 0; i < h.length; i++) heights[i] = Number.isNaN(h[i]) ? NODATA : Math.round((h[i] - ground) / scale)
-      const others = Object.keys(share).filter((k) => Number(k) !== source_res_m)
-      const meta: CapTerrainMeta = {
-        site_id: siteId,
-        size: g.size,
-        spacing_m: g.spacing,
-        order: ORDER,
-        height_ref: HEIGHT_REF,
-        nodata: NODATA,
-        illum_png: null,
-        illum_map: null,
-        illum_res_m: null,
-        dem: `south-cap raster, ${source_res_m} m (from ${source_res_m === this.outer.spacing ? this.meta.outer.source.file : this.meta.source.file})`,
-        ground_m: Math.round(ground * 100) / 100,
-        resampling:
-          `bilinear samples of ${describe(source_res_m)}` +
-          (others.length ? `; ${others.map((k) => `${(share[k] * 100).toFixed(1)} % from ${describe(Number(k))}`).join(', ')}` : ''),
-        cap: { from: 'south-cap raster', source_res_m, share, validated: false },
-      }
-      if (level) {
-        meta.level = level
-        meta.height_scale_m = scale
-      }
-      return { meta, heights }
-    }
-
-    const tile = build(TILE_GRID, tileXY, this.chainFrom('near'))
-    const mid = build(MID_GRID, this.gridXY(lat, lon, MID_GRID), this.chainFrom('base'), 'mid')
-    const far = build(FAR_GRID, this.gridXY(lat, lon, FAR_GRID), this.chainFrom('far'), 'far')
+    const tile = this.grid(siteId, ground, TILE_GRID, tileXY, this.chainFrom('near'), TILE_SCALES)
+    const mid = this.grid(siteId, ground, MID_GRID, this.gridXY(lat, lon, MID_GRID), this.chainFrom('base'), HEIGHT_SCALES, 'mid')
+    const far = this.grid(siteId, ground, FAR_GRID, this.gridXY(lat, lon, FAR_GRID), this.chainFrom('far'), HEIGHT_SCALES, 'far')
     if (!tile || !mid || !far) return null
-    const fine = fineXY ? build(FINE_GRID, fineXY, this.chainFrom('fine'), 'fine') : null
-    // A fine level that is mostly 80 m data would only repeat the 80 m grid: leave it out.
-    const levels = [...(fine && fine.meta.cap.source_res_m < TILE_GRID.spacing ? [fine] : []), mid, far]
+    const fine = fineXY ? this.grid(siteId, ground, FINE_GRID, fineXY, this.chainFrom('fine'), HEIGHT_SCALES, 'fine') : null
+    const near = await this.nearLevel(lat, lon, ground, siteId)
+    // A fine level that is mostly 80 m data would only repeat the 80 m grid: leave it out. Same for a near level
+    // whose 80 m grid did not come from the 80 m tiles (they could not be loaded).
+    const levels = [
+      ...(fine && fine.meta.cap.source_res_m < TILE_GRID.spacing ? [fine] : []),
+      ...(near && tile.meta.cap.source_res_m === TILE_GRID.spacing ? [near] : []),
+      mid,
+      far,
+    ]
     tile.meta.levels = levels.map((l) => l.meta.level as string)
     return { ...tile, levels }
   }

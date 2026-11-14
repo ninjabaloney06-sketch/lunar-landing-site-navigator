@@ -4,9 +4,10 @@
 // Reads public/data from disk (node fs, loaded without typings: the app's tsconfig has no node types).
 import { beforeAll, describe, expect, it } from 'vitest'
 import { nestedLevels } from '../scene3d/levels'
+import { enuBasis } from '../geometry'
 import { loadHorizonFile } from '../geometry/testData'
-import { CAP_HORIZON_RINGS, type CapIo, type SouthCap, capUnitOfXY, capXY, openCap, rayDistancesKm } from './southcap'
-import type { Horizon, Site, TerrainMeta } from './types'
+import { CAP_HORIZON_RINGS, type CapIo, type SouthCap, capUnitOfXY, capXY, capXYOfUnit, openCap, rayDistancesKm } from './southcap'
+import type { Horizon, Site, TerrainMeta, TerrainTile } from './types'
 
 const DATA = new URL('../../public/data/', import.meta.url)
 const fsName = 'node:fs/promises'
@@ -140,7 +141,9 @@ describe('capTerrain has the shape and content of a prepared site', () => {
       expect(t.meta.order).toBe(pipeline.meta.order)
       expect(t.meta.height_ref).toBe(pipeline.meta.height_ref)
       expect(t.meta.nodata).toBe(pipeline.meta.nodata)
-      expect(t.meta.height_scale_m).toBeUndefined() // site.ts reads the 80 m grid's Int16 as metres
+      // Wave 3: the 80 m grid comes in the 80 m tiles' own 0.25 m steps (site.ts applies height_scale_m; it read
+      // whole metres before, and the pipeline's 80 m files still have no scale).
+      expect(t.meta.height_scale_m).toBe(0.25)
       expect(t.meta.cap.source_res_m).toBe(80)
       expect(t.meta.cap.validated).toBe(false)
       expect(Math.abs((t.meta.ground_m as number) - (pipeline.meta.ground_m as number))).toBeLessThan(12)
@@ -173,7 +176,7 @@ describe('capTerrain has the shape and content of a prepared site', () => {
         expect(fine.meta.resampling).toContain('40 m')
       }
       const nested = nestedLevels(t)
-      expect(nested?.map((l) => l.name)).toEqual(fine ? ['fine', 'tile', 'mid', 'far'] : ['tile', 'mid', 'far'])
+      expect(nested?.map((l) => l.name)).toEqual(fine ? ['fine', 'tile', 'near', 'mid', 'far'] : ['tile', 'near', 'mid', 'far'])
       expect(nested?.every((l) => l.h.some((v) => !Number.isNaN(v)))).toBe(true)
     })
   }
@@ -233,7 +236,7 @@ describe('capTerrain has the shape and content of a prepared site', () => {
     const again = await c.terrain(-87, 0)
     expect(again?.meta.cap.share).toEqual(first?.meta.cap.share)
     expect(again?.meta.cap.share['80']).toBeCloseTo(1, 6)
-  })
+  }, 60_000) // 42 terrain() calls; since wave 3 each also builds the near level (251,001 samples, more 80 m tiles)
 
   it('returns null outside the cap', async () => {
     expect(await cap.terrain(-79.5, 0)).toBeNull()
@@ -255,7 +258,9 @@ describe('capTerrain has the shape and content of a prepared site', () => {
       // Upper bound from the grids and cap.json: a rotated square of side L spans at most ceil(L·√2·k / tile) + 1
       // tiles per axis (k ≤ 1.01: the projection's scale at 80° S).
       const t = await c.terrain(s.lat, s.lon)
-      const sides: Record<string, number> = { '80': t ? (t.meta.size - 1) * t.meta.spacing_m : 0 }
+      // The 80 m tiles serve the 80 m grid and (wave 3) the near level's 2 × 2 means, the larger of the two squares.
+      const near = t?.levels.find((l) => l.meta.level === 'near')
+      const sides: Record<string, number> = { '80': t ? Math.max((t.meta.size - 1) * t.meta.spacing_m, near ? (near.meta.size - 1) * near.meta.spacing_m : 0) : 0 }
       const fine = t?.levels.find((l) => l.meta.level === 'fine')
       if (fine) sides['40'] = (fine.meta.size - 1) * fine.meta.spacing_m
       let bound = 0
@@ -266,6 +271,145 @@ describe('capTerrain has the shape and content of a prepared site', () => {
       expect(stats.tiles).toBeLessThanOrEqual(bound)
     }
     console.log(rows.join('\n'))
+  })
+})
+
+describe('near level (wave 3): 160 m to ±40 km from 2 × 2 means of the 80 m tiles', () => {
+  const R = 1737400
+  /** 80 m cap sample (row, col) read here straight from its tile file; NaN for nodata or no tile. */
+  const files = new Map<string, Int16Array | null>()
+  async function at80(r: number, c: number): Promise<number> {
+    const l = cap.meta.levels.find((v) => v.name === '80')!
+    const n = l.tile_size
+    const key = `${Math.floor(r / n)}/${Math.floor(c / n)}`
+    if (!files.has(key)) files.set(key, await read(`terrain/cap/80/${key}.bin`).then((b) => new Int16Array(b), () => null))
+    const t = files.get(key)
+    const q = t ? t[(r % n) * n + (c % n)] : -32768
+    return q === -32768 ? NaN : q * l.height_scale_m
+  }
+  /** Projected metres of the site grid point at ENU offset (xe, yn) m, as terrain_tiles.py places it. */
+  function gridPoint(s: Site, xe: number, yn: number): [number, number] {
+    const { east, north, up } = enuBasis(s.lat, s.lon)
+    const p = [0, 1, 2].map((k) => R * up[k] + xe * east[k] + yn * north[k])
+    const n = Math.hypot(p[0], p[1], p[2])
+    return capXYOfUnit(p[0] / n, p[1] / n, p[2] / n)
+  }
+  /** Expected near height there, computed here: bilinear over the 160 m block means of the 80 m samples. */
+  async function expected(x: number, y: number): Promise<number> {
+    const l = cap.meta.levels.find((v) => v.name === '80')!
+    const fc = (x - l.x0_m) / 160 - 0.5
+    const fr = (l.y0_m - y) / 160 - 0.5
+    const c0 = Math.floor(fc)
+    const r0 = Math.floor(fr)
+    const mean = async (r: number, c: number) => {
+      const v = (await Promise.all([at80(2 * r, 2 * c), at80(2 * r, 2 * c + 1), at80(2 * r + 1, 2 * c), at80(2 * r + 1, 2 * c + 1)])).filter((q) => !Number.isNaN(q))
+      return v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN
+    }
+    const [a, b, c, d] = await Promise.all([mean(r0, c0), mean(r0, c0 + 1), mean(r0 + 1, c0), mean(r0 + 1, c0 + 1)])
+    const dc = fc - c0
+    const dr = fr - r0
+    return (a * (1 - dc) + b * dc) * (1 - dr) + (c * (1 - dc) + d * dc) * dr
+  }
+  const bilinear = (t: { meta: TerrainMeta; heights: Int16Array }, x: number, y: number) => {
+    const { size, spacing_m: sp, nodata } = t.meta
+    const half = (size - 1) / 2
+    const fj = x / sp + half
+    const fi = half - y / sp
+    const j0 = Math.floor(fj)
+    const i0 = Math.floor(fi)
+    if (j0 < 0 || i0 < 0 || j0 + 1 > size - 1 || i0 + 1 > size - 1) return NaN
+    const q = [t.heights[i0 * size + j0], t.heights[i0 * size + j0 + 1], t.heights[(i0 + 1) * size + j0], t.heights[(i0 + 1) * size + j0 + 1]]
+    if (q.some((v) => v === nodata)) return NaN
+    const k = t.meta.height_scale_m ?? 1
+    const dj = fj - j0
+    const di = fi - i0
+    return ((q[0] * (1 - dj) + q[1] * dj) * (1 - di) + (q[2] * (1 - dj) + q[3] * dj) * di) * k
+  }
+
+  for (const id of ['connecting-ridge', 'shackleton-rim-site04', 'malapert-massif', 'im-1']) {
+    it(`${id}: 501 × 501 at 160 m on the pipeline's ground_m, the 2 × 2 means, between the 80 m tile and mid`, async () => {
+      const s = site(id)
+      const pipe = await siteGrid(id)
+      const ground = pipe.meta.ground_m as number
+      const near = await cap.nearLevel(s.lat, s.lon, ground, s.id)
+      expect(near).not.toBeNull()
+      if (!near) return
+      expect(near.meta).toMatchObject({ site_id: id, size: 501, spacing_m: 160, level: 'near', ground_m: ground, nodata: -32768, order: pipe.meta.order, height_ref: pipe.meta.height_ref })
+      expect(near.meta.cap).toMatchObject({ source_res_m: 160, validated: false })
+      expect(near.meta.resampling).toContain('2 × 2 means (160 m) of the south-cap 80 m tiles')
+      const k = near.meta.height_scale_m as number
+      // Grid points checked against the means computed here from the tile files: centre, corners, between.
+      for (const [i, j] of [[250, 250], [0, 0], [0, 500], [500, 0], [500, 500], [97, 313], [401, 12]]) {
+        const [x, y] = gridPoint(s, (j - 250) * 160, (250 - i) * 160)
+        const want = (await expected(x, y)) - ground
+        const v = near.heights[i * 501 + j]
+        if (Number.isNaN(want)) expect(v, `${id} (${i}, ${j}) nodata`).toBe(-32768)
+        else expect(Math.abs(v * k - want), `${id} (${i}, ${j})`).toBeLessThanOrEqual(k / 2 + 1e-6)
+      }
+      // Against the pipeline's own 80 m tile and mid level, which are box means of the same 20 m DEM.
+      const mid = await siteGrid(`${id}-mid`)
+      const tile = { meta: pipe.meta, heights: pipe.raw }
+      const near2 = { meta: near.meta, heights: near.heights }
+      let st = 0
+      let nt = 0
+      let sm = 0
+      let nm = 0
+      for (let i = 0; i < 501; i += 3) {
+        for (let j = 0; j < 501; j += 3) {
+          const x = (j - 250) * 160
+          const y = (250 - i) * 160
+          const h = bilinear(near2, x, y)
+          if (Number.isNaN(h)) continue
+          const ht = bilinear(tile, x, y)
+          if (!Number.isNaN(ht)) (st += (h - ht) ** 2), nt++
+          const hm = bilinear({ meta: mid.meta, heights: mid.raw }, x, y)
+          if (!Number.isNaN(hm)) (sm += (h - hm) ** 2), nm++
+        }
+      }
+      const rt = Math.sqrt(st / nt)
+      const rm = Math.sqrt(sm / nm)
+      console.log(`near ${id}: RMS against the 80 m tile ${rt.toFixed(2)} m (${nt} points), against mid ${rm.toFixed(2)} m (${nm} points), height step ${k} m`)
+      expect(nt).toBeGreaterThan(1000)
+      expect(rt).toBeLessThan(4) // measured 14 Nov: 1.2 to 1.5 m
+      expect(rm).toBeLessThan(20) // measured 14 Nov: 11.6 to 12.9 m
+      // The scene nests it between the 80 m tile and mid.
+      const levels = await Promise.all((pipe.meta.levels ?? []).map(async (l) => {
+        const g = await siteGrid(`${id}-${l}`)
+        return { meta: g.meta, heights: g.raw } as TerrainTile
+      }))
+      const nested = nestedLevels({ meta: pipe.meta, heights: pipe.raw, levels: [...levels, near] })
+      expect(nested?.map((l) => l.name)).toEqual(['fine', 'tile', 'near', 'mid', 'far'])
+      const n = nested!.find((l) => l.name === 'near')!
+      expect(n.spacing).toBe(160)
+      expect(n.ext).toBe(40_000)
+    })
+  }
+
+  it('15 to 28 tiles of the 80 m level per prepared site, 2.0 to 3.7 MB (measured 14 Nov)', async () => {
+    const rows: string[] = []
+    let most = 0
+    for (const s of sites) {
+      const { io, stats } = diskIo()
+      const c = await openCap(io)
+      const pipe = await siteGrid(s.id)
+      const near = await c.nearLevel(s.lat, s.lon, pipe.meta.ground_m as number, s.id)
+      expect(near, s.id).not.toBeNull()
+      rows.push(`${s.id}: ${stats.tiles} tiles, ${(stats.bytes / 1e6).toFixed(2)} MB`)
+      most = Math.max(most, stats.tiles)
+    }
+    console.log(`near level, 80 m tiles per site:\n${rows.join('\n')}`)
+    // An 80 km square turned by up to 45° in the projection spans at most ceil(80 · √2 · 1.01 / 20.48) + 1 = 7 tiles a side.
+    expect(most).toBeLessThanOrEqual(49)
+  })
+
+  it('a custom point gets it among its levels; without 80 m tiles there is none', async () => {
+    const t = await cap.terrain(-85.3, 120.5)
+    expect(t?.meta.levels).toContain('near')
+    const names = t!.levels.map((l) => l.meta.level)
+    expect(names.indexOf('near')).toBe(names.indexOf('mid') - 1)
+    expect(nestedLevels(t!)?.map((l) => l.name).slice(-4)).toEqual(['tile', 'near', 'mid', 'far'])
+    const bare = await openCap(diskIo(['80']).io)
+    expect(await bare.nearLevel(-85.3, 120.5, 0)).toBeNull()
   })
 })
 

@@ -343,6 +343,62 @@ test.describe('terrain levels (track-terrain)', () => {
     expect(levelRequests).toEqual([])
   })
 
+  test('F2 near level: after the rebuild 160 m to ±40 km between the 80 m tile and mid, no cracks at its borders', async ({ page }) => {
+    test.setTimeout(300_000)
+    fs.mkdirSync(SHOTS, { recursive: true })
+    type Spec = { name: string; size: number; spacing: number; ext: number }
+    await open(page)
+    // im-1 on 20 Aug 2027 21:30 UTC, default site view: before (test mode builds no near level until asked) ...
+    await setView(page, { site: 'im-1', utc: '2027-08-20T21:30:00Z', level: 'site' })
+    expect((await call<{ levels: string[] }>(page, 'terrainInfo')).levels).toEqual(['fine', 'tile', 'mid', 'far'])
+    await page.screenshot({ path: `${SHOTS}/f2-im-1-2027-08-20T2130Z-site-before-near.png` })
+    // ... and after: nearLevel(true) resolves once the terrain is rebuilt with it.
+    await page.evaluate(() => (window as unknown as { __scene: { nearLevel(on: boolean): Promise<void> } }).__scene.nearLevel(true))
+    await setView(page, { level: 'site' })
+    await page.screenshot({ path: `${SHOTS}/f2-im-1-2027-08-20T2130Z-site-after-near.png` })
+    const check = async (site: string) => {
+      const specs = await call<Spec[]>(page, 'levelSpecs')
+      expect(specs.map((l) => l.name), site).toEqual(['fine', 'tile', 'near', 'mid', 'far'])
+      const [tile, near, mid] = specs.slice(1, 4)
+      expect(near).toEqual({ name: 'near', size: 501, spacing: 160, ext: 40_000 })
+      expect(tile.ext).toBeLessThan(near.ext)
+      expect(tile.spacing).toBeLessThan(near.spacing)
+      expect(mid.ext).toBeGreaterThan(near.ext)
+      expect(mid.spacing).toBeGreaterThan(near.spacing)
+      expect((await call<{ levels: string[] }>(page, 'terrainInfo')).levels).toEqual(['fine', 'tile', 'near', 'mid', 'far'])
+    }
+    await check('im-1')
+    // Another site: its own near level once its job has ended.
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'site' })
+    await page.evaluate(() => (window as unknown as { __scene: { nearReady(): Promise<void> } }).__scene.nearReady())
+    await check(DEMO)
+    await setView(page, { level: 'site' })
+    await page.screenshot({ path: `${SHOTS}/f2-${DEMO}-site-after-near.png` })
+    // Flat unlit grey terrain (T18's crack check) over the near level's borders: ±20 km with the 80 m tile and
+    // ±40 km with mid, from above and obliquely.
+    await call(page, 'setFlat', true)
+    for (const v of [
+      { az: 30, el: 85, dist: 45 },
+      { az: 75, el: 85, dist: 60 },
+      { az: 120, el: 35, dist: 30 },
+      { az: 300, el: 40, dist: 55 },
+    ]) {
+      await setView(page, { level: 'site', ...v })
+      const png = await pixels(page)
+      let gaps = 0
+      let terrain = 0
+      for (let y = Math.round(png.height * 0.55); y < png.height; y += 2) {
+        for (let x = 0; x < png.width; x += 2) {
+          if (lum(png, x, y) < 40) gaps++
+          else terrain++
+        }
+      }
+      console.log(`F2 flat view ${JSON.stringify(v)}: ${gaps} dark of ${gaps + terrain} sampled pixels`)
+      expect(gaps, `dark pixels inside the terrain, view ${JSON.stringify(v)}`).toBe(0)
+    }
+    await call(page, 'setFlat', false)
+  })
+
   test('T17 at every site with levels: the Sun is hidden exactly where the mask hides it (eye level)', async ({ page }) => {
     // 35 site/time cases: about 50 s alone, over the default 90 s when the whole suite runs in parallel.
     test.setTimeout(300_000)

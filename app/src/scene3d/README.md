@@ -55,3 +55,14 @@ when a fly starts or a camera is placed; each scene is drawn once before the fly
 first fly does not stall on uploads; the globe's site pins are rebuilt only for another list of sites.
 POI pins have a 1.5 px dark outline (pins.ts: three more instanced meshes); at site and eye level a left-click
 on a POI's pin is not a walk (the page keeps its info box open on it).
+Wave 3 (14 Nov evening):
+F3 camera at rest: OrbitControls.update() rebuilds the camera from spherical coordinates on every call, and the round
+trip moved a camera at rest by a unit in the last place (c4.spec.ts:210 once saw 9.09e-13 m). tick() calls it only
+while the controls have input to apply (index.ts orbitBusy); a glide below 1e-9 rad ends.
+F2 near level: 160 m to ±40 km (501 × 501) between the 80 m tile and mid, 2 × 2 means of the south-cap 80 m tiles
+(data/southcap.ts nearLevel), relative to the site's own ground_m. A prepared site's files have none: index.ts
+requestNear builds it after the site is shown and rebuilds the terrain once (after a fly, never during one); a custom
+point's cap terrain has it among its levels. 15–28 tiles (2.0–3.7 MB) per site. In test mode only after
+__scene.nearLevel(true); __scene.nearReady() resolves when the current site's job has ended. Level normals come from
+the grids and blend across each rim band like the heights (levels.ts levelNormals); data next to a nodata fill (im-1:
+the polar DEM ends 4 km north of the site) blend into the fill over the same band. tileHeight applies height_scale_m.
