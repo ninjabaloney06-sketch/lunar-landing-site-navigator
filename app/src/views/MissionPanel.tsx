@@ -53,6 +53,8 @@ const GROUP_TEXT: Record<Site['group'], string> = {
   commercial: 'Lander',
   international: 'Lander',
   apollo: 'Lander',
+  poi: 'Point of interest',
+  custom: 'Custom site',
 }
 
 interface Props {
