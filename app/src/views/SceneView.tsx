@@ -1,6 +1,7 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
-// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top. A label is hidden whenever
-// project() returns null or a point that is not visible.
+// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top, and "Moon" at the Moon where it is
+// a body in the picture (the Earth and Sun viewpoints; labelPoint('moon') is null elsewhere). A label is hidden
+// whenever project() / labelPoint() returns null or a point that is not visible.
 //
 // Points of interest (U2, U3): the visible ones go to the scene through setPois(). A POI that named() reports
 // opens its info box at the pin, instead of the plain name label site pins and user points keep:
@@ -59,6 +60,7 @@ interface Props {
 }
 
 const HOVER_GRACE_MS = 350 // pointer from the pin onto its info box
+const LABEL_NEAR_PX = { x: 110, y: 52 } // two label points this close would put the label boxes over each other
 const CLICK_SLOP_PX = 5 // the scene's own limit between a click and a drag
 
 /** Test hook (?test=1 only, like the scene's window.__scene): the POIs last passed to setPois, and an override of
@@ -105,6 +107,8 @@ export function SceneView(props: Props) {
   const ownLevel = useRef<SceneLevel | null>(null)
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
+  const moon = useRef<HTMLDivElement>(null)
+  const moonBox = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
   // Site whose frame failed to load: the scene would otherwise keep showing the previous site's terrain and
   // sky under the new site's name, so a notice says the 3D view is stale.
@@ -180,7 +184,14 @@ export function SceneView(props: Props) {
     let raf = 0
     const tick = () => {
       place(sun.current, h.labelPoint('sun'), have.current.sun)
-      place(earth.current, h.labelPoint('earth'), have.current.earth)
+      const ep = h.labelPoint('earth')
+      place(earth.current, ep, have.current.earth)
+      const mp = h.labelPoint('moon')
+      place(moon.current, mp, true)
+      // From the Sun's side the Moon and Earth are a fraction of a degree apart: the Moon's label then hangs below
+      // its point, so the two labels never cover each other.
+      const near = !!(mp?.visible && ep?.visible && have.current.earth && Math.abs(ep.x - mp.x) < LABEL_NEAR_PX.x && Math.abs(ep.y - mp.y) < LABEL_NEAR_PX.y)
+      moonBox.current?.classList.toggle('is-below', near)
       place(site.current, h.project('site'), true)
       const n = namedNow()
       const id = n && n.visible ? poiOf(n) : null
@@ -336,6 +347,12 @@ export function SceneView(props: Props) {
         <div ref={earth} className="obj" hidden>
           <div className="obj-box" data-testid="label-earth">
             <span className="obj-name obj-earth">Earth</span> <span className="obj-num">{earthEl === null ? '' : fmtDeg(earthEl)}</span>
+            <span className="obj-tick" />
+          </div>
+        </div>
+        <div ref={moon} className="obj" hidden>
+          <div ref={moonBox} className="obj-box" data-testid="label-moon">
+            <span className="obj-name">Moon</span>
             <span className="obj-tick" />
           </div>
         </div>
