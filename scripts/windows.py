@@ -59,7 +59,7 @@ def ms_to_iso(ms):
 
 
 def load_month(path):
-    return json.loads(Path(path).read_text())
+    return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def _lerp3(a, b, f):

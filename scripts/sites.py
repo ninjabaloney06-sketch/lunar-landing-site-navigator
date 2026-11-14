@@ -28,7 +28,7 @@ def horizon_fields(site_id):
     path = HORIZON_DIR / f"{site_id}.json"
     if not path.exists():
         return {"elev_m": None, "slope_deg": None, "horizon": None}
-    h = json.loads(path.read_text())
+    h = json.loads(path.read_text(encoding="utf-8"))
     return {
         "elev_m": h.get("elev_m"),
         "slope_deg": h.get("slope_deg"),
@@ -41,7 +41,7 @@ def potential_for(site_id, table):
 
 
 def build():
-    table = json.loads(POTENTIAL_JSON.read_text()) if POTENTIAL_JSON.exists() else {}
+    table = json.loads(POTENTIAL_JSON.read_text(encoding="utf-8")) if POTENTIAL_JSON.exists() else {}
     sites = []
     for row in load_rows():
         if row["group"] not in ALLOWED_GROUPS:
@@ -73,7 +73,7 @@ def build():
 def main():
     sites = build()
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(sites, indent=1, ensure_ascii=False) + "\n")
+    OUT.write_text(json.dumps(sites, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     for s in sites:
         if not s["potential"]:
             print(f"WARNING: {s['id']} has no potential entries", file=sys.stderr)

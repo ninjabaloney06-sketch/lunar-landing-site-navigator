@@ -62,7 +62,7 @@ def test_t1_no_forbidden_frame_and_moon_me_named():
                 if FORBIDDEN in p.read_text(errors="ignore"):
                     hits.append(str(p.relative_to(REPO)))
     assert hits == []
-    src = (REPO / "scripts" / "ephemeris.py").read_text()
+    src = (REPO / "scripts" / "ephemeris.py").read_text(encoding="utf-8")
     calls = re.findall(r"spice\.(spkpos|pxform|pxfrm2)\(([^)]*)\)", src)
     assert calls, "no SPICE geometry calls found"
     for fn, args in calls:
@@ -215,5 +215,5 @@ def test_month_files_contract(months):
 
 
 def test_month_files_are_compact_json():
-    raw = (EPHEM / "2027-08.json").read_text()
+    raw = (EPHEM / "2027-08.json").read_text(encoding="utf-8")
     assert "\n" not in raw and json.loads(raw)["n"] == 31 * 48 + 1

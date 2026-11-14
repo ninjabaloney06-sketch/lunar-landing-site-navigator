@@ -42,10 +42,10 @@ def months_needed():
 
 def main():
     sites = [{"id": s["id"], "lat": s["lat"], "lon": s["lon"], "elev_m": s.get("elev_m")}
-             for s in json.loads((APP_DATA / "sites.json").read_text())]
+             for s in json.loads((APP_DATA / "sites.json").read_text(encoding="utf-8"))]
     sites += [s for s in EXTRA_SITES if s["id"] not in {x["id"] for x in sites}]
-    horizon = json.loads((APP_DATA / "horizons" / SAMPLE_HORIZON).read_text())
-    stations_raw = json.loads((APP_DATA / "stations.json").read_text())
+    horizon = json.loads((APP_DATA / "horizons" / SAMPLE_HORIZON).read_text(encoding="utf-8"))
+    stations_raw = json.loads((APP_DATA / "stations.json").read_text(encoding="utf-8"))
     stations = [{k: v for k, v in s.items() if not k.startswith("_")} for s in stations_raw]
     synthetic = any("SYNTHETIC" in (s.get("_note", "") + s.get("source_label", "")) for s in stations_raw)
     month_ids = list(months_needed())
@@ -85,7 +85,7 @@ def main():
         "stations": stations,
         "cases": cases,
     }
-    OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
+    OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8")
     lit = sum(c["sun"]["lit"] for c in cases)
     vis = sum(c["earth"]["visible"] for c in cases)
     partial = sum(0 < c["sun"]["frac"] < 1 for c in cases)

@@ -5,7 +5,7 @@ from config import APP_DATA
 
 
 def load(rel):
-    return json.loads((APP_DATA / rel).read_text())
+    return json.loads((APP_DATA / rel).read_text(encoding="utf-8"))
 
 
 def test_sites_shape():

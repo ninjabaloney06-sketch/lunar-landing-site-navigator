@@ -165,7 +165,7 @@ def _repro(dem, lat, lon):
 def test_reproduces_sites_json_elev_and_point_slope(sid):
     import json
     from config import data_root
-    site = next(s for s in json.loads(A.SITES_JSON.read_text()) if s["id"] == sid)
+    site = next(s for s in json.loads(A.SITES_JSON.read_text(encoding="utf-8")) if s["id"] == sid)
     dem20 = A.Raster(data_root() / A.DEM20[0], A.DEM20[1])
     h, s = _repro(dem20, site["lat"], site["lon"])
     assert abs(h - site["elev_m"]) <= 1.0
@@ -202,7 +202,7 @@ def write_prp(tmp_path, triangles):
     rl = len(rows[0])
     header = ",".join(f"{n:>{W - 1}}" for n in PRP_COLS).ljust(rl - 2) + "\r\n"
     tab = tmp_path / "prp.tab"
-    tab.write_text(header + "".join(rows), newline="")
+    tab.write_text(header + "".join(rows), newline="", encoding="utf-8")
     fields = "".join(
         f"<Field_Character><name>{n}</name><field_location>{i * W + 1}</field_location>"
         f"<field_length>{W - 1}</field_length><unit>K</unit><description>{n} test</description>"
@@ -212,7 +212,7 @@ def write_prp(tmp_path, triangles):
     xml = (f"<Product><Table_Character><offset>{len(header)}</offset><records>{len(rows)}</records>"
            f"<record_length>{rl}</record_length><Record_Character>{fields}</Record_Character>"
            "</Table_Character></Product>")
-    (tmp_path / "prp.xml").write_text(xml)
+    (tmp_path / "prp.xml").write_text(xml, encoding="utf-8")
     return A.PRPMesh.from_files(tab, tmp_path / "prp.xml")
 
 

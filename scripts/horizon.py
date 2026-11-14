@@ -261,7 +261,7 @@ def run_one(site_id, lat, lon, dem_path, out_dir):
               f"(limits {ABORT_SECONDS:.0f} s, 4 GB); not written, stopping.", file=sys.stderr)
         sys.exit(2)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / f"{site_id}.json").write_text(json.dumps(res, separators=(",", ":")) + "\n")
+    (out_dir / f"{site_id}.json").write_text(json.dumps(res, separators=(",", ":")) + "\n", encoding="utf-8")
     return secs, rss
 
 

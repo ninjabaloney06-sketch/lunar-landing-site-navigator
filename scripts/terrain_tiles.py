@@ -197,7 +197,7 @@ def main():
                 "illum_res_m": illum_res,
                 "dem": DEM_NAME,
             }
-            (OUT / f"{site_id}.json").write_text(json.dumps(meta, indent=1) + "\n")
+            (OUT / f"{site_id}.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
             report.append((site_id,
                            f"dem_valid={valid.mean():.3f} illum_valid={illum_ok.mean():.3f} "
                            f"h_min={h_int[valid].min() if valid.any() else 'na'} "

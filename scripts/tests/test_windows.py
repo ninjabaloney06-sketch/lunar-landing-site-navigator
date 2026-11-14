@@ -19,7 +19,7 @@ def ctx():
     months = [geo.load_month(APP_DATA / "ephem" / "2027-08.json")]
     site = next(s for s in json.loads((APP_DATA / "sites.json").read_text(encoding="utf-8"))
                 if s["id"] == "connecting-ridge")
-    horizon = json.loads((APP_DATA / "horizons" / site["horizon"]).read_text())
+    horizon = json.loads((APP_DATA / "horizons" / site["horizon"]).read_text(encoding="utf-8"))
     stations = json.loads((APP_DATA / "stations.json").read_text(encoding="utf-8"))
     return months, site, horizon, stations
 

@@ -156,15 +156,15 @@ def test_row_maps_to_station_contract():
 def test_csv_round_trip(tmp_path):
     csv_path = tmp_path / "stations.csv"
     header = ",".join(st_mod.COLUMNS)
-    csv_path.write_text(header + "\n" + ",".join(ROW[c] for c in st_mod.COLUMNS) + "\n")
+    csv_path.write_text(header + "\n" + ",".join(ROW[c] for c in st_mod.COLUMNS) + "\n", encoding="utf-8")
     out = tmp_path / "stations.json"
     st_mod.main(["--csv", str(csv_path), "--out", str(out)])
-    data = json.loads(out.read_text())
+    data = json.loads(out.read_text(encoding="utf-8"))
     assert len(data) == 1 and set(data[0]) == STATION_KEYS
 
 
 def test_shipped_stations_json_is_generated_from_stations_csv():
-    rows = json.loads((APP_DATA / "stations.json").read_text())
+    rows = json.loads((APP_DATA / "stations.json").read_text(encoding="utf-8"))
     assert rows
     assert rows == st_mod.load_csv(), "stations.json is stale: run python3 scripts/stations.py"
     for r in rows:

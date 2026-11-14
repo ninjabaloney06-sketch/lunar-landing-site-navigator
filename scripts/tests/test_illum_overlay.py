@@ -27,7 +27,7 @@ def _relief_corr(site_id):
     from numpy.lib.stride_tricks import sliding_window_view
     from PIL import Image
 
-    meta = json.loads((TERRAIN / f"{site_id}.json").read_text())
+    meta = json.loads((TERRAIN / f"{site_id}.json").read_text(encoding="utf-8"))
     n = meta["size"]
     h = np.fromfile(TERRAIN / f"{site_id}.bin", "<i2").reshape(n, n).astype(float)
     h[h == meta["nodata"]] = np.nan
@@ -43,7 +43,7 @@ def _relief_corr(site_id):
 def _params():
     out = []
     for sid in _tiles():
-        meta = json.loads((TERRAIN / f"{sid}.json").read_text())
+        meta = json.loads((TERRAIN / f"{sid}.json").read_text(encoding="utf-8"))
         marks = []
         if str(meta.get("illum_map", "")).startswith("avgvisib_85s"):
             marks.append(pytest.mark.xfail(strict=True, reason="85S overlay misregistered (review 14 Nov); rerun terrain_tiles.py"))
