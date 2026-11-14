@@ -237,3 +237,238 @@ test.describe('walk: a left-click on terrain moves the camera only', () => {
     expect(await selection(page)).toBe(before)
   })
 })
+
+// ---------- part 2: viewpoints ----------
+
+const VIEW_LABELS = ['Moon', 'Point start', 'Point end', 'Earth', 'Sun', 'Solar system — top view']
+const RADIUS_KM = { moon: 1737.4, earth: 6371, sun: 695700 }
+const TOP_RADIUS = { moon: 1, earth: 2, sun: 3 } // topview.ts display units
+
+type Body = { name: 'moon' | 'earth' | 'sun'; center: number[]; camera: number[] }
+type SceneP2 = Scene & { bodies(): Body[]; topView(): boolean; goTo(v: string): Promise<boolean> }
+const scene2 = <T>(page: Page, fn: (s: SceneP2) => T | Promise<T>) => page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
+
+/** Distance from the camera to each body's surface, in that view's unit; all must be > 0. */
+async function expectOutsideBodies(page: Page, what: string) {
+  const top = await scene2(page, (s) => s.topView())
+  const bodies = await scene2(page, (s) => s.bodies())
+  expect(bodies).toHaveLength(3)
+  for (const b of bodies) {
+    const r = (top ? TOP_RADIUS : RADIUS_KM)[b.name]
+    expect(dist(b.camera, b.center) - r, `${what}: camera outside the ${b.name}`).toBeGreaterThan(0)
+  }
+  return { top, bodies }
+}
+
+async function chooseView(page: Page, label: string) {
+  await page.getByTestId('view').click()
+  await page.getByTestId('view-menu').getByRole('menuitem', { name: label, exact: true }).click()
+  await frames(page)
+}
+
+test.describe('C4 part 2: viewpoints', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('the View button reaches the viewpoints by keyboard; Moon, Earth, Sun and the top view leave the camera outside every body', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid`)
+    const before = await selection(page)
+    const view = page.getByTestId('view')
+    await expect(view).toHaveText('View')
+    // Keyboard only: focus the button, open with Enter, walk the list with the arrow keys.
+    await view.focus()
+    await page.keyboard.press('Enter')
+    const menu = page.getByTestId('view-menu')
+    await expect(menu).toBeVisible()
+    await expect(menu.getByRole('menuitem')).toHaveText(['Landing site', 'Eye level', ...VIEW_LABELS])
+    await expect(menu.getByRole('menuitem', { name: 'Landing site' })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeHidden()
+    await expect(view).toBeFocused()
+
+    const pick = async (label: string) => {
+      await view.focus()
+      await page.keyboard.press('Enter')
+      for (let i = 0; i < 12 && !(await menu.getByRole('menuitem', { name: label, exact: true }).evaluate((e) => e === document.activeElement)); i++) {
+        await page.keyboard.press('ArrowDown')
+      }
+      await expect(menu.getByRole('menuitem', { name: label, exact: true })).toBeFocused()
+      await page.keyboard.press('Enter')
+      await expect(menu).toBeHidden()
+      await frames(page)
+    }
+
+    await pick('Earth')
+    let v = await expectOutsideBodies(page, 'Earth')
+    expect(v.top).toBe(false)
+    const earth = v.bodies.find((b) => b.name === 'earth')!
+    // Framed: 5.5 Earth radii from its centre, looking at it.
+    expect(dist(earth.camera, earth.center) / RADIUS_KM.earth).toBeCloseTo(5.5, 6)
+    const cam = await camera(page)
+    const toEarth = earth.center.map((c, i) => c - earth.camera[i])
+    expect(angleDeg(cam.forward, toEarth.map((c) => c / Math.hypot(...toEarth)))).toBeLessThan(1e-3)
+    await expect(page.getByTestId('label-earth')).toBeVisible()
+    await expect(page.getByTestId('not-to-scale')).toHaveCount(0)
+    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=globe')
+
+    await pick('Sun')
+    v = await expectOutsideBodies(page, 'Sun')
+    const sun = v.bodies.find((b) => b.name === 'sun')!
+    expect(dist(sun.camera, sun.center) / RADIUS_KM.sun).toBeCloseTo(5.5, 6)
+    expect(Math.hypot(...sun.camera), 'on the Moon side of the Sun').toBeLessThan(Math.hypot(...sun.center))
+    await expect(page.getByTestId('label-sun')).toBeVisible()
+
+    await pick('Solar system — top view')
+    v = await expectOutsideBodies(page, 'top view')
+    expect(v.top).toBe(true)
+    await expect(page.getByTestId('not-to-scale')).toHaveText('Not to scale')
+    await expect(page.getByTestId('label-sun')).toBeVisible()
+    await expect(page.getByTestId('label-earth')).toBeVisible()
+    await expect(page.getByTestId('pin-name')).toHaveText('Moon')
+    // Looking down the Moon's +z axis: the camera is on +z above the Moon, which sits at the centre.
+    const topCam = v.bodies[0].camera
+    expect(Math.hypot(topCam[0], topCam[1])).toBeLessThan(1e-9)
+    expect(topCam[2]).toBeGreaterThan(0)
+    // Directions from the Moon stay the computed ones: the drawn Earth and Sun lie along earth_km and sun_km.
+    await scene2(page, (s) => s.goTo('moon'))
+    const real = await scene2(page, (s) => s.bodies())
+    for (const name of ['earth', 'sun'] as const) {
+      const drawn = v.bodies.find((b) => b.name === name)!.center
+      const truth = real.find((b) => b.name === name)!.center
+      expect(angleDeg(drawn.map((c) => c / Math.hypot(...drawn)), truth.map((c) => c / Math.hypot(...truth))), `${name} direction in the top view`).toBeLessThan(1e-4)
+    }
+
+    await pick('Solar system — top view')
+    await expect(page.getByTestId('not-to-scale')).toBeVisible()
+    await pick('Moon')
+    v = await expectOutsideBodies(page, 'Moon')
+    await expect(page.getByTestId('not-to-scale')).toHaveCount(0)
+    expect(Math.hypot(...v.bodies[0].camera)).toBeCloseTo(6500, 3)
+
+    // Point start and Point end wait for a point that holds the role.
+    await view.click()
+    await expect(menu.getByRole('menuitem', { name: 'Point start' })).toBeDisabled()
+    await expect(menu.getByRole('menuitem', { name: 'Point end' })).toBeDisabled()
+    await page.keyboard.press('Escape')
+
+    // Back down without a keyboard shortcut: Landing site, then Eye level.
+    await chooseView(page, 'Landing site')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('site')
+    await chooseView(page, 'Eye level')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    // None of this touched the scientific selection, and the answer still names the site.
+    expect(await selection(page)).toBe(before)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
+  })
+
+  test('right-click opens the viewpoint menu in order and the browser menu does not appear, at every level', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}`)
+    await page.evaluate(() => {
+      const w = window as unknown as { __ctx: boolean[] }
+      w.__ctx = []
+      window.addEventListener('contextmenu', (e) => w.__ctx.push(e.defaultPrevented))
+    })
+    for (const level of ['site', 'eye', 'globe']) {
+      await page.evaluate((l) => (window as unknown as { __scene: Scene }).__scene.setView({ level: l }), level)
+      await page.mouse.click(720, 400, { button: 'right' })
+      const menu = page.getByTestId('scene-menu')
+      await expect(menu, `menu at ${level} level`).toBeVisible()
+      await expect(menu.getByRole('menuitem')).toHaveText(VIEW_LABELS)
+      const box = (await menu.boundingBox())!
+      expect(Math.abs(box.x - 720)).toBeLessThan(2)
+      expect(Math.abs(box.y - 400)).toBeLessThan(2)
+      await page.keyboard.press('Escape')
+      await expect(menu).toBeHidden()
+    }
+    expect(await page.evaluate(() => (window as unknown as { __ctx: boolean[] }).__ctx)).toEqual([true, true, true])
+    // A right-click is not a click: the camera did not walk and no site was selected.
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+    // The page outside the canvas keeps the browser's menu.
+    await page.getByTestId('site-name').dispatchEvent('contextmenu')
+    expect((await page.evaluate(() => (window as unknown as { __ctx: boolean[] }).__ctx)).at(-1)).toBe(false)
+    // Choosing from the right-click menu flies there; near the edge the menu stays inside the stage.
+    await page.mouse.click(1430, 300, { button: 'right' })
+    const menu = page.getByTestId('scene-menu')
+    const box = (await menu.boundingBox())!
+    expect(box.x + box.width).toBeLessThanOrEqual(1440)
+    await menu.getByRole('menuitem', { name: 'Earth' }).click()
+    await frames(page)
+    const earth = (await scene2(page, (s) => s.bodies())).find((b) => b.name === 'earth')!
+    expect(dist(earth.camera, earth.center) / RADIUS_KM.earth).toBeCloseTo(5.5, 6)
+  })
+
+  test('viewpoint screenshots (read by the agent)', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z`)
+    await page.evaluate(() => document.fonts.ready)
+    for (const [label, file] of [['Earth', 'earth'], ['Sun', 'sun'], ['Solar system — top view', 'top'], ['Moon', 'moon']]) {
+      await chooseView(page, label)
+      await page.waitForTimeout(300)
+      await page.screenshot({ path: `test-results/c4-view-${file}-1440.png`, animations: 'disabled' })
+    }
+  })
+})
+
+// ---------- notebook notes 5 and 12: back to the globe without a keyboard, names on pins ----------
+
+type SceneP = Scene & { projectPin(id: string): { x: number; y: number; visible: boolean } | null }
+const pinOf = (page: Page, id: string) => page.evaluate((i) => (window as unknown as { __scene: SceneP }).__scene.projectPin(i), id)
+
+test.describe('notes 5 and 12 on a phone (375 × 812, touch only)', () => {
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true })
+
+  test('View leads from eye level to the site and to the globe; a tap on a pin shows its name, a second tap selects it', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&view=eye`)
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    const tapView = async (label: string) => {
+      await page.getByTestId('view').tap()
+      await page.getByTestId('view-menu').getByRole('menuitem', { name: label, exact: true }).tap()
+    }
+    await tapView('Landing site')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('site')
+    await tapView('Moon')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('globe')
+    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=globe')
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+    // The whole menu fits the phone screen.
+    await page.getByTestId('view').tap()
+    const box = (await page.getByTestId('view-menu').boundingBox())!
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(375)
+    expect(box.y).toBeGreaterThanOrEqual(0)
+    await page.getByTestId('view').tap()
+    await expect(page.getByTestId('view-menu')).toBeHidden()
+
+    // Camera above Haworth (far from every other pin), in the clear middle of the screen.
+    const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; name: string; lat: number; lon: number }[]
+    const haworth = sites.find((s) => s.id === 'haworth')!
+    await page.evaluate(([lat, lon]) => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'globe', el: lat, az: lon }), [haworth.lat, haworth.lon])
+    const pin = (await pinOf(page, 'haworth'))!
+    expect(pin.visible).toBe(true)
+    await expect(page.getByTestId('pin-name')).toBeHidden()
+    await page.touchscreen.tap(pin.x, pin.y)
+    await expect(page.getByTestId('pin-name')).toBeVisible()
+    await expect(page.getByTestId('pin-name')).toHaveText(haworth.name)
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge') // the first tap only names the pin
+    await page.touchscreen.tap(pin.x, pin.y)
+    await expect(page.getByTestId('site-name')).toHaveText(haworth.name)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
+})
+
+test('note 12: hovering a site pin on the globe shows its name; moving away hides it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await openApp(page, `site=${RIDGE}&period=${AUG}&view=globe`)
+  const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; name: string; lat: number; lon: number }[]
+  const haworth = sites.find((s) => s.id === 'haworth')!
+  await page.evaluate(([lat, lon]) => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'globe', el: lat, az: lon }), [haworth.lat, haworth.lon])
+  const pin = (await pinOf(page, 'haworth'))!
+  await page.mouse.move(pin.x + 200, pin.y - 150)
+  await expect(page.getByTestId('pin-name')).toBeHidden()
+  await page.mouse.move(pin.x + 2, pin.y + 2)
+  await expect(page.getByTestId('pin-name')).toHaveText(haworth.name)
+  const label = (await page.getByTestId('pin-name').boundingBox())!
+  expect(Math.abs(label.x + label.width / 2 - pin.x)).toBeLessThan(40)
+  await page.mouse.move(pin.x + 200, pin.y - 150)
+  await expect(page.getByTestId('pin-name')).toBeHidden()
+  await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge') // hovering selects nothing
+})

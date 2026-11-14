@@ -7,7 +7,7 @@ import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
-import type { SceneLevel } from './scene3d'
+import type { SceneLevel, ScenePoint, Viewpoint } from './scene3d'
 import {
   cleanName,
   COVERAGE_END_MS,
@@ -26,11 +26,15 @@ import type { ViewPeriod } from './views/Drawer'
 import { HorizonStrip } from './views/HorizonStrip'
 import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
-import { SceneView } from './views/SceneView'
+import { SceneView, viewpointItems } from './views/SceneView'
+import type { SceneApi } from './views/SceneView'
+import { ViewMenu } from './views/ViewMenu'
+import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
+import './styles/view.css'
 
 type Boot =
   | { status: 'loading' }
@@ -94,12 +98,15 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
   const [hs, patch] = useHashState()
-  const [menu, setMenu] = useState<null | 'mission' | 'date'>(null)
+  const [menu, setMenu] = useState<null | 'mission' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [webgl, setWebgl] = useState(() => webglAvailable())
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
+  const viewBtn = useRef<HTMLButtonElement>(null)
+  const scene = useRef<SceneApi | null>(null)
+  const [topView, setTopView] = useState(false)
   // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
   const menuOpen = useRef(false)
   menuOpen.current = menu !== null
@@ -163,7 +170,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const closeMenu = useCallback((focus = false) => {
     menuClosedAt.current = performance.now()
     setMenu((m) => {
-      if (focus) (m === 'date' ? dateBtn : missionBtn).current?.focus()
+      if (focus) (m === 'date' ? dateBtn : m === 'view' ? viewBtn : missionBtn).current?.focus()
       return null
     })
   }, [])
@@ -230,6 +237,24 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [sites, patch],
   )
 
+  // User points as the scene draws them (names and roles arrive with Brief C4 part 3).
+  const scenePoints: ScenePoint[] = useMemo(
+    () => hs.pts.map((p, i) => ({ name: `Point ${String.fromCharCode(65 + i)}`, lat: p.lat, lon: p.lon, role: null, selected: false })),
+    [hs.pts],
+  )
+
+  // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
+  // globe), then the six viewpoints of the right-click menu.
+  const goLevel = (view: SceneLevel) => {
+    if (hs.view === view) scene.current?.setLevel(view)
+    else patch({ view })
+  }
+  const viewItems: ViewItem[] = [
+    { id: 'site', label: 'Landing site', current: !topView && hs.view === 'site', onSelect: () => goLevel('site') },
+    { id: 'eye', label: 'Eye level', current: !topView && hs.view === 'eye', onSelect: () => goLevel('eye') },
+    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
+  ]
+
   const playMission = () => {
     setMenu(null)
     patch({ view: 'eye', t: period.startMs })
@@ -271,6 +296,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onPick={onPick}
             onLevel={onLevel}
             clickGuard={clickGuard}
+            points={scenePoints}
+            api={scene}
+            onTopView={setTopView}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -416,6 +444,32 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           sun={context.status === 'ready' ? context.results.sun : null}
           comms={context.status === 'ready' ? context.results.comms : null}
           valueText={valueText}
+          tools={
+            <>
+              {topView && (
+                <span className="tl-note" data-testid="not-to-scale">
+                  Not to scale
+                </span>
+              )}
+              {webgl && (
+                <span className="tool-wrap">
+                  <button
+                    ref={viewBtn}
+                    type="button"
+                    className="tool"
+                    data-testid="view"
+                    data-menu-trigger=""
+                    aria-haspopup="menu"
+                    aria-expanded={menu === 'view'}
+                    onClick={() => setMenu(menu === 'view' ? null : 'view')}
+                  >
+                    View
+                  </button>
+                  {menu === 'view' && <ViewMenu label="View" testId="view-menu" className="is-anchored" items={viewItems} onClose={closeMenu} />}
+                </span>
+              )}
+            </>
+          }
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
         <footer className="foot">

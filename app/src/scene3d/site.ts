@@ -53,6 +53,16 @@ const SKIRT_SMOOTH_DEG = 20
 const MAST_PER_DIST = 1.6 / 17 // 1.6 km tall at the default 17 km distance
 const CROSS_PER_DIST = 0.035
 const MAST_WIDTH_PX = 1.6
+const MARK_LEN_PX = 22 // user points inside the 80 m tile: a short stem with a square head
+const MARK_HEAD_PX = 3
+
+/** A user point in the site scene: its name and the terrain point it stands on (ENU m). */
+export interface SiteMarker {
+  index: number
+  name: string
+  ground: Vector3
+  selected: boolean
+}
 
 // MeshStandardMaterial family (roughness 1, metalness 0) with the specular lobe off: at grazing view and light
 // angles (low polar Sun, camera looking toward it) three's GGX specular reaches ~10× the diffuse term and turns
@@ -178,6 +188,8 @@ export class SiteWorld {
   private eyeMode = false
   private levelNames: string[] = []
   private readonly marker = new Group()
+  private readonly marks = new Group()
+  private markList: { m: SiteMarker; stem: Mesh; head: Mesh }[] = []
   private readonly mast: Mesh
   private readonly cross: Mesh[]
   private readonly sunLight = new DirectionalLight(0xfff4e6, SUN_INTENSITY)
@@ -192,7 +204,7 @@ export class SiteWorld {
   private readonly tmp = new Vector3()
 
   constructor() {
-    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker)
+    this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker, this.marks)
     this.scene.add(this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
     this.setEyeMode(false)
     const mk = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
@@ -570,6 +582,54 @@ export class SiteWorld {
     const arm = 2 * CROSS_PER_DIST * dist
     this.cross[0].scale.set(arm, w, w)
     this.cross[1].scale.set(w, arm, w)
+  }
+
+  setMarkers(markers: SiteMarker[]) {
+    for (const c of [...this.marks.children]) this.marks.remove(c)
+    const mat = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
+    this.markList = markers.map((m) => {
+      const stem = new Mesh(new BoxGeometry(1, 1, 1).translate(0, 0, 0.5), mat)
+      const head = new Mesh(new BoxGeometry(2, 2, 2), mat)
+      stem.position.copy(m.ground)
+      this.marks.add(stem, head)
+      return { m, stem, head }
+    })
+  }
+
+  /** Constant on-screen size for the user points, like the mast. */
+  updateMarks(cam: PerspectiveCamera, heightPx: number) {
+    for (const k of this.markList) {
+      const dist = Math.max(cam.position.distanceTo(k.m.ground), 1)
+      const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
+      const len = MARK_LEN_PX * perPx
+      k.stem.scale.set(MAST_WIDTH_PX * perPx, MAST_WIDTH_PX * perPx, len)
+      k.head.position.copy(k.m.ground).setZ(k.m.ground.z + len)
+      k.head.scale.setScalar(MARK_HEAD_PX * perPx * (k.m.selected ? 1.4 : 1))
+    }
+  }
+
+  /** Head position (ENU m) of the marker for user point `index`, if it is drawn here. */
+  markTop(index: number): Vector3 | null {
+    return this.markList.find((k) => k.m.index === index)?.head.position.clone() ?? null
+  }
+
+  /** Index of the user point whose head is within 10 px of the pointer and not behind terrain. */
+  markAt(ndc: Vector2, cam: PerspectiveCamera, widthPx: number, heightPx: number): number | null {
+    let best: number | null = null
+    let bestD = 10
+    for (const k of this.markList) {
+      const dir = k.head.position.clone().sub(cam.position)
+      const len = dir.length()
+      if (this.occluded(cam.position, dir.normalize(), len - 1)) continue
+      const q = k.head.position.clone().project(cam)
+      if (q.z > 1) continue
+      const d = Math.hypot(((q.x - ndc.x) / 2) * widthPx, ((q.y - ndc.y) / 2) * heightPx)
+      if (d < bestD) {
+        bestD = d
+        best = k.m.index
+      }
+    }
+    return best
   }
 
   mastTop(): Vector3 {
