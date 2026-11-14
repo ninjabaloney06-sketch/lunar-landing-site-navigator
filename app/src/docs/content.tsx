@@ -322,7 +322,7 @@ export const DOC_SECTIONS: DocSection[] = [
           radio link. There is no link budget, frequency, antenna schedule or availability, weather or equipment in
           the model.
         </p>
-        <p>The app works for the 18 listed sites only, and for dates from 1 Nov 2026 to 31 Dec 2030.</p>
+        <p>The app works for the 18 listed sites and, with approximate numbers, for a custom landing site south of 80° S, for dates from 1 Nov 2026 to 31 Dec 2030.</p>
         <p>
           The existing tools did not answer this question in a timed test on 27 Oct 2026: one produced a wrong answer
           that looked right, two produced no number (<Path>docs/reference/existing-tools.md</Path>, section "timed
@@ -716,7 +716,7 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
           <li>The change of the horizon across the width of a disc. The horizon is taken at the disc centre's direction.</li>
           <li>Scattered light, earthshine and heat from surrounding terrain, as inputs to any result.</li>
-          <li>Arbitrary coordinates. Only the 18 listed sites can be analysed.</li>
+          <li>Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see &quot;Custom landing sites&quot;). North of 80° S only the listed sites can be analysed.</li>
           <li>Launch, transfer, descent and any trajectory.</li>
           <li>Uncertainty. No error bars are computed; errors of the terrain model are not propagated.</li>
           <li>

@@ -146,7 +146,7 @@ Automated tests (run on 14 Nov 2026, see README): 206 Python tests, 76 unit test
 - Terrain beyond 80° S. Outside the 20 m model the horizon uses a 120 m model, coarser than the 20 m used near the site. This matters for IM-1 only, which lies about 4 km from the edge of the 20 m model: its skyline to the north-north-east (52 of 720 directions) comes from 120 m data.
 - The change of the horizon across the width of a disc. The horizon is taken at the disc centre's azimuth.
 - Scattered light, earthshine and heat from surrounding terrain as inputs to any result.
-- Arbitrary coordinates. Only the 18 listed sites can be analysed.
+- Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see "Custom landing sites"). North of 80° S only the listed sites can be analysed.
 - Launch, transfer, descent and any trajectory.
 - Uncertainty. No error bars are computed; errors of the terrain model are not propagated.
 
@@ -226,7 +226,7 @@ The top-bar button "Points of interest" switches the layer on and off. It is off
 
 - Link format (`app/src/state.ts`, `poi`): absent = off; `poi=all` = every group; `poi=none` = on with no group; otherwise `poi=hazard,water,…` in key order.
 - Key note: "Hover or tap a pin to read about it." With no 3D view the note says that no pins are drawn. Both end with "Only south of 80° S. From research notes, not validated by the science lead."
-- Pins: the view hands the visible points to the 3D scene through `setPois` (`app/src/scene3d/index.ts`). On `integration`, 14 Nov 2026, that function is a stub, so the scene draws no pins yet.
+- Pins: the view hands the visible points to the 3D scene through `setPois` (`app/src/scene3d/index.ts`). On the globe every given point is drawn as a coloured pin with a dark outline; at site and eye level only the points and other landing sites within 60 km of the current site are drawn (`POI_NEAR_KM` in `app/src/scene3d/pins.ts`).
 - Info box (`app/src/views/SceneView.tsx`, `app/src/views/PoiInfo.tsx`): with a mouse it shows while the pointer is on a pin and stays while the pointer moves onto it. A click on the pin, or a tap, keeps it open. A kept box closes with its "Close" button, Esc, a press anywhere else, or a camera move away from it. It shows the group and coordinates, the name, the summary, the record's facts, "Evidence", "Limitations", the caveat about research notes, and the source links, each shown by host name.
 - A right-click outside the south cap gives "Points can be added only south of 80° S."
 
@@ -256,6 +256,15 @@ With the slope filter off, the panel says "Order:" in place of the slope sentenc
 ### Documentation view
 
 The footer link "Docs" opens the documentation as a panel (drawer `docs`; `drawer=docs` in the link). The panel is loaded as a separate part of the app the first time it is opened (`app/src/App.tsx`). Its text is in `app/src/docs/content.tsx`.
+
+### Custom landing sites
+
+A place south of 80° S can be made the landing site: typed coordinates in the Mission panel search and every user point offer "Set as landing site" (`app/src/views/MissionPanel.tsx`; the right-click menu on a user point offers the same). Outside the cap the action is not offered. The link carries the place as `site=cap:<lat>,<lon>` with five decimals (`app/src/state.ts`); older links are read as before.
+
+- Terrain and horizon are computed in the browser from the south-cap rasters (`app/src/data/southcap.ts`, files under `app/public/data/terrain/cap/`, written by `scripts/south_cap.py` from `LDEM_80S_20MPP_ADJ.TIF` and `LDEM_60S_120MPP_ADJ.TIF`): 40 m and 80 m tiles fetched on demand, a 400 m base and a 1920 m outer raster. The horizon uses the conventions of `scripts/horizon.py` (720 directions, eye 1.75 m above the ground, rays to 300 km).
+- All results (answer, timeline, horizon chart, slope warning, finder) come from the same functions as for a listed site. They are marked "Approximate: from 40 m / 80 m terrain, not validated."
+- How approximate: compared with the pipeline horizons of the 18 listed sites on 14 Nov 2026 (`app/src/data/southcap.test.ts`), the browser horizon differs by 0.013° in the median over sites, and by up to 1.68° in single directions (four sites above 0.8°). A difference of that size can move a sunrise or sunset. Only those 18 places (rims, ridges and plateaus) were measured. Not validated by the science lead.
+- A custom site is named "Custom site" and is not a row in the site list, the all-sites table or the search.
 
 ### What is not covered
 

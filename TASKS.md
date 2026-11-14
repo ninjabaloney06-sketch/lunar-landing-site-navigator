@@ -313,12 +313,27 @@ New follow-through missing from the existing checklist:
 - "south-cap raster, 80 m (from LDEM_80S_20MPP_ADJ.TIF)"
 - "Resampled DEM heights for display and approximate horizons. Not validated by the science lead."
 
+**Custom landing sites and Moon label (wave 3, not yet approved by ninja)**
+
+- "Set as landing site"
+- "Set {name} as landing site"
+- "Landing sites can be set only south of 80° S."
+- "Custom site"
+- "Approximate: from 40 m / 80 m terrain, not validated."
+- "Slope {x}° over 100 m, limit 5°. Approximate: from {40 m / 80 m} terrain, not validated."
+- "Terrain LOLA {40 m / 80 m} ({400} m beyond {20} km)"
+- "Frame: the user's own coordinates; MOON_ME assumed."
+- "Site: Chosen by the user in this app."
+- "Moon"
+- "Point of interest" / "Custom site" (group text under a site name in the Mission panel)
+- Drawer terrain sentence for a custom site: `app/src/views/Drawer.tsx`.
+
 Fact labels of the info box: `KEY_LABELS` in `scripts/pois.py`. Docs view text: `app/src/docs/content.tsx`.
 
 #### Decisions (ninja, 14 Nov 2026 evening)
 
 - Pin region and terrain model: the cap south of 80° S ("80 degrees S but super detailed").
-- Tiles: "you can even use 40m tiles if you want. I dont really care about the storage as quite a bit is free." Built: 80 m south of 80° S, 40 m south of 85.1° S (200 MB ceiling set by the orchestrator); 40 m for the whole cap only at the end if time is left.
+- Tiles: "you can even use 40m tiles if you want. I dont really care about the storage as quite a bit is free." Built first: 80 m south of 80° S, 40 m south of 85.1° S (200 MB ceiling set by the orchestrator). ninja's rule of the same evening: extend 40 m to the whole cap at once if the 85.1° S limit is hardcoded in more than one place. It was (tests and register rows), so 40 m now covers the whole cap south of 80° S (2885 tiles, 378,142,720 bytes; folder 481,730,659 bytes) and the limit is the one entry `LEVELS` in `scripts/south_cap.py`.
 - Search candidates: "Any POI and other points which you find and research yourself as well."
 - Search defaults accepted as proposed: groups water, permanent shadow and science preselected, hazards off; radius 20 km; 5° slope filter on; rank by light and comms; a POI row offers "Show" only.
 - The top view stays "not to scale"; the label stays.
