@@ -16,7 +16,8 @@ import sci_checks as sc  # noqa: E402
 import windows as geo  # noqa: E402
 from config import APP_DATA  # noqa: E402
 
-DEM = Path(os.environ.get("CLPS_DATA", "~/Documents/clps-data/clps")).expanduser() / "lola" / "LDEM_80S_20MPP_ADJ.TIF"
+# sci_checks reads raw data through config.data_root(), which needs CLPS_DATA itself (no default path)
+DEM = Path(os.environ.get("CLPS_DATA") or "/nonexistent") / "lola" / "LDEM_80S_20MPP_ADJ.TIF"
 
 
 @pytest.fixture(scope="module")
@@ -103,3 +104,46 @@ def test_ray_length_is_passed_in_without_touching_the_constant(ctx):
     # the 300 km ray has every 150 km sample except the last one (at exactly 150 km), so it is lower only there
     assert d.min() > -0.05 and d.max() > 0.1
     assert max(h150["mask_dist_km"]) <= 150.0
+
+
+def test_fill_grid_only_replaces_samples_the_dem_lacks():
+    import horizon as hz
+    from affine import Affine
+    crs = "+proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +x_0=0 +y_0=0 +R=1737400 +units=m +no_defs"
+    grid = hz.Grid(np.full((10, 10), 100.0, dtype=np.float32), Affine(1000.0, 0, -5000.0, 0, -1000.0, 5000.0))
+
+    class Flat:
+        def at(self, lat, lon):
+            assert np.all(np.asarray(lat) < -88.0)  # the grid's x/y came back as real polar coordinates
+            return np.full(np.shape(lat), 7.0)
+
+    h = sc._FillGrid(grid, crs, Flat()).sample([0.0, 2000.0, 9000.0, -30000.0], [0.0, -1000.0, 0.0, 30000.0])
+    assert h.tolist() == [100.0, 100.0, 7.0, 7.0]
+
+
+DEM60 = DEM.parent / sc.FILL_DEM60
+
+
+@pytest.mark.skipif(not (DEM.exists() and DEM60.exists()), reason="80 S and 60 S DEMs not available (set CLPS_DATA)")
+def test_dem60s_fill_completes_im1_and_never_lowers_the_skyline(ctx):
+    _, sites, _ = ctx
+    site, hor = sites["im-1"], sc.load_horizon(sites["im-1"])
+    fill = sc.make_fill("dem60s", site, 300.0)
+    filled = sc.horizon_at(site, 300.0, fill=fill)
+    assert filled["truncated"] == [] and filled["elev_m"] == hor["elev_m"]
+    d = np.array(filled["mask"]) - np.array(hor["mask"])
+    tb = sc.trunc_bins(hor)
+    assert d.min() >= 0 and np.all(d[~tb] == 0)  # more samples can only raise it, and only where it was cut
+    # where both DEMs have data they describe the same ground (same product family, 120 m against 160 m means)
+    import rasterio
+
+    import horizon as hz
+    with rasterio.open(DEM) as ds:
+        _, far, crs = hz.load_grids(ds, site["lat"], site["lon"], 300.0)
+    rng = np.random.default_rng(0)
+    x, y = rng.uniform(-250e3, 250e3, 3000), rng.uniform(50e3, 290e3, 3000)
+    a = far.sample(x, y)
+    lon, lat = sc._FillGrid(far, crs, fill).to_ll.transform(x, y)
+    b = fill.at(lat, lon)
+    ok = np.isfinite(a) & np.isfinite(b)
+    assert ok.sum() > 1000 and np.corrcoef(a[ok], b[ok])[0, 1] > 0.999 and abs(np.mean(a[ok] - b[ok])) < 5.0
