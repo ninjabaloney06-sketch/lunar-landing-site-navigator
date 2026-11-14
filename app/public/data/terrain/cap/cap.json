@@ -39,13 +39,13 @@
  "outer": {
   "file": "outer.bin",
   "spacing_m": 1920.0,
-  "width": 640,
-  "height": 640,
-  "x0_m": -614400.0,
-  "y0_m": 614400.0,
+  "width": 768,
+  "height": 768,
+  "x0_m": -737280.0,
+  "y0_m": 737280.0,
   "height_scale_m": 0.5,
   "resampling": "16 x 16 block means of the 120 m DEM",
-  "bytes": 819200,
+  "bytes": 1179648,
   "source": {
    "file": "LDEM_60S_120MPP_ADJ.TIF",
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF",
@@ -455,7 +455,7 @@
  ],
  "measured": {
   "note": "sizes and time measured by this run",
-  "generation_seconds": 34.0,
-  "total_bytes": 197984768
+  "generation_seconds": 27.9,
+  "total_bytes": 198345216
  }
 }
