@@ -41,13 +41,23 @@ export interface FreeCamHost {
 }
 
 const STEP = 0.128 // ln of the zoom factor per wheel notch: one notch covers 12 % of the distance to the surface
-const SMOOTH = 0.3 // share of the pending wheel input applied per frame
+/**
+ * Time constant (ms) of every eased input: the wheel, the pinch, the middle-drag and (through index.ts) the
+ * orbit drag all apply the share 1 − e^(−dt/RESPONSE_MS) of what is still pending in a frame of dt ms. At 60
+ * frames per second that is the 0.1 per frame the orbit drag already had; the same on a 120 Hz or a slow screen.
+ */
+export const RESPONSE_MS = 160
+export const easeShare = (dtMs: number) => (dtMs > 0 ? 1 - Math.exp(-dtMs / RESPONSE_MS) : 0)
+const ZOOM_REST = 1e-4 // ln of the zoom factor below which the rest lands at once (0.01 % of the distance)
+const LOOK_REST = 0.05 // same for the look-around, px
 const POLE_LIMIT = 0.9998 // |cos| of the angle between the view and the up axis: 1.1° from straight up or down
 const MIN_AHEAD = 1e-3 // the orbit target stays at least this far in front of the camera
 
 export interface FreeCam {
-  /** Applies pending wheel input; call once per frame. True when the camera changed. */
-  step(): boolean
+  /** Applies the eased share of the pending input for a frame of dtMs; call once per frame. True when the camera changed. */
+  step(dtMs: number): boolean
+  /** Easing on or off. Off (test mode): every input lands whole in the frame of its event. */
+  setSmooth(on: boolean): void
   /** Test and API entry: factor > 1 = closer or narrower. */
   zoomBy(factor: number): void
   lookBy(dxPx: number, dyPx: number): void
@@ -56,7 +66,10 @@ export interface FreeCam {
 
 export function installFreeCam(host: FreeCamHost): FreeCam {
   const { canvas } = host
+  let smooth = !host.testMode
   let pending = 0 // ln of the zoom factor still to apply
+  const turn = { x: 0, y: 0 } // look-around still to apply, px
+  let repivot = false // a look-around ended: set the orbit pivot once the view has come to rest
   let look: { id: number; x: number; y: number } | null = null
   const touches = new Map<number, { x: number; y: number }>()
   let pinch = 0 // finger distance at the last pinch event, px
@@ -131,29 +144,61 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
     if (r.mode === 'zoom' ? zoom(r, factor) : dolly(r, factor)) host.changed()
   }
 
-  function step() {
-    if (pending === 0) return false
-    const take = Math.abs(pending) < 0.01 ? pending : pending * SMOOTH
-    pending -= take
+  /** Wheel, pinch: eased when smooth, whole in the frame of the event otherwise. */
+  function queueZoom(lnFactor: number) {
+    pending += lnFactor
+    if (smooth) return host.changed()
+    const all = pending
+    pending = 0
+    zoomBy(Math.exp(all))
+  }
+
+  /** Orbit around what is now in the middle of the view, when that is a surface. */
+  function setPivot() {
     const r = host.rig()
-    if (!r) {
-      pending = 0
-      return false
+    const p = r?.pivot()
+    if (!r || !p) return
+    const keep = r.cam.position.clone()
+    r.ctl.target.copy(p)
+    r.ctl.update()
+    r.cam.position.copy(keep)
+    host.changed()
+  }
+
+  function step(dtMs: number) {
+    const share = easeShare(dtMs)
+    let moved = false
+    if (pending !== 0 && share > 0) {
+      const r = host.rig()
+      const take = Math.abs(pending) < ZOOM_REST ? pending : pending * share
+      pending -= take
+      // At a limit (or with no camera to move) the rest is dropped, so the opposite direction answers at once.
+      if (r && (r.mode === 'zoom' ? zoom(r, Math.exp(take)) : dolly(r, Math.exp(take)))) moved = true
+      else pending = 0
     }
-    return r.mode === 'zoom' ? zoom(r, Math.exp(take)) : dolly(r, Math.exp(take))
+    if ((turn.x !== 0 || turn.y !== 0) && share > 0) {
+      const rest = Math.hypot(turn.x, turn.y) < LOOK_REST
+      const dx = rest ? turn.x : turn.x * share
+      const dy = rest ? turn.y : turn.y * share
+      turn.x -= dx
+      turn.y -= dy
+      if (host.rig()) {
+        lookBy(dx, dy)
+        moved = true
+      } else turn.x = turn.y = 0
+    }
+    if (repivot && !look && turn.x === 0 && turn.y === 0) {
+      repivot = false
+      setPivot()
+    }
+    return moved
   }
 
   const onWheel = (e: WheelEvent) => {
     e.preventDefault()
     if (!host.rig()) return
     const notches = MathUtils.clamp(e.deltaMode === 1 ? e.deltaY / 3 : e.deltaY / 100, -4, 4)
-    pending -= notches * STEP // wheel up = closer
-    // Test mode has no easing: the whole step lands in the frame of the event.
-    if (host.testMode) {
-      const all = pending
-      pending = 0
-      zoomBy(Math.exp(all))
-    } else host.changed()
+    queueZoom(-notches * STEP) // wheel up = closer
   }
 
   const fingerGap = () => {
@@ -180,12 +225,17 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
       if (touches.size !== 2 || pinch <= 0) return
       const gap = fingerGap()
-      if (gap > 0) zoomBy(gap / pinch) // fingers apart = closer
+      if (gap > 0) queueZoom(Math.log(gap / pinch)) // fingers apart = closer
       pinch = gap
       return
     }
     if (!look || e.pointerId !== look.id) return
-    lookBy(e.clientX - look.x, e.clientY - look.y)
+    if (smooth) {
+      // The view follows the pointer with the same easing as the orbit drag and comes to rest after the release.
+      turn.x += e.clientX - look.x
+      turn.y += e.clientY - look.y
+      host.changed()
+    } else lookBy(e.clientX - look.x, e.clientY - look.y)
     look.x = e.clientX
     look.y = e.clientY
   }
@@ -198,16 +248,10 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
     }
     if (!look || e.pointerId !== look.id) return
     look = null
-    // Orbit around what is now in the middle of the view, when that is a surface.
-    const r = host.rig()
-    const p = r?.pivot()
-    if (r && p) {
-      const keep = r.cam.position.clone()
-      r.ctl.target.copy(p)
-      r.ctl.update()
-      r.cam.position.copy(keep)
+    if (smooth) {
+      repivot = true
       host.changed()
-    }
+    } else setPivot()
   }
 
   const stop = (e: Event) => e.preventDefault()
@@ -227,6 +271,10 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
 
   return {
     step,
+    setSmooth(on) {
+      smooth = on
+      pending = turn.x = turn.y = 0
+    },
     zoomBy,
     lookBy,
     dispose() {

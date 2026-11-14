@@ -16,3 +16,7 @@ Viewpoints (Brief C4 part 2): handle.goTo('moon'|'start'|'end'|'earth'|'sun'|'to
 (true direction and angular size from the camera's position, 5.5 radii out); 'top' is topview.ts, not to scale.
 User points (part 3): handle.setMarkers(points): square-headed pins on the globe, and in the site scene where the 80 m
 tile has terrain under them. handle.named() gives the hovered or tapped pin's name; handle.onMenu the right-click.
+Easing (scene track, 14 Nov): the orbit drag, the middle-drag, the wheel and the pinch all apply the share
+1 − e^(−dt/160 ms) of what is pending per frame (controls.ts RESPONSE_MS), so they ease alike at any frame rate and
+come to rest after the release. In test mode nothing eases and the animation clock stands still;
+__scene.setAnimated(true) turns the easing on and __scene.advance(ms) is one frame (e2e/scene-motion.spec.ts).

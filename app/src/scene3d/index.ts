@@ -24,7 +24,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
 import { loadTextures } from './assets'
-import { installFreeCam, type Rig } from './controls'
+import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
 import { GlobeWorld } from './globe'
@@ -146,6 +146,7 @@ const BODY_FRAME = 5.5 // Earth and Sun viewpoints: camera this many body radii 
 const POINT_ABOVE_KM = GLOBE_DIST_KM.min // a point outside the terrain tile is looked at from this far from the Moon's centre
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
 const FLY_MS = 1500
+const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
 
@@ -166,6 +167,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   const params = new URLSearchParams(window.location.search)
   const testMode = params.has('test')
   const debug = params.has('debug')
+  // Easing (input smoothing, flights). Off in test mode, where every change lands in the frame that asks for it;
+  // a test turns it on through the debug API and then steps the clock itself.
+  let animated = !testMode
+  // The animation clock: the wall clock, except in test mode, where it stands still until debug.advance(ms).
+  let clockMs = 0
+  const nowMs = () => (testMode ? clockMs : performance.now())
 
   const renderer = new WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
@@ -190,8 +197,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   const globeControls = new OrbitControls(globeCam, canvas)
   for (const c of [siteControls, globeControls]) {
     c.enablePan = false
-    c.enableDamping = !testMode
-    c.dampingFactor = 0.1
+    c.enableDamping = animated
+    c.dampingFactor = 0.1 // replaced every frame by the share for that frame's length (tick)
     // OrbitControls keeps the left drag and the one-finger drag only. Middle, right, wheel and pinch belong
     // to controls.ts and the viewpoint menu (three 0.170: a null action leaves the control idle).
     c.enableZoom = false
@@ -578,7 +585,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void, cam: PerspectiveCamera = globeCam, k = 1) {
-    fly = { cam, t0: performance.now(), p0, q0, p1, q1, k, done }
+    fly = { cam, t0: nowMs(), p0, q0, p1, q1, k, done }
     setControls()
     markDirty()
   }
@@ -588,7 +595,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * above it, facing the way it came. A camera move only: the site, the sky directions and every number stay
    * those of the landing site.
    */
-  function walkTo(x: number, y: number, animate = !testMode, faceSite = false): boolean {
+  function walkTo(x: number, y: number, animate = animated, faceSite = false): boolean {
     if (!frame?.site || fly || level === 'globe') return false
     if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
     const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
@@ -670,7 +677,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     notifyCamera()
   }
 
-  function goTo(v: Viewpoint, animate = !testMode): boolean {
+  function goTo(v: Viewpoint, animate = animated): boolean {
     if (!frame || !sky || !globe || fly) return false
     const state = frame.state
     if (v === 'start' || v === 'end') {
@@ -710,7 +717,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return true
   }
 
-  function setLevel(next: SceneLevel, animate = !testMode) {
+  function setLevel(next: SceneLevel, animate = animated) {
     // C2 may ask for 'site' before the first frame or while a fly runs: remember it and apply it then.
     if ((!frame?.site && next !== 'globe') || fly) {
       wanted = next
@@ -919,14 +926,23 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     container.appendChild(fpsEl)
   }
 
+  /** One frame of every animation, dtMs after the previous one. */
+  function tick(dtMs: number) {
+    if (fly) stepFly(nowMs())
+    if (freeCam.step(dtMs)) markDirty()
+    const ctl = inSpace() ? globeControls : siteControls
+    // The orbit drag eases with the same time constant as the wheel and the look-around, whatever the frame rate.
+    ctl.dampingFactor = easeShare(dtMs)
+    if (ctl.update()) markDirty()
+    if (!fly && keepAboveGround()) markDirty()
+  }
+
+  let lastMs = performance.now()
   function loop(now: number) {
     if (disposed) return
     raf = requestAnimationFrame(loop)
-    if (fly) stepFly(now)
-    if (freeCam.step()) markDirty()
-    const moved = (inSpace() ? globeControls : siteControls).update()
-    if (moved) markDirty()
-    if (!fly && keepAboveGround()) markDirty()
+    tick(testMode ? 0 : Math.min(Math.max(now - lastMs, 0), MAX_FRAME_MS))
+    lastMs = now
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
@@ -1173,6 +1189,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }),
       surfaceDist: () => (top && topView ? topView.clearance() : (inSpace() ? globeRig : siteRig).surface(activeCam().position)),
       goTo: (v) => goTo(v, false),
+      handle: () => handle,
+      setAnimated(on) {
+        animated = on
+        siteControls.enableDamping = globeControls.enableDamping = on
+        freeCam.setSmooth(on)
+      },
+      advance(ms) {
+        clockMs += ms
+        tick(ms)
+        render()
+        notifyCamera()
+        dirty = false
+      },
+      flying: () => fly !== null,
       topView: () => top,
       named,
       surfaceAt(x, y) {

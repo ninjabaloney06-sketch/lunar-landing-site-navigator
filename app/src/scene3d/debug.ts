@@ -7,7 +7,7 @@
 //   utc:   ISO string or Unix ms. fov: vertical, degrees. texture: 'checker' (T16) | 'real'.
 
 import type { Site } from '../data/types'
-import type { SceneDeps, SceneFrame, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
+import type { SceneDeps, SceneFrame, SceneHandle, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
 import type { Vector3 } from 'three'
 
 export interface DebugView {
@@ -38,6 +38,10 @@ export interface DebugView {
   surfaceDist(): number
   terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
   goTo(v: Viewpoint): boolean
+  handle(): SceneHandle
+  setAnimated(on: boolean): void
+  advance(ms: number): void
+  flying(): boolean
   topView(): boolean
   named(): SceneName | null
   surfaceAt(x: number, y: number): { lat: number; lon: number } | null
@@ -117,6 +121,13 @@ export function installDebug(v: DebugView) {
       await nextFrame()
       return ok
     },
+    // The handle the app gets, for tests of its members (setPois, project, labelPoint, ...).
+    handle: () => v.handle(),
+    // Animations in test mode: setAnimated(true) turns the easing on (input smoothing, flights, light), with a
+    // clock that only advance(ms) moves, one frame per call. setLevel through the handle then flies.
+    setAnimated: (on: boolean) => v.setAnimated(on),
+    advance: (ms: number) => v.advance(ms),
+    flying: () => v.flying(),
     topView: () => v.topView(),
     named: () => v.named(),
     surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),
