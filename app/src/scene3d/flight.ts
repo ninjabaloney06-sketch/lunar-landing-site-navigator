@@ -3,10 +3,11 @@
 // Moon will be when the rocket arrives: at liftoff the Moon is still about 70° back along its orbit.
 //
 // Frame and units: Earth-centred J2000 axes, km, the same world as plan.geo. The Moon's centre is moonPos(t);
-// plan.seleno is relative to that centre with the same axes. Display magnification (EARTH_MAG, MOON_MAG) pushes
-// the neighbourhood of each body outwards so the parking orbit and the low lunar orbit are visible. The body
-// meshes are scaled by the preset's k: a radius below a is inside the linear part of the map, so the surface
-// lands exactly at k·R. The caller owns the camera and the render loop; everything here is in km.
+// plan.seleno is relative to that centre with the same axes. By default everything is drawn at true scale, where
+// the solver put it. The optional display magnification (EARTH_MAG, MOON_MAG) pushes the neighbourhood of each
+// body outwards so the parking orbit and the low lunar orbit can be seen from afar, at the price of bending the
+// path near the bodies. The body meshes are then scaled by the preset's k: a radius below a is inside the linear
+// part of the map, so the surface lands exactly at k·R. The caller owns the camera and the render loop.
 
 import {
   AdditiveBlending,
@@ -36,7 +37,7 @@ import {
 } from 'three'
 import { flightStateAt, sampleTrack } from '../flight/plan'
 import type { FlightPlan, Track, Vec3 } from '../flight/types'
-import { add, cross, latLonUnit, norm, qrot, scale, unit } from '../flight/vec'
+import { add, cross, latLonUnit, norm, qrot, scale, sub, unit } from '../flight/vec'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM } from '../geometry'
 import type { TextureSet } from './assets'
 import { SPHERE_TO_BODY, quat, v3 } from './frames'
@@ -336,8 +337,12 @@ export class FlightWorld {
     this.planGeos.push(orbitGeo)
     this.addPlanObject(new Line(orbitGeo, this.orbitMat), this.scene)
 
-    this.geoFlown = this.addTrack(plan.geo, em, this.scene)
-    this.moonFlown = this.addTrack(plan.seleno, mm, this.moonGroup)
+    // The Earth-centred path runs up to the Moon (an integrated flight ends at its lunar orbit insertion), so
+    // each point goes through mapGeo, which also enlarges the stretch close to the Moon when bodies are enlarged.
+    const geoBase = new Float32Array(plan.geo.p.length * 3)
+    plan.geo.p.forEach((q, i) => geoBase.set(this.mapGeo(q, plan.geo.t[i]), i * 3))
+    this.geoFlown = this.addTrack(geoBase, this.scene)
+    this.moonFlown = this.addTrack(flatten(plan.seleno.p, mm), this.moonGroup)
 
     // Where the Moon will be at lunar orbit insertion, as large as the Moon is drawn.
     setV(this.ring, magnify(ep.moonPos(plan.loiMs), em))
@@ -389,8 +394,8 @@ export class FlightWorld {
     // Rocket: frame 'earth' is Earth-centred, 'moon' is relative to the Moon's centre.
     const st = flightStateAt(p, t)
     const onMoon = st.frame === 'moon'
-    const local = magnify(st.pos, onMoon ? mm : em)
-    const world = onMoon ? add(moon, local) : local
+    const local = magnify(st.pos, mm) // used on the Moon-centred track only
+    const world = onMoon ? add(moon, local) : this.mapGeo(st.pos, t)
     setV(this.halo, world)
     this.core.position.copy(this.halo.position)
 
@@ -481,6 +486,17 @@ export class FlightWorld {
     // The Earth and Moon textures belong to the caller's TextureSet and are not disposed here.
   }
 
+  /** Display position of a point of the Earth-centred path at instant tMs. At true scale that is the point
+   *  itself. With enlarged bodies, a point close to the Moon is enlarged about where the Moon is at that instant. */
+  private mapGeo(q: Vec3, tMs: number): Vec3 {
+    const mm = this.moonMag
+    const em = this.earthMag
+    if (!mm || !this.plan || norm(q) < 250000) return magnify(q, em)
+    const moon = this.plan.ephem.moonPos(tMs)
+    const rel = sub(q, moon)
+    return norm(rel) < mm.b ? add(magnify(moon, em), magnify(rel, mm)) : magnify(q, em)
+  }
+
   /** Earth and Moon at the parked or current state; magnification follows the current mode. */
   private park() {
     this.earthGroup.scale.setScalar(this.earthMag?.k ?? 1)
@@ -498,8 +514,7 @@ export class FlightWorld {
   }
 
   /** Dim full line and bright flown line for one track, both drawn from the same magnified positions. */
-  private addTrack(track: Track, m: Magnify | null, parent: Object3D): Flown {
-    const base = flatten(track.p, m)
+  private addTrack(base: Float32Array, parent: Object3D): Flown {
     const dimGeo = new BufferGeometry().setAttribute('position', new BufferAttribute(base, 3))
     const flownArr = new Float32Array(base)
     const attr = new BufferAttribute(flownArr, 3)

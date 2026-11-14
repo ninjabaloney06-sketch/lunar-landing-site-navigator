@@ -1,4 +1,6 @@
-// Flight planner contract: Earth launchpad → lunar landing site, patched conics with impulsive burns.
+// Flight planner contract: Earth launchpad → lunar landing site with impulsive burns. The flight from the
+// trans-lunar injection to the lunar orbit insertion is integrated numerically under the gravity of Earth, the
+// Moon and the Sun (nbody.ts); a patched-conic solution (plan.ts) is the first guess that the integration refines.
 // The solver (plan.ts) knows nothing about a particular rocket or about the app's data files: a Vehicle
 // supplies the performance numbers, a FlightEphemeris supplies where the Moon is. Swap either and the same
 // solver plans the flight.
@@ -20,6 +22,8 @@ export interface FlightEphemeris {
   moonVel(utcMs: number): Vec3
   /** Unit vector Earth → Sun, J2000. */
   sunDir(utcMs: number): Vec3
+  /** Sun centre relative to Earth centre, J2000 km. */
+  sunPos(utcMs: number): Vec3
   /** Rotation that takes Earth-fixed (IAU_EARTH) vectors into J2000. */
   earthFixedToInertial(utcMs: number): Quat
   /** Rotation that takes Moon-fixed (MOON_ME) vectors into J2000. */
@@ -126,6 +130,12 @@ export interface FlightPlan {
   options: PlanOptions
   ephem: FlightEphemeris
 
+  /** 'n-body': the transfer is the integrated flight under Earth, Moon and Sun gravity, aimed by numerical
+   *  shooting. 'patched-conic': the shooting did not converge and the two-conic first guess is shown instead. */
+  model: 'n-body' | 'patched-conic'
+  /** Position and velocity (Earth-centred J2000) right after the trans-lunar injection burn. */
+  injection: { r: Vec3; v: Vec3 }
+
   launchMs: number
   tliMs: number
   soiMs: number // entry into the Moon's sphere of influence
@@ -151,9 +161,12 @@ export interface FlightPlan {
   landedMassKg: number // mass on the surface: spacecraft dry mass plus payload
 
   phases: Phase[]
-  /** Earth-centred path: ascent, parking orbit, transfer up to the Moon's sphere of influence. */
+  /** Instant at which the path passes from the Earth-centred track to the Moon-centred one: the lunar orbit
+   *  insertion for an integrated flight, the sphere-of-influence entry for the patched-conic fallback. */
+  handoverMs: number
+  /** Earth-centred path up to handoverMs: ascent, parking orbit, transfer (and, integrated, the lunar approach). */
   geo: Track
-  /** Moon-centred path (J2000 axes, origin at the moving Moon): approach, lunar orbit, descent. */
+  /** Moon-centred path from handoverMs (J2000 axes, origin at the moving Moon): lunar orbit and descent. */
   seleno: Track
 }
 

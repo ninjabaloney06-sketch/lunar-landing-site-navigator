@@ -283,9 +283,13 @@ export function FlightPanel(p: FlightPanelProps) {
           <span>True scale</span>
         </label>
         <p className="quiet flight-foot">
-          Otherwise Earth (3×), the Moon (4×) and the orbits close to them are drawn enlarged so they can be seen; beyond 60,000 km
-          from Earth and 30,000 km from the Moon the path is drawn true. The path near the Moon is relative to the Moon and
-          travels with it; the ring marks where the Moon will be at arrival. Times and Δv are not affected.
+          At true scale Earth is one sixtieth of the way to the Moon: use Look at Earth, Moon or Rocket under the playback bar, or
+          zoom, to see the parking orbit and the lunar orbit. Unticked, Earth (3×), the Moon (4×) and the orbits close to them are
+          drawn enlarged, which bends the drawn path near them. Times and Δv are the same either way.
+        </p>
+        <p className="quiet flight-foot">
+          The line from Earth is the path in space, ending where the rocket enters lunar orbit; the ring marks where the Moon will be
+          then. The lunar orbit and the descent are drawn around the Moon and travel with it.
         </p>
       </section>
 
@@ -293,17 +297,24 @@ export function FlightPanel(p: FlightPanelProps) {
         <h3 id={`${uid}-how`} className="mp-h">
           How this is computed
         </h3>
+        {plan?.model === 'patched-conic' ? (
+          <p className="menu-msg is-error flight-model" role="status">
+            The numerical aiming did not converge for this flight. Shown instead: the two-conic first guess (an ellipse around Earth
+            joined to a hyperbola around the Moon), which is good to a few hours near the Moon.
+          </p>
+        ) : null}
         <p className="quiet">
-          Patched conics with impulsive burns: a parking orbit in the plane through the launchpad and the Moon's position at arrival, a
-          tangent transfer ellipse, a hyperbolic approach inside the Moon's sphere of influence (66,183 km), a circular lunar orbit whose
-          plane passes over the landing site, and a descent from a {pdiAltKm} km periapsis. The launch time within the day is searched for
-          the smallest total Δv. Not modelled: finite burn losses in space, mid-course corrections, lunar orbit phasing costs, low-energy
-          transfers of several months.
+          The flight from the injection burn to the lunar orbit is integrated numerically under the gravity of Earth, the Moon and
+          the Sun, with the Moon and Sun where the JPL DE440 ephemeris puts them. A two-conic solution gives the first guess: a
+          parking orbit in the plane through the launchpad and the Moon's position at arrival, and the launch time within the day
+          with the smallest total Δv. The size of the injection burn and the launch azimuth are then corrected until the integrated
+          flight has its closest approach to the Moon at {plan ? plan.options.lloAltKm : DEFAULT_OPTIONS.lloAltKm} km, in a plane that passes over
+          the landing site. The lunar orbit is circular; the descent starts from a {pdiAltKm} km periapsis.
         </p>
         <p className="quiet">
-          Planning estimate, not validated flight dynamics. Checked for the default mission (touchdown 16 Aug 2027) against a numerical
-          integration under Earth's and the Moon's gravity together: the planned injection reaches the Moon, about 3.6 hours earlier
-          than estimated here. Treat times near the Moon as good to a few hours.
+          Burns are instantaneous. Not modelled: Earth's oblateness, the Moon's uneven gravity, the ascent and the powered descent
+          in detail (their Δv is an estimate with an assumed loss), the cost of phasing in lunar orbit, low-energy transfers of
+          several months. Planning estimate, not validated flight dynamics.
         </p>
         <ul className="plain flight-sources">
           {vehicle?.sources.map((s) => (

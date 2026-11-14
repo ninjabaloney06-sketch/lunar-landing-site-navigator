@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FlightPlan } from '../flight/types'
 import { mountScene } from '../scene3d'
-import type { FlightAnchor, SceneDeps, SceneHandle, SceneLevel, ScreenPoint } from '../scene3d'
+import type { FlightAnchor, FlightFocus, SceneDeps, SceneHandle, SceneLevel, ScreenPoint } from '../scene3d'
 import { fmtDeg } from './format'
 
 /** What the flight level draws. `clock` is read on every animation frame, so playback never re-renders React. */
@@ -13,6 +13,7 @@ export interface FlightScene {
   plan: FlightPlan | null
   trueScale: boolean
   clock: { timeMs: number }
+  focus: FlightFocus // what the camera turns about and follows
   viewKey: number // changes when the default flight view is asked for again
 }
 
@@ -67,6 +68,7 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
     }
     handle.current = h
     h.setFlight(flightRef.current.plan, flightRef.current.trueScale)
+    h.setFlightFocus(flightRef.current.focus)
     const offPick = h.onPick((lat, lon) => pick.current(lat, lon))
     let raf = 0
     const tick = () => {
@@ -93,6 +95,10 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, flight, o
   useEffect(() => {
     handle.current?.setFlight(flight.plan, flight.trueScale)
   }, [flight.plan, flight.trueScale])
+
+  useEffect(() => {
+    handle.current?.setFlightFocus(flight.focus)
+  }, [flight.focus])
 
   const viewKey = useRef(flight.viewKey)
   useEffect(() => {

@@ -33,6 +33,10 @@ export function makeFlightEphemeris(months: EphemMonth[]): FlightEphemeris {
       const s = at(utcMs)
       return unit(qrot(s.q_me_to_j2000, sub(s.sun_km, s.earth_km)))
     },
+    sunPos: (utcMs) => {
+      const s = at(utcMs)
+      return qrot(s.q_me_to_j2000, sub(s.sun_km, s.earth_km))
+    },
     earthFixedToInertial: (utcMs) => {
       const s = at(utcMs)
       return qmul(s.q_me_to_j2000, s.q_earth_to_me)

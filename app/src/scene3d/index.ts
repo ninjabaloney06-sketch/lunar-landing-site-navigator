@@ -33,6 +33,8 @@ import { SiteWorld } from './site'
 import { Sky } from './sky'
 
 export type SceneLevel = 'globe' | 'site' | 'eye' | 'flight'
+/** What the flight camera turns about: the whole transfer, or a body or the rocket, which it then follows. */
+export type FlightFocus = 'overview' | 'earth' | 'moon' | 'rocket'
 export type { FlightAnchor } from './flight'
 
 export interface SceneFrame {
@@ -67,6 +69,7 @@ export interface SceneHandle {
   projectFlight(name: FlightAnchor): ScreenPoint | null
   /** Back to the default flight view (the whole transfer). */
   resetFlightView(): void
+  setFlightFocus(focus: FlightFocus): void
   dispose(): void
 }
 
@@ -98,6 +101,9 @@ const FLIGHT = {
   minDistKm: 2500,
   maxDistKm: 3e6,
   reframeCos: 0.9986, // re-frame when the transfer plane has turned by more than 3 deg
+  // Camera distance when a focus is chosen: Earth with its parking orbit, the Moon with its 100 km orbit, the
+  // rocket with enough of its path to see where it is going.
+  focusKm: { earth: 42000, moon: 13000, rocket: 30000 },
 }
 const AU_KM = 149_597_870.7
 const ORIGIN = new Vector3()
@@ -164,6 +170,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let flightTrueScale = false
   let flightMs = 0
   let flightFramed: Vector3 | null = null // transfer-plane normal the flight camera was last framed for
+  let flightFocus: FlightFocus = 'overview'
+  const focusAt = new Vector3() // where the followed object was when the camera last moved with it
   const site = new SiteWorld()
   let siteKm = new Vector3()
   let enuToMe = new Quaternion()
@@ -410,6 +418,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     const vf = flight.viewFrame()
     if (level === 'flight' && vf && (!flightFramed || flightFramed.dot(vf.normal) < FLIGHT.reframeCos)) setFlightView()
+    if (flightFocus !== 'overview') setFlightFocus(flightFocus) // the followed object is somewhere else now
     markDirty()
   }
 
@@ -417,7 +426,39 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (utcMs === flightMs) return
     flightMs = utcMs
     flight?.setTime(utcMs)
+    followFocus()
     if (level === 'flight') markDirty()
+  }
+
+  /** Turns the camera about a body or the rocket, from the direction it is looking from now. */
+  function setFlightFocus(focus: FlightFocus) {
+    flightFocus = focus
+    if (focus === 'overview') {
+      setFlightView()
+      return
+    }
+    if (!flightControls) setFlightView()
+    const p = flight?.anchor(focus)
+    if (!p || !flightControls) return
+    const dir = flightCam.position.clone().sub(flightControls.target).normalize()
+    flightControls.target.copy(p)
+    flightCam.position.copy(p).addScaledVector(dir, FLIGHT.focusKm[focus])
+    flightCam.lookAt(p)
+    flightControls.update()
+    focusAt.copy(p)
+    markDirty()
+  }
+
+  /** Moves camera and target along with the followed object, so the user's own turning and zooming stay. */
+  function followFocus() {
+    if (flightFocus === 'overview' || !flight || !flightControls) return
+    const p = flight.anchor(flightFocus)
+    if (!p) return
+    const d = p.clone().sub(focusAt)
+    if (d.lengthSq() === 0) return
+    flightCam.position.add(d)
+    flightControls.target.add(d)
+    focusAt.copy(p)
   }
 
   /** True when the sphere blocks the segment from `from` to `to`. */
@@ -708,7 +749,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     setFlight,
     setFlightTime,
     projectFlight,
-    resetFlightView: setFlightView,
+    resetFlightView: () => setFlightFocus('overview'),
+    setFlightFocus,
     dispose() {
       disposed = true
       cancelAnimationFrame(raf)

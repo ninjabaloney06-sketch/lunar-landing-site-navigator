@@ -12,6 +12,7 @@ import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
 import type { LandingTarget } from './flight/types'
 import { DEFAULT_VEHICLE_ID, VEHICLES } from './flight/vehicles'
 import { webglAvailable } from './scene3d'
+import type { FlightFocus } from './scene3d'
 import {
   cleanName,
   COVERAGE_END_MS,
@@ -81,6 +82,12 @@ const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
+const FLIGHT_FOCUS: { id: FlightFocus; label: string }[] = [
+  { id: 'overview', label: 'Whole flight' },
+  { id: 'earth', label: 'Earth' },
+  { id: 'moon', label: 'Moon' },
+  { id: 'rocket', label: 'Rocket' },
+]
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -168,11 +175,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const vehicle = VEHICLES.find((x) => x.id === hs.rocket) ?? VEHICLES.find((x) => x.id === DEFAULT_VEHICLE_ID) ?? VEHICLES[0]
   const target: LandingTarget = useMemo(() => ({ id: site.id, name: site.name, latDeg: site.lat, lonDeg: site.lon }), [site])
   const flight = useFlight({ active: inFlight, pad, vehicle, target, landingMs: period.startMs, maxTransferDays: hs.tmax })
-  const [trueScale, setTrueScale] = useState(false)
+  const [trueScale, setTrueScale] = useState(true)
+  const [flightFocus, setFlightFocus] = useState<FlightFocus>('overview')
   const [flightViewKey, setFlightViewKey] = useState(0)
   const flightScene: FlightScene = useMemo(
-    () => ({ plan: flight.plan, trueScale, clock: flight.clock, viewKey: flightViewKey }),
-    [flight.plan, flight.clock, trueScale, flightViewKey],
+    () => ({ plan: flight.plan, trueScale, clock: flight.clock, focus: flightFocus, viewKey: flightViewKey }),
+    [flight.plan, flight.clock, trueScale, flightFocus, flightViewKey],
   )
 
   const deps = useMemo(() => ({ sites, loadFrame: makeLoadFrame(sites) }), [sites])
@@ -483,11 +491,25 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
           <footer className="foot">
-            <p>
-              Patched conics, impulsive burns · ephemeris JPL DE440 · drag to turn, scroll to zoom ·{' '}
-              <button type="button" className="link" onClick={() => setFlightViewKey((k) => k + 1)}>
-                reset view
-              </button>
+            <p className="flight-focus">
+              <span>Look at</span>
+              {FLIGHT_FOCUS.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="link"
+                  data-testid={`focus-${f.id}`}
+                  aria-pressed={flightFocus === f.id}
+                  onClick={() => {
+                    // "Whole flight" again while it is already chosen puts the camera back where it started.
+                    if (f.id === 'overview' && flightFocus === 'overview') setFlightViewKey((k) => k + 1)
+                    setFlightFocus(f.id)
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+              <span>· drag to turn, scroll to zoom · gravity of Earth, Moon and Sun, ephemeris JPL DE440</span>
             </p>
             <p className="foot-sample" data-testid="flight-flag">
               Planning estimate — not validated

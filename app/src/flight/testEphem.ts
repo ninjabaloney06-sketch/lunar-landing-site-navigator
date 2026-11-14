@@ -39,6 +39,7 @@ export function circularEphemeris(opts: { inclDeg?: number; phaseDeg?: number; e
       return [-w * Math.sin(th), w * Math.cos(th) * ci, w * Math.cos(th) * si]
     },
     sunDir: () => [1, 0, 0],
+    sunPos: () => [149597870.7, 0, 0],
     earthFixedToInertial(utcMs: number): Quat {
       return axisQuat(2, (OMEGA_EARTH * (utcMs - epoch)) / 1000)
     },

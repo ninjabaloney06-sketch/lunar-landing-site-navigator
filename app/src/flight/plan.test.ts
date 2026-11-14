@@ -74,16 +74,21 @@ describe('planFlight: default plan', () => {
     expect(Math.abs(plan.launchAzimuthDeg - 90)).toBeLessThan(12)
   })
 
-  it('tracks are strictly increasing and join at SOI', () => {
+  it('the transfer is the integrated flight, aimed by shooting', () => {
+    expect(plan.model).toBe('n-body')
+    expect(plan.handoverMs).toBe(plan.loiMs)
+  })
+
+  it('tracks are strictly increasing and join at the handover', () => {
     for (const tr of [plan.geo, plan.seleno]) {
       for (let i = 1; i < tr.t.length; i++) expect(tr.t[i]).toBeGreaterThan(tr.t[i - 1])
     }
     expect(plan.geo.t[0]).toBe(plan.launchMs)
     expect(Math.abs(norm(plan.geo.p[0]) - R_EARTH_EQ)).toBeLessThan(1)
     const lastGeo = plan.geo.t.length - 1
-    expect(plan.geo.t[lastGeo]).toBe(plan.soiMs)
-    expect(plan.seleno.t[0]).toBe(plan.soiMs)
-    const gap = norm(sub(plan.geo.p[lastGeo], add(ephem.moonPos(plan.soiMs), plan.seleno.p[0])))
+    expect(plan.geo.t[lastGeo]).toBe(plan.handoverMs)
+    expect(plan.seleno.t[0]).toBe(plan.handoverMs)
+    const gap = norm(sub(plan.geo.p[lastGeo], add(ephem.moonPos(plan.handoverMs), plan.seleno.p[0])))
     expect(gap).toBeLessThan(1)
   })
 

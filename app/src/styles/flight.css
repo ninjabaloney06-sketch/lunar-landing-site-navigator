@@ -72,6 +72,18 @@
   padding-bottom: var(--s-4);
 }
 
+/* Camera focus choices in the footer line: plain text buttons, the chosen one in the text colour. */
+.flight-focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-3);
+}
+
+.flight-focus .link[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
 /* The playback bar replaces the timeline; the scene stays draggable above it. */
 .flight-bottom {
   padding-top: var(--s-10);

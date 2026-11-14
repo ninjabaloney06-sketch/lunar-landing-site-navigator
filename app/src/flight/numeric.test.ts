@@ -1,14 +1,16 @@
-// Independent checks of the flight planner against numerical integration (RK4), which shares no code with
-// the closed-form Kepler functions in astro.ts, and against the app's real DE440 ephemeris files.
+// Independent checks of the flight planner against a fixed-step RK4 integrator written here, which shares no
+// code with the closed-form Kepler functions in astro.ts nor with the adaptive integrator in nbody.ts, and
+// against the app's real DE440 ephemeris files.
 //   1. Two-body: the ellipse and hyperbola time/position formulas reproduce an integrated orbit.
 //   2. Real ephemeris: the default mission's plan is self-consistent and physically plausible.
-//   3. Model error: the planned TLI state, integrated under Earth's and the Moon's gravity together, shows how
-//      far a patched-conic plan is from a flyable trajectory (it is a planning estimate; the number is logged).
+//   3. The planned injection, integrated here under Earth, Moon and Sun gravity read straight from the
+//      ephemeris, arrives at the planned perilune: right altitude, right instant, a plane over the landing site.
 import { describe, expect, it } from 'vitest'
 import aug2027 from '../../public/data/ephem/2027-08.json?raw'
 import sep2027 from '../../public/data/ephem/2027-09.json?raw'
 import type { EphemMonth } from '../data/types'
-import { MU_EARTH, MU_MOON, R_EARTH_EQ, R_MOON, SOI_MOON, circularSpeed, ellipse, hyperbola, hyperbolicTimeFromPeriapsis, perifocal, timeFromPeriapsis } from './astro'
+import { MU_EARTH, MU_MOON, R_EARTH_EQ, R_MOON, SOI_MOON, ellipse, hyperbola, hyperbolicTimeFromPeriapsis, perifocal, timeFromPeriapsis } from './astro'
+import { MU_SUN } from './nbody'
 import { makeFlightEphemeris } from './ephemeris'
 import { LAUNCHPADS } from './pads'
 import { planFlight, sampleTrack } from './plan'
@@ -104,19 +106,20 @@ describe('default mission on the real DE440 ephemeris', () => {
   it('burns are in the textbook range for a minimum-energy direct transfer', () => {
     expect(dv('tli')).toBeGreaterThan(3.1)
     expect(dv('tli')).toBeLessThan(3.16)
+    expect(plan.model).toBe('n-body')
     expect(dv('loi')).toBeGreaterThan(0.75)
     expect(dv('loi')).toBeLessThan(1.0)
     expect(plan.transferDays).toBeGreaterThan(4.2)
     expect(plan.transferDays).toBeLessThan(5.5)
     expect(plan.loiterH).toBeGreaterThanOrEqual(4)
-    expect(plan.loiterH).toBeLessThanOrEqual(28)
+    expect(plan.loiterH).toBeLessThanOrEqual(34)
     expect(plan.landingMs).toBe(landingMs)
   })
 
   it('launch is as close to due east as the Moon allows', () => {
     const bound = Math.max(pad.latDeg, Math.abs(plan.moonDeclDeg))
     expect(plan.parkingInclDeg).toBeGreaterThan(bound - 0.05)
-    expect(plan.parkingInclDeg).toBeLessThan(bound + 2)
+    expect(plan.parkingInclDeg).toBeLessThan(bound + 3)
   })
 
   it('the pad is under the parking orbit at liftoff and the path is continuous', () => {
@@ -128,7 +131,7 @@ describe('default mission on the real DE440 ephemeris', () => {
     const b = sampleTrack(plan.geo, plan.tliMs)!
     expect(Math.abs(dot(unit(cross(a, b)), unit(padNow)))).toBeLessThan(1e-3)
     const end = plan.geo.p[plan.geo.p.length - 1]
-    const start = add(ephem.moonPos(plan.soiMs), plan.seleno.p[0])
+    const start = add(ephem.moonPos(plan.handoverMs), plan.seleno.p[0])
     expect(norm(sub(end, start))).toBeLessThan(1)
     // no jump larger than the local step anywhere on either track
     for (const tr of [plan.geo, plan.seleno]) {
@@ -139,15 +142,12 @@ describe('default mission on the real DE440 ephemeris', () => {
     }
   })
 
-  it('velocity is continuous in direction across the sphere-of-influence patch', () => {
-    // Direction of the last geocentric step relative to the Moon against the first Moon-centred step.
+  it('the flight arrives tangent to the lunar orbit: no corner where the Moon-centred track takes over', () => {
+    // Direction of the last integrated step relative to the Moon against the first step of the lunar orbit.
     const n = plan.geo.p.length
-    const t0 = plan.geo.t[n - 2]
-    const relBefore = sub(plan.geo.p[n - 2], ephem.moonPos(t0))
-    const relAt = plan.seleno.p[0]
-    const before = unit(sub(relAt, relBefore))
+    const before = unit(sub(sub(plan.geo.p[n - 1], ephem.moonPos(plan.geo.t[n - 1])), sub(plan.geo.p[n - 2], ephem.moonPos(plan.geo.t[n - 2]))))
     const after = unit(sub(plan.seleno.p[1], plan.seleno.p[0]))
-    expect(Math.acos(Math.min(1, dot(before, after))) / DEG).toBeLessThan(6)
+    expect(Math.acos(Math.min(1, dot(before, after))) / DEG).toBeLessThan(4)
   })
 
   it('touchdown is on the landing site and the lunar orbit passes over it', () => {
@@ -158,41 +158,53 @@ describe('default mission on the real DE440 ephemeris', () => {
     expect(plan.lunarInclDeg).toBeLessThan(91)
   })
 
-  it('model error: Earth and Moon gravity together carry the planned TLI state to the Moon', () => {
-    const r0 = sampleTrack(plan.geo, plan.tliMs)!
-    const h = unit(cross(sampleTrack(plan.geo, plan.tliMs - 60_000)!, r0))
-    const v0 = scale(cross(h, unit(r0)), circularSpeed(MU_EARTH, norm(r0)) + dv('tli'))
-    const acc: Accel = (r, tS) => {
-      const m = ephem.moonPos(plan.tliMs + tS * 1000)
-      const d = sub(r, m)
-      // Earth-centred frame: Earth's pull, the Moon's pull on the craft, minus the Moon's pull on Earth
-      return add(scale(r, -MU_EARTH / norm(r) ** 3), add(scale(d, -MU_MOON / norm(d) ** 3), scale(m, -MU_MOON / norm(m) ** 3)))
+  it('an independent RK4 integration of the planned injection reaches the planned perilune', () => {
+    const third = (r: Vec3, body: Vec3, mu: number) => {
+      const d = sub(r, body)
+      return add(scale(d, -mu / norm(d) ** 3), scale(body, -mu / norm(body) ** 3))
     }
-    let s: State = { r: r0, v: v0 }
+    const acc: Accel = (r, tS) => {
+      const t = plan.tliMs + tS * 1000
+      return add(scale(r, -MU_EARTH / norm(r) ** 3), add(third(r, ephem.moonPos(t), MU_MOON), third(r, ephem.sunPos(t), MU_SUN)))
+    }
+    let s: State = { r: plan.injection.r, v: plan.injection.v }
     let closest = Infinity
     let tClosest = 0
-    const step = 20
-    const total = (plan.loiMs - plan.tliMs) / 1000 + 86400
-    for (let t = 0; t < total; t += step) {
+    let atClosest: State = s
+    const total = (plan.loiMs - plan.tliMs) / 1000 + 3600
+    // 5 s steps near Earth and near the Moon, 30 s in between
+    for (let t = 0; t < total; ) {
+      const step = t < 6 * 3600 || t > total - 9 * 3600 ? 5 : 30
       s = rk4(s, t, step, acc)
-      const d = norm(sub(s.r, ephem.moonPos(plan.tliMs + (t + step) * 1000)))
+      t += step
+      const d = norm(sub(s.r, ephem.moonPos(plan.tliMs + t * 1000)))
       if (d < closest) {
         closest = d
-        tClosest = t + step
+        tClosest = t
+        atClosest = s
       }
     }
-    const lateH = (tClosest - (plan.loiMs - plan.tliMs) / 1000) / 3600
+    const lateS = tClosest - (plan.loiMs - plan.tliMs) / 1000
+    const tMs = plan.tliMs + tClosest * 1000
+    const rRel = sub(atClosest.r, ephem.moonPos(tMs))
+    const vRel = sub(atClosest.v, ephem.moonVel(tMs))
+    const siteHat = qrot(ephem.moonFixedToInertial(landingMs), latLonUnit(target.latDeg, target.lonDeg))
+    const offPlaneDeg = Math.asin(Math.abs(dot(unit(cross(rRel, vRel)), siteHat))) / DEG
+    const loi = norm(vRel) - Math.sqrt(MU_MOON / norm(rRel))
     console.log(
-      `[flight model error] three-body closest approach ${closest.toFixed(0)} km from the Moon's centre ` +
-        `(planned periapsis ${(R_MOON + 100).toFixed(0)} km), ${lateH.toFixed(2)} h after the planned LOI. ` +
-        `Plan: TLI ${dv('tli').toFixed(3)}, LOI ${dv('loi').toFixed(3)}, ascent ${dv('ascent').toFixed(3)} km/s, ` +
+      `[flight check] independent RK4: perilune ${closest.toFixed(1)} km from the Moon's centre (planned ${R_MOON + 100}), ` +
+        `${lateS.toFixed(0)} s after the planned LOI, landing site ${offPlaneDeg.toFixed(3)}° off the orbit plane, ` +
+        `LOI ${loi.toFixed(4)} km/s (planned ${dv('loi').toFixed(4)}). Plan: TLI ${dv('tli').toFixed(3)}, ascent ${dv('ascent').toFixed(3)} km/s, ` +
         `incl ${plan.parkingInclDeg.toFixed(2)}°, az ${plan.launchAzimuthDeg.toFixed(2)}°, decl ${plan.moonDeclDeg.toFixed(2)}°, ` +
         `transfer ${plan.transferDays.toFixed(3)} d, vInf ${plan.vInfKms.toFixed(3)}, loiter ${plan.loiterH.toFixed(1)} h, ` +
-        `revs ${plan.lunarRevs}, landed ${(plan.landedMassKg / 1000).toFixed(2)} t, dist ${plan.moonDistKm.toFixed(0)} km`,
+        `revs ${plan.lunarRevs}, landed ${(plan.landedMassKg / 1000).toFixed(2)} t, dist ${plan.moonDistKm.toFixed(0)} km, ` +
+        `geo points ${plan.geo.t.length}`,
     )
-    // The patched-conic aim is the Moon's centre; a real trajectory needs a small correction to hit the periapsis
-    // target. It must at least arrive inside the Moon's sphere of influence, close to the planned time.
-    expect(closest).toBeLessThan(SOI_MOON)
-    expect(Math.abs(lateH)).toBeLessThan(12)
+    // The two integrators differ in method, step control and how they read the ephemeris (cubic table against
+    // the files' linear interpolation), so a few kilometres and seconds are the expected agreement.
+    expect(Math.abs(closest - (R_MOON + 100))).toBeLessThan(15)
+    expect(Math.abs(lateS)).toBeLessThan(60)
+    expect(offPlaneDeg).toBeLessThan(0.3)
+    expect(Math.abs(loi - dv('loi'))).toBeLessThan(0.005)
   })
 })
