@@ -5,7 +5,7 @@ A web app that compares landing sites near the Moon's south pole by sunlight and
 - Hosted preview: <https://nasa.digi-works.org> (the deployed revision is recorded in [BUILD_LOG.md](BUILD_LOG.md))
 - Technical and product documentation: [docs/documentation.md](docs/documentation.md)
 - Project page draft: [docs/event/project-page.md](docs/event/project-page.md)
-- Status of the numbers: the app marks every computed value "sample values — not validated". Which checks are passed and which are open: [docs/event/validation.md](docs/event/validation.md).
+- Status of the numbers: recomputed independently by an SI tool on 14 Nov and found in agreement; no check has a written sign-off by the science lead. Which checks agree and which are open: [docs/event/validation.md](docs/event/validation.md).
 
 > SI marking: this README was drafted by an SI (AI) tool, Claude Code, on 14 Nov 2026 from the repository's own files. See [AI/SI use](#aisi-use).
 
@@ -149,7 +149,7 @@ Space Apps calls AI tools "SI". This project was built with them, and says so he
 Full list with the resolution of each result: [docs/documentation.md, Limits](docs/documentation.md#limits).
 
 - Comms is geometric visibility of the selected stations, at both ends. No link budget, antenna schedule, weather or equipment is modelled.
-- No validation check has a written sign-off. V1 and V2 are recorded as passed as reported; the station check and V3 to V9 are open. The app therefore marks all values "sample values — not validated".
+- No validation check has a written sign-off. V1 and V2 are recorded as passed as reported; the station check and V3 to V9 are open. An independent recomputation by an SI tool (14 Nov) agrees with the app for positions, horizons, sunlight and station coverage; on that basis the team removed the app's "not validated" marker. Slope, the PGDA comparison, the finder ranking and whole-year mode were not rechecked.
 - Only the 18 listed sites can be analysed. They are representative points of regions, not chosen landing points.
 - The 20 m terrain model ends at 80° S; beyond it the horizon search continues on a 120 m model of the same product. Only IM-1, about 4 km from that edge, has skyline directions (52 of 720) that come from the coarser model.
 - The slope shown is one measurement over a 100 m baseline on the 20 m terrain model, compared with a project criterion of 5°.

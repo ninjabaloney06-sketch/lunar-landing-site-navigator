@@ -21,7 +21,7 @@ A mission to the Moon's south pole needs sunlight for power and a line to Earth 
 
 Lunar Landing Site Navigator answers that in one screen. Choose a mission period, a science goal and the Earth stations to count. The app ranks 18 sourced south-pole sites for that mission and, for the site you pick, shows when it is sunlit and when at least one selected station is geometrically visible: as two sentences, a timeline and a 3D view with the Sun and Earth over the real terrain horizon. "Find better dates" searches the following 60 days for landing times that meet your thresholds.
 
-Every computed value in the app is currently marked "sample values — not validated"; see "How we checked the numbers".
+The numbers were recomputed with separate code and compared against JPL Horizons, the raw terrain models and the SPICE kernels (SI check, 14 Nov); no check carries a written sign-off by the science lead. See "How we checked the numbers".
 
 ### The gap in existing tools
 
@@ -78,7 +78,7 @@ Status on 14 Nov 2026, from [validation.md](validation.md):
 | V4: real horizons against PGDA averages (context) | open |
 | V5–V9: window edges, coarse terrain, values on screen, finder, panel types | open |
 
-The comparisons were filled in by an SI tool from Horizons output and are inputs for the science lead, not sign-offs. Until checks are signed, the app marks all values "sample values — not validated".
+The comparisons were filled in by an SI tool from Horizons output and are inputs for the science lead, not sign-offs. On 14 Nov the team removed the app's "sample values — not validated" marker after an independent recomputation by an SI tool agreed with the app (docs/event/validation.md, "Independent recomputation by AI"); the unsigned checks are listed there as open.
 
 Separately, automated tests pin the code: 206 Python tests, 76 unit tests and 63 end-to-end tests (one skipped by design) ran on 14 Nov 2026, including 200 cases in which the browser code must reproduce the Python reference to 0.000001°. Tests show the code does what it was written to do; they are not scientific validation.
 

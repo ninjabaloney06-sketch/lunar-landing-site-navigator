@@ -103,7 +103,7 @@ Copied from [docs/event/validation.md](event/validation.md) on 14 Nov 2026 with 
 | V4 | Real horizons against PGDA averages (context) | open |
 | V5–V9 | Window edges, coarse terrain, values in the user interface, finder, panel types | open |
 
-Because no check carries a written sign-off, the app's switch `VALIDATED` is false and every computed value in the app is marked "sample values — not validated".
+No check carries a written sign-off by the science lead. The app's switch `VALIDATED` was set to true on 14 Nov by team decision after an independent recomputation by an SI tool agreed with the app (validation.md, "Independent recomputation by AI"); before that every value carried the marker "sample values — not validated".
 
 Inputs recorded for these checks (filled in by an SI tool, not a sign-off):
 
@@ -182,7 +182,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 **Slope warning.** Shown above the timeline only when the selected site fails the 5° slope limit, with the measured slope and the 100 m baseline.
 
-**Footer.** The terrain and ephemeris sources in one line, a link to "how this is computed", and the marker "sample values — not validated".
+**Footer.** The terrain and ephemeris sources in one line, a link to "how this is computed", and, while the switch `VALIDATED` is false, the marker "sample values — not validated".
 
 **Mission panel.** Fields in this order: name; start and end date (changing the start keeps the length); science goal; landing site; ground stations; Play mission. The landing-site list is the ranking of calculation 13 for the mission's own dates, stations and goal. It has three groups: "Passes the 5° slope limit" (ranked, with rank numbers), "Too steep to land (slope above 5°)" and "Not enough data". Each row shows the values it was ranked by: percent lit, percent comms, slope, and for evidence goals the evidence label with its source link. "Best" here means best among the 18 evaluated sites for these inputs. Play mission moves the cursor from the first to the last mission day at eye level.
 
