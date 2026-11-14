@@ -1,0 +1,461 @@
+{
+ "name": "south-cap",
+ "generated_by": "scripts/south_cap.py",
+ "validation": "Resampled DEM heights for display and approximate horizons. Not validated by the science lead.",
+ "projection": {
+  "proj4": "+proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +x_0=0 +y_0=0 +R=1737400 +units=m +no_defs +type=crs",
+  "read_from": "the CRS of LDEM_80S_20MPP_ADJ.TIF (not from a label)",
+  "lat_0": -90,
+  "lon_0": 0,
+  "lat_ts": -90,
+  "R_m": 1737400.0,
+  "axes": "+x toward 90 E, +y toward longitude 0",
+  "forward": "rho = 2 R tan((90 + lat) / 2); x = rho sin(lon); y = rho cos(lon)"
+ },
+ "height_ref": "metres above the 1737.4 km sphere (the DEM's reference)",
+ "nodata": -32768,
+ "order": "row-major; row 0 = +y edge (toward longitude 0); col 0 = -x edge (toward 90 W); little-endian Int16",
+ "sample_position": "sample (r, c) is the mean of the DEM pixels it covers, centred on x = x0_m + (c + 0.5) * spacing_m, y = y0_m - (r + 0.5) * spacing_m",
+ "north_lat": -80.0,
+ "source": {
+  "file": "LDEM_80S_20MPP_ADJ.TIF",
+  "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF",
+  "bytes": 2696082051,
+  "sha256": "09b7ca80f9e6a146f970225d18af72fc02787669b3ef51b888e347d2b6845649",
+  "sha256_from": "docs/reference/data-sources.md (raw-data register)",
+  "citation": "Barker et al. 2023, PSJ 4, 183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole (PGDA product 90)"
+ },
+ "base": {
+  "file": "base.bin",
+  "spacing_m": 400.0,
+  "width": 1520,
+  "height": 1520,
+  "x0_m": -304000.0,
+  "y0_m": 304000.0,
+  "height_scale_m": 0.25,
+  "resampling": "20 x 20 block means of the 20 m DEM",
+  "bytes": 4620800
+ },
+ "outer": {
+  "file": "outer.bin",
+  "spacing_m": 1920.0,
+  "width": 768,
+  "height": 768,
+  "x0_m": -737280.0,
+  "y0_m": 737280.0,
+  "height_scale_m": 0.5,
+  "resampling": "16 x 16 block means of the 120 m DEM",
+  "bytes": 1179648,
+  "source": {
+   "file": "LDEM_60S_120MPP_ADJ.TIF",
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF",
+   "bytes": 821504895,
+   "sha256": "894f30e2a57e02a00871d5f6f45b4fef07f6a2efa68f8bfd21a246edf944e094",
+   "sha256_from": "docs/reference/data-sources.md (raw-data register)",
+   "citation": "Barker et al. 2023, PSJ 4, 183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole (PGDA product 90)"
+  }
+ },
+ "levels": [
+  {
+   "name": "40",
+   "spacing_m": 40.0,
+   "tile_size": 256,
+   "x0_m": -304000.0,
+   "y0_m": 304000.0,
+   "width": 15200,
+   "height": 15200,
+   "north_lat": -85.1,
+   "height_scale_m": 0.25,
+   "resampling": "2 x 2 block means of the 20 m DEM",
+   "path": "40/<row>/<col>.bin",
+   "complete": true,
+   "tile_count": 723,
+   "bytes": 94765056,
+   "tiles": {
+    "15": [
+     [
+      24,
+      34
+     ]
+    ],
+    "16": [
+     [
+      22,
+      36
+     ]
+    ],
+    "17": [
+     [
+      21,
+      38
+     ]
+    ],
+    "18": [
+     [
+      19,
+      39
+     ]
+    ],
+    "19": [
+     [
+      18,
+      40
+     ]
+    ],
+    "20": [
+     [
+      18,
+      41
+     ]
+    ],
+    "21": [
+     [
+      17,
+      42
+     ]
+    ],
+    "22": [
+     [
+      16,
+      42
+     ]
+    ],
+    "23": [
+     [
+      16,
+      43
+     ]
+    ],
+    "24": [
+     [
+      15,
+      43
+     ]
+    ],
+    "25": [
+     [
+      15,
+      43
+     ]
+    ],
+    "26": [
+     [
+      15,
+      43
+     ]
+    ],
+    "27": [
+     [
+      15,
+      44
+     ]
+    ],
+    "28": [
+     [
+      15,
+      44
+     ]
+    ],
+    "29": [
+     [
+      15,
+      44
+     ]
+    ],
+    "30": [
+     [
+      15,
+      44
+     ]
+    ],
+    "31": [
+     [
+      15,
+      44
+     ]
+    ],
+    "32": [
+     [
+      15,
+      44
+     ]
+    ],
+    "33": [
+     [
+      15,
+      43
+     ]
+    ],
+    "34": [
+     [
+      15,
+      43
+     ]
+    ],
+    "35": [
+     [
+      16,
+      43
+     ]
+    ],
+    "36": [
+     [
+      16,
+      42
+     ]
+    ],
+    "37": [
+     [
+      17,
+      42
+     ]
+    ],
+    "38": [
+     [
+      17,
+      41
+     ]
+    ],
+    "39": [
+     [
+      18,
+      40
+     ]
+    ],
+    "40": [
+     [
+      19,
+      39
+     ]
+    ],
+    "41": [
+     [
+      20,
+      38
+     ]
+    ],
+    "42": [
+     [
+      21,
+      37
+     ]
+    ],
+    "43": [
+     [
+      23,
+      35
+     ]
+    ],
+    "44": [
+     [
+      27,
+      32
+     ]
+    ]
+   }
+  },
+  {
+   "name": "80",
+   "spacing_m": 80.0,
+   "tile_size": 256,
+   "x0_m": -304000.0,
+   "y0_m": 304000.0,
+   "width": 7600,
+   "height": 7600,
+   "north_lat": -80.0,
+   "height_scale_m": 0.25,
+   "resampling": "4 x 4 block means of the 20 m DEM",
+   "path": "80/<row>/<col>.bin",
+   "complete": true,
+   "tile_count": 746,
+   "bytes": 97779712,
+   "tiles": {
+    "0": [
+     [
+      9,
+      20
+     ]
+    ],
+    "1": [
+     [
+      7,
+      22
+     ]
+    ],
+    "2": [
+     [
+      5,
+      23
+     ]
+    ],
+    "3": [
+     [
+      4,
+      24
+     ]
+    ],
+    "4": [
+     [
+      3,
+      25
+     ]
+    ],
+    "5": [
+     [
+      2,
+      26
+     ]
+    ],
+    "6": [
+     [
+      2,
+      27
+     ]
+    ],
+    "7": [
+     [
+      1,
+      28
+     ]
+    ],
+    "8": [
+     [
+      1,
+      28
+     ]
+    ],
+    "9": [
+     [
+      0,
+      28
+     ]
+    ],
+    "10": [
+     [
+      0,
+      29
+     ]
+    ],
+    "11": [
+     [
+      0,
+      29
+     ]
+    ],
+    "12": [
+     [
+      0,
+      29
+     ]
+    ],
+    "13": [
+     [
+      0,
+      29
+     ]
+    ],
+    "14": [
+     [
+      0,
+      29
+     ]
+    ],
+    "15": [
+     [
+      0,
+      29
+     ]
+    ],
+    "16": [
+     [
+      0,
+      29
+     ]
+    ],
+    "17": [
+     [
+      0,
+      29
+     ]
+    ],
+    "18": [
+     [
+      0,
+      29
+     ]
+    ],
+    "19": [
+     [
+      0,
+      29
+     ]
+    ],
+    "20": [
+     [
+      0,
+      28
+     ]
+    ],
+    "21": [
+     [
+      1,
+      28
+     ]
+    ],
+    "22": [
+     [
+      1,
+      27
+     ]
+    ],
+    "23": [
+     [
+      2,
+      27
+     ]
+    ],
+    "24": [
+     [
+      3,
+      26
+     ]
+    ],
+    "25": [
+     [
+      4,
+      25
+     ]
+    ],
+    "26": [
+     [
+      5,
+      24
+     ]
+    ],
+    "27": [
+     [
+      6,
+      23
+     ]
+    ],
+    "28": [
+     [
+      7,
+      21
+     ]
+    ],
+    "29": [
+     [
+      10,
+      19
+     ]
+    ]
+   }
+  }
+ ],
+ "measured": {
+  "note": "sizes and time measured by this run",
+  "generation_seconds": 27.9,
+  "total_bytes": 198345216
+ }
+}
