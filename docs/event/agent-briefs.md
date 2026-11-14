@@ -363,6 +363,10 @@ Evidence tiers, best first: direct measurement, remote observation, modeled cond
 
 ### Wording and decisions only ninja can make (before the agent starts)
 
+**Decided by ninja, 14 Nov 13:47 (answers given in the step-1 integrator session):** (2) track labels "Light / Comms" — ninja wrote "light/communicatoin"; read as the offered option, "Communication" spelled out is a one-string change if he meant that; (3) date display "16 Aug 2027"; (4) `ionicons` may be added at an exact pinned version. Point 1 (the plan itself) is taken as yes, because he answered the three follow-up choices and asked for the work to start.
+
+**In progress since 14 Nov 13:50:** parts 2–4 run as one worktree agent on branch `track-c3`, driven by the step-1 integrator session. Resource lock: no other session or agent edits app/src/views/, app/src/state.ts, app/src/App.tsx, app/src/styles/ or app/e2e/ui.spec.ts until `track-c3` is merged or this line is removed.
+
 1. ~~Yes or no to this plan~~ — **yes** (ninja, 14 Nov): panel instead of the paper dialog; launch location, rocket flight and the empty start state are dropped.
 2. Track labels: "Light / Comms" (paper) or keep "Sun / Comms".
 3. Date display in the panel: "16 Aug 2027" (recommended, cannot be misread) or the paper's MM.DD.YYYY, or DD.MM.YYYY. Data and URL stay ISO 8601 UTC.
@@ -411,7 +415,7 @@ DONE WHEN (paste every output in the final report):
 
 SCOPE FENCE: no change to scripts/, app/public/data/, app/src/data/types.ts, answerSentence wording, finder defaults or VALIDATED. No launch location, rocket flight, Earth-view, settings menu, arbitrary coordinates, language switch or new site data. No new dependency without ninja's yes (see human decisions). Do not edit BUILD_LOG.md, TASKS.md or docs/event/ai-use-log.md: put the exact BUILD_LOG line and ai-use-log row in your final report; the integrator writes them on main.
 
-HUMAN DECISIONS (ask ninja once, at the start, in one message; do everything else on your own): (1) track labels "Light / Comms" or "Sun / Comms"; (2) date display in the panel: "16 Aug 2027", MM.DD.YYYY or DD.MM.YYYY; (3) may you add `ionicons` at an exact pinned version (MIT) for the rocket and warning icons — if no, the control reads "Mission" as text and the warning starts with "Warning:". Bene approves the look from the screenshots; ninja approves every visible string; Leo approves the numbers.
+HUMAN DECISIONS — already made by ninja on 14 Nov 13:47, do not ask again: (1) track labels "Light" and "Comms"; (2) dates in the panel as "16 Aug 2027"; (3) add `ionicons` at an exact pinned version (MIT) for the rocket and warning icons. Bene approves the look from the screenshots; ninja approves every visible string; Leo approves the numbers.
 
 AUTHORIZATION AND ABORT: running this prompt authorizes commits on track-c3 in your worktree only. Never merge into main, never push, never deploy. If a pre-existing test fails before you change anything, stop and report it with the output. If part 3 is not green after 3 fix rounds, hand over parts 1–2 (and 4 if it stands alone) and report what is missing; do not ship a half-working panel.
 
