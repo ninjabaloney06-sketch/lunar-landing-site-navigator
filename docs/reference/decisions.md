@@ -254,3 +254,7 @@ Also: SI (AI) use must be marked in the project itself: code and data need an ac
 ## Right settings sidebar removed — 14 Nov 2026
 
 **DECIDED — DO NOT REOPEN:** ninja confirmed that no feature requires a right settings sidebar. Remove it from the task scope, including the settings page/icon and the open decision about whether to build one. Keep direct core controls and the inline legend.
+
+## Mandatory site assessments — 14 Nov 2026
+
+**DECIDED — DO NOT REOPEN:** ninja requires terrain slope (strictly **< 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility. These are mandatory, not bonus features. The 20° threshold comes from ninja's project requirement, not a claimed NASA/vehicle limit. This supersedes earlier thermal/access exclusions and optional PSR scope only as needed for these assessments. Full automated route optimisation is not required. Methods, data and scientific validation remain open; see [spec.md](../event/spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and [TASKS.md](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026).

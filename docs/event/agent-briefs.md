@@ -16,6 +16,7 @@ Copy-paste prompts for the agents on Sat 14 Nov. Written 13 Nov from [build-plan
 | Test periods | "Now" etc. | Plus the four named periods: Shackleton Rim 16–29 Aug 2027 and 12–26 Sep 2027; Malapert 21–27 Dec 2026 and 9–15 Jan 2028 (candidates, not proven best; the finder computes the real best windows) |
 | Timeline colours | Sun / Earth tracks | Sun track: **yellow = lit, black = dark**. Comms track: **blue = at least one station in line of sight, dark = none, hatched = unknown**. Text labels too, never colour alone |
 | Site information | Name, coordinates, slope | Plus a sourced **site potential** (water ice / cold traps, illumination, science) with evidence labels, from `lunar-interest-points.md` |
+| Mandatory assessments (ninja, 14 Nov) | Thermal/access exclusions; PSR work in later steps | **Required, not bonus:** terrain slope (< 20° for exploration), surface roughness and surrounding obstacles, thermal stability, scientific value including PSRs and accessibility. Follow spec.md and the mandatory TASKS checklist; missing evidence remains unknown and the assessment stays open. |
 
 Brief 0 (scaffold) is **done** (TASKS.md, 14 Nov 09:20): `app/` exists, contract types are in `app/src/data/types.ts`, synthetic sample JSON is in `app/public/data/` (`sites.json`, `periods.json`, `ephem/sample.json`, `horizons/sample-site.json`), not in a `sample/` folder. Start at step 1.
 
