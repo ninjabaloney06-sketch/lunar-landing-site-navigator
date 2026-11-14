@@ -134,6 +134,8 @@ Breakfast at doors-open (time on the board). Doors open 07:30 for day guests —
 
 ## Sunday — 12:00 to 18:00 (phase 6: submission and pitch)
 
+Leo's proposed launch-to-site energy comparison is parked until after the 12:00 freeze. If submission and pitch work leave time, S may assess a sourced rough estimate and its validation needs; no new feature ships during the freeze. Decide whether to pursue it after the event (TASKS.md phase 7).
+
 | Time | Who | What |
 |---|---|---|
 | 12:00–12:30 | I (+ one more) | **Official submission & pitch workshop.** Take notes on form fields and pitch format; update the submission checklist. |
