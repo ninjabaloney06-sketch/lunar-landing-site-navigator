@@ -14,7 +14,9 @@ export interface SitePotential {
 export interface Site {
   id: string
   name: string
-  group: 'artemis-2024' | 'artemis-2022' | 'clps' | 'commercial' | 'international' | 'apollo' | 'reference'
+  // 'poi' = an entry of search-sites.json (a point of interest with its own horizon file); 'custom' = a place the
+  // user chose inside the south cap, with terrain and horizon computed in the browser (data/southcap.ts).
+  group: 'artemis-2024' | 'artemis-2022' | 'clps' | 'commercial' | 'international' | 'apollo' | 'reference' | 'poi' | 'custom'
   label: string | null // caveat shown under the name, e.g. "Blue Moon MK1 target" (ninja, 14 Nov; Leo to confirm)
   lat: number
   lon: number
@@ -95,7 +97,7 @@ export interface TerrainMeta {
   dem: string
   // Optional extra levels (track-terrain, 14 Nov): terrain/<id>-<level>.json/.bin, same grid convention,
   // Int16 format, nodata and height reference. Absent fields = the 80 m tile alone, rendered as before.
-  level?: 'fine' | 'mid' | 'far' // set on a level file; absent on the 80 m tile
+  level?: 'fine' | 'near' | 'mid' | 'far' // set on a level file; absent on the 80 m tile ('near': 160 m ring from the south-cap tiles)
   levels?: string[] // on the 80 m tile: the level files that exist for this site
   ground_m?: number // the one reference height (m above 1737.4 km) every level of the site is relative to
   height_scale_m?: number // metres per Int16 unit (levels: 0.1–1); absent = 1
