@@ -25,6 +25,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 12:36 | Codex (account owner unconfirmed) | ninja | Recorded four mandatory site assessments and the strict exploration slope criterion; reconciled prior scope exclusions | TASKS.md; docs/event/spec.md; docs/event/build-plan.md; docs/event/agent-briefs.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; no implementation, dataset acquisition or scientific validation claimed. |
 
+| Sat 12:42 | Codex (account owner unconfirmed) | ninja | Reviewed phase dependencies and reordered the remaining task checklist; clarified preparation handoffs, existing-work ownership, windows/finder validation, acceptance before deployment, submission prerequisites and post-event decisions | TASKS.md; BUILD_LOG.md | none | Phase 4 preserved byte-for-byte; completed task entries retained, no implementation or human validation marked done. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:

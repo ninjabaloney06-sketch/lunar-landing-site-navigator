@@ -91,3 +91,5 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Removed settings sidebar/page/icon work and the related open decision from TASKS.md at ninja’s request; kept direct controls and inline legend, and recorded the settled scope in docs/reference/decisions.md.
 
 - 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Recorded mandatory CLPS assessments: exploration slope < 20°, roughness/obstacles, thermal stability, scientific value with PSRs/accessibility; updated task checklist, spec, plan and briefs; implementation and science checks remain open.
+
+- 2026-11-14 · AI (Codex, device: ninja’s Mac / Guest123) · Reordered TASKS dependencies and handoffs: windows/summaries before finder checks, acceptance before deploy, submission artifacts before submit, continuation before new features; preserved active phase 4 byte-for-byte and all completed task entries.
