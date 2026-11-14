@@ -29,6 +29,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:05 | Codex (account owner unconfirmed) | ninja | Added landing-site slope ≤ 5° alongside the separate exploration slope < 20° requirement; specified boundary and missing-data checks | TASKS.md; docs/event/spec.md; docs/event/build-plan.md; docs/event/agent-briefs.md; docs/reference/decisions.md; BUILD_LOG.md | none | Documentation only; implementation and scientific validation remain open. |
 
+| Sat 13:08 | Codex (account owner unconfirmed) | ninja | Assessed conditional extras: specified inverse site planning, retained a schematic Earth-to-Moon route for later, distinguished ideal payload energy from actual rocket consumption | docs/event/spec.md; TASKS.md; BUILD_LOG.md | none | Documentation only; preserved core acceptance, feature freeze and post-event continuation gates. No implementation or scientific validation claimed. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
