@@ -14,6 +14,9 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 11:50–12:10 | Claude Code (Opus 5.5; account owner unconfirmed) | ninja | Step-1 orchestrator: read briefs/spec/build plan, found Brief-0 gaps, got approvals D1–D5, started Track B agent (stopped by ninja after minutes, no output), wrote the handoff for another device | docs/event/handoff/README.md, docs/event/agent-briefs.md (pointer), stick clps/handoff/ | none | Found: C2 button-count contradiction, T3 'full Moon' slip (it is new Moon; 175° bound too tight), C1 eye level 2 m vs 1.75 m. |
 
+| Sat 12:00–12:15 | Claude Code (Opus 5.5; account owner unconfirmed) | ninja | Orchestrator pre-flight: deps, Playwright/vitest config, shared contracts, sample demo data; spawned tracks A, A-h, B, B-h, C1, C2 | app/package.json, app/playwright.config.ts, app/vite.config.ts, app/src/data/types.ts, app/src/geometry/, app/src/scene3d/index.ts, app/public/data samples | none | Four geometry primitives drafted by the orchestrator; Track A verifies them with T4/T9. |
+| Sat 12:15–12:35 | Claude Code (Haiku 5.5, subagent; account owner unconfirmed) | ninja (orchestrator) | Track A-h: DSN stations.csv from DSN 810-005 mod 301; periods.py/periods.json; answerSentence wording + 17 tests | scripts/stations.csv, scripts/periods.py, app/public/data/periods.json, app/src/geometry/answerSentence.ts | none (orchestrator re-ran checks; Leo to check stations, Isaac the wording) | ESTRACK rows left out: ESA pages give no coordinates/mask (one 404). Commit message says "DSN + ESTRACK" but only DSN rows exist. Masks are the generic 6.0° limit, per-antenna figures not transcribed. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
