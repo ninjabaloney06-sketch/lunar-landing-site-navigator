@@ -344,7 +344,7 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
 // ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details) ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 5 controls, main screen 8, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 5 controls, main screen 9, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
@@ -352,7 +352,7 @@ for (const vp of VIEWPORTS) {
     await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(5)
     // 4 in the header + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is
     // computed"; the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(8)
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(9)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
@@ -592,9 +592,9 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 5 controls and the main screen 8.
+  // The warning is text, not a control: the header still has 5 controls and the main screen 9.
   await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(5)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(8)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(9)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)

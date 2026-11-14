@@ -1,6 +1,6 @@
 // Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, the header controls
 // (mission, date, points of interest, Find better dates, Details), the answer sentence, the timeline and one footer line.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
@@ -46,6 +46,9 @@ import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
 import './styles/view.css'
 import './styles/poi.css'
+
+// The documentation is a separate chunk, fetched when the Docs view is first opened.
+const DocsView = lazy(() => import('./docs/DocsView').then((m) => ({ default: m.DocsView })))
 
 type Boot =
   | { status: 'loading' }
@@ -476,7 +479,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               aria-label="Details"
               title="Details"
               aria-haspopup="dialog"
-              aria-expanded={hs.drawer !== null}
+              aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
               onClick={() => patch({ drawer: 'details' })}
             >
               <Icon name="settings" />
@@ -553,6 +556,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <button type="button" className="link" onClick={() => patch({ drawer: 'sources' })}>
               how this is computed
             </button>
+            {' · '}
+            <button type="button" className="link" data-testid="docs-open" aria-haspopup="dialog" onClick={() => patch({ drawer: 'docs' })}>
+              Docs
+            </button>
           </p>
           {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
@@ -562,7 +569,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </footer>
       </div>
 
-      {hs.drawer && (
+      {hs.drawer === 'docs' && (
+        <Suspense fallback={null}>
+          <DocsView onClose={() => patch({ drawer: null })} />
+        </Suspense>
+      )}
+
+      {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
         <Drawer
           section={hs.drawer}
           site={site}
