@@ -60,7 +60,7 @@ TILE_SCALE_M = 0.25       # Int16 unit of the tiles; holds +-8191 m (checked whi
 # Tiled levels, finest first: name = spacing in metres -> (block factor on the 20 m DEM, northern latitude limit).
 # The ONLY place a level's extent is set: the tile index in cap.json, the browser module and the tests all derive
 # from it. Changing a limit = edit it here, run --full, commit the tiles, update the register row's measured size.
-LEVELS = {"40": (2, -85.1), "80": (4, -80.0)}
+LEVELS = {"40": (2, -80.0), "80": (4, -80.0)}
 SAMPLE_RADIUS_M = 21_000.0  # --sample: tiles within this distance of a site (the 80 m tile's +-20 km)
 OUT = APP_DATA / "terrain" / "cap"
 TEXTURES = REPO / "app" / "public" / "textures"

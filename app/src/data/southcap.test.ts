@@ -331,6 +331,36 @@ describe('capHorizon against the 18 pipeline horizons', () => {
     await expect(cap.horizon(-90, 0)).rejects.toThrow(RangeError)
   })
 
+  it('the "at the point" resolution in the label is the finest level whose tile index covers the point', async () => {
+    // A lattice over the cap. The finest level listed for the point must be what the horizon reports and prints;
+    // the only exceptions allowed are points within one sample of the 20 m DEM's square edge (no data beyond it).
+    const finest = (lat: number, lon: number) => cap.meta.levels.find((l) => hasTile(l.name, lat, lon))?.spacing_m ?? null
+    let checked = 0
+    const counts: Record<string, number> = {}
+    for (const lat of [-80.02, -80.6, -82.4, -84.9, -86.4, -89.7]) {
+      for (let lon = -175; lon < 180; lon += 47) {
+        const h = await cap.horizon(lat, lon)
+        const want = finest(lat, lon)
+        counts[String(h.computed.site_res_m)] = (counts[String(h.computed.site_res_m)] ?? 0) + 1
+        const [x, y] = capXY(lat, lon)
+        if (Math.max(Math.abs(x), Math.abs(y)) > cap.halfWidthM - 100) continue
+        expect(h.computed.site_res_m).toBe(want)
+        expect(h.dem).toContain(`${want} m at the point`)
+        if (lon === -175) {
+          const t = await cap.terrain(lat, lon)
+          expect(t?.levels.some((l) => l.meta.level === 'fine')).toBe(want !== null && want < 80)
+        }
+        checked++
+      }
+    }
+    console.log(`site resolution over the lattice: ${JSON.stringify(counts)} (${checked} points checked)`)
+    expect(checked).toBeGreaterThan(40)
+    // On the 80 S edge at longitude 0 the circle leaves the DEM's square: the label must not claim a tile level.
+    const edge = await cap.horizon(-80, 0)
+    expect(edge.computed.site_res_m).toBeGreaterThan(80)
+    expect(edge.dem).toContain(`${edge.computed.site_res_m} m at the point`)
+  }, 30_000) // 48 horizons and their tiles from disk: about 4 s alone, more next to the other tracks' jobs
+
   it('accuracy table: 400 m base only (no tiles in the build)', async () => {
     const bare = await openCap(diskIo(['40', '80']).io)
     const { max } = table('A. 400 m base only', await compare(bare))
@@ -348,7 +378,8 @@ describe('capHorizon against the 18 pipeline horizons', () => {
   it('accuracy table: default (40 m within 5 km where it exists, 80 m within 20 km, base beyond)', async () => {
     const { med, max } = table('C. default: 40 m within 5 km, 80 m within 20 km, 400 m beyond', await compare(cap))
     expect(max('ms')).toBeLessThan(1000)
-    // Measured 14 Nov 2026: median over sites 0.014, worst site median 0.256, worst single azimuth 1.679 deg.
+    // Measured 14 Nov 2026 with 40 m tiles for the whole cap: median over sites 0.013, worst site median 0.256,
+    // worst single azimuth 1.679 deg (with 40 m only south of 85.1 S the first value was 0.014).
     expect(med('median')).toBeLessThan(0.02)
     expect(max('median')).toBeLessThan(0.3)
     expect(max('max')).toBeLessThan(2)
