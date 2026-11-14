@@ -7,10 +7,11 @@ import { loadHorizon, loadMonthsFor } from '../data/load'
 import type { Site, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { COVERAGE_END_MS, DAY_MS } from '../state'
-import { capital, fmtDay, fmtHours, fmtPct, fmtRange, fmtShort } from './format'
+import { capital, fmtDay, fmtHours, fmtPct, fmtShort } from './format'
 
-const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: number }[] = [
-  { key: 'missionDays', label: 'Mission length, days', min: 1, max: 60 },
+const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: number; integer?: true }[] = [
+  // whole days: the custom period in the URL only accepts whole days, so "Show" must open exactly what was scored
+  { key: 'missionDays', label: 'Mission length, days', min: 1, max: 60, integer: true },
   { key: 'minLitPct', label: 'Sunlit at least, %', min: 0, max: 100 },
   { key: 'minCoveragePct', label: 'Station coverage at least, %', min: 0, max: 100 },
   { key: 'maxGapH', label: 'Longest coverage gap at most, h', min: 0, max: 720 },
@@ -18,6 +19,13 @@ const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: nu
 ]
 
 const SEARCH_DAYS = 60
+
+/** Landing times are candidates 6 h apart and the window's end is the LAST qualifying landing time
+ *  (inclusive), so fmtRange (exclusive end) would drop or add a day. "16 Aug 2027, 18:00 UTC" for one
+ *  candidate, "16 Aug 2027, 06:00 – 18 Aug 2027, 00:00 UTC" for a range. */
+function fmtLandingRange(startMs: number, endMs: number): string {
+  return endMs <= startMs ? `${fmtShort(startMs)} UTC` : `${fmtShort(startMs)} – ${fmtShort(endMs)} UTC`
+}
 
 interface Props {
   site: Site
@@ -36,7 +44,11 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
   const [errors, setErrors] = useState<string[]>([])
   const [run, setRun] = useState<Run>({ status: 'idle' })
 
-  const latestMs = Math.min(fromMs + SEARCH_DAYS * DAY_MS, COVERAGE_END_MS - Number(values.missionDays || 14) * DAY_MS)
+  // An invalid mission length while typing must not turn the date line into "NaN": fall back to the default.
+  const typedDays = Number(values.missionDays)
+  const daysForRange =
+    Number.isInteger(typedDays) && typedDays >= 1 && typedDays <= 60 ? typedDays : FINDER_DEFAULTS.missionDays
+  const latestMs = Math.min(fromMs + SEARCH_DAYS * DAY_MS, COVERAGE_END_MS - daysForRange * DAY_MS)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +56,8 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
     const t = {} as FinderThresholds
     for (const f of FIELDS) {
       const v = Number(values[f.key])
-      if (values[f.key].trim() === '' || !Number.isFinite(v) || v < f.min || v > f.max) errs.push(`${f.label}: a number from ${f.min} to ${f.max}.`)
+      if (values[f.key].trim() === '' || !Number.isFinite(v) || v < f.min || v > f.max || (f.integer && !Number.isInteger(v)))
+        errs.push(`${f.label}: a ${f.integer ? 'whole number' : 'number'} from ${f.min} to ${f.max}.`)
       else t[f.key] = v
     }
     setErrors(errs)
@@ -128,7 +141,7 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
               <tbody>
                 {run.result.windows.slice(0, 5).map((w) => (
                   <tr key={w.startMs}>
-                    <td>{fmtRange(w.startMs, Math.max(w.endMs, w.startMs + DAY_MS))}</td>
+                    <td>{fmtLandingRange(w.startMs, w.endMs)}</td>
                     <td className="mono">{fmtPct(w.best.litPct)}</td>
                     <td className="mono">{fmtPct(w.best.coveragePct)}</td>
                     <td className="mono">{fmtHours(w.best.longestGapH)}</td>

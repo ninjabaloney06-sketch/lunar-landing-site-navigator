@@ -98,7 +98,7 @@ def main(argv=None):
     ap.add_argument("--out", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     stations = load_csv(args.csv)
-    Path(args.out).write_text(json.dumps(stations, indent=1, ensure_ascii=False) + "\n")
+    Path(args.out).write_text(json.dumps(stations, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {len(stations)} stations to {args.out}: {', '.join(s['id'] for s in stations)}")
 
 

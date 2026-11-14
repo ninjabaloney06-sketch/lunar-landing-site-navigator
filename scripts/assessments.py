@@ -685,7 +685,7 @@ def sha_lookup(root):
     out = {}
     for f in [root / d / "SHA256SUMS.txt" for d in ("lola", "illumination", "diviner")]:
         if f.exists():
-            for line in f.read_text().splitlines():
+            for line in f.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     h, name = line.split()
                     out[name.lower()] = h
@@ -696,7 +696,7 @@ def label_version(path):
     p = Path(path)
     if p.suffix.lower() != ".lbl":
         return None
-    for line in p.read_text(errors="replace").splitlines():
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
         if line.strip().startswith("PRODUCT_VERSION_ID"):
             return line.split("=")[1].strip().strip('"')
     return None
@@ -704,12 +704,12 @@ def label_version(path):
 
 def build(root=None, sites=None):
     root = Path(root) if root else data_root()
-    sites = sites if sites is not None else json.loads(SITES_JSON.read_text())
+    sites = sites if sites is not None else json.loads(SITES_JSON.read_text(encoding="utf-8"))
     dem20 = Raster(root / DEM20[0], DEM20[1])
     dem5 = Raster(root / DEM5[0], DEM5[1])
     illum = [Raster(root / p, r, crs_override=DEM_CRS if fix else None) for p, r, fix in ILLUM_MAPS]
-    psr_items = json.loads((RESEARCH / "psr_and_ice.json").read_text())["items"]
-    hazards = json.loads((RESEARCH / "hazards_and_science.json").read_text())["items"]
+    psr_items = json.loads((RESEARCH / "psr_and_ice.json").read_text(encoding="utf-8"))["items"]
+    hazards = json.loads((RESEARCH / "hazards_and_science.json").read_text(encoding="utf-8"))["items"]
     shas = sha_lookup(root)
     tab = root / DIVINER_TAB
     prp = PRPMesh.from_files(tab) if tab.exists() else None
@@ -774,7 +774,7 @@ def build(root=None, sites=None):
 def main():
     t0 = time.perf_counter()
     res = build()
-    OUT_JSON.write_text(json.dumps(res, separators=(",", ":"), ensure_ascii=False) + "\n")
+    OUT_JSON.write_text(json.dumps(res, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {OUT_JSON} ({OUT_JSON.stat().st_size / 1024:.0f} KB, {len(res['sites'])} sites) in {time.perf_counter() - t0:.1f} s")
 
 

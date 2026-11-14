@@ -1,7 +1,7 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
 // "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top. A label is hidden whenever
 // project() returns null or a point that is not visible.
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { mountScene } from '../scene3d'
 import type { SceneDeps, SceneHandle, SceneLevel, ScreenPoint } from '../scene3d'
 import { fmtDeg } from './format'
@@ -35,6 +35,9 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
+  // Site whose frame failed to load: the scene would otherwise keep showing the previous site's terrain and
+  // sky under the new site's name, so a notice says the 3D view is stale.
+  const [failedFor, setFailedFor] = useState<string | null>(null)
   const have = useRef({ sun: false, earth: false })
   have.current = { sun: sunEl !== null, earth: earthEl !== null }
 
@@ -72,9 +75,14 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
     let alive = true
     deps
       .loadFrame(siteId, utcMs)
-      .then((f) => alive && handle.current?.update(f))
+      .then((f) => {
+        if (!alive) return
+        handle.current?.update(f)
+        setFailedFor(null)
+      })
       .catch(() => {
-        // The results panel reports data errors; the scene keeps its last frame.
+        // The results panel reports data errors; the scene keeps its last frame, so mark it as not this site.
+        if (alive) setFailedFor(siteId)
       })
     return () => {
       alive = false
@@ -84,6 +92,12 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
   return (
     <>
       <div ref={host} className="scene" data-testid="scene" />
+      {failedFor === siteId && (
+        <p className="msg scene-msg" role="status" data-testid="scene-stale">
+          The 3D view could not load this site and may still show the previous one. The numbers and timeline are
+          not affected.
+        </p>
+      )}
       <div className="labels">
         {/* .obj is a zero-size anchor at the projected point; the boxes inside carry the text. */}
         <div ref={sun} className="obj" hidden>

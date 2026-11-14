@@ -2,14 +2,14 @@
 
 Team plan for the [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) challenge at NASA Space Apps 2026 (OpenSpace Heilbronn, 14–15 Nov 2026).
 
-> Build an intuitive tool that lets mission planners, educators and the public compare lunar south-pole landing sites and dates, visualizing Sun and Earth positions relative to the local horizon to assess solar power potential and direct-to-Earth communication windows.
+> “Your challenge is to create an intuitive tool or application that lets mission planners, educators, and the public compare landing sites and dates quickly, visualizing Sun and Earth positions relative to the horizon to assess power generation potential and direct-to-Earth communication windows.” — official challenge statement, quoted 14 Nov 2026
 
 ## Start here
 
 | Read | Why |
 |---|---|
 | [docs/event/build-plan.md](docs/event/build-plan.md) | What we build and how every part works: architecture, data, horizon method, UI, validation, build order |
-| [docs/event/agent-briefs.md](docs/event/agent-briefs.md) | Copy-paste prompts for Saturday's agents: shared preamble + step 0, tracks A, B, C1 (3D), C2 (screen) |
+| [docs/event/agent-briefs.md](docs/event/agent-briefs.md) | Copy-paste prompts for Saturday's agents: shared preamble + step 0, tracks A, B, C1 (3D), C2 (screen), C3 (mission layer, site ranking) |
 | [docs/event/event-plan.md](docs/event/event-plan.md) | The weekend hour by hour: checkpoints, cut list |
 | [TASKS.md](TASKS.md) | Every task until submission, marked by who does it |
 | [docs/event/team.md](docs/event/team.md) | Your own checklist (one section per person) |
@@ -50,7 +50,7 @@ python3 scripts/tools/make_pitch_pdf.py
 
 ## Rule
 
-No code before **Sat 14 Nov, 09:00** (official FAQ and Team Formation Guide). The written build plan is the one exception (ninja, 11 Nov). Local submission target Sun 15:00, deadline 15:45.
+No code before **Sat 14 Nov, 09:00** (official FAQ and Team Formation Guide). Exceptions decided by ninja: the written build plan (11 Nov) and the pitch outline + backup deck (13 Nov); see AGENTS.md and the open disclosure task in TASKS.md phase 6. Local submission target Sun 15:00, deadline 15:45.
 
 ## Task markers
 

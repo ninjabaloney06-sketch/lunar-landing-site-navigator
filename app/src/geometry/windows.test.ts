@@ -6,6 +6,7 @@ import {
   type Sample,
   type Series,
   type SiteGeo,
+  answerSentence,
   answerState,
   computeSeries,
   coverage,
@@ -200,6 +201,14 @@ describe('answerState', () => {
     expect(late.sunHoursToChange).toBeCloseTo(4, 9)
     expect(late.comms).toBe('none')
     expect(late.commsChangeInPeriod).toBe(false)
+    // the last window did not start at the period start: the sentence must not say "throughout"
+    expect(s.sunSinceStart).toBe(true)
+    expect(late.sunSinceStart).toBe(false)
+    expect(late.commsSinceStart).toBe(false)
+    expect(answerSentence(late)).toEqual({
+      sun: 'Dark until the end of this period.',
+      comms: 'No station contact until the end of this period.',
+    })
     expect(() => answerState(ser, ['a'], ser.endMs)).toThrow(RangeError)
   })
 

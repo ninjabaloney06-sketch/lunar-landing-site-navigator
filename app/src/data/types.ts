@@ -91,6 +91,7 @@ export interface TerrainMeta {
   illum_png: string | null // file in terrain/, same grid and orientation
   illum_map: string | null // e.g. "avgvisib_85s_060m_201608"
   illum_res_m: number | null
+  illum_crs?: string // terrain_tiles.py: how the map's projection was read (85S label lon_0 overridden)
   dem: string
 }
 

@@ -70,10 +70,12 @@ def load_kernels():
     sums = {}
     sums_file = spice_dir / "SHA256SUMS.txt"
     if sums_file.is_file():
-        for line in sums_file.read_text().splitlines():
+        for line in sums_file.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 digest, name = line.split()
                 sums[name] = digest
+    else:
+        print(f"WARNING: {sums_file} missing; kernel checksums are NOT verified", file=sys.stderr)
     prov = []
     for name in KERNELS:
         path = spice_dir / name
@@ -168,7 +170,7 @@ def write_months(out_dir=EPHEM_DIR):
     total = 0
     for y, m in _months():
         path = out_dir / f"{y}-{m:02d}.json"
-        path.write_text(json.dumps(build_month(y, m), separators=(",", ":")))
+        path.write_text(json.dumps(build_month(y, m), separators=(",", ":")), encoding="utf-8")
         size = path.stat().st_size
         total += size
         print(f"{path.name}  {size / 1024:.0f} KB")

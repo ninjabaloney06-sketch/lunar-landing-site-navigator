@@ -49,7 +49,7 @@ def test_reference_points_present():
 def test_sites_json_shape_if_present():
     if not SITES_JSON.exists():
         return
-    sites = json.loads(SITES_JSON.read_text())
+    sites = json.loads(SITES_JSON.read_text(encoding="utf-8"))
     assert isinstance(sites, list) and sites
     for s in sites:
         assert set(s) == SITE_FIELDS, s.get("id")
