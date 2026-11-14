@@ -31,6 +31,10 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:08 | Codex (account owner unconfirmed) | ninja | Assessed conditional extras: specified inverse site planning, retained a schematic Earth-to-Moon route for later, distinguished ideal payload energy from actual rocket consumption | docs/event/spec.md; TASKS.md; BUILD_LOG.md | none | Documentation only; preserved core acceptance, feature freeze and post-event continuation gates. No implementation or scientific validation claimed. |
 
+| Sat 12:55–13:10 | Claude Code, Claude Opus 5.5 subagent (ninja's account) | ninja (integrator session) | Track A resume: reviewed WIP 1c7b714, merged main, tightened stations test, ran Brief A done-checks | scripts/ephemeris.py, scripts/stations.py, app/src/geometry/, app/public/data/ephem/, stations.json, fixtures | none | Pre-WIP windows() missed 2 short coverage windows; the WIP fix was kept. V1/V2/station check unsigned. |
+
+| Sat 13:05–13:50 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Integrator: resumed step-1 orchestration, re-ran track A and B done-checks, merged track A, filled the Horizons comparison in validation.md by script, checked the Site04 coordinate in the Data Book PDF (downloaded to a scratch folder outside the repo on ninja's instruction) | docs/event/validation.md; BUILD_LOG.md; merges on main | none | Comparison is machine-filled, not a sign-off. Site04 coordinate is a region centre, not a rim point; no coordinate changed. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
