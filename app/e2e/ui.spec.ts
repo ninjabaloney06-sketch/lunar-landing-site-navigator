@@ -7,6 +7,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
+import { EXAMPLE } from '../src/views/examples'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -341,18 +342,91 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
   await expect(page.locator('body')).not.toContainText('NaN')
 })
 
-// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details) ----------
+// ---------- U6: greyed examples in the free-text fields; each is accepted exactly as shown ----------
+
+test('U6: the examples in the search, name, date and point-name fields are accepted as typed', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${SEP}`)
+  await expectAnswer(page, RIDGE, SEP, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  // Coordinates: Connecting Ridge, as sites.json and the header give them.
+  const search = panel.getByRole('combobox', { name: 'Search a site or type coordinates' })
+  await expect(search).toHaveAttribute('placeholder', `Site name, or e.g. ${EXAMPLE.coords}`)
+  await search.fill(EXAMPLE.coords)
+  await expect(panel.getByRole('status')).toContainText('89.46° S · 136.68° W')
+  await expect(page.getByTestId('coords')).toHaveText('89.46° S · 136.68° W')
+  await search.press('Enter') // typed coordinates add a point
+  await expect(panel.getByTestId('point')).toHaveCount(1)
+  // Point name.
+  const pointName = panel.getByTestId('point').getByRole('textbox')
+  await pointName.fill('')
+  await expect(pointName).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.point}`)
+  await pointName.fill(EXAMPLE.point)
+  await expect(panel.getByRole('button', { name: new RegExp(`^Select ${EXAMPLE.point},`) })).toBeVisible()
+  // Mission name.
+  const name = panel.getByLabel('Name', { exact: true })
+  await name.fill('')
+  await expect(name).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.name}`)
+  await name.fill(EXAMPLE.name)
+  await expect(page.getByTestId('mission')).toHaveText(EXAMPLE.name)
+  // Dates: from the September period, the Start example moves the mission to start on 16 Aug (its length kept), and
+  // the End example makes it 16–29 Aug, the named August period.
+  const start = panel.getByLabel('Start', { exact: true })
+  const end = panel.getByLabel('End', { exact: true })
+  await start.fill('')
+  await expect(start).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.start}`)
+  await start.fill(EXAMPLE.start)
+  await start.press('Enter')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('from=2027-08-16T00:00Z')
+  await end.fill('')
+  await expect(end).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.end}`)
+  await end.fill(EXAMPLE.end)
+  await end.press('Enter')
+  await expect(end).toHaveValue(EXAMPLE.end)
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain(`period=${AUG}`)
+})
+
+// ---------- U7: Sun and Earth paths over the mission on the horizon chart ----------
+
+test('U7: the horizon chart draws each body\'s path over the mission, unbroken except at the north wrap, through its dot', async ({ page }) => {
+  await page.goto(`${DEMO}&t=2027-08-20T06:00Z&drawer=details`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
+  const width = await strip.locator('svg').evaluate((e) => (e as SVGSVGElement).width.baseVal.value)
+  for (const key of ['sun', 'earth']) {
+    const track = strip.getByTestId(`strip-track-${key}`)
+    const d = (await track.locator('path').evaluateAll((ps) => ps.map((p) => p.getAttribute('d') ?? ''))).join('')
+    // Vertices and the segments between them ("L" continues, "M" lifts the pen).
+    const cmds = [...d.matchAll(/([ML])(-?[\d.]+),(-?[\d.]+)/g)].map((m) => ({ c: m[1], x: Number(m[2]), y: Number(m[3]) }))
+    expect(cmds.length, `${key}: path vertices`).toBeGreaterThan(50)
+    for (let i = 1; i < cmds.length; i++) if (cmds[i].c === 'L') expect(Math.abs(cmds[i].x - cmds[i - 1].x), `${key}: no line across the chart`).toBeLessThan(width / 2)
+    // The dot at the cursor lies on its path (both from the same sample), unless it is pinned below the axis.
+    const dot = strip.getByTestId(`strip-${key}`)
+    if (!(await dot.getAttribute('class'))!.includes('is-below')) {
+      const c = await dot.locator('circle').evaluate((e) => ({ x: Number(e.getAttribute('cx')), y: Number(e.getAttribute('cy')) }))
+      expect(Math.min(...cmds.map((v) => Math.hypot(v.x - c.x, v.y - c.y))), `${key}: dot on its path`).toBeLessThan(0.1)
+    }
+  }
+  // The part already passed is drawn fainter than the part still to come.
+  const op = (sel: string) => strip.locator(`[data-testid=strip-track-sun] ${sel}`).evaluate((e) => Number(getComputedStyle(e).opacity))
+  expect(await op('.is-past')).toBeLessThan(await op('.is-next'))
+  await expect(strip).toContainText('lines: paths over the mission dates')
+})
+
+// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 4 controls, main screen 7, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 6 controls, main screen 10, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(4)
-    // 4 in the header + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is
-    // computed"; the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(6)
+    // 6 in the header (mission, date, Points of interest, Search, Find better dates, Details) + "View" and
+    // "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed" and "Docs"; the answer line is
+    // text, not a control.
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
@@ -592,9 +666,9 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 4 controls and the main screen 7.
-  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(4)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
+  // The warning is text, not a control: the header still has 6 controls and the main screen 10.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(6)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)

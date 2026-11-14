@@ -13,6 +13,7 @@ import type { RankedSite, ScienceGoal, Summary } from '../geometry'
 import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
 import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
+import { EXAMPLE, eg } from './examples'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
 import { resolvePeriod } from './period'
 import { SLOPE_BASELINE, slopeOf } from './slope'
@@ -261,6 +262,7 @@ export function MissionPanel(p: Props) {
             className="field"
             type="text"
             maxLength={NAME_MAX}
+            placeholder={eg(EXAMPLE.name)}
             value={nameDraft ?? p.name ?? DEFAULT_MISSION_NAME}
             onChange={(e) => {
               setNameDraft(e.target.value)
@@ -277,6 +279,7 @@ export function MissionPanel(p: Props) {
             className="field mono"
             type="text"
             aria-describedby="mp-dates-note"
+            placeholder={eg(EXAMPLE.start)}
             value={startDraft ?? fmtDate(period.startMs)}
             onChange={(e) => setStartDraft(e.target.value)}
             onBlur={commitStart}
@@ -290,6 +293,7 @@ export function MissionPanel(p: Props) {
             className="field mono"
             type="text"
             aria-describedby="mp-dates-note"
+            placeholder={eg(EXAMPLE.end)}
             value={endDraft ?? fmtDate(lastDayMs)}
             onChange={(e) => setEndDraft(e.target.value)}
             onBlur={commitEnd}
@@ -374,7 +378,7 @@ export function MissionPanel(p: Props) {
             aria-controls="site-list"
             aria-activedescendant={flat[activeIdx] ? `site-opt-${flat[activeIdx].site.id}` : undefined}
             aria-label="Search a site or type coordinates"
-            placeholder="Search a site or type coordinates"
+            placeholder={`Site name, or ${eg(EXAMPLE.coords)}`}
             value={query}
             onKeyDown={onSearchKey}
             onChange={(e) => {
@@ -443,6 +447,7 @@ export function MissionPanel(p: Props) {
                     type="text"
                     aria-label={`Name of ${name}`}
                     maxLength={NAME_MAX}
+                    placeholder={eg(EXAMPLE.point)}
                     value={pointDraft?.i === i ? pointDraft.text : name}
                     onChange={(e) => {
                       setPointDraft({ i, text: e.target.value })

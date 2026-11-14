@@ -18,6 +18,7 @@ export interface ViewItem {
   id: string
   label: string
   disabled?: boolean
+  title?: string // why it is disabled, as a tooltip
   current?: boolean // the level the scene is at
   separated?: boolean // a rule above this entry
   onSelect(): void
@@ -29,10 +30,11 @@ interface Props {
   className?: string
   at?: { x: number; y: number } // right-click position inside the stage; the menu is kept inside it
   testId: string
+  note?: string // one line under the entries (e.g. why one is disabled), readable without a pointer
   onClose(returnFocus: boolean): void
 }
 
-export function ViewMenu({ label, items, className, at, testId, onClose }: Props) {
+export function ViewMenu({ label, items, className, at, testId, note, onClose }: Props) {
   const root = useRef<HTMLDivElement>(null)
 
   const enabled = () => [...(root.current?.querySelectorAll<HTMLButtonElement>('[role=menuitem]:not(:disabled)') ?? [])]
@@ -89,6 +91,7 @@ export function ViewMenu({ label, items, className, at, testId, onClose }: Props
           className={`view-item${it.separated ? ' is-separated' : ''}`}
           data-item={it.id}
           disabled={it.disabled}
+          title={it.title}
           aria-current={it.current ? 'true' : undefined}
           onClick={() => {
             onClose(true)
@@ -98,6 +101,11 @@ export function ViewMenu({ label, items, className, at, testId, onClose }: Props
           {it.label}
         </button>
       ))}
+      {note && (
+        <p className="view-note" data-testid={`${testId}-note`}>
+          {note}
+        </p>
+      )}
     </div>
   )
 }

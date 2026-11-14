@@ -67,3 +67,31 @@ describe('user points in the link', () => {
     expect(addPoint(pts, -80, 100)).toBeNull()
   })
 })
+
+describe('points-of-interest layer in the link', () => {
+  const poi = (h: string) => parseHash(h).poi
+  it('is off by default and absent from the link', () => {
+    expect(EMPTY_STATE.poi).toBeNull()
+    expect(poi('')).toBeNull()
+    expect(poi('#site=connecting-ridge')).toBeNull()
+    expect(serializeHash(EMPTY_STATE)).not.toContain('poi')
+  })
+  it('round-trips all, none and a subset in POI_GROUPS order', () => {
+    expect(poi('#poi=all')).toEqual(['hazard', 'water', 'cold-trap', 'light', 'landing', 'science'])
+    expect(serializeHash({ ...EMPTY_STATE, poi: ['science', 'hazard', 'water', 'cold-trap', 'light', 'landing'] })).toBe('poi=all')
+    expect(poi('#poi=none')).toEqual([])
+    expect(serializeHash({ ...EMPTY_STATE, poi: [] })).toBe('poi=none')
+    expect(poi('#poi=water,hazard')).toEqual(['hazard', 'water'])
+    expect(serializeHash({ ...EMPTY_STATE, poi: ['water', 'hazard'] })).toBe('poi=hazard,water')
+  })
+  it('drops unknown words and treats a value with no known group as off', () => {
+    expect(poi('#poi=hazard,lava')).toEqual(['hazard'])
+    expect(poi('#poi=lava')).toBeNull()
+    expect(poi('#poi=')).toBeNull()
+  })
+  it('parses the search and docs panels as drawer values', () => {
+    expect(parseHash('#drawer=search').drawer).toBe('search')
+    expect(parseHash('#drawer=docs').drawer).toBe('docs')
+    expect(parseHash('#drawer=other').drawer).toBeNull()
+  })
+})
