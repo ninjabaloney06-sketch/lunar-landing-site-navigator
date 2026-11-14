@@ -8,5 +8,12 @@
  "illum_png": "malapert-massif-illum.png",
  "illum_map": "avgvisib_85s_060m_201608",
  "illum_res_m": 60.0,
- "dem": "LDEM_80S_20MPP_ADJ.TIF"
+ "illum_crs": "DEM CRS (lon_0 = 0), label's lon_0 = 180 overridden",
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "ground_m": 4817.59,
+ "levels": [
+  "fine",
+  "mid",
+  "far"
+ ]
 }

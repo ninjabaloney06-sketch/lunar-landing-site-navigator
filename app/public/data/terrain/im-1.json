@@ -8,5 +8,12 @@
  "illum_png": "im-1-illum.png",
  "illum_map": "avgvisib_75s_120m_201608",
  "illum_res_m": 120.0,
- "dem": "LDEM_80S_20MPP_ADJ.TIF"
+ "illum_crs": "as labelled",
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "ground_m": 2591.97,
+ "levels": [
+  "fine",
+  "mid",
+  "far"
+ ]
 }

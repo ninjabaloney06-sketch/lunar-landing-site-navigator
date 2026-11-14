@@ -281,6 +281,103 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
   })
 })
 
+test.describe('terrain levels (track-terrain)', () => {
+  test('T18 nested levels: loaded where present, ≤ 1.5 MB of terrain per site, no cracks at the level borders', async ({ page }) => {
+    const bodies: Promise<number>[] = []
+    const files: string[] = []
+    page.on('response', (r) => {
+      if (!r.url().includes(`/data/terrain/${DEMO}`)) return
+      files.push(r.url().split('/').pop()!)
+      bodies.push(r.body().then((b) => b.length))
+    })
+    await open(page)
+    type Info = { levels: string[]; triangles: number }
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'site' })
+    const info = await call<Info>(page, 'terrainInfo')
+    expect(info.levels).toEqual(['fine', 'tile', 'mid', 'far'])
+    const terrainBytes = (await Promise.all(bodies)).reduce((a, b) => a + b, 0)
+    console.log(`T18 ${DEMO}: ${terrainBytes} bytes of terrain in ${files.length} files (${files.join(', ')}), ` +
+      `${info.triangles} terrain triangles at site level`)
+    expect(files.length).toBe(8)
+    expect(terrainBytes).toBeLessThan(1.5e6)
+    // Flat unlit grey terrain: a dark pixel inside the terrain is a gap between levels (or inside one). Views look
+    // straight down on the fine/80 m border (±2.5 km) and the 80 m/mid border (±20 km), and obliquely across both.
+    await call(page, 'setFlat', true)
+    for (const v of [
+      { az: 30, el: 85, dist: 7 },
+      { az: 30, el: 85, dist: 45 },
+      { az: 120, el: 35, dist: 12 },
+    ]) {
+      await setView(page, { level: 'site', ...v })
+      const png = await pixels(page)
+      let gaps = 0
+      let terrain = 0
+      // Lower half of the frame only: with el ≥ 35° it lies inside the 60 km mid square, below any skyline.
+      for (let y = Math.round(png.height * 0.55); y < png.height; y += 2) {
+        for (let x = 0; x < png.width; x += 2) {
+          if (lum(png, x, y) < 40) gaps++
+          else terrain++
+        }
+      }
+      console.log(`T18 flat view ${JSON.stringify(v)}: ${gaps} dark of ${gaps + terrain} sampled pixels`)
+      expect(gaps, `dark pixels inside the terrain, view ${JSON.stringify(v)}`).toBe(0)
+    }
+    await call(page, 'setFlat', false)
+  })
+
+  test('T18 fallback: a tile whose meta lists no levels renders alone, and no level file is fetched', async ({ page }) => {
+    const levelRequests: string[] = []
+    page.on('request', (r) => {
+      if (/terrain\/[^/]+-(fine|mid|far)\./.test(r.url())) levelRequests.push(r.url())
+    })
+    await page.route(`**/data/terrain/${DEMO}.json`, async (route) => {
+      const res = await route.fetch()
+      const meta = (await res.json()) as Record<string, unknown>
+      delete meta.levels
+      await route.fulfill({ response: res, json: meta })
+    })
+    await open(page)
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'site' })
+    const info = await call<{ levels: string[]; triangles: number }>(page, 'terrainInfo')
+    expect(info.levels).toEqual(['tile'])
+    expect(levelRequests).toEqual([])
+  })
+
+  test('T17 at every site with levels: the Sun is hidden exactly where the mask hides it (eye level)', async ({ page }) => {
+    // 35 site/time cases: about 50 s alone, over the default 90 s when the whole suite runs in parallel.
+    test.setTimeout(300_000)
+    await open(page)
+    // T17's cases (whole disc ≥ 0.3° below the mask but within 3°, or ≥ 0.3° above it and < 8°), first match in
+    // Aug 2027, for every site with a horizon: checks the clamp and the crest strip on all terrain, not one site.
+    const failures: string[] = []
+    let checked = 0
+    for (const s of sites.filter((x) => x.horizon)) {
+      const hz = horizonOf(s)
+      for (const want of ['dark', 'lit'] as const) {
+        const t = findTime('2027-08-01T00:00:00Z', '2027-09-01T00:00:00Z', (ms) => {
+          const b = body(s, ms, 'sun')
+          const m = maskAt(hz, b.az)
+          const r = angRadiusDeg(SUN_RADIUS_KM, b.dist_km)
+          return want === 'dark' ? b.el + r < m - 0.3 && b.el > m - 3 : b.el - r > m + 0.3 && b.el < m + 8
+        })
+        if (t === null) continue
+        const utc = new Date(t).toISOString()
+        const sun = body(s, utc, 'sun')
+        await setView(page, { site: s.id, utc, level: 'eye', az: sun.az, el: sun.el, fov: 54 })
+        const p = (await project(page, 'sun'))!
+        const px = pinhole(sun.az, sun.el, 54, 1280, 720, sun.dirEnu)
+        const l = lum(await pixels(page), px.x, px.y)
+        checked++
+        const ok = want === 'lit' ? p.visible && l > 200 : !p.visible && l < 30
+        if (!ok) failures.push(`${s.id} ${want} ${utc}: visible ${p.visible}, luminance ${l.toFixed(0)}`)
+      }
+    }
+    console.log(`T17 all sites: ${checked} cases, ${failures.length} failures`)
+    expect(checked).toBeGreaterThan(20)
+    expect(failures).toEqual([])
+  })
+})
+
 test.describe('screenshots (1440 × 900)', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
@@ -297,8 +394,30 @@ test.describe('screenshots (1440 × 900)', () => {
     await page.screenshot({ path: `${SHOTS}/c1-demo-connecting-ridge-2027-08-16T1200Z.png` })
     await setView(page, { level: 'eye' })
     await page.screenshot({ path: `${SHOTS}/c1-eye-level.png` })
-    // Extra: im-1's tile is ~40 % nodata (north of 80° S); it must render as a hole, not as flat ground.
+    // Extra: im-1's 80 m tile is ~40 % nodata (outside the polar DEM). With the terrain levels only the far level
+    // (ldem_16 fill) covers that part, and the finer levels show it at that resolution; a point no level covers
+    // is a hole, never flat ground.
     await setView(page, { site: 'im-1', utc: DEMO_UTC, level: 'site' })
     await page.screenshot({ path: `${SHOTS}/c1-im1-nodata.png` })
+  })
+
+  // Terrain levels before/after set (track-terrain): the same cameras every run; TERRAIN_TAG names the set.
+  test('terrain levels: fixed cameras for the before/after comparison', async ({ page }) => {
+    fs.mkdirSync(SHOTS, { recursive: true })
+    const tag = process.env.TERRAIN_TAG ?? 'after'
+    await open(page)
+    const shots: [string, Opts][] = [
+      ['connecting-ridge-site', { site: DEMO, utc: DEMO_UTC, level: 'site' }],
+      ['connecting-ridge-eye', { level: 'eye' }],
+      ['connecting-ridge-close', { site: DEMO, utc: DEMO_UTC, level: 'site', az: 0, el: 25, dist: 5 }],
+      ['shackleton-rim-site04-site', { site: 'shackleton-rim-site04', utc: DEMO_UTC, level: 'site' }],
+      ['im-1-site', { site: 'im-1', utc: DEMO_UTC, level: 'site' }],
+    ]
+    for (const [name, o] of shots) {
+      const cam = await setView(page, o)
+      const pos = (cam.position as number[]).map((v) => v.toFixed(1)).join(', ')
+      console.log(`terrain-${name}-${tag}: camera ${cam.level} at [${pos}] m, view ${JSON.stringify(cam.view)}`)
+      await page.screenshot({ path: `${SHOTS}/terrain-${name}-${tag}.png` })
+    }
   })
 })

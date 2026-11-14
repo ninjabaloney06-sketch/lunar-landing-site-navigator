@@ -22,7 +22,9 @@ BOX = 25  # samples (25 x 80 m = 2 km)
 
 
 def _tiles():
-    return sorted(p.stem for p in TERRAIN.glob("*.json"))
+    # Only tiles that ship an overlay: the nested terrain levels (<id>-fine/-mid/-far.json) have illum_png = null.
+    return sorted(p.stem for p in TERRAIN.glob("*.json")
+                  if json.loads(p.read_text(encoding="utf-8")).get("illum_png"))
 
 
 def _relief_corr(site_id):
