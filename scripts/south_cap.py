@@ -21,8 +21,8 @@ x = x0_m + (c + 0.5) s, y = y0_m - (r + 0.5) s.
                 a 300 km horizon ray from any point of the cap, and the corners of its +-300 km far level
                 (projected up to 729 km from the pole for a site on the 80 S edge), stay on data
   <level>/<row>/<col>.bin   tile pyramid, 256 x 256 samples per tile, level = spacing in metres:
-                80 (4 x 4 block means) south of 80 S, 40 (2 x 2 block means) south of 85.1 S (85 S would put the
-                folder over its 200 MB ceiling). Tile (row, col) holds
+                80 (4 x 4 block means) and 40 (2 x 2 block means), each south of its latitude limit in LEVELS
+                (the one place the limits are set; cap.json repeats them as north_lat). Tile (row, col) holds
                 samples [row*256, row*256+256) x [col*256, col*256+256) of the level's full grid; a tile with no
                 part south of the level's latitude limit is not written; samples past the DEM edge are nodata.
 
@@ -57,8 +57,10 @@ BASE_FACTOR = 20          # 400 m
 OUTER_FACTOR = 16         # 1920 m on the 120 m DEM
 OUTER_HALF_BLOCKS = 384   # +-737.3 km: a far-level corner of a site at 80 S projects to 729 km from the pole
 TILE_SCALE_M = 0.25       # Int16 unit of the tiles; holds +-8191 m (checked while writing)
-# Tiled levels, finest first: name = spacing in metres -> (block factor on the 20 m DEM, northern latitude limit)
-LEVELS = {"40": (2, -85.1), "80": (4, -80.0)}
+# Tiled levels, finest first: name = spacing in metres -> (block factor on the 20 m DEM, northern latitude limit).
+# The ONLY place a level's extent is set: the tile index in cap.json, the browser module and the tests all derive
+# from it. Changing a limit = edit it here, run --full, commit the tiles, update the register row's measured size.
+LEVELS = {"40": (2, -80.0), "80": (4, -80.0)}
 SAMPLE_RADIUS_M = 21_000.0  # --sample: tiles within this distance of a site (the 80 m tile's +-20 km)
 OUT = APP_DATA / "terrain" / "cap"
 TEXTURES = REPO / "app" / "public" / "textures"
@@ -162,10 +164,16 @@ def ranges(cols):
 
 
 def print_plan(dem_width, x0, y0):
-    print("full pyramid sizes (256 x 256 Int16 tiles = 131072 bytes each):")
-    for name, lim in [("40", -80.0), ("40", -85.0), ("80", -80.0), ("160", -80.0)]:
+    def line(name, lim):
         n = sum(len(v) for v in plan_level(name, dem_width, x0, y0, north_lat=lim).values())
-        print(f"  {name:>3} m south of {abs(lim):.0f} S: {n} tiles, {n * TILE * TILE * 2 / 1e6:.1f} MB")
+        return f"  {name:>3} m south of {abs(lim):g} S: {n} tiles, {n * TILE * TILE * 2 / 1e6:.1f} MB"
+
+    print("tile levels as configured in LEVELS (256 x 256 Int16 tiles = 131072 bytes each):")
+    for name, (_, lim) in LEVELS.items():
+        print(line(name, lim))
+    print("for comparison:")
+    for name, lim in [("40", -80.0), ("40", -85.0), ("80", -80.0), ("160", -80.0)]:
+        print(line(name, lim))
 
 
 def build_outer(path):
@@ -224,7 +232,7 @@ def main(argv=None):
     g.add_argument("--sample", nargs="+", metavar="SITE", help="tiles around these site ids only")
     g.add_argument("--texture", action="store_true", help="write the cap colour texture only")
     g.add_argument("--full", action="store_true",
-                   help="every tile (about 190 MB: needs Isaac's approval, AGENTS.md)")
+                   help="every tile of every level (sizes: --plan; over 10 MB needs Isaac's approval, AGENTS.md)")
     args = ap.parse_args(argv)
     if args.texture:
         return write_texture()

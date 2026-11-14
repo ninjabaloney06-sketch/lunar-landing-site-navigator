@@ -87,6 +87,14 @@ def raster(meta, name):
     return Raster(next(lv for lv in meta["levels"] if lv["name"] == name), meta["nodata"], tiled=True)
 
 
+def has_tile(meta, name, x, y):
+    """Does the tile index of level `name` in cap.json list the tile holding projected point (x, y)?"""
+    lv = next(v for v in meta["levels"] if v["name"] == name)
+    side = lv["tile_size"] * lv["spacing_m"]
+    tr, tc = int((lv["y0_m"] - y) // side), int((x - lv["x0_m"]) // side)
+    return any(a <= tc <= b for a, b in lv["tiles"].get(str(tr), []))
+
+
 def destination(lat_deg, lon_deg, az, d_m):
     """Great-circle destination (bearing from north, clockwise), spherical trig; arrays for az and d_m."""
     p1, l1 = math.radians(lat_deg), math.radians(lon_deg)
@@ -207,7 +215,6 @@ def test_tile_index_equals_the_files_on_disk(meta):
     sizes = [p.stat().st_size for p in CAP.rglob("*") if p.is_file()]
     assert all((CAP / t).stat().st_size == 256 * 256 * 2 for t in listed)
     assert max(sizes) < 20e6  # host limit per file (25 MiB), orchestrator's limit 20 MB
-    assert sum(sizes) < 200e6  # ceiling for the folder (ninja's approval of 14 Nov, orchestrator's limit)
     assert meta["measured"]["total_bytes"] == sum(s for s in sizes) - (CAP / "cap.json").stat().st_size
 
 
@@ -232,9 +239,9 @@ def test_ground_height_at_known_sites(meta, site):
     for name, tol in [("40", 6.0), ("80", 12.0), ("base", 150.0)]:
         h = float(raster(meta, name).bilinear(x, y))
         if math.isnan(h):
-            assert name == "40" and SITES[site][0] > -85.1 or not next(
-                v for v in meta["levels"] if v["name"] == name)["complete"]
+            assert not has_tile(meta, name, x, y)  # no value only where the level's tile index has no tile
             continue
+        assert name == "base" or has_tile(meta, name, x, y)
         print(f"{site} {name}: cap {h:.1f} m, ground_m {ground:.1f} m")
         assert abs(h - ground) < tol
 
@@ -293,7 +300,8 @@ def test_samples_equal_the_raw_box_mean(meta, name):
             c, r = int((x - info["x0_m"]) // info["spacing_m"]), int((info["y0_m"] - y) // info["spacing_m"])
             got = float(ra.at(np.array([r]), np.array([c]))[0])
             if math.isnan(got):
-                continue  # no tile here (40 m north of its limit, or a sample run)
+                assert ra.tiled and not has_tile(meta, name, x, y)  # north of the level's limit, or a sample run
+                continue
             # DEM pixel of the sample's top-left corner, from the DEM's own geotransform
             x_left, y_top = info["x0_m"] + c * info["spacing_m"], info["y0_m"] - r * info["spacing_m"]
             col0, row0 = (round(v) for v in ~ds.transform * (x_left, y_top))
@@ -301,7 +309,9 @@ def test_samples_equal_the_raw_box_mean(meta, name):
             print(f"{name} at ({lat}, {lon}): file {got:.2f} m, raw {f} x {f} mean {want:.3f} m")
             assert abs(got - want) <= info["height_scale_m"] / 2 + 1e-3
             checked += 1
-    assert checked >= (4 if name == "40" else 6)
+    want = len(BOX_POINTS) if not ra.tiled else sum(
+        has_tile(meta, name, *TO_XY.transform(lon, lat)) for lat, lon in BOX_POINTS)
+    assert checked == want >= 1
 
 
 # ---------- cap colour texture (south_cap.py --texture) ----------

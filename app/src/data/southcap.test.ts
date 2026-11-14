@@ -51,6 +51,15 @@ beforeAll(async () => {
   cap = await openCap(diskIo().io)
 })
 const site = (id: string) => sites.find((s) => s.id === id) as Site
+/** Does cap.json's tile index of a level list the tile that holds this point? */
+function hasTile(level: string, lat: number, lon: number): boolean {
+  const l = cap.meta.levels.find((v) => v.name === level)
+  if (!l) return false
+  const [x, y] = capXY(lat, lon)
+  const side = l.tile_size * l.spacing_m
+  const tc = Math.floor((x - l.x0_m) / side)
+  return (l.tiles[String(Math.floor((l.y0_m - y) / side))] ?? []).some(([a, b]) => tc >= a && tc <= b)
+}
 
 describe('projection', () => {
   // Reference: pyproj, +proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +R=1737400 (computed 14 Nov 2026).
@@ -156,8 +165,8 @@ describe('capTerrain has the shape and content of a prepared site', () => {
       expect(f.rms).toBeLessThan(Math.abs(dg) + 60)
       expect(mid.meta.cap.source_res_m).toBe(400)
       expect(far.meta.cap.source_res_m).toBe(2000)
-      // Fine exists exactly where the 40 m level does (south of 85.1 S) and states its real spacing.
-      expect(Boolean(fine)).toBe(s.lat < -85.2)
+      // Fine exists exactly where cap.json's 40 m tile index covers the point, and states its real spacing.
+      expect(Boolean(fine)).toBe(hasTile('40', s.lat, s.lon))
       if (fine) {
         expect(fine.meta.spacing_m).toBe(40)
         expect(fine.meta.cap.source_res_m).toBe(40)
@@ -243,7 +252,18 @@ describe('capTerrain has the shape and content of a prepared site', () => {
         `${id}: terrain ${afterTerrain.tiles} tiles ${(afterTerrain.bytes / 1e6).toFixed(2)} MB; with horizon ${stats.tiles} tiles ` +
           `${(stats.bytes / 1e6).toFixed(2)} MB ${JSON.stringify(c.fetchedTiles())}`,
       )
-      expect(stats.tiles).toBeLessThanOrEqual(18)
+      // Upper bound from the grids and cap.json: a rotated square of side L spans at most ceil(L·√2·k / tile) + 1
+      // tiles per axis (k ≤ 1.01: the projection's scale at 80° S).
+      const t = await c.terrain(s.lat, s.lon)
+      const sides: Record<string, number> = { '80': t ? (t.meta.size - 1) * t.meta.spacing_m : 0 }
+      const fine = t?.levels.find((l) => l.meta.level === 'fine')
+      if (fine) sides['40'] = (fine.meta.size - 1) * fine.meta.spacing_m
+      let bound = 0
+      for (const l of c.meta.levels) {
+        const n = Math.ceil(((sides[l.name] ?? 0) * Math.SQRT2 * 1.01) / (l.tile_size * l.spacing_m)) + 1
+        if (sides[l.name]) bound += n * n
+      }
+      expect(stats.tiles).toBeLessThanOrEqual(bound)
     }
     console.log(rows.join('\n'))
   })
@@ -305,11 +325,41 @@ describe('capHorizon against the 18 pipeline horizons', () => {
     expect(h.observer_height_m).toBe(1.75)
     expect(h.ray_max_km).toBe(300)
     expect(h.truncated).toEqual([])
-    expect(h.computed).toMatchObject({ from: 'south-cap raster', site_res_m: 40, near_res_m: 80, far_res_m: 400, approximate: true, validated: false })
+    expect(h.computed).toMatchObject({ from: 'south-cap raster', site_res_m: hasTile('40', s.lat, s.lon) ? 40 : 80, near_res_m: 80, far_res_m: 400, approximate: true, validated: false })
     expect(h.dem).toContain('approximate')
     await expect(cap.horizon(-79, 0)).rejects.toThrow(RangeError)
     await expect(cap.horizon(-90, 0)).rejects.toThrow(RangeError)
   })
+
+  it('the "at the point" resolution in the label is the finest level whose tile index covers the point', async () => {
+    // A lattice over the cap. The finest level listed for the point must be what the horizon reports and prints;
+    // the only exceptions allowed are points within one sample of the 20 m DEM's square edge (no data beyond it).
+    const finest = (lat: number, lon: number) => cap.meta.levels.find((l) => hasTile(l.name, lat, lon))?.spacing_m ?? null
+    let checked = 0
+    const counts: Record<string, number> = {}
+    for (const lat of [-80.02, -80.6, -82.4, -84.9, -86.4, -89.7]) {
+      for (let lon = -175; lon < 180; lon += 47) {
+        const h = await cap.horizon(lat, lon)
+        const want = finest(lat, lon)
+        counts[String(h.computed.site_res_m)] = (counts[String(h.computed.site_res_m)] ?? 0) + 1
+        const [x, y] = capXY(lat, lon)
+        if (Math.max(Math.abs(x), Math.abs(y)) > cap.halfWidthM - 100) continue
+        expect(h.computed.site_res_m).toBe(want)
+        expect(h.dem).toContain(`${want} m at the point`)
+        if (lon === -175) {
+          const t = await cap.terrain(lat, lon)
+          expect(t?.levels.some((l) => l.meta.level === 'fine')).toBe(want !== null && want < 80)
+        }
+        checked++
+      }
+    }
+    console.log(`site resolution over the lattice: ${JSON.stringify(counts)} (${checked} points checked)`)
+    expect(checked).toBeGreaterThan(40)
+    // On the 80 S edge at longitude 0 the circle leaves the DEM's square: the label must not claim a tile level.
+    const edge = await cap.horizon(-80, 0)
+    expect(edge.computed.site_res_m).toBeGreaterThan(80)
+    expect(edge.dem).toContain(`${edge.computed.site_res_m} m at the point`)
+  }, 30_000) // 48 horizons and their tiles from disk: about 4 s alone, more next to the other tracks' jobs
 
   it('accuracy table: 400 m base only (no tiles in the build)', async () => {
     const bare = await openCap(diskIo(['40', '80']).io)
@@ -328,7 +378,8 @@ describe('capHorizon against the 18 pipeline horizons', () => {
   it('accuracy table: default (40 m within 5 km where it exists, 80 m within 20 km, base beyond)', async () => {
     const { med, max } = table('C. default: 40 m within 5 km, 80 m within 20 km, 400 m beyond', await compare(cap))
     expect(max('ms')).toBeLessThan(1000)
-    // Measured 14 Nov 2026: median over sites 0.014, worst site median 0.256, worst single azimuth 1.679 deg.
+    // Measured 14 Nov 2026 with 40 m tiles for the whole cap: median over sites 0.013, worst site median 0.256,
+    // worst single azimuth 1.679 deg (with 40 m only south of 85.1 S the first value was 0.014).
     expect(med('median')).toBeLessThan(0.02)
     expect(max('median')).toBeLessThan(0.3)
     expect(max('max')).toBeLessThan(2)

@@ -4,7 +4,8 @@
 //          the square at the four axis longitudes; samples there come from the outer raster.
 //   outer  1920 m, ±737 km around the pole, from the 120 m DEM (loaded once, 1.2 MB): keeps 300 km rays and the
 //          corners of a ±300 km far level on data for every point of the cap
-//   80     80 m tiles south of 80° S, 40: 40 m tiles south of 85.1° S (256 × 256 samples, fetched on demand)
+//   80, 40 tile levels at 80 m and 40 m (256 × 256 samples per tile, fetched on demand); which tiles exist is
+//          read from cap.json's index (each level's latitude limit is set in south_cap.py LEVELS, nowhere else)
 // All are box means of the LOLA polar DEMs in the DEM's own south polar stereographic projection on the 1737.4 km
 // sphere (+x toward 90° E, +y toward longitude 0), heights in metres above that sphere. The projection of a unit
 // vector u is rational, no angles: x = 2R·u_y / (1 − u_z), y = 2R·u_x / (1 − u_z).
