@@ -147,6 +147,8 @@ function sightLine(h: Horizon): SightLine {
   }
 }
 
+
+const SUN_INTENSITY = 3 * Math.PI
 export class SiteWorld {
   readonly scene = new Scene()
   private readonly terrain = new Group() // terrain for both levels
@@ -158,7 +160,7 @@ export class SiteWorld {
   private readonly marker = new Group()
   private readonly mast: Mesh
   private readonly cross: Mesh[]
-  private readonly sunLight = new DirectionalLight(0xfff4e6, 3 * Math.PI)
+  private readonly sunLight = new DirectionalLight(0xfff4e6, SUN_INTENSITY)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
@@ -413,8 +415,11 @@ export class SiteWorld {
     this.addMesh(make(1), make(4))
   }
 
-  setLights(sunDir: Vector3, earthDir: Vector3, earthFill: number) {
+  /** sunOn = false when the Sun is hidden from the eye (there is no shadow map, so without this the terrain
+   *  would be drawn sunlit while the answer says "Dark"). */
+  setLights(sunDir: Vector3, earthDir: Vector3, earthFill: number, sunOn = true) {
     this.sunLight.position.copy(sunDir).multiplyScalar(1e5)
+    this.sunLight.intensity = sunOn ? SUN_INTENSITY : 0
     this.earthLight.position.copy(earthDir).multiplyScalar(1e5)
     this.earthLight.intensity = earthFill
   }

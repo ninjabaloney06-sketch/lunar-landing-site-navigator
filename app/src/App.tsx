@@ -27,7 +27,7 @@ import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
 import { SceneView } from './views/SceneView'
 import { Timeline } from './views/Timeline'
-import { fmtCoords, fmtDateTime, fmtDeg, fmtRange } from './views/format'
+import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import './styles/mission.css'
 
@@ -106,7 +106,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const period: ViewPeriod = useMemo(() => {
     if (hs.period === 'custom' && hs.from !== null) {
       const end = Math.min(hs.from + hs.days * DAY_MS, COVERAGE_END_MS)
-      return { id: 'custom', label: fmtRange(hs.from, end), startMs: hs.from, endMs: end }
+      // A period that does not start at 00:00 UTC (e.g. opened from the finder at the landing time) says so,
+      // so the label does not suggest whole calendar days.
+      const label = hs.from % DAY_MS === 0 ? fmtRange(hs.from, end) : `${fmtShort(hs.from)} – ${fmtShort(end)} UTC`
+      return { id: 'custom', label, startMs: hs.from, endMs: end }
     }
     const p = periods.find((x) => x.id === hs.period) ?? periods.find((x) => x.id === DEFAULT_PERIOD_ID) ?? periods[0]
     if (!p) {
@@ -407,7 +410,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         />
         <footer className="foot">
           <p>
-            Terrain LOLA 20 m · ephemeris JPL DE440 ·{' '}
+            Terrain LOLA 20 m (160 m beyond 20 km) · ephemeris JPL DE440 ·{' '}
             <button type="button" className="link" onClick={() => patch({ drawer: 'sources' })}>
               how this is computed
             </button>
@@ -438,7 +441,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             setMenu('mission')
           }}
           onShowWindow={(startMs, days, landingMs) =>
-            patch({ period: 'custom', from: dayStart(startMs), days, t: landingMs, drawer: null })
+            // open exactly the interval the finder scored: [landing, landing + days), not the landing day's midnight
+            patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
           }
           onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
           onClose={() => patch({ drawer: null })}

@@ -407,6 +407,19 @@
   fill: var(--comms);
 }
 
+/* Body below the axis bottom: hollow dot on the edge (the label carries the true elevation). */
+.strip-sun.is-below circle {
+  fill: none;
+  stroke: var(--sun);
+  stroke-width: 1.5;
+}
+
+.strip-earth.is-below circle {
+  fill: none;
+  stroke: var(--comms);
+  stroke-width: 1.5;
+}
+
 .strip-body-num {
   font-family: var(--font-mono);
   fill: var(--muted);

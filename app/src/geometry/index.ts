@@ -572,9 +572,11 @@ export function answerState(series: Series, stationIds: string[], utcMs: number)
     sunLit: s.state === 'lit',
     sunHoursToChange: (s.endMs - utcMs) / HOUR_MS,
     sunChangeInPeriod: s.endMs < series.endMs,
+    sunSinceStart: s.startMs <= series.startMs,
     comms: c.state as CoverageState,
     commsHoursToChange: (c.endMs - utcMs) / HOUR_MS,
     commsChangeInPeriod: c.endMs < series.endMs,
+    commsSinceStart: c.startMs <= series.startMs,
     anyCoverageInPeriod: cw.some((w) => w.state === 'covered'),
     earthEverRises: series.samples.some((x) => x.earth.visible) || earthCanEverRise(series.site, series.horizon),
   }

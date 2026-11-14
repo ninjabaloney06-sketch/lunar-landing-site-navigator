@@ -25,18 +25,22 @@ describe('answerSentence: sunlight rules', () => {
   })
 
   it('dark, 48 h or more: whole days', () => {
-    expect(with_({ sunLit: false, sunHoursToChange: 50 }).sun).toBe('Dark for 2 more days.')
+    // waiting time is rounded up: 50 h of darkness left reads 3 days, never fewer than remain
+    expect(with_({ sunLit: false, sunHoursToChange: 50 }).sun).toBe('Dark for 3 more days.')
+    expect(with_({ sunLit: false, sunHoursToChange: 48 }).sun).toBe('Dark for 2 more days.')
   })
 
   it('dark, under 48 h: whole hours', () => {
-    expect(with_({ sunLit: false, sunHoursToChange: 30.5 }).sun).toBe('Dark for 30 more hours.')
+    expect(with_({ sunLit: false, sunHoursToChange: 30.5 }).sun).toBe('Dark for 31 more hours.')
+    expect(with_({ sunLit: false, sunHoursToChange: 30 }).sun).toBe('Dark for 30 more hours.')
   })
 
   it('singular for one day and one hour', () => {
     expect(with_({ sunLit: true, sunHoursToChange: 24 }).sun).toBe('Sunlight for 24 more hours.')
     expect(with_({ sunLit: true, sunHoursToChange: 1.5 }).sun).toBe('Sunlight for 1 more hour.')
     expect(with_({ sunLit: true, sunHoursToChange: 71.9 }).sun).toBe('Sunlight for 2 more days.')
-    expect(with_({ sunLit: false, sunHoursToChange: 1.2 }).sun).toBe('Dark for 1 more hour.')
+    expect(with_({ sunLit: false, sunHoursToChange: 1 }).sun).toBe('Dark for 1 more hour.')
+    expect(with_({ sunLit: false, sunHoursToChange: 1.2 }).sun).toBe('Dark for 2 more hours.')
   })
 })
 
@@ -52,11 +56,20 @@ describe('answerSentence: station contact rules', () => {
   it('not covered: next contact in hours or days', () => {
     expect(with_({ comms: 'none', commsHoursToChange: 30 }).comms).toBe('Next station contact in 30 hours.')
     expect(with_({ comms: 'none', commsHoursToChange: 72 }).comms).toBe('Next station contact in 3 days.')
+    // a wait is rounded up: 71.9 h is almost 3 days, not "2 days"
+    expect(with_({ comms: 'none', commsHoursToChange: 71.9 }).comms).toBe('Next station contact in 3 days.')
+    expect(with_({ comms: 'none', commsHoursToChange: 29.1 }).comms).toBe('Next station contact in 30 hours.')
   })
 
   it('no selected station reaches the site in the period', () => {
     expect(with_({ anyCoverageInPeriod: false, comms: 'none' }).comms).toBe(
       'No selected station can reach this site in this period.',
+    )
+  })
+
+  it('all-unknown coverage reads as unknown, not as a definite no', () => {
+    expect(with_({ anyCoverageInPeriod: false, comms: 'unknown' }).comms).toBe(
+      'Station contact unknown: link inputs are missing.',
     )
   })
 
@@ -88,6 +101,21 @@ describe('answerSentence: proposed case (a), no change before the period ends', 
     )
     expect(with_({ commsChangeInPeriod: false, comms: 'none' }).comms).toBe(
       'No station contact throughout this period.',
+    )
+  })
+
+  it('last window of a period that started in another state: "until the end", never "throughout"', () => {
+    expect(with_({ sunChangeInPeriod: false, sunSinceStart: false, sunLit: false }).sun).toBe(
+      'Dark until the end of this period.',
+    )
+    expect(with_({ sunChangeInPeriod: false, sunSinceStart: false, sunLit: true }).sun).toBe(
+      'Sunlight until the end of this period.',
+    )
+    expect(with_({ commsChangeInPeriod: false, commsSinceStart: false, comms: 'none' }).comms).toBe(
+      'No station contact until the end of this period.',
+    )
+    expect(with_({ commsChangeInPeriod: false, commsSinceStart: false, comms: 'covered' }).comms).toBe(
+      'Station contact until the end of this period.',
     )
   })
 })

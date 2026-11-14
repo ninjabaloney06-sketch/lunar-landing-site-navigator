@@ -199,7 +199,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const earthE = sky.worldDir('earth')
     const eye = new Vector3(0, 0, site.eyeHeight)
     const earthUp = frame.site ? !site.occluded(eye, earthE, Infinity, true) : false
-    site.setLights(sunE, earthE, earthUp ? EARTHSHINE * sky.earthPhase : 0)
+    // Same eye-level test for the Sun, so the ground is not drawn sunlit while the answer says "Dark".
+    const sunUp = frame.site ? !site.occluded(eye, sunE, Infinity, true) : true
+    site.setLights(sunE, earthE, earthUp ? EARTHSHINE * sky.earthPhase : 0, sunUp)
     const sunM = v3(frame.state.sun_km).normalize()
     const earthM = v3(frame.state.earth_km).normalize()
     globe.setLights(sunM, earthM, EARTHSHINE * 0.5 * sky.earthPhase)
