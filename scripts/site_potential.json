@@ -1,0 +1,374 @@
+{
+ "shackleton-rim-site04": [
+  {
+   "category": "illumination",
+   "text": "LROC reports three points on Shackleton's rim that are collectively sunlit for more than 90% of the year, which makes this area attractive for solar power; that figure belongs to those three rim points together, not to this reference point, whose sunlight must be computed for its exact position and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://lroc.im-ldi.com/images/993"
+  },
+  {
+   "category": "cold-trap",
+   "text": "Shackleton's interior is in permanent shadow, a cold trap where frozen volatiles could be studied; permanent shadow is a thermal condition, not proof of ice, and access from this point has not been assessed.",
+   "evidence": "modeled condition",
+   "source_url": "https://science.nasa.gov/resource/shackleton-craters-illuminated-rim-shadowed-interior/"
+  },
+  {
+   "category": "water-ice",
+   "text": "NASA states that Shackleton's permanently shadowed interior is believed to contain ice, which would make it a high-value sampling target; this is an expectation, not a measured deposit, and its amount and depth are unknown.",
+   "evidence": "hypothesis",
+   "source_url": "https://www.nasa.gov/reference/moonbase-environment/"
+  }
+ ],
+ "malapert-site23": [
+  {
+   "category": "science",
+   "text": "LROC describes the Malapert massif as thought to be a remnant of the South Pole-Aitken basin rim, so its rocks could help date that ancient impact; the origin is an interpretation, and no sampling target at this point has been assessed.",
+   "evidence": "hypothesis",
+   "source_url": "https://lroc.im-ldi.com/images/1294"
+  },
+  {
+   "category": "other",
+   "text": "LROC places the heart of the Malapert landing region on a relatively flat area near 86°S, 0°E that continues down the slope toward the Earth; whether this point gets more Earth line of sight than other sites must come from the validated station calculation, not from the slope's orientation.",
+   "evidence": "remote observation",
+   "source_url": "https://lroc.im-ldi.com/images/1294"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "haworth": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "NASA reports that prior studies found signs of ice in permanently shadowed areas within Haworth crater, after which this region is named, a possible target for ice prospecting; the evidence is indirect, gives no amount or depth, and the distance from this point to those areas has not been computed.",
+   "evidence": "remote observation",
+   "source_url": "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/"
+  }
+ ],
+ "malapert-massif": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "science",
+   "text": "LROC describes the Malapert massif as thought to be a remnant of the South Pole-Aitken basin rim, so its rocks could help date that ancient impact; the origin is an interpretation, and no sampling target at this point has been assessed.",
+   "evidence": "hypothesis",
+   "source_url": "https://lroc.im-ldi.com/images/1294"
+  },
+  {
+   "category": "other",
+   "text": "LROC places the heart of the Malapert landing region on a relatively flat area near 86°S, 0°E that continues down the slope toward the Earth; whether this point gets more Earth line of sight than other sites must come from the validated station calculation, not from the slope's orientation.",
+   "evidence": "remote observation",
+   "source_url": "https://lroc.im-ldi.com/images/1294"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "nobile-rim-1": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "nobile-rim-2": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "de-gerlache-rim-2": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "connecting-ridge": [
+  {
+   "category": "illumination",
+   "text": "LROC reports that the elevated ridge between Shackleton and de Gerlache craters has portions illuminated up to 90% of the time, though nowhere permanently, which favours long solar-power windows; the best-lit portions are not necessarily at this mosaic-centre point, so its sunlight must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://lroc.im-ldi.com/images/1105"
+  },
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "LROC marks a relatively flat area on the Shackleton-de Gerlache ridge with a direct line of sight onto the floor of Shackleton crater, which has been in perpetual shadow, an opportunity to observe a cold trap; this is not evidence of ice, and that flat area is not necessarily this point.",
+   "evidence": "remote observation",
+   "source_url": "https://lroc.im-ldi.com/images/1247"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "connecting-ridge-extension": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "peak-near-shackleton": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "de-gerlache-rim-1": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "faustini-rim-a": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "NASA reports that prior studies found signs of ice in permanently shadowed areas within Faustini crater, whose rim gives this region its name, a possible target for ice prospecting; the evidence is indirect, gives no amount or depth, and the distance from this point to those areas has not been computed.",
+   "evidence": "remote observation",
+   "source_url": "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/"
+  }
+ ],
+ "leibnitz-beta-plateau": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "Mons Mouton (previously Leibnitz β), after which this region is named, hosts NASA's analysed VIPER mission area, described as containing accessible permanent shadows in craters of varying ages, an opportunity for cold-trap science; that analysis covers the VIPER area on the massif's southern edge, not necessarily this representative point.",
+   "evidence": "modeled condition",
+   "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/ae061a"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "amundsen-rim": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "de-gerlache-kocher-massif": [
+  {
+   "category": "illumination",
+   "text": "NASA states that each of its 13 candidate regions of 2022, this one included, contains sites with continuous access to sunlight throughout a 6.5-day period, useful for solar power on a short surface stay; those sites lie somewhere in the roughly 15 × 15 km region and are not necessarily this representative point, so sunlight here must be computed for the exact point and dates.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "cold-trap",
+   "text": "NASA chose its 13 candidate regions of 2022, this one included, so that landing sites lie close enough to permanently shadowed regions for a crew moonwalk, an opportunity to sample cold traps; which shadowed area, how far it is from this point and whether it holds ice are not stated, and our PSR maps are not loaded yet.",
+   "evidence": "modeled condition",
+   "source_url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "im-1": [
+  {
+   "category": "other",
+   "text": "LRO imaging shows Odysseus came to rest in a degraded crater about one kilometre across where the local terrain slopes at 12 degrees, a documented real touchdown to compare landing conditions against; it carries no information about resources at the site.",
+   "evidence": "remote observation",
+   "source_url": "https://www.nasa.gov/missions/lro/nasas-lro-images-intuitive-machines-odysseus-lander/"
+  },
+  {
+   "category": "water-ice",
+   "text": "No site-specific ice or hydrogen measurement for this point is in our sources yet (LRO Diviner and LEND data not loaded), so local water ice is unknown; permanent shadow nearby, where present, would not prove ice.",
+   "evidence": "unknown",
+   "source_url": "https://pds-geosciences.wustl.edu/missions/lro/"
+  }
+ ],
+ "im-2-intended": [
+  {
+   "category": "science",
+   "text": "LROC notes that Mons Mouton, where this intended site lies, is thought to have formed as part of the South Pole-Aitken basin rim, which makes it of keen scientific interest; that origin is an interpretation, not a sampled result.",
+   "evidence": "hypothesis",
+   "source_url": "https://lroc.im-ldi.com/images/1401"
+  },
+  {
+   "category": "water-ice",
+   "text": "IM-2 carried instruments to investigate Mons Mouton, but the lander came to rest on its side more than 400 m from this intended site and could not fully operate its drill, so no local ice measurement exists and ice here remains unknown.",
+   "evidence": "unknown",
+   "source_url": "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
+  }
+ ],
+ "viper-mons-mouton": [
+  {
+   "category": "cold-trap",
+   "text": "Beyer et al. describe the VIPER mission area as containing accessible permanent shadows in craters of varying ages, giving a rover nearby cold traps to sample; 'accessible' is that mission analysis's judgement, and permanent shadow is not proof of ice.",
+   "evidence": "modeled condition",
+   "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/ae061a"
+  },
+  {
+   "category": "water-ice",
+   "text": "Chandrayaan-1 M3 data suggest one possible surface water-ice detection in the extended VIPER mission area, in a permanently shaded spot with annual maximum temperatures below 110 K, a concrete target for verification; it is a single tentative orbital detection, and ShadowCam images of the area's shadowed craters show no surface-exposed ice or frost.",
+   "evidence": "remote observation",
+   "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/ae061a"
+  },
+  {
+   "category": "other",
+   "text": "Radar-derived rock proxies suggest Mons Mouton is unusually rock-poor, which could ease landing and driving; rock distributions vary locally, so each site still needs image-based hazard checks.",
+   "evidence": "remote observation",
+   "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/ae061a"
+  }
+ ]
+}

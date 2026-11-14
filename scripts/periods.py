@@ -11,12 +11,13 @@ from config import APP_DATA
 REASON_CANDIDATE = "team candidate period, not a verified best window"
 
 # (id, label, first day, last named day, reason)
+# The two 2027 periods keep their old ids; the demo site moved to Connecting Ridge (spec.md, 14 Nov).
 PERIODS = [
     ("now", "Now, 14–28 Nov 2026", date(2026, 11, 14), date(2026, 11, 28),
      "demo period of the build plan"),
-    ("shackleton-2027-08", "Shackleton Rim, 16–29 Aug 2027", date(2027, 8, 16), date(2027, 8, 29),
+    ("shackleton-2027-08", "Connecting Ridge, 16–29 Aug 2027", date(2027, 8, 16), date(2027, 8, 29),
      REASON_CANDIDATE),
-    ("shackleton-2027-09", "Shackleton Rim, 12–26 Sep 2027", date(2027, 9, 12), date(2027, 9, 26),
+    ("shackleton-2027-09", "Connecting Ridge, 12–26 Sep 2027", date(2027, 9, 12), date(2027, 9, 26),
      REASON_CANDIDATE),
     ("malapert-2026-12", "Malapert, 21–27 Dec 2026", date(2026, 12, 21), date(2026, 12, 27),
      REASON_CANDIDATE),
