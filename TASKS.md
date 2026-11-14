@@ -189,7 +189,7 @@ New follow-through missing from the existing checklist:
 **Evidence:** seven photos of handwritten notes, read directly by Claude Code (copies in git-ignored `private/notes-14nov/`). Three are local jury questions and answers, four are UI sketches and build instructions. Transcription and consequences: [decisions.md](docs/reference/decisions.md#local-jury-answers-and-paper-ui-notes--photographed-14-nov-2026-1315). Priorities below are a recommendation, not team sign-off; same P1–P4 scale as the whiteboard backlog. Existing tasks stay the checklist.
 
 - [x] `[H]` **I** — **P1: public or private repo.** Decided by ninja 14 Nov: public after submission. Follow-through is in phase 6B.
-- [ ] `[H]` **I + D (Bene)** — **P1: Missions menu vs. direct controls.** Decide whether the paper "Missions" dialog is built at all. It may not replace the direct site/date/station controls (UX-02).
+- [ ] `[H]` **I + D (Bene)** — **P1: Missions menu vs. direct controls.** Decide whether the paper "Missions" dialog is built at all. It may not replace the direct site/date/station controls (UX-02). → 14 Nov 14:00: proposal written in [agent-briefs.md, Step 2-UI](docs/event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1400): the mission becomes the first of the three header controls and opens a panel; a default mission is always loaded. Needs ninja's yes and Bene's look.
 
 | Note | Importance | Action |
 |---|---|---|
@@ -200,6 +200,30 @@ New follow-through missing from the existing checklist:
 | IMG_2342 — landing location by lat/lon or click on the Moon, camera flies there, marker; terrain check within a 30 m radius ("(50)" written beside it), warning or "landing possible"; mission-sim button replaces the temporary one, view from the site, later from Earth/HQ | **P1** warning from the slope assessment for curated sites. **P2** arbitrary coordinates and click-to-place. View from the site is existing 3D work. | Use the confirmed ≤ 5° criterion, not a new threshold. A 30 m or 50 m radius is below the 80 m terrain tiles in the app; the assessed area and DEM resolution must be shown, and "landing possible" may only mean "passes the slope criterion". S decides the radius and data. |
 | IMG_2341 — build order: 1. 3D Moon/Sun/Earth with accurate positions and light, mouse controls (Fable); 2. basic UI bar + menu button (Opus); 3. mission menu. "Ray tracing?" for light and comms. Show Bene when finished | **P1** parts are the running C1/C2 tracks. Mouse mapping (left turn, middle drag, scroll zoom, right-click set landing later) is the **P2** camera item from the whiteboard, now defined. | No ray tracing in the browser: light and line of sight come from the precomputed horizon masks. "No mission → blurred model, nothing to show" conflicts with opening directly into the core answer; not adopted. Bene reviews C1/C2 output in the browser as already assigned. |
 | IMG_2340 — "Missions" dialog: name, start/end date, launch location, mission HQ, landing coordinates, simulate rocket flight / stay on Moon | Start/end date, mission HQ (= station selection) and landing site are **P1** functions that already exist as direct controls. Launch location and rocket flight are **P4** (parked energy/route scope). | Decision task above. "NASA – Los Angeles" is a placeholder on the sketch, not a sourced launch site or station. |
+
+### Course adjustment — science-first missions (ninja, 14 Nov afternoon)
+
+**Direction (ninja):** make the product more innovative, match what the organisers said, and put points of interest for scientists first (water, consistent light, places for biology experiments, anything sourced). Basis: kickoff transcript (challenge = "show the differences between lunar landing sites"; sunlight and a direct line of sight to Earth; judged on the technical side, creativity and presentation; the work should continue after the weekend) and the jury answers (usefulness for researchers and astronauts, intuitive, innovative; prototype over idea; content over UI). Details and reasoning: [decisions.md](docs/reference/decisions.md#science-first-direction--14-nov-2026-afternoon).
+
+**What changes:** the product starts from the mission and its science goal, not from a coordinate: dates + science goal + stations → the 18 evaluated sites ranked, with the reason for each rank, then the 3D view and timeline for the chosen site. This promotes the former P2 "dates + requirements → ranked sites" to the first thing built after the required core. It uses data tracks A and B already produced.
+
+**What does not change:** phase-4 tracks and owners, Leo's validation gates, the four mandatory site assessments, the basic comparison, the Sun 12:00 freeze, and "no source → don't write it".
+
+**Order after step 1 is merged** (replaces the order of build-plan steps 2–7 where they differ):
+
+| # | Work | Was | Why now |
+|---|---|---|---|
+| 1 | Required core gates: UI–pipeline integration, V1–V5, mandatory assessments, basic comparison, finder | unchanged | Wrong numbers lose on "content"; nothing below ships without them. |
+| 2 | Science-goal ranking (Brief C3 part 1) and the Mission layer (parts 2–4) | P2 extra / paper sketch | The innovative part and the jury's first criterion. |
+| 3 | Differences between sites: compare drawer showing the ranked values side by side (build step 4, compare only) | step 4 | The challenge wording from the kickoff. |
+| 4 | Technical and product documentation, 3-minute walkthrough | phase 6 | Required for a complete submission; the pitch is a walkthrough. |
+| 5 | Only with time left, in this order: PSR / % lit overlay, mouse pan (C3 part 5), custom coordinates (step 7), panel-type toggle and "vs. Earth" card (step 3) | steps 3, 4, 7 | Each needs its own check. |
+| cut first | 3D polish beyond what C1 merged (step 6), historic landers outside the south pole (step 5), glossary, score formula, side-by-side layout, German/English | steps 5, 6, phase 5C | Look and breadth without new content: the "nice UI, no content" and "superficial content" mistakes the jury named. |
+
+- [ ] `[AI+H]` `L3·Opus` **I + S** — **Science-goal site ranking** (Brief C3 part 1: `app/src/geometry/rankSites.ts`). Goals in priority order: water ice and volatiles, cold traps, consistent light, science targets; default Any. Hard filter slope ≤ 5°, unknown kept separate, no weighted score. May start now (adds files only; track A is merged). Acceptance: the cases in [spec.md conditional extras](docs/event/spec.md#conditional-extras--reviewed-14-nov-2026) plus S compares one ranking with manual filtering of the same data.
+- [ ] `[AI+H]` `L2·Opus` **D (Bene) + I** — **Mission layer** (Brief C3 parts 2–4). Starts only after track-c1 and track-c2 are merged. Bene approves the look, ninja every visible string, Leo the numbers.
+- [ ] `[AI+H]` `L1·Haiku` **S (Leo)** — **Sources for the science goals.** Check the 56 entries in `scripts/site_potential.json` that the ranking reads. For "biology experiments": find a primary source for the conditions such an experiment needs on the lunar surface (temperature range, water, radiation); without it the goal is not offered. The app never claims that anything grows on the Moon.
+- [ ] `[H]` **I + team** — **3-minute walkthrough** (jury: 3 minutes, a walkthrough and our reasoning): the gap in existing tools (27 Oct timed run) → state a mission and a science goal → the ranked sites and why they differ → fly to the site, slope warning, light and station timeline → how the numbers were checked → what comes next. The ≤ 30 s global demo is cut from the same run.
 
 ## Phase 5 — Sunday: complete, validate and release (resume 01:00 as available; final sprint 07:30 → 12:00)
 

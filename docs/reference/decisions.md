@@ -261,7 +261,7 @@ Also: SI (AI) use must be marked in the project itself: code and data need an ac
 
 ## Local jury answers and paper UI notes — photographed 14 Nov 2026, 13:15
 
-Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the venue; downscaled copies in git-ignored `private/notes-14nov/`). Transcribed by Claude Code from the photos; German handwriting, so single words may be misread. Who gave the jury answers is not written on the notes. Nothing here is a team decision unless marked.
+Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the venue; downscaled copies in git-ignored `private/notes-14nov/`). Transcribed by Claude Code from the photos; German handwriting, so single words may be misread. The jury answers were given by Sarah (ninja, 14 Nov). Nothing here is a team decision unless marked.
 
 **Jury answers (IMG_2343, 2344; the question list is IMG_2345):**
 
@@ -284,3 +284,18 @@ Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the v
 - **Priority signal:** app over pitch, prototype over idea, content over UI polish. Validated numbers and the mandatory site assessments come before visual extras.
 
 **Paper UI notes (IMG_2339–2342):** a foreground wireframe, a "Missions" menu sketch and two pages "Anweisungen für UI erstellen" (author not written; "show Bene when finished, test for errors, fix"). Evaluated against spec.md and the earlier decisions in [TASKS.md](../../TASKS.md#paper-notes--photographed-14-nov-2026-1315). The top-right menu icon in the wireframe falls under "Right settings sidebar removed" above and is not reopened.
+
+## Science-first direction — 14 Nov 2026, afternoon
+
+ninja's instruction: adjust the course of the tasks to be more innovative and to match the kickoff transcript; prioritise points of interest for scientists ("water, bacterial growing spaces, consistent light, anything").
+
+**What the kickoff recording and the jury answers ask for** (transcripts in git-ignored `private/transcripts/`, machine-transcribed, errors possible):
+
+- The challenge as introduced: show the differences between lunar landing sites; the named factors are sunlight and the communication link to Earth, which needs a direct line of sight.
+- Judged on the technical side, on creativity and on the presentation. Finalists are then reviewed by two professors in Munich (robotics, programming) and industry reviewers.
+- The organisers want the work to continue after the weekend; the local prize is entry to a startup programme.
+- Jury answers (above): usefulness for researchers and astronauts, intuitive, innovative; prototype over idea; mainly the app; typical mistakes are a nice UI without content and superficial content.
+
+**Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: [agent-briefs.md, Step 2-UI](../event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1400); task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
+
+**Limits kept:** no weighted score without Leo's approval (ranking is filter, then one rule per goal, then tie-breakers); "biology experiments" is offered only with a primary source; unknown evidence is shown as unknown; nothing is called optimal.
