@@ -12,7 +12,7 @@ Order from the 2022 "30 Seconds of Glory" template ([past-winners.md](../referen
 
 1. (0–5 s) "Landing at the lunar south pole, a mission needs two things: sunlight for power and a line of sight to Earth for radio."
 2. (5–12 s) "We asked three NASA tools one question: at Connecting Ridge, 14 to 28 November, when do we get both? Fourteen minutes later: one wrong answer, two dead ends."
-3. (12–25 s) Live app: pick Connecting Ridge, 14–28 Nov → Sun and Earth over the real horizon, windows for light, Earth and both. **[Sunday: the exact answer sentence the app gives]**
+3. (12–25 s) Live app: pick Connecting Ridge, 16–29 Aug 2027 (the confirmed demo question, spec.md) → Sun and Earth over the real horizon, windows for light, Earth and both. **[Sunday: the exact answer sentence the app gives]**
 4. (25–30 s) "Every number is checked against JPL Horizons and comes with its source."
 
 ## Slides
@@ -27,7 +27,7 @@ Say: One sentence on the challenge, then straight to the question.
 - At the south pole the Sun circles the horizon within about ±1.6° and never climbs higher (NASA SVS 2026 data).
 - Earth stays within about ±7° of the horizon and drops below it for part of each ~27-day cycle (libration, NASA SVS).
 - So light and radio contact depend on the terrain around the site, hour by hour.
-- Our test question: Shackleton Connecting Ridge (−89.46°, −136.68°), 14–28 Nov 2026 UTC. When sunlight, when Earth, when both?
+- Our test question (confirmed in spec.md, 14 Nov): Connecting Ridge (−89.46°, −136.68°), 16–29 Aug 2027 UTC. When is it sunlit, and when can at least one selected Earth station reach it? (The earlier 14–28 Nov 2026 case stays a regression check.)
 Say: Lighting at the pole is a terrain question, not a calendar question.
 
 ## Slide 3 · Today's tools do not answer it

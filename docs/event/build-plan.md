@@ -190,11 +190,12 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 **Earth.**
 - Angular radius from the actual distance: 0.90°–1.02° **(derived: 6371 km / 406,700–356,400 km)**, ~0.95° on average.
 - *Visible* = any part of the disc above the mask (PGDA definition, [data guide §4](../reference/data-guide.md#4-published-illumination-and-earth-visibility-maps-mazarico-et-al)).
-- Also report the centre elevation above the mask as "link margin".
+- Also report the centre elevation above the mask as "link margin". *(Not implemented as of 14 Nov: neither the app nor windows.py reports it.)*
 
 **Windows.**
 - Find state changes on the 30-minute grid.
 - Refine each change by bisection on the interpolated vectors to ±1 minute.
+- *As built (14 Nov):* the app (`app/src/geometry/index.ts`, `windows()`) scans the interpolated state every 1 min (5 min for spans over 31 days) and bisects each change to ±10 s; `scripts/windows.py` `windows()` / `summarize()` is the Python reference with the same algorithm (added 14 Nov; edges identical for Connecting Ridge 16–29 Aug 2027). Events shorter than the scan step can be missed.
 
 **Power proxy by panel type** (Explain mode shows why the Moon differs from Earth):
 - vertical, sun-tracking: fraction × 1 (default);
