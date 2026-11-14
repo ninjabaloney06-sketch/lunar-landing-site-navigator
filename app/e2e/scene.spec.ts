@@ -424,7 +424,8 @@ test.describe('screenshots (1440 × 900)', () => {
 
 test.describe('eye-level zoom (Brief C4 part 1, notebook note 11)', () => {
   test('T14 at every zoom step: the wheel narrows the lens, Sun and Earth stay on the pinhole projection within 1 px', async ({ page }) => {
-    test.setTimeout(180_000)
+    // 44 poses with a screenshot each on software GL: about 80 s alone, over 3 min when the whole suite runs in parallel.
+    test.setTimeout(600_000)
     await open(page)
     const W = 1280
     const H = 720

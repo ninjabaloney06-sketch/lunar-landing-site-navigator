@@ -756,16 +756,23 @@ test.describe('C4 part 4: Simulate', () => {
     await expect(speed).toHaveValue('10')
     await speed.selectOption('24')
     await drawer.getByRole('button', { name: 'Close' }).click()
-    // One day per second: after about 2 s of real time the cursor is about 2 days on, on the 30-minute grid.
-    const t0 = Date.now()
+    // One day per second: the cursor advances by the real time between the two clicks (measured in the page,
+    // so a slow test runner does not count), on the 30-minute grid. The last timer tick may be up to 1 s old.
+    await sim.evaluate((el) => {
+      const w = window as unknown as { __clicks: number[] }
+      w.__clicks = []
+      el.addEventListener('click', () => w.__clicks.push(performance.now()), true)
+    })
     await sim.click()
     await page.waitForTimeout(2000)
     await sim.click()
-    const real = (Date.now() - t0) / 1000
+    const clicks = await page.evaluate(() => (window as unknown as { __clicks: number[] }).__clicks)
+    const real = (clicks[1] - clicks[0]) / 1000
     const advancedH = ((await cursorMs()) - start) / 3_600_000
     expect((await cursorMs()) % (30 * 60_000)).toBe(0)
-    expect(advancedH, `advanced ${advancedH} h in ${real.toFixed(2)} s`).toBeGreaterThan(24 * (real - 0.6))
-    expect(advancedH).toBeLessThan(24 * (real + 0.3))
+    expect(real).toBeGreaterThan(1.9)
+    expect(advancedH, `advanced ${advancedH} h in ${real.toFixed(2)} s`).toBeGreaterThan(24 * (real - 1))
+    expect(advancedH, `advanced ${advancedH} h in ${real.toFixed(2)} s`).toBeLessThanOrEqual(24 * real + 0.5)
     // Space pauses and resumes, as before.
     const paused = await cursorMs()
     await page.keyboard.press('Space')
