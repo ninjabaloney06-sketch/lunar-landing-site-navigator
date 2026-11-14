@@ -1,0 +1,1923 @@
+{
+ "meta": {
+  "description": "Ice, hydrogen and volatile evidence at the lunar south pole: McClanahan LEND maxima, per-location evidence, per-dataset findings, and the LCROSS 2009 impact at Cabeus.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/psr_and_ice.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive, lon_east_180 (-180..180) and lon_east_360 (0..360). Where the notes gave only one form, the other was computed during conversion (+/-360).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead. A permanently shadowed region is a cold-trap candidate, not proof of ice.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "Evidence classes (as in the notes): DIRECT = direct detection of H2O/volatiles; INDIRECT = hydrogen (neutrons), temperature/illumination models, albedo or radar proxies; MODEL = geological/thermal modelling; SPEC = speculation / press characterisation.",
+   "Item 'type' values: psr_atlas (LROC PSR Atlas, 40 largest south-polar PSRs), psr_lemelin2021 (per-PSR evidence and accessibility), lend_maximum (McClanahan 2024 Table 1), host_crater (centre/diameter), location_evidence (evidence matrix per location), dataset_finding (what each instrument found).",
+   "Lemelin's WEH column and McClanahan's LEND collimated WEH are DIFFERENT products; do not mix them in one numeric field without the instrument tag.",
+   "Lemelin 2021 temperature minima of 2 K (Shoemaker) and 14 K are 'as printed and look like data artefacts' per the notes.",
+   "Host-crater coordinates marked 'WP' come from Wikipedia infoboxes (which cite the IAU/USGS Gazetteer); Gazetteer-grade values were directly confirmed only for Cabeus and Amundsen.",
+   "Only one ground-truth direct detection of bulk water exists at the south pole (LCROSS, Cabeus). No landed mission has measured ice in situ at the south pole as of November 2026.",
+   "Surface-frost datasets (LAMP, LOLA, M3) are mutually inconsistent and do not correlate with the buried-hydrogen (neutron) dataset; ShadowCam 2026 finds no widespread surface ice above ~20-30 wt%."
+  ]
+ },
+ "items": [
+  {
+   "id": "lcross_targeted_impact_point",
+   "name": "LCROSS targeted impact point",
+   "category": "lcross_impact_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.675,
+    "lon_east_180": -48.725,
+    "lon_east_360": 311.275
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lcross.targeted_impact_point"
+   },
+   "properties": {}
+  },
+  {
+   "id": "lcross_shepherding_spacecraft_target",
+   "name": "LCROSS shepherding spacecraft target",
+   "category": "lcross_impact_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.729,
+    "lon_east_180": -49.36,
+    "lon_east_360": 310.64
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "lon_east_180 computed during conversion (310.64 - 360).",
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lcross.shepherding_spacecraft_target"
+   },
+   "properties": {}
+  },
+  {
+   "id": "lcross_reconstructed_impact_point",
+   "name": "LCROSS reconstructed impact point",
+   "category": "lcross_impact_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6796,
+    "lon_east_180": -48.7093,
+    "lon_east_360": 311.2907
+   },
+   "frame": null,
+   "location_note": "1-sigma 115 m in latitude, 44 m in longitude; 146 m from target; LRO, 4 methods",
+   "evidence": "DIRECT",
+   "limitations": null,
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lcross.reconstructed_impact_point"
+   },
+   "properties": {}
+  },
+  {
+   "id": "lcross_measurements",
+   "name": "LCROSS impact measurements (Cabeus)",
+   "category": "lcross_measurement",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6796,
+    "lon_east_180": -48.7093,
+    "lon_east_360": 311.2907
+   },
+   "frame": null,
+   "location_note": "measured in the ejecta plume of one impact; not valid for the whole crater",
+   "evidence": "DIRECT",
+   "limitations": null,
+   "sources": [
+    "https://ar5iv.labs.arxiv.org/html/1103.1687",
+    "https://arxiv.org/html/2502.06056v2",
+    "https://doi.org/10.1126/science.1186986",
+    "https://en.wikipedia.org/wiki/Cabeus_(crater)",
+    "https://en.wikipedia.org/wiki/LCROSS",
+    "https://en.wikipedia.org/wiki/Mini-RF",
+    "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/",
+    "https://researchconnect.stonybrook.edu/en/publications/diviner-lunar-radiometer-observations-of-cold-traps-in-the-moons-/",
+    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+    "https://www.eurekalert.org/news-releases/648084",
+    "https://www.foxnews.com/science/moon-crater-has-more-water-than-parts-of-earth.amp",
+    "https://www.nasa.gov/centers/ames/news/releases/2010/10-89AR.html",
+    "https://www.planetary.org/articles/2728"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lcross"
+   },
+   "properties": {
+    "impact_time_utc": "2009-10-09 11:31:19.506 (Centaur); shepherding spacecraft ~11:37 UTC",
+    "targeted_impact_point": {
+     "lat": -84.675,
+     "lon_east_360": 311.275,
+     "lon_east_180": -48.725,
+     "source_url": "https://ar5iv.labs.arxiv.org/html/1103.1687"
+    },
+    "shepherding_spacecraft_target": {
+     "lat": -84.729,
+     "lon_east_360": 310.64,
+     "lon_east_180": -49.36,
+     "source_url": "https://ar5iv.labs.arxiv.org/html/1103.1687",
+     "caveat": "lon_east_180 computed during conversion (310.64 - 360)."
+    },
+    "reconstructed_impact_point": {
+     "lat": -84.6796,
+     "lon_east_180": -48.7093,
+     "lon_east_360": 311.2907,
+     "uncertainty": "1-sigma 115 m in latitude, 44 m in longitude; 146 m from target; LRO, 4 methods",
+     "source_url": "https://ar5iv.labs.arxiv.org/html/1103.1687"
+    },
+    "impactor": {
+     "value": "Centaur upper stage, nominal 2,305 kg, ~2.5 km/s",
+     "source_url": "https://en.wikipedia.org/wiki/LCROSS",
+     "evidence": "secondary"
+    },
+    "crater": {
+     "value": "~20 m crater inside ~160 m ejecta area (arXiv); 25-30 m from Schultz et al. modelling",
+     "source_url": "https://ar5iv.labs.arxiv.org/html/1103.1687"
+    },
+    "water_in_field_of_view_kg": {
+     "value": "155 +/- 12 kg (vapour + ice)",
+     "source_url": "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+     "evidence_class": "DIRECT"
+    },
+    "water_breakdown": {
+     "value": "53 +/- 15 kg vapour + 68 +/- 10 kg ice against 2,175 +/- 544 kg dust (average of 3 time windows); windows: 4.5 +/- 1.4 %, 6.4 +/- 1.7 %, 7.2 +/- 1.9 %",
+     "source_url": [
+      "https://www.planetary.org/articles/2728",
+      "https://doi.org/10.1126/science.1186986"
+     ],
+     "evidence": "secondary reproduction of Colaprete et al. 2010 table"
+    },
+    "water_concentration_wt_pct": {
+     "value": "5.6 +/- 2.9 % by mass (mean of three periods)",
+     "source_url": "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+     "evidence_class": "DIRECT",
+     "caveat": "Single point; depends on excavated-mass estimate; possible propellant contamination noted by later review."
+    },
+    "nasa_isru_reading": {
+     "value": "'5.5 wt%, with other species'; consistent with LP neutron data if ice covers 30-40 % of area and/or is buried under a 10-30 cm desiccated layer",
+     "source_url": "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf"
+    },
+    "excavation_depth": {
+     "value": "possibly > 0.7 m (Colaprete); NASA LWIMS table lists '3 to 5 m', single ~50 m sample",
+     "source_url": [
+      "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+      "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf"
+     ],
+     "caveat": "Conflicting values kept."
+    },
+    "lamp_h2": {
+     "value": "~140 kg H2 released, equivalent to initial regolith concentration of 1.4 %",
+     "primary_source": "Gladstone et al. 2010, Science 330, 472, doi:10.1126/science.1186474",
+     "source_url": "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+     "evidence_class": "DIRECT (gas)"
+    },
+    "lend_estimate_for_cabeus": [
+     {
+      "value": "> 2 wt% for Cabeus floor (model-dependent), as quoted by Colaprete 2010",
+      "source_url": "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf"
+     },
+     {
+      "value": "up to ~4 wt% water-equivalent for Cabeus PSR soil",
+      "source_url": "https://www.planetary.org/articles/2728",
+      "evidence": "secondary"
+     }
+    ],
+    "volatile_share_of_ejecta": {
+     "value": "'as much as 20 percent' of material kicked up was volatiles (methane, ammonia, hydrogen gas, CO2, CO)",
+     "source_url": [
+      "https://www.foxnews.com/science/moon-crater-has-more-water-than-parts-of-earth.amp",
+      "https://www.nasa.gov/centers/ames/news/releases/2010/10-89AR.html"
+     ],
+     "evidence": "press-level statement; not checked against the papers"
+    },
+    "authors_caveats": {
+     "value": "LEND result model-dependent; LCROSS sample possibly deeper than neutron sensing (~0.7 m); continued heat release of volatiles; neutron footprints never < 10 km -> spatial heterogeneity at < 10 km",
+     "source_url": "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf"
+    },
+    "psr_age": {
+     "value": "became permanently shadowed ~0.9 Ga ago (0.93 +/- 0.13 Ga)",
+     "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/",
+     "evidence_class": "MODEL"
+    },
+    "subsurface_temperature_K": {
+     "value": 38,
+     "annual_average_surface_K": 37,
+     "source_url": [
+      "https://researchconnect.stonybrook.edu/en/publications/diviner-lunar-radiometer-observations-of-cold-traps-in-the-moons-/",
+      "https://www.eurekalert.org/news-releases/648084"
+     ],
+     "evidence_class": "INDIRECT (Diviner + model)"
+    },
+    "post_impact_observations": {
+     "value": "Mini-RF: no thick ice at the LCROSS site (cannot exclude < 10 cm fragments); ShadowCam/review: LCROSS site shows no brightening after 15 years",
+     "source_url": [
+      "https://en.wikipedia.org/wiki/Mini-RF",
+      "https://arxiv.org/html/2502.06056v2"
+     ]
+    },
+    "abundances_table2": {
+     "note": "From NIR spectral fits; uncertainty in parentheses; authors caution the plume was far from equilibrium. Review caveat: the eight non-water species were detected at low abundance without published error bars beyond fit residuals; relative abundances do not follow expected source/volatility ranking.",
+     "source_url": [
+      "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+      "https://arxiv.org/html/2502.06056v2"
+     ],
+     "caveat": "The water-ice note transcribes these from the paper PDF; the science/astrobiology note lists the same percentages as 'recalled, not verified in that session'. HCN: no retrieved source lists HCN among LCROSS detections.",
+     "rows": [
+      {
+       "compound": "H2O",
+       "molecules_cm2": "5.1(1.4)E19",
+       "pct_rel_h2o_gas": 100.0
+      },
+      {
+       "compound": "H2S",
+       "molecules_cm2": "8.5(0.9)E18",
+       "pct_rel_h2o_gas": 16.75
+      },
+      {
+       "compound": "NH3",
+       "molecules_cm2": "3.1(1.5)E18",
+       "pct_rel_h2o_gas": 6.03
+      },
+      {
+       "compound": "SO2",
+       "molecules_cm2": "1.6(0.4)E18",
+       "pct_rel_h2o_gas": 3.19
+      },
+      {
+       "compound": "C2H4",
+       "molecules_cm2": "1.6(1.7)E18",
+       "pct_rel_h2o_gas": 3.12
+      },
+      {
+       "compound": "CO2",
+       "molecules_cm2": "1.1(1.0)E18",
+       "pct_rel_h2o_gas": 2.17
+      },
+      {
+       "compound": "CH3OH",
+       "molecules_cm2": "7.8(42)E17",
+       "pct_rel_h2o_gas": 1.55
+      },
+      {
+       "compound": "CH4",
+       "molecules_cm2": "3.3(3.0)E17",
+       "pct_rel_h2o_gas": 0.65
+      },
+      {
+       "compound": "OH",
+       "molecules_cm2": "1.7(0.4)E16",
+       "pct_rel_h2o_gas": 0.03
+      }
+     ]
+    },
+    "other_species_in_coverage": {
+     "value": "plus H2, CO, atomic Hg, Ca, Mg, Na, Ag; formaldehyde mentioned in coverage",
+     "source_url": [
+      "https://www.planetary.org/articles/2728",
+      "https://www.nasa.gov/centers/ames/news/releases/2010/10-89AR.html",
+      "https://en.wikipedia.org/wiki/Cabeus_(crater)"
+     ],
+     "evidence": "species list from secondary coverage; abundances model-dependent"
+    },
+    "isru_contaminants_below_200C": {
+     "value": "H2S, SO2, NH3, Hg, HF, CO2, CO",
+     "source_url": "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf"
+    }
+   }
+  },
+  {
+   "id": "lend_cabeus_1",
+   "name": "Cabeus-1 (LEND collimated maximum)",
+   "category": "lend_maximum",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.35,
+    "lon_east_180": -48.22,
+    "lon_east_360": 311.78
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lend_cabeus_1"
+   },
+   "properties": {
+    "collimated_suppression": 0.82,
+    "collimated_weh_wt_pct": 0.39,
+    "diviner_max_T_K": 78,
+    "notes": "Anomalously enhanced -> at least two hydrogen sources."
+   }
+  },
+  {
+   "id": "lend_haworth",
+   "name": "Haworth (LEND collimated maximum)",
+   "category": "lend_maximum",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.28,
+    "lon_east_180": 4.31,
+    "lon_east_360": 4.31
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lend_haworth"
+   },
+   "properties": {
+    "collimated_suppression": 0.87,
+    "collimated_weh_wt_pct": 0.27,
+    "diviner_max_T_K": 60,
+    "notes": "Maximum at base of poleward-facing slope where T_max = 60.3 K; Haworth PSR ~35 km."
+   }
+  },
+  {
+   "id": "lend_shoemaker",
+   "name": "Shoemaker (LEND collimated maximum)",
+   "category": "lend_maximum",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.98,
+    "lon_east_180": 43.67,
+    "lon_east_360": 43.67
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lend_shoemaker"
+   },
+   "properties": {
+    "collimated_suppression": 0.83,
+    "collimated_weh_wt_pct": 0.37,
+    "diviner_max_T_K": 59,
+    "notes": "Largest PSR (~37 km equivalent diameter), most detectable."
+   }
+  },
+  {
+   "id": "lend_faustini",
+   "name": "Faustini (LEND collimated maximum)",
+   "category": "lend_maximum",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.92,
+    "lon_east_180": 81.24,
+    "lon_east_360": 81.24
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "lend_faustini"
+   },
+   "properties": {
+    "collimated_suppression": 0.87,
+    "collimated_weh_wt_pct": 0.26,
+    "diviner_max_T_K": 73,
+    "notes": "Reduced early-mission LEND coverage."
+   }
+  },
+  {
+   "id": "ev_cabeus",
+   "name": "Cabeus (LCROSS PSR)",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
+    "https://www.arxiv.org/pdf/2303.03911",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://en.wikipedia.org/wiki/Mini-RF",
+    "https://arxiv.org/html/2502.06056v2",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/",
+    "https://en.wikipedia.org/wiki/Cabeus_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_cabeus"
+   },
+   "properties": {
+    "other_notes": "PSR only ~0.9 Ga old; crater sunlit ~25% per lunar day, walls 10-15 deg; Brown 2022: greatest estimated subsurface hydrogen tonnage",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "+ 5.6 +/- 2.9 wt%",
+      "class": "DIRECT"
+     },
+     "neutrons": {
+      "value": "+ strongest: LEND collimated 0.39 wt% (max at -84.35, -48.22); Lemelin max WEH 0.90 wt%; 'anomalously enhanced'",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "weak (9 detections, 0.03/km2)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "?",
+      "class": "INDIRECT"
+     },
+     "radar": {
+      "value": "- Mini-RF: no thick ice at impact site",
+      "class": "INDIRECT"
+     },
+     "shadowcam": {
+      "value": "no brightening at LCROSS site after 15 yr",
+      "class": "DIRECT-ish optical"
+     },
+     "thermal": {
+      "value": "T_max 78 K at neutron max; subsurface ~38 K (Paige)",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_cabeus_b",
+   "name": "Cabeus B",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "No quantitative instrument-specific data found.",
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_cabeus_b"
+   },
+   "properties": {
+    "other_notes": "Artemis III candidate 'Peak near Cabeus B'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "?"
+     },
+     "m3_surface_ice": {
+      "value": "?"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "PSR 376.9 km2 at -81.69, -54.62 (lower latitude -> warmer)",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_shoemaker",
+   "name": "Shoemaker",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://lroc.im-ldi.com/images/1255",
+    "https://www.isro.gov.in/ISRO_EN/Chandrayaan2_Dual_Frequency_Synthetic_Aperture_Radar.html",
+    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)",
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_shoemaker"
+   },
+   "properties": {
+    "other_notes": "largest PSR, ~37 km across; no <= 10 deg route in; 1 km illumination only 2%; may hold ~1-2 wt% ice in porous surface regolith and ~5% or more in near subsurface (Tye 2015 interpretation)",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "- (Lunar Prospector crash 1999-07-31: no detectable water vapour plume)",
+      "class": "attempted DIRECT, negative"
+     },
+     "neutrons": {
+      "value": "+ LEND 0.37 wt% (max at -87.98, 43.67); LP ~146 ppm H vs ~50 ppm lunar average; Tye 2015 quotes LEND H 220-245 ppm (interpretation)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ most detections (134)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "+ (M3 pixels pass LAMP/LOLA filters); strongest, most uniform LAMP water-band signal of the four (Tye)",
+      "class": "INDIRECT"
+     },
+     "radar": {
+      "value": "+ DFSAR 2026 candidate doubly shadowed craters",
+      "class": "INDIRECT"
+     },
+     "shadowcam": {
+      "value": "- 'no albedo patterns indicative of ice, frost, or lag deposits'",
+      "class": "DIRECT-ish optical"
+     },
+     "thermal": {
+      "value": "T_max 59 K at neutron max; mean ~44 K",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_haworth",
+   "name": "Haworth",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://meetingorganizer.copernicus.org/EPSC2013/EPSC2013-864.pdf",
+    "https://www.isro.gov.in/ISRO_EN/Chandrayaan2_Dual_Frequency_Synthetic_Aperture_Radar.html"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_haworth"
+   },
+   "properties": {
+    "other_notes": "PSR ~35 km; access slope class 5-10 deg; Artemis III candidate region 'Haworth'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "+ LEND 0.27 wt% (max at -87.28, 4.31); Lemelin 0.31 wt%",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (80)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "+",
+      "class": "INDIRECT"
+     },
+     "radar": {
+      "value": "+ DFSAR 2026 candidates",
+      "class": "INDIRECT"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "T_max 60.3 K at base of poleward-facing slope; some areas never exceed ~40 K",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_faustini",
+   "name": "Faustini",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.arxiv.org/pdf/2303.03911",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://www.isro.gov.in/ISRO_EN/Chandrayaan2_Dual_Frequency_Synthetic_Aperture_Radar.html",
+    "https://en.wikipedia.org/wiki/Faustini_(crater)",
+    "https://asu.elsevierpure.com/en/publications/resource-potential-of-lunar-permanently-shadowed-regions/",
+    "https://www.diviner.ucla.edu/single-post/unveiling-the-faustini-permanently-shadowed-region-of-the-moon"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_faustini"
+   },
+   "properties": {
+    "other_notes": "Brown 2022 singles out Faustini as potentially top resource site; illumination 65% within 5 km; 664 km2 PSR, third-largest",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "+ LEND 0.26 wt% (max at -86.92, 81.24); Lemelin 0.37 wt%",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (34)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "+",
+      "class": "INDIRECT"
+     },
+     "radar": {
+      "value": "+ DFSAR 2026: strongest case, 1.1 km lobate-rim crater; Arecibo: no ice detected; ShadowCam suggests rocks (not ice) dominate radar-bright signal (Williams 2024)",
+      "class": "INDIRECT"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "T_max 73 K at neutron max; Diviner shows ice could still be stable",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_shackleton",
+   "name": "Shackleton",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://arxiv.org/html/2502.06056v2",
+    "https://www.eurekalert.org/news-releases/551736",
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)",
+    "https://behindtheblack.com/tag/shadowcam",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_shackleton"
+   },
+   "properties": {
+    "other_notes": "walls ~30 deg, mean slope 27 deg -> worst access; crater 3.4-3.7 Ga, possibly oldest PSR; lobate/pockmarked craters may indicate subsurface ice (speculative); Chang'e-7 and Blue Moon MK1 'Endurance' target the adjacent rim/connecting ridge",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "weak/none (WEH 0.17 wt%; review: 'no excess in oldest Shackleton'); Lunar Prospector enhanced H (Wikipedia)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (34; 0.15/km2)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "+ LOLA: floor bright, up to ~22% ice possible (contested: may be space weathering)",
+      "class": "INDIRECT, contested"
+     },
+     "radar": {
+      "value": "- Arecibo: no thick ice",
+      "class": "INDIRECT"
+     },
+     "shadowcam": {
+      "value": "- floor 'no obvious ice'; part of floor regularly exceeds 110 K",
+      "class": "DIRECT-ish optical"
+     },
+     "kaguya_tc": {
+      "value": "- no exposed ice on floor at 10 m/px",
+      "class": "INDIRECT"
+     },
+     "thermal": {
+      "value": "mean ~63 K; floor ~88-90 K quoted",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_de_gerlache",
+   "name": "de Gerlache",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "No quantitative instrument-specific data found.",
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list",
+    "https://asu.elsevierpure.com/en/publications/resource-potential-of-lunar-permanently-shadowed-regions/",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/",
+    "https://en.wikipedia.org/wiki/De_Gerlache_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_de_gerlache"
+   },
+   "properties": {
+    "other_notes": "PSR 243.3 km2; Brown 2022 lists it among most resource-rich; PSR formed relatively early; ridge to Shackleton has favourable illumination; Artemis III candidate 'de Gerlache Rim 2'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "?"
+     },
+     "m3_surface_ice": {
+      "value": "? (not in Lemelin priority list)"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "visible to Earth-based radar"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "CO2-capable cold pocket mentioned (Schorghofer et al. 2021)",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_sverdrup",
+   "name": "Sverdrup",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_sverdrup"
+   },
+   "properties": {
+    "other_notes": "easiest large PSR: access slope 0-5 deg, 77% illumination within 10 km; but PSR emerged more recently than others",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "modest (0.12 wt%)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (93; 0.17/km2)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "+",
+      "class": "INDIRECT"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "mean 55 K",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_slater",
+   "name": "Slater",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": "No quantitative instrument-specific data found.",
+   "sources": [
+    "https://lroc.im-ldi.com/atlases/psr/list",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://asu.elsevierpure.com/en/publications/resource-potential-of-lunar-permanently-shadowed-regions/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_slater"
+   },
+   "properties": {
+    "other_notes": "PSR 183.2 km2; in Brown 2022 top list; Artemis III candidate 'Slater Plain'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "?"
+     },
+     "m3_surface_ice": {
+      "value": "? (adjacent PSR 120: 36 detections, 0.41/km2 - highest density)"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "?"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_nobile",
+   "name": "Nobile (small PSRs; 'Nobile 2')",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_nobile"
+   },
+   "properties": {
+    "other_notes": "best access: ~2-4 km from landable terrain on <= 10-15 deg slopes; VIPER mission area (west rim/Mons Mouton); Artemis III 'Nobile Rim 1/2'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "modest (0.13 wt%)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (15)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "mean 57 K",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_amundsen",
+   "name": "Amundsen",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/6130389",
+    "https://news.agu.org/press-release/carbon-dioxide-cold-traps-on-the-moon-are-confirmed-for-the-first-time",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_amundsen"
+   },
+   "properties": {
+    "other_notes": "PSRs 439 + 138 km2; broad flat floor; PSR emerged recently; proposed for subsurface survey; in Brown 2022 top list",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "?"
+     },
+     "m3_surface_ice": {
+      "value": "- none detected",
+      "class": "DIRECT (surface), negative"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "largest CO2 cold-trap area (82 km2 of 204 km2 total)",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_wiechert",
+   "name": "Wiechert / Wiechert J",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/6130389",
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_wiechert"
+   },
+   "properties": {
+    "other_notes": "Wiechert J PSR 367-372 km2; farside (no direct Earth view)",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "low (0.06 wt%, 94 ppm H)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "Wiechert: none (Li 2018); Wiechert J: 17",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "mean 66 K",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_idelson_l",
+   "name": "Idel'son L",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/6130389",
+    "https://lroc.im-ldi.com/atlases/psr/list",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_idelson_l"
+   },
+   "properties": {
+    "other_notes": "PSR 326.8 km2 at -83.89, 118.47; PSR formed relatively early",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "?"
+     },
+     "m3_surface_ice": {
+      "value": "- none detected",
+      "class": "DIRECT (surface), negative"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "cold trap",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_malapert",
+   "name": "Malapert PSRs",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+    "https://lroc.im-ldi.com/atlases/psr/list",
+    "https://en.wikipedia.org/wiki/Malapert_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_malapert"
+   },
+   "properties": {
+    "other_notes": "PSRs 194.5 km2 (-84.14, 5.95) and 103.7 km2 (-84.58, 1.71); 1,800 m traverse if 25 deg slopes allowed, 15.4 km at <= 10 deg; massif peak visible from Earth; Artemis III 'Malapert Massif'",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "low (0.05 wt%, 97 ppm H)",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "+ (17; 0.09/km2)",
+      "class": "DIRECT (surface)"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "mean 66 K (warm for a PSR)",
+      "class": "INDIRECT"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_mons_mouton",
+   "name": "Mons Mouton area",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nationalacademies.org/cdn/materials/9fba0b0c-198c-4772-a367-136febe32e2a",
+    "https://lroc.im-ldi.com/atlases/psr/list"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_mons_mouton"
+   },
+   "properties": {
+    "other_notes": "nearest atlas PSRs: 120.6 km2 at -86.40, 31.44 and 237.3 km2 at -86.74, 21.86; planned VIPER landing 85.449452 S, 31.064135 E, 5 deg average slope",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "IM-2 landed 84.79059 S, 29.19567 E (no volatile data)",
+      "class": "attempted DIRECT, no measurement"
+     },
+     "neutrons": {
+      "value": "'high WEH' was a VIPER site criterion",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "?"
+     },
+     "lamp_lola_frost": {
+      "value": "?"
+     },
+     "radar": {
+      "value": "?"
+     },
+     "shadowcam": {
+      "value": "?"
+     },
+     "thermal": {
+      "value": "all four VIPER ice-stability classes occur within ~3 km; coldest PSR on the plateau 85 K (Wueller 2025, search excerpt)",
+      "class": "MODEL"
+     }
+    }
+   }
+  },
+  {
+   "id": "ev_connecting_ridge",
+   "name": "Shackleton-de Gerlache connecting ridge",
+   "category": "location_evidence",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": null,
+   "limitations": null,
+   "sources": [
+    "https://www.nasa.gov/missions/artemis/clps/nasa-intuitive-machines-announce-landing-site-location-for-lunar-drill/",
+    "https://www.nasa.gov/moonbase-phases/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ev_connecting_ridge"
+   },
+   "properties": {
+    "other_notes": "originally PRIME-1 site; now Blue Moon MK1 'Endurance' (Moon Base I) landing target",
+    "evidence_matrix": {
+     "lcross": {
+      "value": "-"
+     },
+     "neutrons": {
+      "value": "NASA 2022: orbital data indicate the ridge 'could have ice below the surface'",
+      "class": "INDIRECT"
+     },
+     "m3_surface_ice": {
+      "value": "-"
+     },
+     "lamp_lola_frost": {
+      "value": "-"
+     },
+     "radar": {
+      "value": "-"
+     },
+     "shadowcam": {
+      "value": "-"
+     },
+     "thermal": {
+      "value": "sunlit, shallow-subsurface stability inferred",
+      "class": "MODEL"
+     }
+    }
+   }
+  },
+  {
+   "id": "ds_lcross",
+   "name": "LCROSS impact + shepherding spacecraft spectrometers (2009; paper 2010)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "DIRECT (ejecta plume)",
+   "limitations": null,
+   "sources": [
+    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_lcross"
+   },
+   "properties": {
+    "finding": "See top-level 'lcross' object.",
+    "where": "Cabeus PSR"
+   }
+  },
+  {
+   "id": "ds_lpns",
+   "name": "Lunar Prospector Neutron Spectrometer (1998-2001; pixon reconstructions 2009)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://arxiv.org/html/2502.06056v2",
+    "https://arxiv.org/pdf/0810.2478",
+    "https://ar5iv.arxiv.org/html/1304.8123",
+    "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_lpns"
+   },
+   "properties": {
+    "sensing": "~0.8-1 m depth; footprint ~45 km at 30 km altitude",
+    "finding": "~1.5 +/- 0.8 wt% WEH if excess confined to PSRs (drops to ~0.5% if surrounding H is higher); pixon reconstruction requires H concentrated in cold traps at up to ~1 wt% WEH; accurate to ~30% within polar craters",
+    "where": "Cabeus, Shoemaker, Haworth, Faustini region",
+    "status": "Background-dependent; cannot give depth distribution"
+   }
+  },
+  {
+   "id": "ds_lend",
+   "name": "LRO LEND collimated sensor CSETN (2010; Sanin 2017; McClanahan 2024)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://experts.arizona.edu/en/publications/hydrogen-distribution-in-the-lunar-polar-regions/",
+    "https://science.nasa.gov/wp-content/uploads/2023/05/NuggetHydrogenAtTheLunarPoles20170210.pdf",
+    "https://www.arxiv.org/pdf/2303.03911",
+    "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/",
+    "https://doi.org/10.1126/science.1203341"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_lend"
+   },
+   "properties": {
+    "sensing": "top ~1 m; claimed ~10 km at 50 km altitude ('controversial'); McClanahan uses fixed ~30 km footprint",
+    "finding": "NSRs overlapping PSRs in Cabeus, Shoemaker, Haworth; broad non-PSR hydrogen < ~0.30 wt% water. 2024: 502 PSRs positively correlated, common 0.28 +/- 0.03 wt% WEH relative to background (lower bound), evidence to at least 77 deg S; maxima coincide with coldest (< 75 K) spots at base of poleward-facing slopes",
+    "where": "75-90 deg S",
+    "status": "Resolution disputed: Lawrence 2011 / Eke 2012 (~1% of detected neutrons lunar and collimated) / Teodoro ('negligible') vs LEND team (~one-third collimated)"
+   }
+  },
+  {
+   "id": "ds_lamp",
+   "name": "LRO LAMP far-UV albedo (Gladstone 2012; Hayne 2015)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT-to-DIRECT (surface frost band ratio)",
+   "limitations": null,
+   "sources": [
+    "https://astronomy.com/observing/the-lunar-reconnaissance-orbiters-lyman-alpha-mapping-project-reveals-lunar-surface-features",
+    "https://escholarship.org/uc/item/5wq6z2wf",
+    "https://arxiv.org/html/2502.06056v2"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_lamp"
+   },
+   "properties": {
+    "sensing": "optical surface; ~250 m",
+    "finding": "PSRs darker (porous, 'fluffy') and redder in FUV; 'as much as 1 to 2 percent water frost'; Hayne 2015: no frost where annual T_max > ~110 K; within cold traps 0.1-2.0% by mass if intimately mixed, or up to ~10% areal coverage of pure ice; patchy",
+    "where": "South polar PSRs",
+    "status": "Review: 'partially reproduced'; UV signal could be frost or OH"
+   }
+  },
+  {
+   "id": "ds_lola_albedo",
+   "name": "LRO LOLA 1064 nm reflectance (Zuber 2012; Fisher 2017)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT (albedo)",
+   "limitations": null,
+   "sources": [
+    "https://www.eurekalert.org/news-releases/551736",
+    "https://www.sciencedaily.com/releases/2012/06/120620141159.htm",
+    "https://ntrs.nasa.gov/citations/20170003782",
+    "https://arxiv.org/html/2502.06056v2"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_lola_albedo"
+   },
+   "properties": {
+    "sensing": "optical surface",
+    "finding": "Shackleton floor brighter than neighbouring floors, consistent with up to ~22% surface ice; Fisher 2017: within 5 deg of the south pole reflectance rises sharply as T_max drops below ~110 K (not seen at north pole; holds for slopes < 10 deg and with Shackleton excluded)",
+    "where": "Shackleton; lat < -85",
+    "status": "CONTESTED: review says signal 'may be space weathering'"
+   }
+  },
+  {
+   "id": "ds_diviner",
+   "name": "LRO Diviner radiometer (Paige 2010; Williams 2019; Schorghofer and Williams 2020; Schorghofer 2021)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT (temperature -> stability)",
+   "limitations": null,
+   "sources": [
+    "https://pubs.usgs.gov/publication/70036393",
+    "https://zendy.io/title/10.1029/2019je006028",
+    "https://news.agu.org/press-release/carbon-dioxide-cold-traps-on-the-moon-are-confirmed-for-the-first-time",
+    "https://ntrs.nasa.gov/api/citations/20230017131/downloads/The%20Visual%20Experience%20at%20the%20Lunar%20South%20Pole.pdf",
+    "https://www.sciencedirect.com/science/article/pii/S0019103516304869",
+    "https://www.space.com/7311-moon-craters-coldest-place-solar-system.html"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_diviner"
+   },
+   "properties": {
+    "finding": "LCROSS site among the coldest regions (subsurface 38 K; annual average 37 K); cryogenic regions extend to depths of at least tens of metres; cold-trap criterion ~110 K; area < 110 K grows x2.8 (south) in winter; CO2 cold traps (< ~60 K) 204 km2 total, 82 km2 in Amundsen; polar averages ~200 K maximum / ~50 K minimum; winter minimum map colour scale 90 K down to 18 K; minimum daytime brightness temperature in parts of PSR craters below ~35 K",
+    "where": "Whole south polar region",
+    "status": "Temperature does not prove ice"
+   }
+  },
+  {
+   "id": "ds_m3",
+   "name": "Chandrayaan-1 M3 NIR (Li et al. 2018, PNAS)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "DIRECT for surface-exposed ice",
+   "limitations": null,
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/6130389"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_m3"
+   },
+   "properties": {
+    "sensing": "optical surface; ~280 m pixels",
+    "finding": "Only ~3.5% of cold traps show ice exposures; some pixels ~30 wt% if intimately mixed (or > 20 vol% if patches); all at annual T_max < 110 K; 93.2% of M3 ice locations also satisfy LOLA/UV/temperature criteria",
+    "where": "Clusters near Haworth, Shoemaker, Sverdrup, Shackleton; NO detected ice in Amundsen, Idel'son L, Wiechert",
+    "status": "Low SNR in shadow; review: 'unresolved'; ShadowCam 2026 sees far fewer bright patches"
+   }
+  },
+  {
+   "id": "ds_arecibo",
+   "name": "Earth-based radar (Arecibo 13 cm, 70 cm; 2006)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_arecibo"
+   },
+   "properties": {
+    "finding": "No evidence for thick ice deposits in Shackleton; echoes attributed to roughness",
+    "where": "Shackleton and south pole",
+    "evidence": "secondary"
+   }
+  },
+  {
+   "id": "ds_minirf",
+   "name": "Chandrayaan-1 Mini-SAR / LRO Mini-RF",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT (CPR)",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mini-RF",
+    "https://kiss.caltech.edu/workshops/lunar_ice/presentations2/neish.pdf",
+    "https://physicstoday.aip.org/news/water-ice-estimates-for-the-moon",
+    "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf",
+    "https://arxiv.org/html/2502.06056v2"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_minirf"
+   },
+   "properties": {
+    "sensing": "~1-2 m",
+    "finding": "High-CPR 'anomalous' craters could be ice or roughness/boulders; no thick ice at LCROSS site; '>= 600 million t' estimate depends on assumed thickness",
+    "where": "Cabeus (negative); some PSRs",
+    "status": "Review: anomalous craters 'resolved as boulders'"
+   }
+  },
+  {
+   "id": "ds_dfsar",
+   "name": "Chandrayaan-2 DFSAR (Sinha et al., ISRO release 2026-05-27)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://www.isro.gov.in/ISRO_EN/Chandrayaan2_Dual_Frequency_Synthetic_Aperture_Radar.html",
+    "https://www.indiatvnews.com/science/more-evidence-suggesting-water-on-moon-as-chandrayaan-2-finds-possible-ice-under-lunar-south-pole-2026-05-27-1042708"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_dfsar"
+   },
+   "properties": {
+    "finding": "Radar signatures (CPR > 1 with degree of polarisation < 0.13) consistent with possible subsurface ice beneath floors of 4 of 9 'doubly shadowed' craters; strongest case a 1.1 km crater inside Faustini",
+    "where": "Doubly shadowed craters inside Faustini, Haworth, Shoemaker",
+    "status": "'Possible'; radar ambiguity remains"
+   }
+  },
+  {
+   "id": "ds_kaguya_tc",
+   "name": "Kaguya/SELENE Terrain Camera (Haruyama 2008)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_kaguya_tc"
+   },
+   "properties": {
+    "finding": "No exposed ice on Shackleton floor (10 m/px)",
+    "where": "Shackleton",
+    "evidence": "secondary"
+   }
+  },
+  {
+   "id": "ds_sofia",
+   "name": "SOFIA FORCAST 6.1 um (Honniball 2020; Reach 2023)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "DIRECT for molecular H2O on sunlit surface",
+   "limitations": null,
+   "sources": [
+    "https://www.nasa.gov/news-release/nasas-sofia-discovers-water-on-sunlit-surface-of-moon/",
+    "https://arxiv.org/pdf/2302.10815v1.pdf"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_sofia"
+   },
+   "properties": {
+    "finding": "100-412 ppm H2O at Clavius (~58 deg S); 2023 map: drier at +28 deg lon to ~170 ppm at -7 deg lon, decreasing toward the pole",
+    "where": "Clavius, Moretus region (not PSRs)"
+   }
+  },
+  {
+   "id": "ds_shadowcam",
+   "name": "KPLO/Danuri ShadowCam (Li et al., Science Advances, 2026-03-18)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "DIRECT-ish optical",
+   "limitations": null,
+   "sources": [
+    "https://www.soest.hawaii.edu/soestwp/announce/news/scarce-ice-in-moons-darkest-regions/",
+    "https://e3.eurekalert.org/news-releases/1121967",
+    "https://arxiv.org/html/2502.06056v2",
+    "https://lroc.im-ldi.com/images/1255"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_shadowcam"
+   },
+   "properties": {
+    "sensing": "surface; ~2 m/px",
+    "finding": "No widespread surface ice above ~20-30 wt% (detection limit); a few small spots (~20-50 m, many near young craters) consistent with > 10 wt% ice; cannot rule out widespread low-content (< ~1-10%) ice",
+    "where": "PSRs with stereo coverage (six locations; names not given in releases)",
+    "status": "Paper itself only available via press releases"
+   }
+  },
+  {
+   "id": "ds_chaste",
+   "name": "Chandrayaan-3 ChaSTE thermal probe (69.37 S, 32.32 E)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT (in-situ temperatures, model)",
+   "limitations": null,
+   "sources": [
+    "https://www.isro.gov.in/ISRO_EN/India_Bags_Credit_First-Ever_In-Situ_Measurement.html",
+    "https://www.downtoearth.org.in/science-technology/chandrayaan-3-finds-clues-to-hidden-water-ice-on-the-moon",
+    "https://jatan.space/moon-monday-issue-219/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_chaste"
+   },
+   "properties": {
+    "sensing": "top 10 cm",
+    "finding": "Sun-facing 6 deg slope peaked at ~82 C (355 K) vs ~332 K on flat ground ~1 m away; night ~ -168 C; poleward-facing slopes > 14 deg could keep shallow subsurface ice stable; migration criterion: daily max > ~120 K with mean < ~105 K",
+    "where": "69 deg S (not polar proper)",
+    "status": "No ice detected; extrapolation is press-level"
+   }
+  },
+  {
+   "id": "ds_prime1",
+   "name": "IM-2 PRIME-1: TRIDENT drill + MSolo (2025)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "attempted DIRECT",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
+    "https://www.nasa.gov/missions/artemis/clps/nasas-lunar-drill-technology-passes-tests-on-the-moon/",
+    "https://spacepolicyonline.com/news/im-2-mission-ends-one-day-after-lunar-landing/"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_prime1"
+   },
+   "properties": {
+    "finding": "No lunar volatile measurement: TRIDENT full range of motion but did not drill; MSolo 43 scans (40 complete) detected only brought-along/anthropogenic species",
+    "where": "Mons Mouton, final site 84.79059 S, 29.19567 E"
+   }
+  },
+  {
+   "id": "ds_isro_sac",
+   "name": "ISRO SAC multi-instrument study (Chakraborty et al. 2024)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT/MODEL",
+   "limitations": "Paper not read directly.",
+   "sources": [
+    "https://www.isro.gov.in/Recent_studies_suggest_more_ice_Moon.html"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_isro_sac"
+   },
+   "properties": {
+    "finding": "Subsurface ice in first couple of metres ~5-8x surface amount at both poles; north polar extent ~2x south"
+   }
+  },
+  {
+   "id": "ds_change5_6",
+   "name": "Chang'e-5 and Chang'e-6 samples (context, not polar)",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "DIRECT (lab)",
+   "limitations": null,
+   "sources": [
+    "https://ui.adsabs.harvard.edu/abs/2023NatGe..16..294H",
+    "https://www.iop.cas.cn/xwzx/kydt/202407/P020240719527141588783.pdf",
+    "https://doi.org/10.1038/s41586-025-08870-x"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_change5_6"
+   },
+   "properties": {
+    "finding": "CE-5: impact glass beads host solar-wind water, upper-bound global reservoir up to 2.7e14 kg; hydrated mineral ULM-1 with ~41 wt% water. CE-6: farside mantle source only 1-1.5 ug/g water",
+    "where": "not polar"
+   }
+  },
+  {
+   "id": "ds_brown2022",
+   "name": "Brown et al. 2022 (Icarus 377:114874) PSR resource ranking",
+   "category": "dataset_finding",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "INDIRECT (10 datasets / 8 instruments)",
+   "limitations": "Per-PSR scores/tonnages not retrieved (paywalled).",
+   "sources": [
+    "https://asu.elsevierpure.com/en/publications/resource-potential-of-lunar-permanently-shadowed-regions/",
+    "https://lroc.im-ldi.com/images/1255"
+   ],
+   "origin": {
+    "file": "psr_and_ice.json",
+    "id": "ds_brown2022"
+   },
+   "properties": {
+    "finding": "Most resource-rich PSRs: Faustini, Cabeus, de Gerlache, Shoemaker, Haworth, Sverdrup, Slater, Amundsen; Faustini potentially top; classes blue = consistent with ice, orange = inconsistent/low SNR, green = datasets conflict or small area"
+   }
+  }
+ ],
+ "totals": {
+  "areas_and_counts": [
+   {
+    "quantity": "Total PSR area poleward of 80 S",
+    "value": "20,800 km2 (PSRs >= 1 pixel); 20,600 km2 (>= 5 pixels)",
+    "method": "LOLA 20 m/px illumination modelling",
+    "source_url": "https://ntrs.nasa.gov/api/citations/20230014419/downloads/BarkernewviewSTIupdated.pdf"
+   },
+   {
+    "quantity": "Total PSR area poleward of 80 S, independent estimate",
+    "value": "20,900 km2",
+    "method": "O'Brien and Byrne 2022, 30 m/px, horizon method (as cited by Barker)",
+    "source_url": "https://ntrs.nasa.gov/api/citations/20230014419/downloads/BarkernewviewSTIupdated.pdf"
+   },
+   {
+    "quantity": "PSR area, Mazarico 2011 (240 m/px LOLA)",
+    "value": "16,055 km2 south; 12,866 km2 north",
+    "method": "LOLA 240 m",
+    "source_url": "https://ntrs.nasa.gov/citations/20120010094",
+    "caveat": "Conflict between notes: the illumination note cites these from the NTRS record; the water-ice note says the totals 'could not be confirmed from the NTRS/PGDA pages; treat as unverified'."
+   },
+   {
+    "quantity": "PSR area within 4 deg of the south pole",
+    "value": "5,058 km2 Sun-shadowed",
+    "method": "Kaguya 474 m/px DEM",
+    "source_url": "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   },
+   {
+    "quantity": "Number of individual PSRs",
+    "value": "506,349 in the map; 466,204 poleward of 80 S",
+    "method": "connected pixel groups, 20 m/px",
+    "source_url": "https://ntrs.nasa.gov/api/citations/20230014419/downloads/BarkernewviewSTIupdated.pdf"
+   },
+   {
+    "quantity": "PSRs > 1 km2 (PGDA LPSR_80S_20MPP_ADJ_1km2)",
+    "value": "N = 1,531",
+    "source_url": "https://pgda.gsfc.nasa.gov/products/90"
+   },
+   {
+    "quantity": "PSR size-frequency distribution",
+    "value": "cumulative power law, mean exponent -0.77 +/- 0.07 for PSR areas < 10 km2; PSRs of 22 m-1 km equivalent diameter (smaller than 1 km2) hold 15 +/- 5 % of PSR area; largest PSRs dominate total",
+    "source_url": "https://ntrs.nasa.gov/api/citations/20230014419/downloads/BarkernewviewSTIupdated.pdf"
+   },
+   {
+    "quantity": "Largest PSR",
+    "value": "Shoemaker, ~37 km equivalent diameter, 1,075.5 km2",
+    "source_url": [
+     "https://www.arxiv.org/pdf/2303.03911",
+     "https://lroc.im-ldi.com/atlases/psr/list"
+    ]
+   },
+   {
+    "quantity": "PSRs used in LEND correlation",
+    "value": "502 PSRs, ~4 km2 to ~1,079 km2",
+    "source_url": "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/"
+   },
+   {
+    "quantity": "PSR area poleward of 82.5 S",
+    "value": "13,589 km2 (this study) vs 13,217 km2 (previous); north 10,921 km2",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   },
+   {
+    "quantity": "Cold-trap area, all scales 1 km-1 cm",
+    "value": "~40,000 km2 total; south ~23,000 km2, north ~17,000 km2",
+    "method": "model + LROC/LOLA/Diviner",
+    "source_url": "https://arxiv.org/pdf/2005.05369",
+    "evidence_class": "MODEL"
+   },
+   {
+    "quantity": "Micro cold traps",
+    "value": "~10-20 % of permanent cold-trap area; ~2,500 km2 in shadows < 100 m; ~700 km2 in shadows < 1 m; most numerous cold traps are ~1 cm",
+    "source_url": "https://arxiv.org/pdf/2005.05369",
+    "evidence_class": "MODEL"
+   },
+   {
+    "quantity": "Global fractions",
+    "value": "0.15 % of lunar surface permanently shadowed; ~0.1 % of global surface is cold trap; many PSRs (especially equatorward of 80 deg) exceed 110 K and are not cold traps",
+    "source_url": "https://arxiv.org/pdf/2005.05369",
+    "evidence_class": "MODEL"
+   },
+   {
+    "quantity": "Diviner cold-trap area (< 110 K)",
+    "value": "13,000 km2 poleward of 80 S; 5,300 km2 north (Williams 2019 as cited by Hayne); Hayne also cites an earlier ~13,000 km2 estimate poleward of 85 S (Paige 2010)",
+    "source_url": "https://arxiv.org/pdf/2005.05369",
+    "evidence_class": "INDIRECT"
+   },
+   {
+    "quantity": "Seasonal cold traps",
+    "value": "area < 110 K grows by x2.8 (south) and x4.3 (north) in winter",
+    "source_url": [
+     "https://zendy.io/title/10.1029/2019je006028",
+     "https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2019JE006028"
+    ],
+    "evidence_class": "INDIRECT"
+   },
+   {
+    "quantity": "Cold traps from time-averaged sublimation",
+    "value": "~17,000 km2 in south polar region (~24 % more than peak-temperature method)",
+    "source_url": "https://zendy.io/title/10.3847/psj/abb6ff",
+    "evidence_class": "MODEL",
+    "caveat": "Figure from author slides; not checked against paper."
+   },
+   {
+    "quantity": "CO2 cold traps (< ~60 K)",
+    "value": "204 km2 total; 82 km2 in Amundsen",
+    "method": "11 yr Diviner",
+    "source_url": "https://news.agu.org/press-release/carbon-dioxide-cold-traps-on-the-moon-are-confirmed-for-the-first-time",
+    "evidence_class": "INDIRECT"
+   },
+   {
+    "quantity": "Ice-bearing PSRs by M3",
+    "value": "169 PSRs with >= 1 detection (98 nearside, 71 farside); 1,119 M3 detections, 820 inside the 169 PSRs (75-90 deg S); only ~3.5 % of cold traps show ice exposures",
+    "source_url": [
+     "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5",
+     "https://pmc.ncbi.nlm.nih.gov/articles/6130389"
+    ],
+    "evidence_class": "DIRECT (surface-exposed)"
+   },
+   {
+    "quantity": "PSR accessibility by maximum slope",
+    "value": "6 PSRs at <= 5 deg, 133 at <= 10 deg, 161 at <= 15 deg, 168 at <= 20-25 deg (all except Shackleton's floor); 106 PSRs can be sampled for water ice in the top metre, 76 could also hold CO2 ice in the top metre",
+    "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   },
+   {
+    "quantity": "Near-surface thermal fractions (Diviner 2009)",
+    "value": "About 3% of near-surface south-polar area is below 100 K; ~30% has subsurface conditions where water could be stable",
+    "source_url": "https://www.planetary.org/articles/2728",
+    "evidence": "secondary"
+   },
+   {
+    "quantity": "Lobe of stability",
+    "value": "Water ice stable in PSRs out to ~10 deg from the poles, and in the subsurface of unshaded ground within ~2 deg of the pole (Vasavada et al. 1999, as cited 2018)",
+    "source_url": "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf",
+    "evidence_class": "MODEL"
+   }
+  ],
+  "inventory_estimates": [
+   {
+    "estimate": "Arnold 1979 (theory)",
+    "value": "5-50 g/cm2 column; 1-10 % by mass in top 2 m",
+    "basis": "delivery + gardening over ~2 Ga",
+    "evidence_class": "MODEL",
+    "source_url": "https://arxiv.org/html/2502.06056v2"
+   },
+   {
+    "estimate": "Lunar Prospector 1998",
+    "value": "~300 million t up to ~3 billion t per pole (early); 44 million-1.3 billion t depending on depth",
+    "basis": "neutron data",
+    "evidence_class": "INDIRECT",
+    "source_url": [
+     "https://www.sciencedaily.com/releases/1998/09/980904041903.htm",
+     "https://www.scientificamerican.com/article/moon-ice/"
+    ]
+   },
+   {
+    "estimate": "Mini-SAR 2010 (north pole)",
+    "value": ">= 600 million t",
+    "basis": "anomalous-CPR craters (40+ small north-polar craters) x assumed thickness; not a south-pole estimate",
+    "evidence_class": "INDIRECT, contested",
+    "source_url": "https://physicstoday.aip.org/news/water-ice-estimates-for-the-moon"
+   },
+   {
+    "estimate": "Range quoted from 2020-2023 commentary",
+    "value": "100 million t to ~1-2.9 billion t",
+    "basis": "mixed",
+    "evidence_class": "SPEC",
+    "source_url": [
+     "https://theconversation.com/cool-discovery-new-studies-confirm-moon-has-icy-poles-148639",
+     "https://spacedaily.com/?p=1090113"
+    ]
+   },
+   {
+    "estimate": "Per-PSR upper limits",
+    "value": "Haworth, Shoemaker ~9e9-3e10 kg each; Faustini ~6e9-2e10 kg (if LCROSS 5.6 wt% applied)",
+    "basis": "area x depth x LCROSS grade",
+    "evidence_class": "SPEC upper bound",
+    "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   },
+   {
+    "estimate": "LEND 2024",
+    "value": ">= ~5 L more ice per m2 in top metre over PSR deposits; uniform 0.28 +/- 0.03 wt% WEH",
+    "basis": "neutrons",
+    "evidence_class": "INDIRECT lower bound",
+    "source_url": "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/"
+   },
+   {
+    "estimate": "Cannon et al. 2020 (GRL)",
+    "value": "cold traps older than ~4 Ga split into buried ice-rich 'gigaton' deposits and younger gardened mantles; deep ice hard to confirm",
+    "basis": "stratigraphic model",
+    "evidence_class": "MODEL",
+    "source_url": "https://doi.org/10.1029/2020GL088920"
+   },
+   {
+    "estimate": "Rubanenko et al. 2019 (Nat. Geosci.)",
+    "value": "~12,000 south-polar simple craters are shallower where surface ice was detected -> possible thick buried ice",
+    "basis": "crater depth/diameter",
+    "evidence_class": "INDIRECT, mixed results per review",
+    "source_url": [
+     "https://www.nasa.gov/feature/goddard/2019/moon-mercury-ice",
+     "https://arxiv.org/html/2502.06056v2"
+    ]
+   },
+   {
+    "estimate": "ISRO/Chakraborty 2024",
+    "value": "subsurface (top ~2 m) 5-8x surface ice; north polar extent ~2x south",
+    "basis": "multi-instrument (7 LRO instruments)",
+    "evidence_class": "INDIRECT/MODEL",
+    "source_url": "https://www.isro.gov.in/Recent_studies_suggest_more_ice_Moon.html",
+    "caveat": "ISRO statement relayed; paper not read directly."
+   },
+   {
+    "estimate": "Standard-model expectation",
+    "value": "oldest cold traps tens of g/cm2; massive deposits (tens of wt%) not predicted; >= 1 wt% taken to indicate ice but 'evidence not overwhelming'",
+    "basis": "review",
+    "evidence_class": "MODEL",
+    "source_url": "https://arxiv.org/html/2502.06056v2"
+   },
+   {
+    "estimate": "Brown et al. 2022",
+    "value": "Cabeus has the greatest estimated subsurface hydrogen tonnage (number not retrieved)",
+    "evidence_class": "INDIRECT",
+    "source_url": [
+     "https://asu.elsevierpure.com/en/publications/resource-potential-of-lunar-permanently-shadowed-regions/",
+     "https://lroc.im-ldi.com/images/1255"
+    ]
+   },
+   {
+    "estimate": "Researcher's illustrative arithmetic (NOT from a source)",
+    "value": "20,800 km2 x '>= 5 L per m2' gives ~1e11 L, i.e. order 100 million t as a neutron-based lower bound for PSRs south of 80 S",
+    "evidence_class": "derived by researcher",
+    "source_url": null,
+    "caveat": "no source URL in notes; derived, not published"
+   }
+  ],
+  "age_and_supply": [
+   {
+    "statement": "Most PSRs arose < 2.2 Ga ago; PSR area 2.2 Ga ago about half of today's, ~3.1 Ga ago about a quarter, negligible before ~3.4 Ga; solar declination was 3 deg ~2.1 Ga ago and 2 deg 0.61 Ga ago; average PSR age <= ~1.8 Ga; Cassini-state transition ~4.1 Ga; ice estimates 'have to be revised downward'",
+    "evidence_class": "MODEL",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   },
+   {
+    "statement": "PSR relative ages: Shackleton, de Gerlache, Idel'son L formed relatively early; Haworth, Shoemaker, Faustini similar ages; Amundsen and Sverdrup emerged more recently; Cabeus LCROSS PSR ~0.9 Ga",
+    "evidence_class": "MODEL",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10499310/"
+   },
+   {
+    "statement": "Polar hydrogen pattern is antipodal and offset from both present poles, interpreted as true polar wander (Siegler et al. 2016)",
+    "evidence_class": "INDIRECT/MODEL",
+    "source_url": "https://authors.library.caltech.edu/records/mw7br-nw117"
+   },
+   {
+    "statement": "Surface frost may persist no longer than ~20 Myr against gardening (Li 2018)",
+    "evidence_class": "MODEL",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/6130389"
+   },
+   {
+    "statement": "Sublimation ~100 kg m^-2 Ga^-1 at 109 K and ~1,000 kg m^-2 Ga^-1 at 114 K; pessimistic space-weathering loss ~0.2 nm/yr; comets now considered a negligible source; vapour pumping ~one monolayer per year (~30 cm/Ga) would suffice; buried relic ice can persist for billions of years at up to ~140 K; neutron-inferred burial 3-30 g/cm2; predicted vapour-pumped depth ~5-10 cm",
+    "evidence_class": "MODEL",
+    "source_url": "https://arxiv.org/html/2502.06056v2"
+   }
+  ],
+  "thresholds": [
+   {
+    "quantity": "Water cold-trap threshold",
+    "value": "maximum temperature < ~110 K (ice stable over ~1 Gyr); PSR surfaces with maxima > 125 K cannot keep surface frost",
+    "source_url": [
+     "https://ntrs.nasa.gov/api/citations/20170003782/downloads/20170003782.pdf",
+     "https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2019JE006028"
+    ]
+   },
+   {
+    "quantity": "NASA ISRU 'reserve' threshold",
+    "value": "water >= 2 wt% (1 wt% detection limit); depth 5-100 cm in <= 10 cm increments; overburden 5-50 cm; lateral extent 500 m radius; target yield 15 t water per lander; '1 wt% is unlikely to be a viable ISRU water-ice deposit'",
+    "source_url": [
+     "https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf",
+     "https://ntrs.nasa.gov/api/citations/20220008799/downloads/NASA%20ISRU%20Plans_Sanders_COSPAR-Final.pdf"
+    ]
+   },
+   {
+    "quantity": "VIPER Ice Stability Regions",
+    "value": "Surface (PSR); Shallow (stable within 0-50 cm); Deep (50-100 cm); Dry (0-100 cm too warm)",
+    "source_url": "https://www.nationalacademies.org/cdn/materials/9fba0b0c-198c-4772-a367-136febe32e2a"
+   }
+  ]
+ }
+}

@@ -92,7 +92,7 @@ export class Sky {
     }
 
     const sunMat = new MeshBasicMaterial({ color: new Color(1, 0.95, 0.86).multiplyScalar(8) })
-    this.sun = new Mesh(new SphereGeometry(1, 32, 16), sunMat)
+    this.sun = new Mesh(new SphereGeometry(1, 96, 48), sunMat) // round at the Sun viewpoint too, where it is 330 px wide
     this.glow = new Sprite(
       new SpriteMaterial({ map: glowTexture(), blending: AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.7 }),
     )
@@ -173,6 +173,17 @@ export class Sky {
   setEarthVisible(v: boolean) {
     this.earth.visible = v
     this.atmo.visible = v
+  }
+
+  /** The top view draws its own bodies over the star field: the sky's Sun and Earth are hidden meanwhile. */
+  showBodies(on: boolean) {
+    this.sun.visible = this.glow.visible = this.earth.visible = this.atmo.visible = on
+  }
+
+  /** Drawn radius over drawn distance of a body: its angular size as geometry computed it, whatever the lens. */
+  sizeRatio(b: SkyBody): number {
+    const m = b === 'sun' ? this.sun : this.earth
+    return m.scale.x / m.position.length()
   }
 
   syncCamera(main: PerspectiveCamera) {

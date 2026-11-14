@@ -1,0 +1,317 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Brief C4: the tools beside the timeline (View, Simulate), the viewpoint menu, names on pins and points. */
+
+/* ---------- tools: one quiet row at the right end, just above the answer line ---------- */
+
+.tl-tools {
+  grid-column: 2;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: var(--s-5);
+  min-height: 20px;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-small);
+}
+
+.tl-note {
+  margin-right: auto;
+  color: var(--muted);
+}
+
+.tool-wrap {
+  position: relative;
+}
+
+.tool {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  text-decoration-color: var(--line);
+}
+
+.tool:hover,
+.tool[aria-expanded='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
+.tool:active {
+  color: var(--muted);
+}
+
+/* ---------- viewpoint menu ---------- */
+
+.view-menu {
+  position: absolute;
+  z-index: 20;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - var(--s-4));
+  padding: var(--s-1) 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-ui);
+}
+
+/* Under the View button: opens upward, right edges aligned. */
+.view-menu.is-anchored {
+  right: 0;
+  bottom: calc(100% + var(--s-2));
+}
+
+.view-item {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--s-2) var(--s-4);
+  white-space: nowrap;
+}
+
+.view-item.is-separated {
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-1);
+  padding-top: var(--s-3);
+}
+
+.view-item:hover:not(:disabled),
+.view-item:focus-visible {
+  background: var(--surface-2);
+  outline: none;
+}
+
+.view-item[aria-current='true'] {
+  box-shadow: inset 2px 0 0 var(--fg);
+}
+
+.view-item:disabled {
+  color: var(--faint);
+}
+
+/* ---------- name of the pin or user point under the pointer: below the point, so it never covers "Landing site" ---------- */
+
+.obj-pin-name {
+  position: absolute;
+  left: 0;
+  top: var(--s-2);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--surface);
+  padding: 2px var(--s-2);
+  border-radius: 2px;
+}
+
+/* ---------- user points in the Mission panel: name, role, delete; coordinates select the point ---------- */
+
+.pt-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--s-8);
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  padding: var(--s-2) 0;
+}
+
+.pt-row.is-selected {
+  box-shadow: inset 2px 0 0 var(--fg);
+  margin-left: calc(-1 * var(--s-4));
+  padding-left: var(--s-4);
+}
+
+.pt-role {
+  width: auto;
+}
+
+.pt-select {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line);
+}
+
+.pt-select:hover,
+.pt-select[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
+.pt-none {
+  grid-column: 1 / -1;
+  font-size: var(--t-small);
+  color: var(--faint);
+}
+
+.menu-msg .link {
+  color: var(--fg);
+}
+
+/* ---------- Details drawer: simulation speed ---------- */
+
+.sim-speed {
+  gap: var(--s-2);
+}
+
+.sim-speed .field {
+  width: auto;
+}
+
+/* ---------- saved missions in the Mission panel ---------- */
+
+.mp-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  padding-left: calc(var(--s-12) + var(--s-3));
+}
+
+.ms-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--s-8);
+  align-items: center;
+  gap: 0 var(--s-2);
+  padding: var(--s-1) 0;
+}
+
+.ms-load {
+  justify-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ms-what {
+  grid-column: 1 / -1;
+}
+
+/* ---------- comparison table for all sites (Details drawer) ---------- */
+
+.site-table > .quiet {
+  margin: 0 0 var(--s-3);
+}
+
+.st-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3) var(--s-6);
+}
+
+.st-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.st-pick legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--s-1);
+  padding: 0;
+}
+
+.st-pick input {
+  accent-color: var(--fg);
+}
+
+.site-table .st-progress {
+  min-height: 18px;
+  margin: var(--s-3) 0 var(--s-2);
+}
+
+.st-tbl th[scope='row'] {
+  overflow-wrap: anywhere;
+}
+
+.st-tbl .st-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.st-tbl thead .st-num {
+  white-space: normal;
+}
+
+.st-tbl .st-graph {
+  width: var(--s-10);
+  padding-right: 0;
+  text-align: right;
+}
+
+.st-tbl .st-graph input {
+  accent-color: var(--sun);
+}
+
+.st-tbl tr.is-current .st-name {
+  font-weight: 500;
+}
+
+.st-rank {
+  color: var(--muted);
+}
+
+.st-find {
+  display: block;
+  color: var(--muted);
+}
+
+.st-tbl .st-group {
+  padding-top: var(--s-5);
+  color: var(--faint);
+}
+
+.st-graphs {
+  margin: var(--s-5) 0 0;
+}
+
+.st-graphs figcaption {
+  margin-bottom: var(--s-2);
+}
+
+.st-graph-row {
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) 0;
+  font-size: var(--t-small);
+}
+
+.st-graph-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.st-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-left: calc(9rem + var(--s-3));
+}
+
+@media (max-width: 640px) {
+  .mp-save {
+    padding-left: 0;
+  }
+
+  .st-graph-row {
+    grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  }
+
+  .st-axis {
+    margin-left: calc(6rem + var(--s-3));
+  }
+
+  .tl-tools {
+    gap: var(--s-4);
+  }
+}

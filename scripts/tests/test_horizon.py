@@ -5,6 +5,7 @@ The synthetic DEMs are in-memory grids in a polar stereographic projection on th
 independently of horizon.py's ray code: a lat/lon "destination point" formula for
 positions and the scalar elevation formula sin(e) = (rp·cos θ − ro) / L.
 """
+import json
 import math
 import os
 from pathlib import Path
@@ -229,6 +230,49 @@ def test_t8_real_dem_site_near_80s():
     m = np.array(res["mask"])
     assert np.all(np.isfinite(m)) and len(m) == 720
     assert not np.any(m[[int(a / 0.5) for a in res["truncated"]]] == 0.0)
+
+
+FILL_DEM = DEM.parent / hz.FILL_DEM_NAME
+
+
+def test_t8_rays_continue_on_the_fill_grid():
+    """Same cut as the synthetic T8 (grid ends 30 km north). With a wider fill grid behind it no ray is
+    truncated, and a 3 km cone 60 km north, present only in the fill grid, is in the mask."""
+    site = xy(SITE_LAT, SITE_LON)
+    near, far = grids(site)
+    north_pt = np.array(xy(*destination(SITE_LAT, SITE_LON, 0.0, 30.0)))
+    nvec = (north_pt - np.array(site)) / np.linalg.norm(north_pt - np.array(site))
+    for g in (near, far):
+        rows, cols = np.ogrid[0:g.data.shape[0], 0:g.data.shape[1]]
+        px, py = pixel_xy(g, rows, cols)
+        g.data[(px - site[0]) * nvec[0] + (py - site[1]) * nvec[1] > 30_000] = np.nan
+    dists = hz.ray_distances_km()
+    d = float(dists[np.argmin(np.abs(dists - 60.0))])
+    apex = xy(*destination(SITE_LAT, SITE_LON, 0.0, d))
+    fill = make_grid(site, 310_000, 120.0, apex)
+    add_feature(fill, apex, 15_000, cone(3000.0, 15_000))
+    cut = run(near, far)
+    res = run(hz.FilledGrid(near, fill), hz.FilledGrid(far, fill))
+    assert 0.0 in cut["truncated"] and res["truncated"] == []
+    expected = float(elevation_deg(H_OBS_M, d, 3000.0))
+    assert expected > 1.5 and abs(mask_at(res, 0.0) - expected) < TOL_DEG
+    assert abs(mask_at(cut, 0.0) - DIP_DEG) < TOL_DEG                  # without the fill the cone is missed
+    assert mask_at(res, 180.0) == mask_at(cut, 180.0)                  # nothing changes where the DEM has data
+
+
+@pytest.mark.skipif(not (DEM.exists() and FILL_DEM.exists()), reason="80 S and 60 S DEMs not available (set CLPS_DATA)")
+def test_t8_real_im1_is_complete_with_the_60s_dem():
+    """IM-1 lies about 4 km inside the 20 m DEM's edge. With the 60 S DEM behind it every ray reaches 300 km,
+    the skyline never drops, changes only where the ray was cut before, and equals the shipped file."""
+    cut = hz.horizon_for_site("im-1", -80.13, 1.44, DEM)
+    res = hz.horizon_for_site("im-1", -80.13, 1.44, DEM, fill_path=FILL_DEM)
+    assert res["truncated"] == [] and "LDEM_60S_120MPP_ADJ" in res["dem"]
+    d = np.array(res["mask"]) - np.array(cut["mask"])
+    was_cut = np.zeros(720, dtype=bool)
+    was_cut[[int(a / 0.5) for a in cut["truncated"]]] = True
+    assert d.min() >= 0 and np.all(d[~was_cut] == 0) and 0.5 < d.max() < 2.0
+    shipped = json.loads((hz.HORIZON_DIR / "im-1.json").read_text(encoding="utf-8"))
+    assert res["mask"] == shipped["mask"] and shipped["truncated"] == []
 
 
 def test_t13_5km_cone_at_200km():

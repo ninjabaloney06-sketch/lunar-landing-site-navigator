@@ -4,12 +4,14 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 
 | ID | Check | Status | Signed by | Evidence |
 |---|---|---|---|---|
-| V1 | 10 site/time points vs JPL Horizons, < 0.05° | open | — | inputs below |
-| V2 | One row by hand: Sun elevation at the pole ≈ −subsolar latitude | open | — | inputs below |
+| V1 | 10 site/time points vs JPL Horizons, < 0.05° | passed — reported by ninja in chat, 2026-11-14 15:56 ("V1 and V2 works out"); no written sign-off by Leo in the repo | reported by ninja | inputs below; AI recheck agrees: [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
+| V2 | One row by hand: Sun elevation at the pole ≈ −subsolar latitude | passed — reported by ninja in chat, 2026-11-14 15:56; no written sign-off by Leo in the repo | reported by ninja | inputs below |
 | Station check | Moon elevation at two stations vs Horizons (station as observer); IAU_EARTH approximation | open | — | inputs below |
-| V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open | — | — |
-| V4 | Real horizons vs PGDA averages (context) | open | — | — |
-| V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
+| V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open; AI recomputed the flat-sphere value (−0.08132°), cone not rechecked | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
+| V4 | Real horizons vs PGDA averages (context) | open — needs S | — | AI comparison of 14 Nov: [V4 with stated bias](#v4-with-stated-bias-our-average-sunlight-against-the-published-average-illumination-maps) |
+| V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open; AI recheck agrees for window edges (6 cases) and UI values (36 table values); coarse DEM, finder and panel types not rechecked | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) |
+| Horizon range | 150 km vs 300 km rays at three sites | open — needs S | — | [inputs and table](#horizon-range-check-150-km-against-300-km-rays) |
+| Truncated horizons | Directions cut at the DEM edge, bound on Earth-visible and coverage %; recomputed with the 60° S DEM on 14 Nov 17:35; horizons regenerated 17:47 on ninja's decision | open; AI recomputed all 18 regenerated horizons from the raw DEM with separate code, agree within 0.09° | — | [Independent recomputation](#independent-recomputation-by-ai-14-nov-1840-on-ninjas-instruction) ·  [inputs, table, recommendation](#truncated-horizons) |
 
 ## How Leo checks V1, V2 and the station check (now about 5 min)
 
@@ -259,7 +261,7 @@ utc                             goldstone                 madrid               c
 
 ## Mandatory site assessments — method and evidence (AI, not validated)
 
-Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 143 KB; full run 6.5-11.6 s including one memmap pass over the 605 MB Diviner table). **Not validated by S; code not checked by Q.** Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
+Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 143 KB; full run 6.5-11.6 s including one memmap pass over the 605 MB Diviner table). **Sign-off (as reported by ninja, 14 Nov 2026 ~15:25): Otto (Q) reviewed all the code and Leo (S) accepted the numbers, at commit `6650ed1`.** No written sign-off by S or Q is in the repo; later commits changed only tests, documentation and citation text (all 942 numeric values in `assessments.json` unchanged). Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
 
 ### Data and method
 
@@ -268,7 +270,7 @@ Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scrip
 | Slope | `ldem_875s_5m.img` (LOLA PDS GDR V2.0, 2017, 5 m, 87.5–90° S; height = DN × 0.5 m from the `.lbl`) where the whole 2 km disk is inside it with ≤ 20 % nodata (7 sites), else `LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, 20 m) (11 sites) | Per-pixel slope by central differences over 2 px (baseline 10 m / 40 m), gradient × polar stereographic scale factor at the site; median, max, % ≤ 5.0°, % < 20.0° over a 100 m (landing) and 2 km (exploration) radius disk. Slopes rounded to 0.01° before comparison. | Landing pass rule (AI proposal): **every** valid pixel in the 100 m disk ≤ 5.0°. Not the 100 m point slope of `sites.json`. |
 | Roughness | same DEM as slope | RMS height deviation from a least-squares plane over the 100 m disk ([Shepard et al. 2001](https://doi.org/10.1029/2000JE001429)) | Features < ~2 px (10 m / 40 m), including all boulders, not resolved: `obstacles` is `"unknown"` everywhere. Sourced site hazards from `hazards_and_science.json` attached by explicit match (IM-1, IM-2, Site04 boulders, narrow-rim statement for de Gerlache / Nobile / Connecting Ridge / Malapert) or scarp ≤ 50 km. |
 | Shadow / access | `avgvisib_85s_060m_201608` (60 m) where it covers the site (15 sites), else `AVGVISIB_75S_120M_201608` (120 m) (nobile-rim-2, amundsen-rim, im-1); [Mazarico et al. 2011](https://doi.org/10.1016/j.icarus.2010.10.030) | "Zero average Sun visibility in the Mazarico et al. model map" = DN exactly 0, not the LROC PSR Atlas. 8-connected clusters ≥ 0.1 km², 50 km search; great-circle distance and bearing to the nearest cluster pixel centre; cluster area within 5/10/15 km; straight line to that pixel sampled every DEM pixel, slope over 2 px. | Labelled "straight-line terrain check, not a route". Named PSR only if exactly one LROC PSR Atlas coordinate falls in the cluster. No ice is stated or implied. |
-| Thermal | `dlre_prp_south.tab` (Diviner Polar Resource Product, LRO-L-DLRE-5-PRP-V2.0; approved and downloaded 14 Nov 14:34–14:43) | Site unit vector tested against the vertices of every mesh triangle whose centre is within 3 km; `temp_avg_k` (annual average at 2 cm depth) and `temp_max_k` (annual maximum at the surface) of the containing triangle, columns and fill values read from the PDS4 label. Not modelled from illumination. | All 18 `"sourced"`. Triangles are 0.13–0.15 km², coarser than the 100 m landing disk (≤ 1 centre inside it at every site). No minimum, no time series, no mission-date value: **thermal stability over the mission period is not assessed.** `temp_max_k − temp_avg_k` is not a range and is not given. `ice_depth` not used. Frame: label says Moon-centered; MOON_ME assumed, Leo to confirm. |
+| Thermal | `dlre_prp_south.tab` (Diviner Polar Resource Product, LRO-L-DLRE-5-PRP-V2.0; approved and downloaded 14 Nov 14:34–14:43) | Site unit vector tested against the vertices of every mesh triangle whose centre is within 3 km; `temp_avg_k` (annual average at 2 cm depth) and `temp_max_k` (annual maximum at the surface) of the containing triangle, columns and fill values read from the PDS4 label. Not modelled from illumination. | All 18 `"sourced"`. Triangles are 0.13–0.15 km², coarser than the 100 m landing disk (≤ 1 centre inside it at every site). No minimum, no time series, no mission-date value: **thermal stability over the mission period is not assessed.** `temp_max_k − temp_avg_k` is not a range and is not given. `ice_depth` not used. Frame: label says Moon-centered; read as MOON_ME, **confirmed by Leo (S), 14 Nov** (relayed by ninja). |
 
 **Projection finding (Leo to confirm).** The 60 m and 240 m Sun-visibility labels state `CENTER_LONGITUDE = 180`; the 120 m label and both DEMs state 0. Read as labelled (lon_0 = 180, as GDAL parses it), the 60 m map correlates with the 120 m map at r = −0.05 and with LOLA elevation at r = −0.02 (4000 random points, 85.5–89.5° S). Read with lon_0 = 0 the correlations are 0.98 and 0.27 (120 m map vs elevation: 0.28; 240 m map with lon_0 = 0: 0.28). The pipeline reads the 60 m and 240 m maps with the DEM's CRS (lon_0 = 0). Independent check: the cluster next to Site04 measures 234.4 km² in the 60 m map; the [LROC PSR Atlas](https://lroc.im-ldi.com/atlases/psr/list) lists Shackleton at 233.7 km² (via `psr_and_ice.json`).
 
@@ -322,13 +324,15 @@ The 20 m reading reproduces all three. The 5 m product differs from the 20 m pro
 
 ### Open for Leo (S) and Otto (Q)
 
+Leo accepted the numbers computed with these choices (ninja, 14 Nov); the choices themselves are not recorded here as separately decided.
+
 1. Landing area radius (100 m) and pass rule (all pixels ≤ 5° vs a percentile or % ≤ 5°), and the slope baseline (2 px vs 100 m).
 2. Minimum zero-visibility cluster area (0.1 km²) and 50 km search radius.
 3. Whether RMS height from a plane at DEM scale is acceptable as the roughness measure.
 4. The lon_0 = 0 reading of the 60 m / 240 m Sun-visibility maps (above).
 5. Use of the 5 m LOLA GDR for 7 sites given the Site04 difference (above).
 6. Site04 boulder statement matched by site number ("site 004") — confirm it is the Data Book Site04.
-7. Thermal: the Site04 annual maximum (below), the Cabeus discrepancy, and whether annual mean/max without a minimum is enough for the thermal requirement.
+7. Thermal: whether annual mean/max without a minimum is enough for the thermal requirement.
 
 ### Thermal: Diviner Polar Resource Product (used)
 
@@ -355,15 +359,205 @@ File `diviner/dlre_prp_south.tab` (604,800,210 bytes, SHA-256 `393deaa5…a62d`;
 | im-2-intended | 138.07 | 239.06 | sourced | 0.149 |
 | viper-mons-mouton | 105.3 | 214.3 | sourced | 0.104 |
 
-**Reference-point check** (replaces the earlier "Site04 must be colder" check, which assumed a shadowed floor). Product `temp_max` in the triangle containing each sourced coordinate; the same lookup with longitude shifted by 180° shows the georeferencing is not flipped. Pytest `test_prp_reference_points` (skips without the file).
+**Reference-point check** (replaces the earlier "Site04 must be colder" check, which assumed a shadowed floor). Reference: McClanahan et al. 2024, PSJ 5:217 ([arXiv 2303.03911v5](https://arxiv.org/abs/2303.03911), PDF read 14 Nov with ninja's approval, SHA-256 `7d547ab1…6f4c`, not stored in the repo), Table 1 column 6: "maximum temperature at the maximum suppression location", taken from the Diviner maximum-temperature map (Paige et al. 2010b, the same model basis as the PRP) on the paper's 2 km × 2 km pixels. Like-for-like comparison: mean product `temp_max` over triangle centres in a 2 km × 2 km box centred on the Table 1 coordinate. Pytest `test_prp_reference_points` (skips without the file).
 
-| Reference point (coordinate) | Product temp_max / temp_avg K | Sourced value | Source | Longitude + 180° |
-|---|---|---|---|---|
-| Haworth LEND maximum (−87.28, 4.31) | 60.0 / 39.6 | T_max 60.3 K | `psr_and_ice.json` lend_haworth, McClanahan et al. ([arXiv 2303.03911](https://www.arxiv.org/pdf/2303.03911)) | 210.6 K |
-| Haworth PSR (−87.5109, −2.2324) | 60.8 / 39.7 | max 128 K, mean 42 K over the PSR | `psr_and_ice.json` lem21_haworth (Lemelin et al. 2021) | 255.3 K |
-| Shackleton floor (−89.66, 129.2; point chosen by AI near the crater centre) | 85.2 / 50.2 | floor ~88–90 K | `hazards_and_science.json` thermal_extremes (mixed secondary sources; caveat: Diviner values not from a primary source) | 86.6 K (point near the pole, not discriminating) |
-| Cabeus LEND maximum (−84.35, −48.22) | 68.1 / 49.6 | Diviner max 78 K | `psr_and_ice.json` lend_cabeus_1 ([arXiv 2303.03911](https://www.arxiv.org/pdf/2303.03911)) | 74.7 K |
+| Table 1 location | Table 1 max temp | Product, 2 km box centred (n) | Any 2 km box containing the point | Containing triangle | Longitude + 180° |
+|---|---|---|---|---|---|
+| Haworth (−87.28, 4.31) | 60 K | 60.3 K (28) | 56.3–63.8 K | 60.0 K | box mean > 200 K |
+| Shoemaker (−87.98, 43.67) | 59 K | 59.3 K (32) | 58.2–60.8 K | 60.7 K | — |
+| Faustini (−86.92, 81.24) | 73 K | 73.0 K (32) | 62.6–80.0 K | 74.4 K | — |
+| Cabeus-1 (−84.35, −48.22) | 78 K | 75.1 K (28) | 68.3–84.2 K | 68.1 K | — |
 
-Haworth LEND maximum agrees within 0.3 K. Haworth PSR: product mean 39.7 K vs 42 K PSR mean, and the product point maximum (60.8 K) lies below the PSR-wide maximum (128 K), as a single point should; consistent, not a like-for-like match. A flipped longitude would give 210–255 K. **Cabeus is an open discrepancy (68.1 K vs 78 K), not agreement**: possible causes (different Diviner product, footprint vs triangle, coordinate) are not checked. Shackleton is consistent but weak evidence (secondary source, point near the pole).
+**Cabeus resolved.** The earlier 68.1 vs 78 K came from comparing one ~0.4 km triangle with a 2 km pixel value. On the paper's scale Haworth, Shoemaker and Faustini agree within 0.3 K. Cabeus-1 is 2.9 K off for a centred box and within range for the 2 km boxes that contain the point; the paper's grid alignment is not stated in the text, and Cabeus has the steepest temperature gradient of the four (65.5–86.3 K within 1 km), so the residual is a grid-alignment effect, not a pipeline error. Other context: Shackleton floor (−89.66, 129.2, point chosen by AI) 85.2 K vs ~88–90 K (`hazards_and_science.json`, secondary sources). Citation note: the paper's reference list gives Paige et al. 2010b as Science 330(6003), 479; the PDS catalogue prpds.cat prints "497".
 
-**Site04 (for Leo to confirm).** Annual maximum 319.6 K, annual mean 112.5 K. The point is on the ~32° inner wall of Shackleton, lit about 11 % of the time (average Sun visibility 0.11, 60 m map); a sunward wall can be hot at its annual maximum while cold on average. All 57 triangle centres within 1.5 km have temp_max 82–332 K, median 315 K, so the value is not a single-triangle outlier. Note also in Site04's `thermal.limitations`.
+**Site04 check (AI plausibility check; numbers accepted by Leo).** Annual maximum 319.6 K, annual mean 112.5 K. All 57 triangle centres within 1.5 km have temp_max 82–332 K (median 315 K), so it is not a single-triangle outlier. Independent bound (pytest `test_site04_hot_wall_is_physically_plausible`): a plane fitted to the DEM over the triangle's footprint (radius 220 m), SPICE Sun directions every 2 h over 2009-09-15 to 2010-09-14 (approximating the label's "first year of mapping"), the site's horizon mask from Track B, and radiative equilibrium T = (S (1 − A) cos i / (ε σ))^¼ with S = 1361 W/m², A = 0.12, ε = 0.95 (typical values, AI choice; not fitted):
+
+| Site | Plane slope / facing | Lit (horizon mask) | max cos i | Equilibrium bound | Product temp_max |
+|---|---|---|---|---|---|
+| shackleton-rim-site04 | 32.1° / 264° | 10.2 % | 0.554 | 333 K | 319.6 K |
+| im-1 | 11.9° / 300° | 37.6 % | 0.348 | 297 K | 271.8 K |
+| connecting-ridge | 3.4° / 101° | 43.0 % | 0.085 | 209 K | 239.2 K |
+| peak-near-shackleton | 1.6° / 153° | 69.4 % | 0.040 | 173 K | 214.4 K |
+| malapert-site23 | 4.2° / 179° | 22.2 % | 0.030 | 161 K | 194.2 K |
+
+The ordering is identical, Site04 is the hottest in both, and its bound is within 4 % of the product. The lit fraction 10.2 % independently matches the Sun-visibility map (0.11). The bound runs high on steep walls and low on flat sites (no thermal inertia, no heat from surrounding terrain, sub-triangle slopes ignored); it is a plausibility check, not a thermal model. Note also in Site04's `thermal.limitations`.
+
+**Terms.** The .lbl and .xml carry no licence or usage terms. The product is public NASA PDS data; NASA SMD policy [SPD-41a](https://science.nasa.gov/researchers/science-data/science-information-policy/) requires SMD-funded scientific information to be "made publicly available". Required citation as given in the PDS catalogue (prpds.cat): "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018." Carried in every site's `thermal.terms`.
+
+## Independent recomputation by AI, 14 Nov 18:40, on ninja's instruction
+
+ninja, 14 Nov ~18:25: "validate everything by checking everything. leo cannot check the regenerated horizons, it's too much context. check for him." This section is that check. It was done by an AI session (Claude Code), not by Leo, and no row above is marked signed by S because of it. What makes it more than a rerun: the four scripts in `scripts/tools/independent_checks/` were written from the definitions only and share no code with `scripts/*.py` or `app/src/geometry/`. They use their own projection formula, their own ray stepping, their own frame arithmetic, and read the SPICE kernels and the raw DEMs directly.
+
+| # | What was compared | Independent side | Result |
+|---|---|---|---|
+| 1 | Sun and Earth azimuth/elevation from the shipped `ephem/*.json` (own ENU arithmetic), 10 site/time points 2026-12 … 2030-06 at Connecting Ridge, Malapert Massif, IM-1, Haworth; 20 values | JPL Horizons API, observer `coord@301` at the site, quantity 4, `AIRLESS`, fetched 14 Nov 18:27 (`horizons_positions.py`) | Every azimuth and elevation identical to the 0.001° Horizons prints. V1 tolerance is 0.05°. |
+| 2 | The 18 shipped horizon files (regenerated 17:47), 144 azimuths each (every 2.5°) | Own ray march on `LDEM_80S_20MPP_ADJ.TIF` (20 m, bilinear, to 20 km) and `LDEM_60S_120MPP_ADJ.TIF` (120 m, to 300 km), fixed 20 m / 100 m steps, own stereographic projection (`terrain_horizon.py`) | Site heights equal to 0.1 m at all 18. Largest difference per site between 0.006° and 0.087° (Haworth 0.087°, Faustini Rim A 0.086°, VIPER 0.080°); median per site ≤ 0.009°; no systematic offset (mean signed ≤ 0.006°). The largest differences are where the skyline is ground within 100 m of the lander, which is sensitive to the sampling scheme. |
+| 3 | IM-1, the 52 directions 8.5°–34° that changed at regeneration | Same script, every 0.5° | Largest difference 0.004°; the skyline there is terrain 35–40 km away, beyond the 20 m DEM, as the regeneration claimed. |
+| 4 | App table "All sites", mission dates 16–29 Aug 2027, all five stations: sunlit % and station coverage % for 18 sites (36 values), read from https://nasa.digi-works.org (main `411e3bb`) | Computed from the SPICE kernels at 1-minute steps (not the 30-minute ephemeris files), own station and line-of-sight arithmetic, shipped horizon masks (`sunlight_coverage.py`) | 35 of 36 identical to 0.1 %; Connecting Ridge coverage 98.1 % against 98.2 % in the app. |
+| 5 | Six answer sentences of the app at dates outside the presets and in the two screenshots | Time to the next change at 1-minute steps (`answer_edges.py`) | Malapert Massif 1 Jun 2030 00:00: dark 30.5 h more (app "31 more hours"), contact 88.1 h (app "3 more days"). Haworth 17 Feb 2029 06:30: dark to the end of the period (same), contact 126.3 h (app "5 more days"). Connecting Ridge 28 Aug 2027 11:30: sunlit 7.35 h more (app "7 more hours"); 19 Aug 2027 16:00: 218.9 h (app "9 more days"). |
+| 6 | Flat-sphere dip for 1.75 m | −acos(1737.4 / 1737.40175) | −0.08132°, as in `FLAT_DIP_DEG` and both test suites. |
+| 7 | Code tests on main `ed0fd9d` | rerun by this session | build exit 0, vitest 79 passed, pytest 206 passed with raw data, Playwright 74 passed and 1 skipped. |
+
+**Limits of this check, stated plainly.**
+- Rows 4 and 5 use the shipped horizon masks as input; their terrain side rests on rows 2 and 3.
+- The station frame is IAU_EARTH on both sides (no high-precision Earth orientation kernel in the data folder), so the "Station check" row above stays open.
+- Not rechecked: slope values, the PGDA comparison (V4), whole-year mode, the finder's ranking, the cone case of V3, coarse-DEM and panel-type checks, the mandatory site assessments.
+- Agreement between two computations shows they implement the same definitions on the same NASA data. Whether the definitions are the right ones (disc-fraction rule, 1.75 m eye height, station minimum elevations, 100 m slope baseline) is the science lead's call and was not judged here.
+
+## Science checks of 14 Nov, 16:27–16:43 (AI, not validated)
+
+Claude Code (Claude Fable 5.2), ninja's Mac, branch `track-sci` from main `37e55c4`. Three read-only analyses; no file under `app/public/data/` and no pipeline script was changed. Code: `scripts/tools/sci_checks.py` (commands `range`, `truncated --fill`, `v4`), tests `scripts/tests/test_sci_checks.py`. Every number below is computed by AI and not validated until Leo signs. Horizons computed for these checks are in the git-ignored folder `private/sci-horizons/` (25 files, 0.3 MB), not in the repo.
+
+Inputs common to all three: sites, heights and station list from `app/public/data/sites.json` and `stations.json`; shipped horizons `app/public/data/horizons/<id>.json` (300 km rays, 720 directions of 0.5°, observer 1.75 m above the DEM); ephemeris `app/public/data/ephem/*.json` (MOON_ME, LT+S, 30-min samples). "Lit" and "Earth visible" = any part of the disc above the skyline at the body's azimuth, as in `scripts/windows.py`. "2027–2030" = the 70,128 stored 30-min samples from 2027-01-01T00:00Z to 2031-01-01T00:00Z, no interpolation.
+
+### Horizon range check: 150 km against 300 km rays
+
+**Status: open — needs S (Leo).** Computed by AI, not validated.
+
+Inputs: sites connecting-ridge (−89.46, −136.68), malapert-massif (−85.98, −0.26), leibnitz-beta-plateau (−85.43, 31.83; chosen as the highest offered site, 6397 m, with 362 truncated directions). DEM `lola/LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, SHA-256 `09b7ca80…5649`, [data-sources.md](../reference/data-sources.md)), near field ≤ 20 km at 20 m, far field at 160 m. `horizon.py` of `37e55c4` unchanged; the ray length is passed in (`ray_max_km` 150.0 and 300.0; 926 and 1065 samples per ray: every 20 m to 4 km, then each step 0.5 % longer). The 300 km result is identical to the shipped file at all three sites. "Can reach" = that direction's skyline value decided at least one 2027–2030 sample in which the body was visible above the lower of the two skylines. Lit % and Earth visible % are over 2027–2030 with each skyline.
+
+| Site | Largest skyline difference (300 km − 150 km) | at azimuth | 300 km skyline there: height / distance | Sun can reach that azimuth | Earth can reach it | Largest difference where the Sun / Earth can reach | Directions differing > 0.01° | Lit % 150 → 300 km | Earth visible % 150 → 300 km |
+|---|---|---|---|---|---|---|---|---|---|
+| connecting-ridge | +0.4437° | 105.5° | -2.1782° / 194.7 km | yes | no | 0.4437° at 105.5° / none | 11 of 720 | 46.61 → 46.61 | 59.51 → 59.51 |
+| malapert-massif | +0.0000° | – | – | – | – | none / none | 0 of 720 | 41.10 → 41.10 | 82.29 → 82.29 |
+| leibnitz-beta-plateau | +0.3418° | 181° | -4.1977° / 154.0 km | yes | no | 0.3418° at 181° / none | 23 of 720 | 34.37 → 34.25 | 49.26 → 49.26 |
+
+- Connecting Ridge: 11 directions change, all between 103° and 108°. The Sun passes those azimuths, but its whole disc stays above both skylines there (lowest lower limb −1.97°, 300 km skyline at most −2.18°), so lit % is the same. Earth's directions (128.5–145°) are unchanged.
+- Malapert Massif: no direction changes. Its farthest skyline point is at 146.5 km. In 212 directions the 300 km ray leaves the DEM first (next section), so the comparison there ends at the DEM edge.
+- Leibnitz Beta Plateau: 23 directions change by more than 0.01°, all between 160° and 185.5°; lit % falls by 0.12 points with the longer ray. In 2 directions the 150 km skyline is higher than the 300 km one, by at most 0.013°, because the 150 km ray ends with an extra sample at exactly 150.0 km.
+- All 18 shipped horizons (`mask_dist_km`): 10 sites have skyline points beyond 150 km (most: nobile-rim-1, 82 of 720 directions); the farthest is at 201.6 km (viper-mons-mouton, azimuth 289.5°); none lies beyond 250 km.
+
+**Range we use: 300 km.** Reasons: (1) a 150 km limit puts the skyline too low in up to 82 of 720 directions at one site and by up to 0.44° at the three sites compared; (2) the farthest skyline point found anywhere is at 201.6 km, so 300 km leaves about 98 km beyond it where the DEM has data; (3) the design reasoning in [build-plan §4.2](build-plan.md#42-horizonpy-terrain-horizon-per-site-the-risky-part-specified-in-full) (sight lines of ~215 km from a site 2 km up; Barker et al. use 310 km); (4) cost is 0.8 s per site. Limit of this check: it cannot show that 300 km is enough in directions where the DEM ends first.
+
+For Leo: accept 300 km, or name a site and direction to test at a longer range.
+
+### Truncated horizons
+
+**Status: open — needs S (Leo).** Computed by AI, not validated.
+
+> **Update 14 Nov 18:03: the pipeline now does this (ninja's decision, "Yes, regenerate"; not checked by Leo).** `scripts/horizon.py` reads every ray sample outside the 20 m DEM from `LDEM_60S_120MPP_ADJ.TIF`, and the 18 files in `app/public/data/horizons/` were regenerated at 17:47 (`horizon.py --all`, 0.9–1.1 s per site). Compared with the files before: 17 sites have the same `mask` and `mask_dist_km` in all 720 directions; `im-1.json` differs in 53 directions (52 by more than 0.01°, largest +1.0699° at azimuth 19.5°); every `truncated` list is empty; `elev_m` and `slope_deg` are unchanged; each `dem` field names the second file. The regenerated masks equal the analysis results of the 17:35 update below in every direction. Tests after the change: pytest 206 passed (184 passed, 22 skipped without `CLPS_DATA`), vitest 76 passed, Playwright 62 passed and 1 skipped (two timing failures under load passed on rerun). The tables in this section describe the files as they were before 17:47; `sci_checks.py truncated` now reports no truncated direction.
+
+> **Update 14 Nov 17:35: recomputed with the 60° S DEM (AI, not validated; status stays open — needs S).** ninja approved the download named below ("Yes, download"); it finished at 17:23 ([data-sources.md](../reference/data-sources.md)). The text after this update is the earlier analysis and is kept as written. The estimate from the global grid is confirmed, and IM-1 is now settled.
+
+Inputs: `lola/LDEM_60S_120MPP_ADJ.TIF` (PGDA product 90, 60°–90° S, 120 m/px, 821,504,895 bytes, SHA-256 `894f30e2…e094`) as the source of every ray sample outside the 20 m DEM, read bilinearly; everything else as below (300 km rays, 0.5° step, observer 1.75 m, period `shackleton-2027-08` at 1-min steps, 5 stations, 2027–2030 at 30-min samples). Command `sci_checks.py truncated --fill dem60s`; `horizon.py` and the shipped files unchanged; results in `private/sci-horizons/<id>-dem60sfill.json`. Where the two DEMs overlap they agree: r = 1.0000, mean difference −0.02 m, standard deviation 0.76 m, largest 9.2 m (3000 random points around IM-1, 160 m far field against the 120 m file).
+
+| Site | Truncated, shipped | Truncated with the 60° S DEM | Directions whose skyline changes > 0.01° | Largest change | Period: Earth / coverage / lit %, shipped → complete | 2027–2030 lit %, shipped → complete | 2027–2030 Earth %, shipped → complete | Terrain beyond the 80° S DEM stays below our skyline by at least: all truncated / Earth-visible directions |
+|---|---|---|---|---|---|---|---|---|
+| nobile-rim-2 | 393 | 0 | none | – | 100.0 / 100.0 / 23.4 → 100.0 / 100.0 / 23.4 | 34.13 → 34.13 | 69.70 → 69.70 | +2.77° / +3.01° |
+| im-1 | 380 | 0 | 52 (8.5–34°) | +1.07° at 19.5° | 100.0 / 100.0 / 57.7 → 100.0 / 100.0 / 57.7 | 38.95 → 38.95 | 100.00 → 100.00 | -1.07° / +0.09° |
+| amundsen-rim | 377 | 0 | none | – | 100.0 / 97.9 / 12.6 → 100.0 / 97.9 / 12.6 | 42.27 → 42.27 | 59.06 → 59.06 | +2.01° / +4.44° |
+| im-2-intended | 375 | 0 | none | – | 100.0 / 100.0 / 50.7 → 100.0 / 100.0 / 50.7 | 46.09 → 46.09 | 93.46 → 93.46 | +2.35° / +2.35° |
+| nobile-rim-1 | 365 | 0 | none | – | 74.8 / 67.3 / 0.0 → 74.8 / 67.3 / 0.0 | 31.68 → 31.68 | 35.84 → 35.84 | +1.08° / +9.39° |
+| viper-mons-mouton | 363 | 0 | none | – | 100.0 / 100.0 / 100.0 → 100.0 / 100.0 / 100.0 | 49.18 → 49.18 | 69.52 → 69.52 | +0.88° / +4.01° |
+| leibnitz-beta-plateau | 362 | 0 | none | – | 93.6 / 84.9 / 83.8 → 93.6 / 84.9 / 83.8 | 34.25 → 34.25 | 49.26 → 49.26 | +5.75° / +8.60° |
+| de-gerlache-kocher-massif | 343 | 0 | none | – | 0.0 / 0.0 / 23.4 → 0.0 / 0.0 / 23.4 | 36.24 → 36.24 | 0.00 → 0.00 | +1.16° / – |
+| haworth | 294 | 0 | none | – | 81.9 / 70.5 / 70.8 → 81.9 / 70.5 / 70.8 | 32.52 → 32.52 | 41.81 → 41.81 | +2.09° / +8.74° |
+| de-gerlache-rim-2 | 213 | 0 | none | – | 100.0 / 97.9 / 82.8 → 100.0 / 97.9 / 82.8 | 38.24 → 38.24 | 56.09 → 56.09 | +2.32° / +4.47° |
+| malapert-massif | 212 | 0 | none | – | 100.0 / 100.0 / 46.0 → 100.0 / 100.0 / 46.0 | 41.10 → 41.10 | 82.29 → 82.29 | +2.54° / +2.54° |
+| malapert-site23 | 210 | 0 | none | – | 100.0 / 92.8 / 15.9 → 100.0 / 92.8 / 15.9 | 24.02 → 24.02 | 53.84 → 53.84 | +7.70° / +7.74° |
+| de-gerlache-rim-1 | 178 | 0 | none | – | 100.0 / 100.0 / 54.5 → 100.0 / 100.0 / 54.5 | 44.93 → 44.93 | 62.02 → 62.02 | +3.04° / +3.36° |
+| peak-near-shackleton | 175 | 0 | none | – | 100.0 / 97.9 / 95.5 → 100.0 / 97.9 / 95.5 | 72.07 → 72.07 | 57.01 → 57.01 | +3.23° / – |
+| faustini-rim-a | 149 | 0 | none | – | 97.8 / 87.9 / 14.2 → 97.8 / 87.9 / 14.2 | 39.48 → 39.48 | 51.96 → 51.96 | +3.03° / – |
+| connecting-ridge-extension | 137 | 0 | none | – | 0.0 / 0.0 / 27.4 → 0.0 / 0.0 / 27.4 | 32.97 → 32.97 | 0.00 → 0.00 | +3.63° / – |
+| connecting-ridge | 110 | 0 | none | – | 100.0 / 98.1 / 91.3 → 100.0 / 98.1 / 91.3 | 46.61 → 46.61 | 59.51 → 59.51 | +3.58° / – |
+| shackleton-rim-site04 | 37 | 0 | none | – | 0.0 / 0.0 / 0.0 → 0.0 / 0.0 / 0.0 | 10.82 → 10.82 | 10.80 → 10.80 | +11.10° / – |
+
+- **17 sites: the shipped horizon is already the complete 300 km horizon.** With the 60° S DEM no ray is truncated and no direction changes at all. Their `truncated` entries mark rays that were cut short, not a skyline that is too low.
+- **IM-1: 52 directions between 8.5° and 34° are too low in the shipped file, by up to 1.07° (azimuth 19.5°).** The complete skyline there lies between −0.24° and +0.79°, on terrain 34.7 to 49.1 km from the site, outside the 80° S DEM. No value changes: in those azimuths the Sun's upper limb is never below 6.95° (2027–2030); Earth's azimuths are 350.4–6.6°, and its whole disc stays at least 1.44° above the complete skyline. The global-grid estimate had these directions right to within 0.23°.
+- Limit: outside the 80° S DEM the terrain is sampled at 120 m. For IM-1 that includes ground 4 to 20 km to the north, where the method otherwise uses 20 m.
+
+**Revised recommendation (AI): no site needs to be flagged or excluded for a wrong horizon.** Option 3 is the one to adopt in the pipeline: `horizon.py` reads samples outside the 20 m DEM from this file, the 18 horizons are regenerated, `truncated` becomes empty everywhere, only `im-1.json` changes its mask (52 directions), and the Drawer note disappears by itself. That is a change to `horizon.py`, to `app/public/data/horizons/`, to test T8 (it expects truncated directions at IM-1) and to everyone's raw-data folder (the file is on ninja's Mac only). Not done here.
+
+For Leo: confirm the 17-site result and the IM-1 change; with Isaac, decide whether the pipeline change is made before the freeze or the shipped files stay with the note "ends before 300 km" and this section as its explanation.
+
+Earlier analysis (16:43), kept as written:
+
+Inputs: `truncated` of all 18 files in `app/public/data/horizons/` (ray 300 km, step 0.5°, DEM `lola/LDEM_80S_20MPP_ADJ.TIF` (PGDA product 90, SHA-256 `09b7ca80…5649`, [data-sources.md](../reference/data-sources.md)); the DEM is a 608 × 608 km square around the pole, no empty pixel in a 1-in-64 subsample, so a ray is truncated where it leaves that square). Period `shackleton-2027-08` = 2027-08-16T00:00Z to 2027-08-30T00:00Z, sampled every 1 min (20,160 samples) through `windows.interpolate` and `windows.sample`; coverage = any of the 5 stations of `stations.json` (goldstone, madrid, canberra, usuda, uchinoura) in line of sight with its own minimum elevation. Direction columns use 2027–2030.
+
+Three skylines per site:
+- **shipped**: the file as it is. In a truncated direction the true 300 km skyline can only be equal or higher.
+- **all closed**: every truncated direction set to 90°. No complete horizon can give less than this, so shipped − all closed is a hard upper bound on the overstatement.
+- **filled** (estimate, not a bound): `horizon.py` rerun with samples beyond the DEM taken from the global LOLA grid already on disk, `textures/ldem_16_uint.tif` (16 px/deg, about 1.9 km per pixel; SVS CGI Moon Kit, [data-sources.md](../reference/data-sources.md); height encoding inferred in `terrain_tiles.py`). Where both exist the two agree: r = 0.9996, mean difference −1.0 m, standard deviation 59.5 m (2078 random points against the 160 m far field).
+
+Last column: how far the highest terrain beyond the DEM edge (global grid, same rays) stays below the shipped skyline, smallest value over the truncated directions; negative = it rises above the shipped skyline.
+
+| Site | Truncated of 720 | Truncated azimuths | Earth centre azimuth range | Earth-visible directions truncated | Sun-lit directions truncated | Earth visible %: shipped / filled / all closed | Coverage %: shipped / filled / all closed | Lit %: shipped / filled / all closed | Upper bound of overstatement (points): Earth / coverage / lit | Terrain beyond the DEM edge stays below our skyline by at least: all truncated / Earth-visible directions |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nobile-rim-2 | 393 | 255.5–91.5° | 292.8–309.4° | 35 of 35 | 301 of 301 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 23.4 / 23.4 / 0.0 | 100.0 / 100.0 / 23.4 | +2.77° / +3.05° |
+| im-1 | 380 | 270–99.5° | 350.4–6.6° | 35 of 35 | 310 of 314 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 57.7 / 57.7 / 0.0 | 100.0 / 100.0 / 57.7 | -0.96° / +0.25° |
+| amundsen-rim | 377 | 254.5–82.5° | 282.3–298.9° | 35 of 35 | 330 of 356 | 100.0 / 100.0 / 0.0 | 97.9 / 97.9 / 0.0 | 12.6 / 12.6 / 0.0 | 100.0 / 97.9 / 12.6 | +2.03° / +4.45° |
+| im-2-intended | 375 | 274.5–101.5° | 322.6–339.0° | 34 of 34 | 340 of 390 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 50.7 / 50.7 / 9.0 | 100.0 / 100.0 / 41.8 | +2.37° / +2.37° |
+| nobile-rim-1 | 365 | 273–95° | 314.3–330.7° | 34 of 34 | 212 of 272 | 74.8 / 74.8 / 0.0 | 67.3 / 67.3 / 0.0 | 0.0 / 0.0 / 0.0 | 74.8 / 67.3 / 0.0 | +1.11° / +9.40° |
+| viper-mons-mouton | 363 | 277–98° | 320.2–336.5° | 34 of 34 | 198 of 514 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 61.2 | 100.0 / 100.0 / 38.8 | +0.91° / +4.02° |
+| leibnitz-beta-plateau | 362 | 277–97.5° | 320.0–336.3° | 34 of 34 | 158 of 493 | 93.6 / 93.6 / 0.0 | 84.9 / 84.9 / 0.0 | 83.8 / 83.8 / 61.3 | 93.6 / 84.9 / 22.5 | +5.76° / +8.62° |
+| de-gerlache-kocher-massif | 343 | 262–331.5°, 336–77° | 108.1–124.7° | never up | 226 of 332 | 0.0 / 0.0 / 0.0 | 0.0 / 0.0 / 0.0 | 23.4 / 23.4 / 2.1 | 0.0 / 0.0 / 21.3 | +1.17° / – |
+| haworth | 294 | 265.5–322.5°, 339–68° | 15.6–31.8° | 33 of 33 | 149 of 268 | 81.9 / 81.9 / 0.0 | 70.5 / 70.5 / 0.0 | 70.8 / 70.8 / 29.3 | 81.9 / 70.5 / 41.5 | +2.08° / +8.75° |
+| de-gerlache-rim-2 | 213 | 42–84.5°, 302–5° | 55.3–71.5° | 34 of 34 | 213 of 334 | 100.0 / 100.0 / 0.0 | 97.9 / 97.9 / 0.0 | 82.8 / 82.8 / 24.1 | 100.0 / 97.9 / 58.8 | +2.37° / +4.49° |
+| malapert-massif | 212 | 307.5–53° | 352.2–8.3° | 34 of 34 | 212 of 463 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 46.0 / 46.0 / 6.3 | 100.0 / 100.0 / 39.7 | +2.55° / +2.55° |
+| malapert-site23 | 210 | 308–52.5° | 352.2–8.3° | 34 of 34 | 189 of 402 | 100.0 / 100.0 / 0.0 | 92.8 / 92.8 / 0.0 | 15.9 / 15.9 / 0.0 | 100.0 / 92.8 / 15.9 | +7.74° / +7.76° |
+| de-gerlache-rim-1 | 178 | 49.5–83°, 309–3.5° | 58.3–74.4° | 34 of 34 | 109 of 384 | 100.0 / 100.0 / 0.0 | 100.0 / 100.0 / 0.0 | 54.5 / 54.5 / 26.4 | 100.0 / 100.0 / 28.1 | +3.04° / +3.37° |
+| peak-near-shackleton | 175 | 36–74.5°, 301.5–349.5° | 227.3–243.4° | 0 of 34 | 175 of 650 | 100.0 / 100.0 / 100.0 | 97.9 / 97.9 / 97.9 | 95.5 / 95.5 / 95.5 | 0.0 / 0.0 / 0.0 | +3.24° / – |
+| faustini-rim-a | 149 | 323–37° | 262.0–278.2° | 0 of 34 | 149 of 366 | 97.8 / 97.8 / 97.8 | 87.9 / 87.9 / 87.9 | 14.2 / 14.2 / 14.2 | 0.0 / 0.0 / 0.0 | +3.05° / – |
+| connecting-ridge-extension | 137 | 275–294.5°, 350.5–38.5° | 96.4–112.5° | never up | 60 of 275 | 0.0 / 0.0 / 0.0 | 0.0 / 0.0 / 0.0 | 27.4 / 27.4 / 24.5 | 0.0 / 0.0 / 2.9 | +3.64° / – |
+| connecting-ridge | 110 | 33.5–60°, 303–330.5° | 128.6–144.7° | 0 of 34 | 55 of 474 | 100.0 / 100.0 / 100.0 | 98.1 / 98.1 / 98.1 | 91.3 / 91.3 / 75.3 | 0.0 / 0.0 / 16.1 | +3.57° / – |
+| shackleton-rim-site04 | 37 | 343–1° | 163.8–179.9° | 0 of 21 | 0 of 214 | 0.0 / 0.0 / 0.0 | 0.0 / 0.0 / 0.0 | 0.0 / 0.0 / 0.0 | 0.0 / 0.0 / 0.0 | +11.10° / – |
+
+What the table says:
+- Earth: at 12 of 18 sites every direction in which Earth is ever visible is truncated, so the hard bound equals the shipped value (up to 100 points) and decides nothing. At 4 sites (peak-near-shackleton, faustini-rim-a, connecting-ridge, shackleton-rim-site04) no Earth direction is truncated: bound 0. At 2 sites Earth is never visible.
+- Sun: the Sun's directions are partly truncated at 17 sites; hard bound on lit % up to 58.8 points (de-gerlache-rim-2).
+- Filled estimate: at 17 sites no direction's skyline changes, and no period value changes at any site. At those 17 sites terrain beyond the edge stays at least 0.91° below the shipped skyline (viper-mons-mouton), and at least 2.37° in Earth's directions (im-2-intended). The reason is distance: the edge is far from these sites and the ground beyond it drops below the horizon by curvature.
+- **IM-1 is the exception.** It lies about 4 km inside the DEM edge. The filled skyline is higher in 48 directions, by up to 0.96° (azimuth 19.5°), and in Earth's directions the margin is 0.25°, which a 1.9 km grid cannot resolve at 4–20 km distance. Its period values do not change in the estimate (Earth 100 %, coverage 100 %, lit 57.7 %), but its horizon to the north is not established.
+
+**Recommendation (AI): flag, do not exclude.** Flag as "partial horizon" every site whose Earth-visible or Sun-lit directions are truncated, with the hard bound available on request; state next to the flag that a coarser global grid shows no higher terrain beyond the edge, once Leo accepts that estimate. Excluding every site whose Earth directions are truncated would remove 12 of 18 sites, among them Malapert Massif, IM-1, IM-2 and VIPER, on a bound the terrain data on disk does not support. Adding a DEM is needed for one site, IM-1; for the other 17 it would replace the estimate by a full-resolution result.
+
+The download the third option needs (not downloaded when this was written; downloaded 14 Nov 16:50–17:23 after ninja's yes, see the update above): `LDEM_60S_120MPP_ADJ.TIF`, https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF, 821,504,895 bytes (HTTP HEAD on 14 Nov 2026; Last-Modified 7 Jul 2023), 60°–90° S at 120 m/px, same product family and frame as our DEM ([PGDA product 90](https://pgda.gsfc.nasa.gov/products/90)). Licence: no explicit licence on the product page; "Please cite this paper when using these products" (Barker et al. 2023, [doi:10.3847/PSJ/acf3e1](https://iopscience.iop.org/article/10.3847/PSJ/acf3e1), data doi 10.60903/gsfcpgda-lola-spole), as for our DEM. The 75°–90° S product on the same page (`LDEM_75S_30MPP_ADJ.TIF`, 2,802,850,273 bytes) is not enough: a 300 km ray from IM-1 reaches about 70° S. Using the new file means a change to `horizon.py` (far field from a second raster) and regenerated horizons, i.e. new expected values in the tests.
+
+For Leo: accept or reject the filled estimate as grounds for "flag, not exclude"; decide whether IM-1 stays offered before its northern horizon is computed from real data.
+
+### V4 with stated bias: our average sunlight against the published average-illumination maps
+
+**Status: open — needs S (Leo).** Computed by AI, not validated. V4 stays open.
+
+Product on disk (`$CLPS_DATA/illumination`, rows in [data-sources.md](../reference/data-sources.md)): LOLA average solar illumination maps `AVGVISIB_85S_060M_201608` (60 m/px) and `AVGVISIB_75S_120M_201608` (120 m/px), `PRODUCT_VERSION_ID` V1.05, created 2016-09-15 (labels), the 2016 release of Mazarico et al. 2011, listed as [PGDA product 69](https://pgda.gsfc.nasa.gov/products/69). The files are the PDS and MIT-mirror IMG copies, not downloads from the PGDA site. The matching `_EARTH` maps give the Earth columns. The 60 m maps are read with lon_0 = 0 as in `assessments.py` (Leo's open projection question above).
+
+Inputs: ours = shipped horizon of each site, 2027–2030 (column 2) and calendar 2027 alone (17,520 samples, column 3); mean visible disc = mean share of the solar disc above the skyline over 2027–2030. Map = pixel containing the site point in the finest map covering it, and the lowest and highest of the 3 × 3 pixels around it. Difference = ours 2027–2030 − map pixel, in percentage points.
+
+| Site | Ours 2027–2030, lit % | Ours 2027 only | Ours, mean visible disc % | Map % (pixel) | Map, 3 × 3 pixels | Map | 120 m map % | Difference, ours − map (points) | Earth: ours 2027–2030 % | Earth: map % (pixel) | Earth: map, 3 × 3 pixels | Earth: difference |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| haworth | 32.5 | 32.9 | 31.8 | 32.6 | 32.5–32.7 | 60 m | 32.7 | -0.0 | 41.8 | 40.1 | 39.4–40.8 | +1.7 |
+| malapert-massif | 41.1 | 41.3 | 38.0 | 38.4 | 22.3–51.7 | 60 m | 32.3 | +2.7 | 82.3 | 80.8 | 60.4–80.8 | +1.5 |
+| nobile-rim-1 | 31.7 | 31.3 | 30.9 | 31.0 | 27.6–31.8 | 60 m | 29.7 | +0.6 | 35.8 | 34.7 | 30.4–38.0 | +1.1 |
+| nobile-rim-2 | 34.1 | 33.5 | 33.0 | 35.5 | 33.1–38.4 | 120 m | 35.5 | -1.4 | 69.7 | 68.2 | 67.8–68.6 | +1.5 |
+| de-gerlache-rim-2 | 38.2 | 37.9 | 37.0 | 38.3 | 37.9–39.6 | 60 m | 39.5 | -0.1 | 56.1 | 54.3 | 54.2–54.4 | +1.8 |
+| amundsen-rim | 42.3 | 41.6 | 40.9 | 39.8 | 37.1–43.3 | 120 m | 39.8 | +2.5 | 59.1 | 50.6 | 43.9–57.3 | +8.4 |
+| connecting-ridge-extension | 33.0 | 34.4 | 31.3 | 32.4 | 29.1–32.6 | 60 m | 32.5 | +0.5 | 0.0 | 0.0 | 0.0–0.0 | +0.0 |
+| faustini-rim-a | 39.5 | 38.4 | 37.2 | 37.5 | 24.7–38.9 | 60 m | 37.4 | +2.0 | 52.0 | 50.6 | 39.2–50.6 | +1.4 |
+| leibnitz-beta-plateau | 34.2 | 35.6 | 29.4 | 28.2 | 23.4–36.2 | 60 m | 34.7 | +6.1 | 49.3 | 46.3 | 43.8–48.4 | +3.0 |
+| peak-near-shackleton | 72.1 | 72.5 | 68.4 | 65.8 | 44.9–65.8 | 60 m | 67.5 | +6.2 | 57.0 | 53.8 | 43.2–56.3 | +3.2 |
+| de-gerlache-rim-1 | 44.9 | 43.9 | 42.0 | 42.2 | 39.4–45.4 | 60 m | 45.9 | +2.7 | 62.0 | 60.5 | 60.5–60.6 | +1.5 |
+| de-gerlache-kocher-massif | 36.2 | 37.4 | 34.7 | 27.2 | 21.9–38.1 | 60 m | 29.6 | +9.0 | 0.0 | 0.0 | 0.0–4.9 | +0.0 |
+| malapert-site23 | 24.0 | 24.9 | 20.1 | 28.2 | 8.8–41.1 | 60 m | 38.1 | -4.1 | 53.8 | 52.4 | 49.0–53.1 | +1.4 |
+| shackleton-rim-site04 | 10.8 | 11.1 | 8.7 | 11.0 | 9.9–12.0 | 60 m | 11.5 | -0.1 | 10.8 | 11.1 | 9.7–12.4 | -0.3 |
+| connecting-ridge | 46.6 | 46.4 | 43.0 | 43.9 | 39.8–52.4 | 60 m | 50.0 | +2.7 | 59.5 | 57.9 | 55.3–58.2 | +1.6 |
+| im-1 | 39.0 | 38.2 | 38.3 | 35.6 | 34.2–40.3 | 120 m | 35.6 | +3.4 | 100.0 | 100.0 | 100.0–100.0 | +0.0 |
+| im-2-intended | 46.1 | 45.0 | 44.6 | 46.2 | 45.6–46.4 | 60 m | 46.5 | -0.1 | 93.5 | 92.8 | 89.8–93.0 | +0.6 |
+| viper-mons-mouton | 49.2 | 50.4 | 45.8 | 44.6 | 39.6–54.1 | 60 m | 47.8 | +4.6 | 69.5 | 63.2 | 43.3–73.2 | +6.3 |
+
+Summary, Sun (18 sites): mean difference +2.1 points, mean absolute difference 2.7, largest 9.0 (de-gerlache-kocher-massif); ours is higher at 12 sites; correlation r = 0.970. No site exceeds the 15 points that [build-plan §6](build-plan.md#6-validation-leo-signs-evidence-in-docseventvalidationmd) sets for investigation. Sites where we differ most: de-gerlache-kocher-massif +9.0, peak-near-shackleton +6.2, leibnitz-beta-plateau +6.1, viper-mons-mouton +4.6, malapert-site23 −4.1, im-1 +3.4. Ours lies outside the 3 × 3 pixel range at three sites: peak-near-shackleton (6.3 above), faustini-rim-a (0.6 above), connecting-ridge-extension (0.4 above).
+
+Summary, Earth: mean difference +1.9 points, largest +8.4 (amundsen-rim) and +6.3 (viper-mons-mouton), r = 0.997. Ours is higher at 14 of the 16 sites where Earth is visible at all (equal at im-1, lower at shackleton-rim-site04), typically by about 1.5 points, and outside the 3 × 3 pixel range at 12 sites. This is a systematic offset whose cause is not established. The filled horizons of the previous section do not change these skylines, so truncation does not explain it.
+
+Why the two numbers are not the same quantity:
+
+| | Ours | Map | Effect |
+|---|---|---|---|
+| Period | 2027-01-01 to 2031-01-01 UTC, 30-min samples | 18.6-year average, hourly steps ([data-guide §4](../reference/data-guide.md#4-published-illumination-and-earth-visibility-maps-mazarico-et-al)); the start date is not in our sources | Ours for 2027 alone differs from ours for 2027–2030 by at most 1.4 points (Sun) |
+| Observer height | 1.75 m above the DEM | not stated in the labels or in our sources | not quantified |
+| Disc fraction | lit = any part of the Sun's disc above the skyline | "sunlit (by any fraction of the solar disc)" (label) | same rule; our mean visible disc is 0.6 to 4.9 points below our lit % |
+| Terrain | LDEM_80S_20MPP_ADJ (2023), 20 m to 20 km, 160 m beyond | LDEM_85S_060M or LDEM_75S_120M (labels) | not quantified |
+| Location | the site point | one 60 m or 120 m pixel | on ridges the 3 × 3 pixels span up to 32 points (malapert-site23: 8.8–41.1) |
+| Ray length | 300 km, truncated at the DEM edge | not stated in our sources | see previous section |
+
+Projection: with the 60 m map read as its label says (lon_0 = 180) the correlation with ours over its 15 sites is r = 0.010; with lon_0 = 0 it is 0.970 over all 18. This supports the lon_0 = 0 reading from an independent side.
+
+For Leo: decide whether these differences are acceptable as context for V4, and whether the Earth offset of about 1.5 points needs a cause before Earth percentages are shown as validated.

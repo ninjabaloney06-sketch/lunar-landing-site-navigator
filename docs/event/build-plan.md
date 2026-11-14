@@ -158,6 +158,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
    This handles lunar curvature exactly; no "curvature correction" formula is needed.
 7. **Mask.** mask(az) = the maximum angle along the ray. Also keep the distance at which it occurred.
 8. **Edges.** If a sample is outside the DEM or nodata, stop the ray there and add the azimuth to `truncated`. This matters only for sites near 80°S. The UI shows "horizon incomplete in these directions".
+   *As built (14 Nov 17:47, ninja's decision):* the 20 m DEM is a 608 km square around the pole, so a 300 km ray left it at every site (37 to 393 of 720 directions). A sample outside it is now read from `LDEM_60S_120MPP_ADJ.TIF` (same product, 120 m/px, to 60°S); a ray is truncated only where neither DEM has data, which happens at no shipped site. Evidence: [validation.md, Truncated horizons](validation.md#truncated-horizons).
 
 **Expected scale:** ~770,000 samples per site **(derived)**, a few seconds with numpy. All curated sites take minutes, so this runs live at the event, not overnight.
 
@@ -174,7 +175,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
   - **Connecting Ridge** (the demo site) is labelled "Blue Moon MK1 target" (`commercial`), not "Artemis region": it is not in the 2024 set.
   - **Polar landers:** IM-2 actual and intended, VIPER / Mons Mouton, IM-1 actual.
   - **Step 5, outside the DEM (flat horizon, labelled):** Apollo 11, 12, 14, 15, 16, 17; Chandrayaan-3 (ISRO); Chang'e 3, 4, 5, 6 (CNSA); SLIM (JAXA); Luna-25 target (Roscosmos, crashed); Blue Ghost M1 (CLPS). Coordinates only from primary sources Leo adds to sources.md. Chang'e 4 and 6 are on the far side: Earth never rises, the UI explains why they needed the Queqiao relay. Chandrayaan-3 and Luna-25 (~69°S) lie inside the PGDA 65°S illumination maps on disk: show those averages as context.
-  - Nobile Rim 2 (83.95°S) and IM-1 (80.13°S) will have truncated rays: expected, labelled.
+  - Nobile Rim 2 (83.95°S) and IM-1 (80.13°S) will have truncated rays: expected, labelled. *(As built 14 Nov 17:47: none, see §4.2 step 8.)*
 - **`periods.py`:**
   - Finds in 2027: the date of maximum and minimum subsolar latitude (best and worst sun season at the south pole) and the period with the highest share of Earth above the flat horizon.
   - Output: 14-day presets with a one-line reason each, plus "Now" = 14–28 Nov 2026 (the demo question).
@@ -395,7 +396,7 @@ The risk with agent-written 3D is a pretty scene that is subtly wrong: a mirrore
 | T3 | Sun–Earth separation matches the Moon's phase (full Moon ≈ 180°) |
 | T4 | ENU consistency: a target placed due north in the horizon code has az = 0 in the ephemeris code, and due east has az = 90 |
 | T5–T7 | Synthetic DEMs: flat, single cone, wall at a known azimuth → expected mask |
-| T8 | Edge of DEM: a site near 80°S produces `truncated` entries, not zeros |
+| T8 | Edge of DEM: a site near 80°S produces `truncated` entries, not zeros (one DEM alone); with the 60°S DEM behind it the rays continue and IM-1 has none (added 14 Nov) |
 | T9 | TypeScript geometry matches `fixtures.json` within 1e-6° |
 | T10 | UI: invalid lat/lon, failed data load and map unavailable still leave a usable core flow (UX-03) |
 | T11 | Security: no secrets, keys or personal data in the build; dependencies pinned |

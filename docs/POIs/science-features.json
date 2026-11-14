@@ -1,0 +1,675 @@
+{
+ "meta": {
+  "description": "Science features, crater ages and located astrobiology findings for the lunar south pole.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/hazards_and_science.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive; lon_east_180 (-180..180) and lon_east_360 (0..360). Where the notes gave only one form the other was computed during conversion (+/-360).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "Evidence labels (as in the notes): ESTABLISHED = measured / documented in primary or official sources; MODEL = result of a published simulation, not a measurement; CONTESTED = published but disputed; SPECULATIVE = hypothesis without supporting data. INTERPRETATION / PROPOSAL are used where the notes use them.",
+   "Item 'category' values: hazard_scarp, hazard_seismic, hazard_terrain, hazard_regolith, hazard_plume, hazard_dust, hazard_radiation, hazard_micrometeoroid, hazard_thermal, hazard_lighting, science_feature, crater_age, science_objective, geologic_product, astrobiology, planetary_protection, site_ranking.",
+   "There is NO evidence of indigenous lunar life. 'Possible bacteria' refers to forward contamination by terrestrial microbes (modelled dormant survival), not detection of lunar organisms.",
+   "No rule forbids landing in or near south-polar PSRs; Category IIb (south of 79 S) means documentation, not prohibition.",
+   "None of the published rankings is official; NASA has published no site scores."
+  ],
+  "not_included_from_source": [
+   "sdt_objectives",
+   "geologic_products",
+   "astro_indigenous_life",
+   "astro_growth_conditions",
+   "astro_surveyor_3",
+   "astro_apollo_organics",
+   "astro_waste_bags",
+   "astro_beresheet_tardigrades",
+   "astro_change4_biosphere",
+   "astro_nasem_organisms",
+   "astro_earths_attic",
+   "astro_prebiotic_psr",
+   "pp_category_ii",
+   "pp_category_iia",
+   "pp_category_iib",
+   "pp_timeline",
+   "pp_artemis_accords",
+   "pp_protected_sites_proposals",
+   "pp_nasem_2020_findings",
+   "rank_pena_asensio_2024",
+   "rank_lemelin_2014",
+   "rank_lemelin_leag_2016",
+   "rank_lemelin_2021",
+   "rank_flahaut_2020",
+   "rank_brown_2022",
+   "rank_wueller_2026",
+   "rank_nasa_cassa",
+   "rank_other_inputs"
+  ]
+ },
+ "items": [
+  {
+   "id": "feat_shackleton",
+   "name": "Shackleton crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.67,
+    "lon_east_180": 129.78,
+    "lon_east_360": 129.78
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED (ages are model ages)",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shackleton_(crater)",
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_shackleton"
+   },
+   "properties": {
+    "size": "D 21.0 km, depth 4.2 km, floor 6.6 km",
+    "age": "Late Imbrian: rim 3.51 (+0.05/-0.08) Ga (Tye 2015); 3.60/3.69 Ga (Zuber 2012, flat floor/ejecta)",
+    "science_value": "Pole lies on its rim; PSR floor ~88-90 K; rim peaks sunlit ~80-90% of the time; >= 20 km3 impact melt; interior wall ~30 deg; rim blocks likely Shackleton ejecta that may expose SPA-related lithologies"
+   }
+  },
+  {
+   "id": "feat_connecting_ridge_junction",
+   "name": "Shackleton-de Gerlache Connecting Ridge (junction with Shackleton rim)",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.684,
+    "lon_east_180": -163.261,
+    "lon_east_360": 196.739
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": null,
+   "sources": [
+    "https://lroc.im-ldi.com/images/1247",
+    "https://en.wikipedia.org/wiki/Lunar_south_pole"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_connecting_ridge_junction"
+   },
+   "properties": {
+    "size": "ridge ~14 km long",
+    "age": "Ancient ridge mantled by Shackleton ejecta",
+    "science_value": "1:8,000 geomorphic map (Icarus 2022, pii S0019103522000835); ~8 m blocks near junction are primary sampling targets; flat spot with line of sight into Shackleton PSR; illumination 92.27-95.65% at 2-10 m, longest darkness 3-5 days"
+   }
+  },
+  {
+   "id": "feat_de_gerlache",
+   "name": "de Gerlache crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.5,
+    "lon_east_180": -87.1,
+    "lon_east_360": 272.9
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "secondary",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/De_Gerlache_(crater)"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_de_gerlache"
+   },
+   "properties": {
+    "size": "D 32.4 km, depth 7.5 km",
+    "age": "not retrieved",
+    "science_value": "PSR pocket incl. possible CO2 cold trap; 2022 study of 'slope exposed ice'"
+   }
+  },
+  {
+   "id": "feat_haworth",
+   "name": "Haworth crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.9,
+    "lon_east_180": -4.0,
+    "lon_east_360": 356.0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED (model ages)",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Haworth_(crater)",
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_haworth"
+   },
+   "properties": {
+    "size": "D 51.4 km (52 km in Tye)",
+    "age": "Pre-Nectarian 4.18 +/- 0.02 Ga; floor retention 3.55 Ga",
+    "science_value": "Large PSR; coldest areas never exceed ~40 K"
+   }
+  },
+  {
+   "id": "feat_shoemaker",
+   "name": "Shoemaker crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.1,
+    "lon_east_180": 44.9,
+    "lon_east_360": 44.9
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED / INTERPRETATION",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)",
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_shoemaker"
+   },
+   "properties": {
+    "size": "D 50.9 km (52 km in Tye), depth 3.81 km",
+    "age": "Pre-Nectarian 4.15 +/- 0.02 Ga; floor retention 3.46 +/- 0.02 Ga",
+    "science_value": "H ~146 ppm (LP) / 220-245 ppm (LEND interp.); strongest, most uniform LAMP water-band signal of the four; possibly ~5%+ subsurface ice"
+   }
+  },
+  {
+   "id": "feat_faustini",
+   "name": "Faustini crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.3,
+    "lon_east_180": 77.0,
+    "lon_east_360": 77.0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED / INTERPRETATION",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Faustini_(crater)",
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_faustini"
+   },
+   "properties": {
+    "size": "D 42.5 km (41 km in Tye)",
+    "age": "Pre-Nectarian 4.10 +/- 0.03 Ga; floor retention 3.50 +/- 0.03 Ga",
+    "science_value": "664 km2 PSR (3rd largest); floor may hold ejecta from Imbrium, Orientale, Schrodinger; radar-bright signal probably rocks (ShadowCam)"
+   }
+  },
+  {
+   "id": "feat_nobile",
+   "name": "Nobile crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.28,
+    "lon_east_180": 53.27,
+    "lon_east_360": 53.27
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "secondary",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nobile_(crater)"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_nobile"
+   },
+   "properties": {
+    "size": "D 79.27 km",
+    "age": "not retrieved",
+    "science_value": "Former VIPER site on west rim (Mons Mouton side); Griffin Mission One to land near Nobile with Astrolab FLIP rover"
+   }
+  },
+  {
+   "id": "feat_mons_mouton",
+   "name": "Mons Mouton (formerly Leibnitz Beta)",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.6,
+    "lon_east_180": 31.0,
+    "lon_east_360": 31.0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "INTERPRETATION (not sampled)",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mons_Mouton"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_mons_mouton"
+   },
+   "properties": {
+    "size": "~100 km wide, ~6 km base-to-peak, flat-topped",
+    "age": "'Possibly' SPA rim remnant",
+    "science_value": "Near PSRs and extended illumination; IM-2 landed at -84.7906, 29.1958; IM-4 and Chang'e-8 planned for the plateau"
+   }
+  },
+  {
+   "id": "feat_malapert_massif",
+   "name": "Malapert Massif (Artemis region centre)",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -86,
+    "lon_east_180": 0,
+    "lon_east_360": 0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "INTERPRETATION",
+   "limitations": "Coordinates approximate ('approx. -86, 0').",
+   "sources": [
+    "https://lroc.im-ldi.com/posts/1294"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_malapert_massif"
+   },
+   "properties": {
+    "size": "summit >5,000 m above base; ~3,500 m cliff",
+    "age": "'Thought to be' SPA rim remnant (>4 Ga)",
+    "science_value": "Flat area near 86 S, 0 E is the heart of the candidate region; nearside slope faces Earth"
+   }
+  },
+  {
+   "id": "feat_cabeus",
+   "name": "Cabeus crater",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -84.9,
+    "lon_east_180": -35.5,
+    "lon_east_360": 324.5
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED",
+   "limitations": "Centre conflict: this note uses Wikipedia -84.9, -35.5; USGS Gazetteer list gives -85.33, -42.13 (see psr_and_ice.json).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cabeus_(crater)",
+    "https://ar5iv.labs.arxiv.org/html/1103.1687"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_cabeus"
+   },
+   "properties": {
+    "size": "D 100.58 km, depth ~4 km",
+    "age": "not retrieved",
+    "science_value": "LCROSS ground truth (5.6 +/- 2.9 wt% water + other volatiles); impact at -84.6796, -48.7093"
+   }
+  },
+  {
+   "id": "feat_schrodinger",
+   "name": "Schrodinger basin (context, outside 80 S)",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -75.0,
+    "lon_east_180": 132.4,
+    "lon_east_360": 132.4
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "secondary",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_(crater)",
+    "https://www.jpl.nasa.gov/missions/farside-seismic-suite/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_schrodinger"
+   },
+   "properties": {
+    "size": "D 312 km, depth 4.8 km",
+    "age": "Early Imbrian peak-ring basin",
+    "science_value": "Volcanic vent (Schrodinger G) and lava flows; target of the Farside Seismic Suite"
+   }
+  },
+  {
+   "id": "feat_spa_basin",
+   "name": "South Pole-Aitken basin",
+   "category": "science_feature",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED measurement; attribution to SPA is the authors' interpretation",
+   "limitations": "No basin centre coordinates in notes.",
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12086667/",
+    "https://research.polyu.edu.hk/en/publications/stratigraphic-cross-sections-geologic-history-and-provenance-of-m/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_spa_basin"
+   },
+   "properties": {
+    "size": "diameter ~2,300 km",
+    "age": "Chang'e-6 norite clasts: Pb-Pb 4247 +/- 5 Ma (interpreted as SPA impact, '4.25 Ga'); second event 3873 +/- 8 Ma (tentatively Apollo basin); crater-count model ages ~4.26-4.31 Ga; CE-6 landing site -41.625, -153.978",
+    "science_value": "Artemis sites targeted for PSR volatiles and ancient deposits related to SPA; Mons Mouton 'possibly' and Malapert 'thought to be' SPA rim remnants"
+   }
+  },
+  {
+   "id": "feat_southernmost_pit",
+   "name": "Southernmost catalogued lunar pit: Schomberger A 1",
+   "category": "science_feature",
+   "geometry": {
+    "type": "Point",
+    "lat": -78.0579,
+    "lon_east_180": 25.3441,
+    "lon_east_360": 25.3441
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "ESTABLISHED for the catalogue; polar imaging hampered by lighting",
+   "limitations": null,
+   "sources": [
+    "https://en.wikipedia.org/wiki/List_of_lunar_pits",
+    "https://ui.adsabs.harvard.edu/abs/2021LPI....52.2530W/abstract"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_southernmost_pit"
+   },
+   "properties": {
+    "size": null,
+    "age": null,
+    "science_value": "No listed pit lies poleward of 80 S (next are the Rutherfurd pits near -60.78); catalogue reported as 281 impact-melt, 15 mare, 5 highland pits. Natural-shelter credit should be zero poleward of 80 S (researcher inference)."
+   }
+  },
+  {
+   "id": "feat_plains_ejecta",
+   "name": "South-polar plains terrain (basin ejecta)",
+   "category": "science_feature",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "INTERPRETATION",
+   "limitations": null,
+   "sources": [
+    "https://ouci.dntb.gov.ua/works/4VYEwab7"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_plains_ejecta"
+   },
+   "properties": {
+    "size": ">800 plains-terrain sites (~46,000 km2)",
+    "age": null,
+    "science_value": "Interpreted as extensive basin ejecta (Nature Communications 2024)"
+   }
+  },
+  {
+   "id": "feat_spa_fraction",
+   "name": "SPA material fraction at candidate regions (Gracy and Lee)",
+   "category": "science_feature",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL (conference abstract)",
+   "limitations": null,
+   "sources": [
+    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_spa_fraction"
+   },
+   "properties": {
+    "size": null,
+    "age": null,
+    "science_value": "Connecting Ridge 46% (rank 3 of 13); Peak Near Shackleton 47% (rank 2 of 13)"
+   }
+  },
+  {
+   "id": "feat_non_ice_resources",
+   "name": "Non-ice resources at the south pole",
+   "category": "science_feature",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "ESTABLISHED (orbital / Apollo-based); no in-situ measurement poleward of ~70 S",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20220008799/downloads/NASA%20ISRU%20Plans_Sanders_COSPAR-Final.pdf",
+    "https://arxiv.org/html/2601.14719v1",
+    "https://www.isro.gov.in/Ch3_Alpha_Particle_X-ray_Spectrometer.html",
+    "https://zendy.io/title/10.3847/psj/ac532c",
+    "https://arxiv.org/pdf/1410.6865"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "feat_non_ice_resources"
+   },
+   "properties": {
+    "size": null,
+    "age": null,
+    "science_value": "Highland regolith > 40% O by mass, > 75% anorthite, iron-poor, < 2 vol% ilmenite; FeO differences within polar cap <= ~1 wt%; no Th/KREEP concentration; He-3 average ~4 ppb (unknown at pole); nearest bulk chemistry: Chandrayaan-3 APXS at 69.37 S, 32.32 E: Al2O3 26.1 wt%, FeO+MgO 14.4 wt%, Mg# 70; first in-situ sulfur detection (LIBS). Barely discriminates between south-polar sites."
+   }
+  },
+  {
+   "id": "age_haworth",
+   "name": "Haworth (Tye et al. 2015)",
+   "category": "crater_age",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.9,
+    "lon_east_180": -4.0,
+    "lon_east_360": 356.0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "MODEL age (Neukum chronology; LOLA 20 m DTM; 1-sigma counting errors only)",
+   "limitations": "Pre-Nectarian absolute ages 'particularly uncertain' (no sample calibration beyond ~3.9 Ga). Coordinates from Wikipedia. Lemelin 2021 lists model age 4.18 Ga.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "age_haworth"
+   },
+   "properties": {
+    "formation_model_age_Ga": "4.18 +0.02/-0.02",
+    "period": "pre-Nectarian",
+    "N1_per_km2": "2.10e-1",
+    "floor_retention_age_Ga": "3.55 +0.01/-0.02"
+   }
+  },
+  {
+   "id": "age_shoemaker",
+   "name": "Shoemaker (Tye et al. 2015)",
+   "category": "crater_age",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.1,
+    "lon_east_180": 44.9,
+    "lon_east_360": 44.9
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "MODEL age",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "age_shoemaker"
+   },
+   "properties": {
+    "formation_model_age_Ga": "4.15 +0.02/-0.02",
+    "period": "pre-Nectarian",
+    "N1_per_km2": "1.69e-1",
+    "floor_retention_age_Ga": "3.46 +0.02/-0.02"
+   }
+  },
+  {
+   "id": "age_faustini",
+   "name": "Faustini (Tye et al. 2015)",
+   "category": "crater_age",
+   "geometry": {
+    "type": "Point",
+    "lat": -87.3,
+    "lon_east_180": 77.0,
+    "lon_east_360": 77.0
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "MODEL age",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "age_faustini"
+   },
+   "properties": {
+    "formation_model_age_Ga": "4.10 +0.03/-0.03",
+    "period": "pre-Nectarian",
+    "N1_per_km2": "1.18e-1",
+    "floor_retention_age_Ga": "3.50 +0.03/-0.03"
+   }
+  },
+  {
+   "id": "age_shackleton",
+   "name": "Shackleton (Tye et al. 2015)",
+   "category": "crater_age",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.67,
+    "lon_east_180": 129.78,
+    "lon_east_360": 129.78
+   },
+   "scope": "point",
+   "frame": null,
+   "evidence": "MODEL age",
+   "limitations": "Zuber 2012: 3.60/3.69 Ga; water-ice note: 'crater 3.4-3.7 Ga'. Conflicting values kept.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "age_shackleton"
+   },
+   "properties": {
+    "formation_model_age_Ga": "3.51 +0.05/-0.08 (rim)",
+    "period": "Late Imbrian",
+    "N1_per_km2": "4.99e-3",
+    "floor_retention_age_Ga": "2.63 +0.54/-0.76 (slope-limited, not a formation age)"
+   }
+  },
+  {
+   "id": "age_lemelin_psr_model_ages",
+   "name": "PSR host model ages listed by Lemelin et al. 2021",
+   "category": "crater_age",
+   "geometry": null,
+   "scope": "regional, no single location",
+   "frame": null,
+   "evidence": "MODEL age",
+   "limitations": "Ages for de Gerlache, Nobile crater, Cabeus crater, Malapert, Slater not retrieved elsewhere.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "age_lemelin_psr_model_ages"
+   },
+   "properties": {
+    "formation_model_age_Ga": "Shoemaker 4.15; Haworth 4.18; Faustini 4.10; Sverdrup 1 3.80; Cabeus 1 3.50; Wiechert J 3.20; Nobile 2 3.80"
+   }
+  },
+  {
+   "id": "astro_schuerger_2019",
+   "name": "Schuerger et al. 2019 Lunar Microbial Survival model (sunlit surface)",
+   "category": "astrobiology",
+   "geometry": null,
+   "scope": "listed locations",
+   "frame": null,
+   "evidence": "MODEL",
+   "limitations": null,
+   "sources": [
+    "https://elib.dlr.de/126719/",
+    "https://elib.dlr.de/140650"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "astro_schuerger_2019"
+   },
+   "properties": {
+    "finding": "Sunlit external surfaces >100 C, up to 140 C at local noon; ~ -6 logs per 8 h at local noon; vacuum alone ~ -2 logs per 2107 days; deep internal surfaces ~ -0.02 logs per lunation; external surfaces unlikely to retain viable spores after one lunation.",
+    "locations": "Sunlit surface, equator to poles"
+   }
+  },
+  {
+   "id": "astro_moores_2025",
+   "name": "Moores et al. 2025 (York Univ.): spore survival inside PSRs",
+   "category": "astrobiology",
+   "geometry": null,
+   "scope": "listed locations",
+   "frame": null,
+   "evidence": "MODEL (no in-situ measurement)",
+   "limitations": "The Shackleton/Faustini result is from Moores et al. 2025, NOT Saxena et al. (correction recorded in the notes).",
+   "sources": [
+    "https://astrobiology.com/2025/06/09/a-microbial-survival-model-for-the-permanently-shadowed-regions-of-the-moon-shows-long-term-survival-of-terrestrial-microbial-contamination/",
+    "https://pubmed.ncbi.nlm.nih.gov/40415593/",
+    "https://www.sciencealert.com/moons-shadows-could-harbor-microbes-heres-why-thats-a-concern"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "astro_moores_2025"
+   },
+   "properties": {
+    "finding": "Bacillus subtilis-type spores: reduction rates -0.0815 (Shackleton) and -0.0683 (Faustini) logs per lunation -> 30.0 yr and 30.8 yr to reach one Sterility Assurance Level (-12 logs); UV dominates for ~4-5 yr, vacuum thereafter; PSRs 'one of the least biocidal environments in the solar system'.",
+    "locations": "Shackleton and Faustini PSRs"
+   }
+  },
+  {
+   "id": "astro_saxena_2026",
+   "name": "Saxena et al. 2026 (NASA Goddard/JSC, Science Advances, DOI 10.1126/sciadv.aec0811)",
+   "category": "astrobiology",
+   "geometry": null,
+   "scope": "listed locations",
+   "frame": null,
+   "evidence": "MODEL (paper itself not retrieved; NASA release and news summary)",
+   "limitations": null,
+   "sources": [
+    "https://science.nasa.gov/humans-in-space/human-related-microbes-may-survive-moons-south-pole-nasa-finds/",
+    "https://starlust.org/microbes-in-the-moons-shadow-nasa-finds-some-organisms-could-survive-at-the-lunar-south-pole/"
+   ],
+   "origin": {
+    "file": "hazards_and_science.json",
+    "id": "astro_saxena_2026"
+   },
+   "properties": {
+    "finding": "'Survival' = alive >= 1 Earth day, not growth; Aspergillus niger most UV-resistant, max >= 7 days under optimal conditions; organisms: A. niger, Bacillus subtilis, Staphylococcus aureus, Deinococcus radiodurans, Fusarium spp.; survivable niches range from a miles-wide crater floor to an astronaut boot print; robotic spacecraft can be baked >400 F (~204 C), crews cannot.",
+    "locations": "Nobile Rim, Connecting Ridge, de Gerlache Rim (Artemis candidate regions)"
+   }
+  }
+ ]
+}

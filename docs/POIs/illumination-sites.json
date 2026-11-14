@@ -1,0 +1,2021 @@
+{
+ "meta": {
+  "description": "Published illumination and Earth-visibility results for named points and regions at the lunar south pole (well-lit ridges and rims). Values are study results for the stated height and period, not results for our own dates.",
+  "generated": "2026-11-14",
+  "derived_from": [
+   "docs/reference/research/data/illumination_sites.json"
+  ],
+  "coordinate_convention": "Decimal degrees; latitude south negative; longitude east-positive, lon_east_180 (-180..180) and lon_east_360 (0..360). Sources publish 0-360 E (or West for Bussey 2010); the -180..180 form was computed during conversion (lon - 360).",
+  "validation": "Copied from research notes of 2026-11-14. Not validated by the science lead. Do not label any point permanently sunlit; recompute sunlight for the exact point, height and dates.",
+  "source_meta_notes": [
+   "Values copied from research notes of 2026-11-14; not independently validated.",
+   "'avg_illumination_pct' = time-average of the visible fraction of the solar disc; 'solar_visibility_pct' = fraction of time any part of the Sun is visible. These are different metrics. Some sources (Glaeser 2014, Mazarico) report 'time sunlit'; this is flagged in metric_note.",
+   "Studies disagree by 10-25 points with DEM resolution and metric: 240-474 m DEMs overestimate (smoothing of near-field topography); 100 m WAC imagery underestimates (lit strips <100 m not resolved, 1 year only); 20 m / 5 m LOLA values lie between. Researcher's recommendation: treat 240-474 m percentages as upper bounds and 100 m image-based as lower bounds.",
+   "Paywalled papers (Mazarico 2011 Table 3, Speyerer and Robinson 2013, Glaeser 2014, Wueller 2025/2026, De Rosa 2012) were NOT opened; their numbers come from abstracts, tables reproduced in later papers, or search-result excerpts, as flagged per item.",
+   "Barker 2021 values are conservative percentiles over 100 Monte Carlo DEM clones (1st percentile for illumination and LCIP, 99th percentile for LCSP). RoI positions are given only as south-polar stereographic X/Y km; lat/lon were NOT computed here.",
+   "Per-site Earth-visibility percentages for Shackleton rim, Connecting Ridge, de Gerlache rim, Nobile rim and Haworth from a primary source were not obtained.",
+   "longest_dark_h is in hours where the source gives hours; other units are in longest_dark_text."
+  ]
+ },
+ "items": [
+  {
+   "id": "gl18_c1_surface",
+   "name": "Connecting Ridge C1 (= Mazarico Site 1, De Rosa CR1)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.4505,
+    "lon_east_180": -137.16,
+    "lon_east_360": 222.84
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary (Table 1, transcribed from paper preprint); MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_c1_surface"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (PSS 162, 170)",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-01-01 to 2037-01-01",
+    "time_step": "1 h",
+    "height_m": 0,
+    "avg_illumination_pct": 76.0,
+    "solar_visibility_pct": 81.3,
+    "longest_lit": null,
+    "longest_dark_h": 268,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "maz11_c1_surface",
+   "name": "Connecting Ridge C1 (Mazarico Site 1)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.45,
+    "lon_east_180": -137.31,
+    "lon_east_360": 222.69
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "as tabulated by Glaeser 2018 Table 1 (original Table 3 not opened); MODEL",
+   "limitations": "Coarse DEM overestimates illumination.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "maz11_c1_surface"
+   },
+   "properties": {
+    "study": "Mazarico et al. 2011 (Icarus 211, 1066)",
+    "year": 2011,
+    "data": "LOLA DEM",
+    "dem_resolution_m": 240,
+    "period": "18.6 yr",
+    "time_step": "6 h (abstract) / hourly (PGDA text)",
+    "height_m": 0,
+    "avg_illumination_pct": 89.0,
+    "solar_visibility_pct": 92.7,
+    "longest_lit": null,
+    "longest_dark_h": 141.12,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "sr13_c1_surface",
+   "name": "Connecting Ridge C1",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.418,
+    "lon_east_180": -138.7,
+    "lon_east_360": 221.3
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "as tabulated by Glaeser 2018 Table 1; image-based (observation)",
+   "limitations": "Image-based values underestimate; 100 m is image resolution, not a DEM.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "sr13_c1_surface"
+   },
+   "properties": {
+    "study": "Speyerer and Robinson 2013 (Icarus 222, 122)",
+    "year": 2013,
+    "data": "LROC WAC images",
+    "dem_resolution_m": 100,
+    "period": "15 Feb 2010 - 5 Feb 2011 (1 yr)",
+    "time_step": "~2 h (3,807 images)",
+    "height_m": 0,
+    "avg_illumination_pct": 64.2,
+    "solar_visibility_pct": null,
+    "longest_lit": null,
+    "longest_dark_h": 308,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_c2_surface",
+   "name": "Connecting Ridge C2 (new in 2018)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.3157,
+    "lon_east_180": -114.06,
+    "lon_east_360": 245.94
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_c2_surface"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": 0,
+    "avg_illumination_pct": 75.6,
+    "solar_visibility_pct": 80.6,
+    "longest_lit": null,
+    "longest_dark_h": 166,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_s_surface",
+   "name": "Shackleton rim S (= Mazarico Site 4, De Rosa SR1)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.7849,
+    "lon_east_180": -156.03,
+    "lon_east_360": 203.97
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_s_surface"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": 0,
+    "avg_illumination_pct": 81.0,
+    "solar_visibility_pct": 85.5,
+    "longest_lit": null,
+    "longest_dark_h": 221,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "maz11_s_surface",
+   "name": "Shackleton rim S (Mazarico Site 4)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.78,
+    "lon_east_180": -155.73,
+    "lon_east_360": 204.27
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "as tabulated by Glaeser 2018 Table 1; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "maz11_s_surface"
+   },
+   "properties": {
+    "study": "Mazarico et al. 2011",
+    "year": 2011,
+    "data": "LOLA DEM",
+    "dem_resolution_m": 240,
+    "period": "18.6 yr",
+    "time_step": "6 h (abstract) / hourly (PGDA)",
+    "height_m": 0,
+    "avg_illumination_pct": 86.7,
+    "solar_visibility_pct": 90.5,
+    "longest_lit": null,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "sr13_s_surface",
+   "name": "Shackleton rim S",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.74,
+    "lon_east_180": -158.8,
+    "lon_east_360": 201.2
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "as tabulated by Glaeser 2018 Table 1; image-based",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "sr13_s_surface"
+   },
+   "properties": {
+    "study": "Speyerer and Robinson 2013",
+    "year": 2013,
+    "data": "LROC WAC images",
+    "dem_resolution_m": 100,
+    "period": "15 Feb 2010 - 5 Feb 2011",
+    "time_step": "~2 h",
+    "height_m": 0,
+    "avg_illumination_pct": 71.6,
+    "solar_visibility_pct": null,
+    "longest_lit": null,
+    "longest_dark_h": 145,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_c1_2m",
+   "name": "Connecting Ridge C1",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.4398,
+    "lon_east_180": -137.17,
+    "lon_east_360": 222.83
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_c1_2m"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 2)",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037 (20-yr average)",
+    "time_step": "1 h",
+    "height_m": 2,
+    "avg_illumination_pct": 88.0,
+    "solar_visibility_pct": 92.1,
+    "longest_lit": null,
+    "longest_dark_h": 112,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_c2_2m",
+   "name": "Connecting Ridge C2",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.313,
+    "lon_east_180": -114.02,
+    "lon_east_360": 245.98
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No gain in darkness from height (far-field limited).",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_c2_2m"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 2)",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": 2,
+    "avg_illumination_pct": 78.1,
+    "solar_visibility_pct": 82.0,
+    "longest_lit": null,
+    "longest_dark_h": 165,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_s_2m_max_illum",
+   "name": "Shackleton rim S (max illumination point)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.6866,
+    "lon_east_180": -162.81,
+    "lon_east_360": 197.19
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_s_2m_max_illum"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 2)",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": 2,
+    "avg_illumination_pct": 85.5,
+    "solar_visibility_pct": 89.4,
+    "longest_lit": null,
+    "longest_dark_h": 66,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_s_2m_max_vis",
+   "name": "Shackleton rim S (max visibility point)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.7815,
+    "lon_east_180": -155.3,
+    "lon_east_360": 204.7
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_s_2m_max_vis"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 2)",
+    "year": 2018,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": 2,
+    "avg_illumination_pct": 82.1,
+    "solar_visibility_pct": 89.8,
+    "longest_lit": null,
+    "longest_dark_h": 65,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_c1_0",
+   "name": "Connecting Ridge cluster C1-0 (>=70% at 2 m)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_c1_0"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 88.0,
+    "solar_visibility_pct": 92.1,
+    "cluster_area_m2": 135200,
+    "nearest_psr_area_m2": 5200,
+    "distance_to_psr_m": 100,
+    "max_slope_in_psr_deg": 12.8,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_c1_1",
+   "name": "Connecting Ridge cluster C1-1",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_c1_1"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 81.3,
+    "solar_visibility_pct": 86.0,
+    "cluster_area_m2": 26800,
+    "nearest_psr_area_m2": 9600,
+    "distance_to_psr_m": 70,
+    "max_slope_in_psr_deg": 13.7,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_c2_0",
+   "name": "Connecting Ridge cluster C2-0",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_c2_0"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 71.6,
+    "solar_visibility_pct": 75.1,
+    "cluster_area_m2": 4400,
+    "nearest_psr_area_m2": 5600,
+    "distance_to_psr_m": 60,
+    "max_slope_in_psr_deg": 11.5,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_c2_1",
+   "name": "Connecting Ridge cluster C2-1",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_c2_1"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 78.1,
+    "solar_visibility_pct": 82.0,
+    "cluster_area_m2": 11600,
+    "nearest_psr_area_m2": 22800,
+    "distance_to_psr_m": 80,
+    "max_slope_in_psr_deg": 17.1,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_s0",
+   "name": "Shackleton cluster S0",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_s0"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 85.5,
+    "solar_visibility_pct": 89.4,
+    "cluster_area_m2": 21600,
+    "nearest_psr_area_m2": 58400,
+    "distance_to_psr_m": 370,
+    "max_slope_in_psr_deg": 17.0,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_s1",
+   "name": "Shackleton cluster S1",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_s1"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 84.3,
+    "solar_visibility_pct": 89.8,
+    "cluster_area_m2": 120400,
+    "nearest_psr_area_m2": 4400,
+    "distance_to_psr_m": 30,
+    "max_slope_in_psr_deg": 11.1,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_cluster_s2",
+   "name": "Shackleton cluster S2",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "No cluster coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_cluster_s2"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018 (Table 3)",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "height_m": 2,
+    "avg_illumination_pct": 73.9,
+    "solar_visibility_pct": 78.8,
+    "cluster_area_m2": 31200,
+    "nearest_psr_area_m2": 1200,
+    "distance_to_psr_m": 80,
+    "max_slope_in_psr_deg": 6.0,
+    "longest_dark_h": null,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl18_summary_best_sites",
+   "name": "Six best sites (3 per pole), study-level summary",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "Range covers both poles; no coordinates (study-level).",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf",
+    "https://elib.dlr.de/119091"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl18_summary_best_sites"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2018",
+    "year": 2018,
+    "dem_resolution_m": 20,
+    "period": "2017-2037",
+    "time_step": "1 h",
+    "height_m": "0 and 2",
+    "avg_illumination_pct": "69.5-82.9 at surface; 77.1-88.0 at 2 m",
+    "longest_dark_text": "'less than three and up to eight days', i.e. 20-50% of a lunar night; sites 'typically illuminated for about 90% of the time'",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_a",
+   "name": "Point A, Shackleton rim",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.68,
+    "lon_east_180": -166.0,
+    "lon_east_360": 194.0
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary (Table 2); MODEL",
+   "limitations": "Coarse DEM: upper bound.",
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_a"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010 (Icarus 208)",
+    "year": 2010,
+    "data": "Kaguya laser altimeter DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "166.0 W",
+    "avg_illumination_pct": 81,
+    "longest_lit": "with B: >8 continuous months collectively",
+    "longest_dark_text": "A+B together lit ~94% of the year; 'less than 10 km apart'",
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     98,
+     97,
+     97,
+     92,
+     73,
+     51,
+     44
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_b",
+   "name": "Point B, ridge close to Shackleton (Connecting Ridge)",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -89.44,
+    "lon_east_180": -141.8,
+    "lon_east_360": 218.2
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_b"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "data": "Kaguya LALT DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "141.8 W",
+    "avg_illumination_pct": 82,
+    "longest_lit": ">4.5 continuous months",
+    "longest_dark_text": "only 12-24 h eclipses in the 8 months centred on midsummer (4.5 days total)",
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     100,
+     100,
+     95,
+     90,
+     64,
+     56,
+     56
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_c",
+   "name": "Point C, de Gerlache rim",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.71,
+    "lon_east_180": -68.7,
+    "lon_east_360": 291.3
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_c"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "data": "Kaguya LALT DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "68.7 W",
+    "avg_illumination_pct": 85,
+    "longest_lit": null,
+    "longest_dark_text": "shortest maximum single eclipse of all points: ~6 days",
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     98,
+     98,
+     97,
+     86,
+     71,
+     66,
+     64
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_d",
+   "name": "Point D, small ridge along ~120 E from Shackleton rim",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -88.79,
+    "lon_east_180": 124.5,
+    "lon_east_360": 124.5
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "Highest of the study. Bussey 2010 gives the latitude inconsistently: text '99.79 S' (typo), Table 2 '88.79 S', conclusions '88.74 S 124.5 E'.",
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_d"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "data": "Kaguya LALT DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "124.5 E",
+    "avg_illumination_pct": 86,
+    "longest_lit": ">5 continuous months centred on midsummer",
+    "longest_dark_text": "one ~2-day eclipse in 7 months; longest eclipse ~11.5 days at midwinter",
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     100,
+     100,
+     100,
+     93,
+     80,
+     63,
+     58
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_m1",
+   "name": "M1, Malapert Mountain",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.04,
+    "lon_east_180": 2.7,
+    "lon_east_360": 2.7
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_m1"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "data": "Kaguya LALT DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "2.7 E",
+    "avg_illumination_pct": 74,
+    "longest_lit": null,
+    "longest_dark_text": null,
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     95,
+     92,
+     88,
+     69,
+     64,
+     54,
+     54
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bus10_m2",
+   "name": "M2, Malapert Mountain",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -86.0,
+    "lon_east_180": -2.9,
+    "lon_east_360": 357.1
+   },
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_m2"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "data": "Kaguya LALT DEM",
+    "dem_resolution_m": 474,
+    "period": "year 2020",
+    "time_step": "12 h",
+    "height_m": 0,
+    "lon_as_published": "2.9 W",
+    "avg_illumination_pct": 74,
+    "longest_lit": null,
+    "longest_dark_text": null,
+    "percent_lit_by_lunar_day_midsummer_to_midwinter": [
+     90,
+     83,
+     83,
+     75,
+     66,
+     58,
+     58
+    ],
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "maz11_shackleton_rim_240d",
+   "name": "Site near Shackleton rim",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "abstract only; MODEL",
+   "limitations": "No coordinates in abstract. ~10 m of height gives large improvements. longest_dark_h = 1.5 days x 24 (unit conversion only).",
+   "sources": [
+    "https://ntrs.nasa.gov/citations/20120010094",
+    "https://pgda.gsfc.nasa.gov/products/69"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "maz11_shackleton_rim_240d"
+   },
+   "properties": {
+    "study": "Mazarico et al. 2011",
+    "year": 2011,
+    "data": "LOLA DEM, horizon method",
+    "dem_resolution_m": 240,
+    "period": "several 18.6-yr cycles",
+    "time_step": "6 h",
+    "height_m": 0,
+    "avg_illumination_pct": null,
+    "longest_lit": "sunlit continuously ~240 days each year",
+    "longest_dark_h": 36,
+    "longest_dark_text": "longest continuous total darkness ~1.5 days",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl14_cr_2m",
+   "name": "Connecting Ridge (best spots)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "abstract only (full text paywalled); MODEL",
+   "limitations": "No coordinates in abstract.",
+   "sources": [
+    "https://elib.dlr.de/94240",
+    "https://en.wikipedia.org/wiki/Lunar_south_pole"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl14_cr_2m"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2014 (Icarus 243, 78-90)",
+    "year": 2014,
+    "data": "LOLA DTM co-registered to NAC",
+    "dem_resolution_m": 20,
+    "period": "19 yr",
+    "height_m": 2,
+    "avg_illumination_pct": 92.27,
+    "metric_note": "percent of time sunlit, not disc-fraction average",
+    "longest_dark_text": "typically only 3-5 days",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "gl14_cr_10m",
+   "name": "Connecting Ridge (best spots)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "abstract only; MODEL",
+   "limitations": "No coordinates in abstract.",
+   "sources": [
+    "https://elib.dlr.de/94240"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "gl14_cr_10m"
+   },
+   "properties": {
+    "study": "Glaeser et al. 2014",
+    "year": 2014,
+    "data": "LOLA DTM",
+    "dem_resolution_m": 20,
+    "period": "19 yr",
+    "height_m": 10,
+    "avg_illumination_pct": 95.65,
+    "metric_note": "percent of time sunlit",
+    "longest_dark_text": "typically only 3-5 days",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "sr13_multi_station",
+   "name": "Shackleton rim station sets (multi-station)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "secondary (Wikipedia summary of the paper; not verified against the paper)",
+   "limitations": "No coordinates; station spacing not retrieved.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Peak_of_eternal_light",
+    "https://lroc.im-ldi.com/news/991"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "sr13_multi_station"
+   },
+   "properties": {
+    "study": "Speyerer and Robinson 2013",
+    "year": 2013,
+    "data": "LROC WAC images",
+    "dem_resolution_m": 100,
+    "period": "one lunar year",
+    "height_m": 0,
+    "avg_illumination_pct": 94,
+    "metric_note": "~94% of the year for sets of stations jointly",
+    "longest_dark_h": 43,
+    "longest_dark_text": "longest joint eclipse 43 h",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "sp16_rover_ridge",
+   "name": "Connecting Ridge, mobile rover traverse",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "as cited in Glaeser 2018; MODEL",
+   "limitations": "No coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "sp16_rover_ridge"
+   },
+   "properties": {
+    "study": "Speyerer et al. 2016 (Icarus 273)",
+    "year": 2016,
+    "height_m": null,
+    "avg_illumination_pct": 94.4,
+    "metric_note": "rover kept lit 94.4% of the year with 'a small amount of mobility'",
+    "longest_dark_h": 101,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_case_1m_roi_avg",
+   "name": "Connecting Ridge (Site 1) RoIs, whole-RoI average",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL with uncertainty",
+   "limitations": "Range summary; per-RoI rows follow.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_case_1m_roi_avg"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 (PSS 203, 105119)",
+    "year": 2021,
+    "data": "LOLA-only 5 m DEM, 100 clone DEMs",
+    "dem_resolution_m": 5,
+    "period": "2024-01-01 to 2026-01-01",
+    "time_step": "1 h",
+    "height_m": 1,
+    "avg_illumination_pct": "67 (RoI 7) to 71 (RoI 6), 1st percentile",
+    "longest_lit": "63 d (RoI 1) to 142 d (RoI 5), 1st percentile",
+    "longest_dark_text": "13 d (RoI 4, 6) to 22 d (RoI 3), 99th percentile",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_case_5m_roi_avg",
+   "name": "Connecting Ridge (Site 1) RoIs, whole-RoI average",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_case_5m_roi_avg"
+   },
+   "properties": {
+    "study": "Barker et al. 2021",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "avg_illumination_pct": "83 (RoI 7) to 89 (RoI 1), 1st percentile",
+    "longest_lit": "119 d (RoI 7) to 231 d (RoI 4)",
+    "longest_dark_text": "4 d (RoI 4-6) to 8 d (RoI 3), 99th percentile",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_case_1m_roving",
+   "name": "Connecting Ridge (Site 1) RoIs, best pixel in RoI at each hour (roving)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_case_1m_roving"
+   },
+   "properties": {
+    "study": "Barker et al. 2021",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "avg_illumination_pct": "77 (RoI 3) to 87 (RoI 4, 6)",
+    "longest_lit": "118 d (RoI 7) to 232 d (RoI 4)",
+    "longest_dark_text": "4 d (RoI 4) to 16 d (RoI 3)",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_case_5m_roving",
+   "name": "Connecting Ridge (Site 1) RoIs, roving",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": null,
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_case_5m_roving"
+   },
+   "properties": {
+    "study": "Barker et al. 2021",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "avg_illumination_pct": "+2-5 % over fixed",
+    "longest_lit": null,
+    "longest_dark_text": "~3-6 d",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi1_1m",
+   "name": "Site 1 Connecting Ridge RoI 1",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "Position given only as polar-stereographic X/Y km; lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi1_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2 (case A, RoI-averaged)",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-01-01 to 2026-01-01",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 11.5825,
+    "stereo_y_km": 12.4625,
+    "roi_area_m2": 8625,
+    "avg_illumination_pct": 68.03,
+    "longest_lit_days": 63.35,
+    "longest_dark_days": 16.55,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi1_5m",
+   "name": "Site 1 Connecting Ridge RoI 1",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi1_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 11.5825,
+    "stereo_y_km": 12.4625,
+    "roi_area_m2": 8625,
+    "avg_illumination_pct": 89.26,
+    "longest_lit_days": 215.79,
+    "longest_dark_days": 5.29,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi2_1m",
+   "name": "Site 1 Connecting Ridge RoI 2",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi2_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 11.4875,
+    "stereo_y_km": 12.5575,
+    "roi_area_m2": 7550,
+    "avg_illumination_pct": 70.32,
+    "longest_lit_days": 113.8,
+    "longest_dark_days": 17.84,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi2_5m",
+   "name": "Site 1 Connecting Ridge RoI 2",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi2_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 11.4875,
+    "stereo_y_km": 12.5575,
+    "roi_area_m2": 7550,
+    "avg_illumination_pct": 88.51,
+    "longest_lit_days": 216.28,
+    "longest_dark_days": 7.31,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi3_1m",
+   "name": "Site 1 Connecting Ridge RoI 3",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi3_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 11.3525,
+    "stereo_y_km": 12.5025,
+    "roi_area_m2": 3825,
+    "avg_illumination_pct": 67.51,
+    "longest_lit_days": 117.86,
+    "longest_dark_days": 22.23,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi3_5m",
+   "name": "Site 1 Connecting Ridge RoI 3",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi3_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 11.3525,
+    "stereo_y_km": 12.5025,
+    "roi_area_m2": 3825,
+    "avg_illumination_pct": 84.53,
+    "longest_lit_days": 216.89,
+    "longest_dark_days": 8.41,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi4_1m",
+   "name": "Site 1 Connecting Ridge RoI 4",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi4_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 11.2875,
+    "stereo_y_km": 12.1675,
+    "roi_area_m2": 13300,
+    "avg_illumination_pct": 69.61,
+    "longest_lit_days": 136.49,
+    "longest_dark_days": 13.27,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi4_5m",
+   "name": "Site 1 Connecting Ridge RoI 4",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi4_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 11.2875,
+    "stereo_y_km": 12.1675,
+    "roi_area_m2": 13300,
+    "avg_illumination_pct": 88.12,
+    "longest_lit_days": 231.2,
+    "longest_dark_days": 4.0,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi5_1m",
+   "name": "Site 1 Connecting Ridge RoI 5",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi5_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 11.1025,
+    "stereo_y_km": 11.9425,
+    "roi_area_m2": 10075,
+    "avg_illumination_pct": 70.38,
+    "longest_lit_days": 142.17,
+    "longest_dark_days": 15.24,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi5_5m",
+   "name": "Site 1 Connecting Ridge RoI 5",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi5_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 11.1025,
+    "stereo_y_km": 11.9425,
+    "roi_area_m2": 10075,
+    "avg_illumination_pct": 85.71,
+    "longest_lit_days": 218.98,
+    "longest_dark_days": 4.52,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi6_1m",
+   "name": "Site 1 Connecting Ridge RoI 6",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi6_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 10.8025,
+    "stereo_y_km": 11.7375,
+    "roi_area_m2": 10000,
+    "avg_illumination_pct": 71.15,
+    "longest_lit_days": 81.01,
+    "longest_dark_days": 12.74,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi6_5m",
+   "name": "Site 1 Connecting Ridge RoI 6",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi6_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 10.8025,
+    "stereo_y_km": 11.7375,
+    "roi_area_m2": 10000,
+    "avg_illumination_pct": 87.35,
+    "longest_lit_days": 220.98,
+    "longest_dark_days": 4.16,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi7_1m",
+   "name": "Site 1 Connecting Ridge RoI 7",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi7_1m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 1,
+    "stereo_x_km": 10.2275,
+    "stereo_y_km": 11.5525,
+    "roi_area_m2": 7075,
+    "avg_illumination_pct": 67.36,
+    "longest_lit_days": 100.23,
+    "longest_dark_days": 14.54,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_roi7_5m",
+   "name": "Site 1 Connecting Ridge RoI 7",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL percentiles",
+   "limitations": "lat/lon not computed.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_roi7_5m"
+   },
+   "properties": {
+    "study": "Barker et al. 2021 Table 2",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "time_step": "1 h",
+    "height_m": 5,
+    "stereo_x_km": 10.2275,
+    "stereo_y_km": 11.5525,
+    "roi_area_m2": 7075,
+    "avg_illumination_pct": 82.79,
+    "longest_lit_days": 119.07,
+    "longest_dark_days": 5.42,
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "bar21_site_comparison",
+   "name": "Sites 1, 4, 7, 11 comparison (Connecting Ridge, Shackleton rim, peak near Shackleton, de Gerlache rim)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "Study-level statement. Site 1 has the most area with >70% average illumination at 1 m.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20205009660/downloads/Mike%20Barker_%20Paper_%20Improved%20Lola.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bar21_site_comparison"
+   },
+   "properties": {
+    "study": "Barker et al. 2021",
+    "year": 2021,
+    "dem_resolution_m": 5,
+    "period": "2024-2026",
+    "height_m": 5,
+    "avg_illumination_pct": null,
+    "longest_lit": "Site 1: LCIP >200 days for RoIs 1-6 at 5 m, versus ~150-175 days at the other three sites",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "derosa12_lqcip",
+   "name": "Connecting Ridge, Leibnitz-beta plateau, Shackleton and de Gerlache rims, Malapert peaks",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "abstract; MODEL",
+   "limitations": "No coordinates.",
+   "sources": [
+    "https://www.lpi.usra.edu/meetings/lpsc2012/pdf/1585.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "derosa12_lqcip"
+   },
+   "properties": {
+    "study": "De Rosa et al. 2012 (ESA Lunar Lander, LPSC 2012 #1585)",
+    "year": 2012,
+    "data": "LOLA grid",
+    "dem_resolution_m": 40,
+    "period": "year 2009",
+    "height_m": 3,
+    "avg_illumination_pct": null,
+    "longest_lit": "quasi-continuous illumination period (with 100-h night survivability) of 'several months' (>3 months on parts of the Connecting Ridge); areas only 'a few hundreds of metres' across; drops to <1 month outside",
+    "earth_visibility_text": "DTE windows 'generally follow a regular pattern of 14 days'",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "kruijff2000_ridges",
+   "name": "Illuminated ridges near the south pole",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "secondary source",
+   "limitations": "No coordinates.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Peak_of_eternal_light"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "kruijff2000_ridges"
+   },
+   "properties": {
+    "study": "Kruijff 2000 (via Wikipedia)",
+    "year": 2000,
+    "height_m": null,
+    "avg_illumination_pct": "~70-90 in southern winter; likely all of the summer",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "malapert_sharpe_schrunk_2002",
+   "name": "Malapert",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "secondary source; older estimate, conflicts with Bussey 2010 (74%)",
+   "limitations": "No coordinates.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Peak_of_eternal_light"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "malapert_sharpe_schrunk_2002"
+   },
+   "properties": {
+    "study": "Sharpe and Schrunk 2002 (as reported by Wikipedia)",
+    "year": 2002,
+    "avg_illumination_pct": null,
+    "metric_note": "'less than full sunlight only 11% of the time'",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "malapert_iscience_2023",
+   "name": "Malapert solar-panel site; comparison with de Gerlache and Shackleton",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "search excerpt only",
+   "limitations": "No coordinates.",
+   "sources": [
+    "https://www.cell.com/iscience/fulltext/S2589-0042(23)01930-2"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "malapert_iscience_2023"
+   },
+   "properties": {
+    "study": "iScience 2023 site study",
+    "year": 2023,
+    "avg_illumination_pct": "50-82",
+    "earth_visibility_pct": 100,
+    "earth_visibility_text": "Malapert 'Excellent (100 %)'; de Gerlache and Shackleton under 60 %"
+   }
+  },
+  {
+   "id": "wue25_mons_mouton_plateau",
+   "name": "Mons Mouton plateau (region average)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "search-result excerpts (full text not opened); MODEL",
+   "limitations": "Region-averaged score, not a point.",
+   "sources": [
+    "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025JE009127"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "wue25_mons_mouton_plateau"
+   },
+   "properties": {
+    "study": "Wueller et al. 2025 (JGR Planets, 2025JE009127)",
+    "year": 2025,
+    "avg_illumination_pct": null,
+    "sun_visibility_score": "0.45 +/- 0.14",
+    "earth_visibility_pct": 74,
+    "earth_visibility_text": "74 +/- 19 % of the lunar year",
+    "coldest_psr_K": 85
+   }
+  },
+  {
+   "id": "wue25_mons_malapert_region",
+   "name": "Mons Malapert candidate landing region (region average)",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "search-result excerpts; MODEL",
+   "limitations": "Scores as fractions; region average.",
+   "sources": [
+    "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025JE009127"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "wue25_mons_malapert_region"
+   },
+   "properties": {
+    "study": "Wueller et al. 2025",
+    "year": 2025,
+    "sun_visibility_score": "0.31 +/- 0.25",
+    "earth_visibility_score": "0.41 +/- 0.32",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "wue26_haworth_hw04_hw10",
+   "name": "Haworth sites HW04 and HW10",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "search-result excerpt of abstract; MODEL",
+   "limitations": "Coordinates are in Table A1, which could not be retrieved (HTTP 403). 'Favourable' = sunlit >= 10 consecutive days; 130 candidate sites; requiring Sun+Earth imposes 'only minor limitations' at most sites.",
+   "sources": [
+    "https://doi.org/10.1029/2025JE009434",
+    "https://zenodo.org/records/17084058"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "wue26_haworth_hw04_hw10"
+   },
+   "properties": {
+    "study": "Wueller et al. 2026 (JGR Planets 131, e2025JE009434)",
+    "year": 2026,
+    "period": "each midsummer 2025-2032",
+    "longest_lit": "exceed 25 days of simultaneous Sun and Earth visibility at midsummer",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "jpl_gssr_best_site",
+   "name": "Best site in JPL GSSR-DEM study",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary report, partly via search excerpt; MODEL",
+   "limitations": "No coordinates in notes.",
+   "sources": [
+    "https://ipnpr.jpl.nasa.gov/progress_report/42-176/176C.html",
+    "https://ipnpr.jpl.nasa.gov/progress_report/42-176/176C.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "jpl_gssr_best_site"
+   },
+   "properties": {
+    "study": "Bryant, JPL IPN Progress Report 42-176",
+    "year": "2008/2009",
+    "data": "Goldstone radar DEM",
+    "avg_illumination_pct": 92,
+    "metric_note": "solar power availability, multi-year average",
+    "earth_visibility_pct": 51,
+    "earth_visibility_text": "direct-to-Earth comm availability 51%; peaks of 'Malapert alpha' and 'Leibnitz beta' have '100 percent visibility of Earth at all times' (search excerpt)"
+   }
+  },
+  {
+   "id": "petro21_malapert_summit_earth",
+   "name": "Malapert summit region",
+   "category": "illumination_point",
+   "geometry": {
+    "type": "Point",
+    "lat": -85.95,
+    "lon_east_180": 0,
+    "lon_east_360": 0
+   },
+   "frame": null,
+   "location_note": "region described as around -85.95, longitude +/-5 deg",
+   "evidence": "primary (conference abstract); MODEL",
+   "limitations": "Longitude is a +/-5 deg band, not a point; 0 is the band centre.",
+   "sources": [
+    "https://www.hou.usra.edu/meetings/lunarsurface12/pdf/8015.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "petro21_malapert_summit_earth"
+   },
+   "properties": {
+    "study": "Petro and Moriarty 2021 (NASA GSFC), using Mazarico 2011 Earth-visibility map in QuickMap",
+    "year": 2021,
+    "data": "LOLA-based",
+    "avg_illumination_pct": null,
+    "earth_visibility_pct": 100,
+    "earth_visibility_text": "permanent line of sight, with slopes <15 deg in places; a 5 m mast on the summit 'enables a wider line-of-site' toward the pole"
+   }
+  },
+  {
+   "id": "vanoutryve10_earth_los",
+   "name": "South-pole vicinity in general",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "search excerpt",
+   "limitations": "No coordinates.",
+   "sources": [
+    "https://www.researchgate.net/publication/228790017_An_analysis_of_illumination_and_communication_conditions_near_lunar_south_pole_based_on_Kaguya_Data"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "vanoutryve10_earth_los"
+   },
+   "properties": {
+    "study": "Vanoutryve et al. 2010",
+    "year": 2010,
+    "data": "Kaguya DEM",
+    "earth_visibility_pct": null,
+    "earth_visibility_text": "line-of-sight period ~14 days, 'a little longer for Malapert Peak'; windows 'not synchronised with illumination windows'; at one analysed site Earth disappears after 3 days for 15 days"
+   }
+  },
+  {
+   "id": "bus10_earth_hidden_areas",
+   "name": "Area within 4 deg of the south pole",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary; MODEL",
+   "limitations": "Area statistic, not a site.",
+   "sources": [
+    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "bus10_earth_hidden_areas"
+   },
+   "properties": {
+    "study": "Bussey et al. 2010",
+    "year": 2010,
+    "dem_resolution_m": 474,
+    "earth_visibility_pct": null,
+    "earth_visibility_text": "10,520 km2 never see Earth (79% of that is not Sun-PSR); 2,653 km2 hidden from both Sun and Earth; 5,058 km2 Sun-shadowed (PSR)"
+   }
+  },
+  {
+   "id": "viper_working_days_by_area",
+   "name": "VIPER candidate areas",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary (NASA); mission analysis",
+   "limitations": "Nine areas in one item; no coordinates in notes.",
+   "sources": [
+    "https://ntrs.nasa.gov/api/citations/20220008301/downloads/2022-06-02-spaceops-viper-planning.pdf"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "viper_working_days_by_area"
+   },
+   "properties": {
+    "study": "Shirley and Balaban 2022 (VIPER mission planning)",
+    "year": 2022,
+    "data": "LOLA 20 m DEM, 6-month 2023-24 analysis",
+    "dem_resolution_m": 20,
+    "working_days_available": {
+     "Nobile": 45,
+     "Haworth Lower": 20,
+     "Haworth Upper": 12,
+     "de Gerlache": 12,
+     "Slater Upper": 10,
+     "Slater": 8,
+     "Shackleton Ridge": 7,
+     "Shoemaker": 7,
+     "Cabeus": 5
+    },
+    "metric_note": "days on which solar/comm constraints allow rover work",
+    "earth_visibility_pct": null
+   }
+  },
+  {
+   "id": "lemelin21_illum_near_psr",
+   "name": "Illumination within 1/5/10 km of priority PSR boundaries",
+   "category": "illumination_region_or_statistic",
+   "geometry": null,
+   "frame": null,
+   "location_note": null,
+   "evidence": "primary",
+   "limitations": "Cross-reference item; values held in psr_and_ice.json.",
+   "sources": [
+    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
+   ],
+   "origin": {
+    "file": "illumination_sites.json",
+    "id": "lemelin21_illum_near_psr"
+   },
+   "properties": {
+    "study": "Lemelin et al. 2021 (PSJ)",
+    "year": 2021,
+    "avg_illumination_pct": "see psr_and_ice.json (fields illum_pct_within_1_5_10_km)",
+    "earth_visibility_pct": null
+   }
+  }
+ ]
+}

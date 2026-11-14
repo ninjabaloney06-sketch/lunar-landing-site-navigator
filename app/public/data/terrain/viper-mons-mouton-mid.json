@@ -1,0 +1,16 @@
+{
+ "site_id": "viper-mons-mouton",
+ "level": "mid",
+ "size": 301,
+ "spacing_m": 400.0,
+ "order": "row-major; row 0 = north edge; col 0 = west edge",
+ "height_ref": "metres relative to the site's ground height",
+ "ground_m": 6417.17,
+ "height_scale_m": 0.5,
+ "nodata": -32768,
+ "illum_png": null,
+ "illum_map": null,
+ "illum_res_m": null,
+ "dem": "LDEM_80S_20MPP_ADJ.TIF",
+ "resampling": "400 m box means of the 20 m DEM"
+}

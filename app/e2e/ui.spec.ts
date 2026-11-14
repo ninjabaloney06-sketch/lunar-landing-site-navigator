@@ -344,14 +344,15 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
 // ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details) ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 4 controls, main screen 5, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 4 controls, main screen 7, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
     await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(4)
-    // 4 in the header + the footer's "how this is computed"; the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
+    // 4 in the header + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is
+    // computed"; the answer line is text, not a control.
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
@@ -409,6 +410,24 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   // All stations selected is the default and leaves `st` out of the link.
   if (sel.length === all.length) await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('st=')
   else await expect.poll(() => page.evaluate(() => location.hash)).toContain(`st=${sel.join(',')}`)
+})
+
+test('the drawer\'s "Terms of use" link opens the approved terms next to the sources', async ({ page }) => {
+  await page.goto(`${DEMO}&drawer=details`)
+  const drawer = page.getByTestId('drawer')
+  await expect(drawer).toBeVisible()
+  const link = drawer.getByRole('button', { name: 'Terms of use' })
+  await expect(link).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByTestId('terms')).toHaveCount(0)
+  await link.click()
+  const terms = page.getByTestId('terms')
+  await expect(link).toHaveAttribute('aria-expanded', 'true')
+  await expect(terms.getByRole('heading', { name: 'Terms of use' })).toBeVisible()
+  await expect(terms).toContainText('This app is not made, endorsed or reviewed by NASA or ESA.')
+  await expect(terms).toContainText('Team SFZ | MEXG, via the NASA Space Apps Challenge 2026 project page.')
+  await expect(terms).toBeInViewport()
+  await link.click()
+  await expect(page.getByTestId('terms')).toHaveCount(0)
 })
 
 // ---------- Mission layer (Brief C3) ----------
@@ -573,9 +592,9 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 4 controls and the main screen 5.
+  // The warning is text, not a control: the header still has 4 controls and the main screen 7.
   await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(4)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)

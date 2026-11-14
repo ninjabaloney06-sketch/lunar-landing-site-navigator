@@ -31,7 +31,7 @@ A device agent states which machine it is on (`data computer`, `Isaac's laptop`,
 
 - Log each AI task or session whose output is used in the project in `docs/event/ai-use-log.md`, using [the AI-use log template](docs/event/ai-use-log-template.md). If the log does not exist, create it from the template. Record local time, tool and account owner, operator, task/files, where the output is used, human checker, errors or rejected output, and the prompt: what the human asked, quoted or shortened to one sentence (for a subagent or a pasted brief, the name of the brief). A row without the prompt is incomplete; an agent that does not know the prompt writes `not recorded` and says so in its final message. Write `none` when no human has checked it; do not invent missing details. Update the entry when a human check happens. Coordinate shared log edits so agents do not write the file simultaneously; if it is occupied, hand the entry to the log owner.
 - Tick the box in TASKS.md only for `[AI]` tasks that are fully done and verified (tests pass, output exists).
-- Add one line to [BUILD_LOG.md](BUILD_LOG.md). No line = not done.
+- Add one line to [BUILD_LOG.md](BUILD_LOG.md). No line = not done. The line starts with the exact local date and time the work finished (`YYYY-MM-DD HH:MM`, Europe/Berlin, 24 h, from the device clock). A deploy, merge or submission records the time from its source of truth (Cloudflare deployment `Created`, merge commit time, submission time) and its identifier (commit hash, Worker version ID, PR number). Never round or estimate a time; if it is unknown, write `time not recorded`.
 - Commit with a clear message; push to `main`. Commit email must be the account's noreply address (check `git config user.email`).
 
 ## Where things go

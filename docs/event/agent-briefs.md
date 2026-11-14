@@ -425,3 +425,93 @@ RESOURCE LOCK: must not run while any other agent edits app/src/views/, app/src/
 
 FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; list of visible strings added; differences from the plan; BUILD_LOG line and ai-use-log row (with its prompt cell); open items for Leo (numbers, slope baseline), Bene (look), ninja (wording).
 ```
+
+## Step 2-View — Free-look camera, viewpoints, user points, Simulate (Brief C4, written 14 Nov 16:20)
+
+Requested by ninja on 14 Nov. Replaces the pasted prompt "Implement the interactive 3D viewer and complete overlay UI", which was researched at `ccbdc1a` and is stale: it calls the scene a stub and the geometry unfinished, and both are merged. Only the parts below are still unbuilt. This is a 5C optional enhancement: it merges only if every done-check is green with time to verify before the freeze (Sun 15 Nov 12:00); otherwise the branch stays unmerged.
+
+### Brief C4 — paste into a fresh Claude Code session (Opus 5.5, L3; Bene checks the look, ninja approves wording, Leo the scene checks)
+
+```text
+Repo: /Users/Guest123/Documents/clps-lunar-mission-browser (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main, state when this brief was written: 2dc2ef1, 14 Nov 16:03). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md "Shared preamble", "Brief C1", "Brief C2" and this section; docs/event/spec.md (UX-01–05); docs/event/build-plan.md §5.4 (scene, T14–T17); app/src/scene3d/README.md; then the code you will change: app/src/scene3d/index.ts, debug.ts, globe.ts, sky.ts, app/src/state.ts, app/src/App.tsx, app/src/views/SceneView.tsx, MissionPanel.tsx, Timeline.tsx, Drawer.tsx. Run `git log --oneline -15` and `git status` and work from what is there, not from the SHA above.
+
+TASK: four additions to the existing app, in this order, each committed separately on branch `track-c4` in your own worktree (`git worktree add ../clps-wt/c4 -b track-c4 main`). Stop after any part if the next one cannot finish with green checks; a finished part 1 alone is a valid result.
+1. Camera controls (app/src/scene3d/).
+2. Viewpoints and the Sun–Earth–Moon top view (app/src/scene3d/, a View menu in app/src/views/).
+3. User points (state.ts, MissionPanel.tsx, scene markers).
+4. Simulate / Pause control and playback speed (App.tsx, Timeline.tsx, Drawer.tsx).
+
+ALREADY DONE — do not rebuild (main 2dc2ef1): the scene (globe, site, eye levels; nested terrain levels 20 m / 80 m / 400 m / 2 km, merged 90bf054; sky with q_me_to_j2000; debug API `window.__scene` in debug.ts); geometry (interpolate, computeSeries, coverage, windows, summarize, answerState, finder in app/src/geometry/index.ts; answerSentence.ts; rankSites.ts); the screen (mission header and panel, date menu, "Find better dates" wired to finder(), Light and Comms timeline, Details drawer with stations, finder thresholds, sources and Terms of use, Compare, HorizonStrip as the non-WebGL fallback); fonts (Newsreader, IBM Plex Sans, IBM Plex Mono via @fontsource); textures and terrain in app/public/data/; ephemeris for all 50 months 2026-11 … 2030-12 in app/public/data/ephem/; hash-state links (state.ts parseHash/serializeHash); Playwright specs app/e2e/scene.spec.ts (T14, T16, T17, T18) and app/e2e/ui.spec.ts. There is no active orchestrator and no other open track; main is the only branch.
+
+WHAT EXISTS THAT YOU EXTEND:
+- Camera: two OrbitControls in scene3d/index.ts (siteControls on siteCam in metres, globeControls on globeCam in km, pan off). Left-drag orbits; at eye level the distance is pinned to 0.01 so the drag turns the view. Levels: 'globe' | 'site' | 'eye' (SceneLevel), switched by setLevel with a fly transition. The scene binds no keys: App.tsx maps E / Esc.
+- SceneHandle today: ready, update(frame), setLevel, project('sun'|'earth'|'site'), onCameraChange, onPick(lat, lon), dispose. onPick fires on a globe click that moved < 5 px; App.tsx uses it to select a site when the click lands on a pin.
+- Points: state.ts has `UserPoint { lat, lon }` and `HashState.pts`, serialized as `pts=lat,lon;lat,lon` with 4 decimals. MissionPanel.tsx lists them disabled under "Your points", its add button is disabled, and valid typed coordinates answer "adding points is coming after terrain checks." Nothing adds a point yet.
+- Playback: App.tsx `playing` state advances the cursor one 30-minute step every 50 ms by setTimeout; Space toggles it; "Play mission" in the panel starts it at eye level. There is no visible Play control next to the timeline.
+
+PART 1 — camera controls.
+- Middle-button hold and drag: turn the viewing direction around the camera's current position (look around; the camera does not move and does not orbit the site). All three levels.
+- Wheel: smooth dolly along the viewing direction, speed proportional to the distance to the nearest surface (Moon surface in the space scene, terrain in the surface scene), with a floor at 1.75 m above terrain (OBSERVER_HEIGHT_M) and no passing through the Moon. Keep the existing min/max distances as the outer limits.
+- Left-drag keeps today's behaviour, so touch and the existing tests keep working.
+- preventDefault on wheel, auxclick and contextmenu only on the canvas, never on the page.
+- Camera movement never changes hs.site, hs.t or any other scientific selection.
+
+PART 2 — viewpoints.
+- Right-click on the canvas opens a custom menu with exactly these entries, in this order: Add point here · Moon · Point start · Point end · Earth · Sun · Solar system — top view (ninja, 14 Nov 16:30: right-click also places a point). "Add point here" adds a user point (part 3) at the lat/lon under the pointer and is disabled when the pointer is not on the Moon; until part 3 exists it is left out. The six viewpoint entries are reachable by keyboard and touch through one compact "View" button on the scene. Point entries are disabled until a point holds that role.
+- Moon, Earth, Sun: fly to a viewpoint outside the body with the body framed; never place the camera inside a body. Point start / Point end: fly to that point's lat/lon at 1.75 m above terrain where a terrain tile covers it, otherwise above the globe surface at that lat/lon.
+- Top view: Sun, Earth and Moon in one frame, looking down the Moon's +z axis (MOON_ME north; state this in the Details text). Distances cannot be to scale on one screen: compress them, and show "Not to scale" on the view while it is active. Directions between the bodies stay the computed ones.
+- Additive SceneHandle change only (for example `goTo(viewpoint)` and `setMarkers(points)`); mountScene, SceneFrame, SceneDeps and every existing member keep their signatures.
+- When the camera is anywhere but the selected site's eye level, the Sun/Earth labels and the answer still describe the selected site. The exploratory view must not look like a measurement: the answer line keeps naming the site.
+
+PART 3 — user points.
+- Add a point by "Add point here" in the right-click menu, by clicking the globe or terrain where no site pin is hit, or by typing coordinates in the existing field of the Mission panel (replace the "coming after terrain checks" message with the add action; enable the add button).
+- Each point: name (cleanName rules, NAME_MAX), select, delete, and a role: none, Start or End. At most one Start and one End. Start and End are places and viewpoints only: no route, no trajectory, and unrelated to the period's start and end times.
+- Coordinates are planetocentric lat/lon in the Moon body-fixed frame (MOON_ME), as onPick already returns them.
+- Links: extend `pts` additively so that an old link `pts=lat,lon;lat,lon` still parses. Name and role must survive a copied link.
+- A user point has no horizon file. Show the marker and its coordinates and the text "No terrain data for this point" for sunlight and station visibility. Never compute them with a flat horizon and never borrow a nearby site's horizon.
+
+PART 4 — Simulate.
+- One quiet text control beside the timeline: "Simulate" while stopped, "Pause" while running. It drives the existing `playing` state; Space and "Play mission" keep working.
+- Advance by elapsed wall time × speed (requestAnimationFrame or a timer that reads the clock), snapped to the 30-minute grid (STEP_MS), so a throttled tab does not slow the mission clock. Stop at the period's last step, as now.
+- Speed (three or four fixed choices) and "Reset to start" go into the Details drawer, not on the main screen.
+- The screen is a function of hs.t alone. Playing to a time and scrubbing to the same time must give the same answer text, labels and `window.__scene` Sun/Earth az/el.
+
+TRAPS (read before coding):
+1. OrbitControls already owns the buttons you are asked to use: middle = dolly, right = pan, wheel = zoom. Reassign or disable them (mouseButtons, enableZoom) before adding your handlers, or two handlers fight over one gesture. Check the three.js 0.170.0 source in app/node_modules, do not rely on memory.
+2. T14, T16, T17 and T18 in app/e2e/scene.spec.ts drive the camera through debug.ts (placeSite, placeEye, placeGlobe, setFov, setLevelNow). Their assertions and tolerances are not yours to change. If one fails after your change, your change is wrong.
+3. `?test=1` turns damping off for determinism. Every new transition must be instant in test mode, and every new wheel or drag effect must apply in the same frame.
+4. D4 in app/e2e/ui.spec.ts counts controls: header 4, main screen 5, one slider. "Simulate" and "View" make the main screen 7. Update only that count and say so in the report; the header stays 4 and the slider count 1.
+5. Scale: the space scene is Moon-centred in km and globeCam's far plane is 2e5 km. Earth is about 384 000 km away and the Sun about 1.5e8 km. The Earth and Sun viewpoints and the top view need their own camera range; the renderer already uses a logarithmic depth buffer. Check in sky.ts and globe.ts how Sun and Earth are drawn now (direction and angular size from geometry) before adding body meshes, and do not change how they appear from eye level.
+6. No trig, angle triples or hand-written matrices in scene3d/ (scene3d/README.md). Directions go through geometry/ and frames.ts.
+7. hs.pts is restored from a link before sites.json has loaded. A point must never be dropped or renamed by a reload.
+8. Visible strings are approved by ninja. Use exactly the strings quoted in this brief; list every other new string in the report.
+9. Reference images exist only on ninja's Mac, outside git: /Users/Guest123/Downloads/WhatsApp Image 2026-11-13 at 12.21.47.jpeg (full screen), /Users/Guest123/Downloads/lunar-site-navigator-mockup-v4.png (scene), /Users/Guest123/Downloads/lunar-site-navigator-mockup-v4-site-menu.png (menu). Open them if they exist; never add them to git. The numbers and terrain in them are invented.
+
+OUT OF SCOPE: other planets, spacecraft trajectories, rover routes, route optimisation; any change to app/src/geometry/, scripts/ or app/public/data/; new downloads or assets; restyling the existing screen; merging to main; `npm run deploy`.
+
+RESOURCE LOCK: must not run while another agent edits app/src/scene3d/, app/src/views/, app/src/state.ts, app/src/App.tsx or app/e2e/. Playwright port: `PW_PORT=5184`.
+
+DONE-CHECKS (paste the output of each into the report; run from the worktree's app/ folder):
+- Before the first edit: `npm test` and `PW_PORT=5184 npx playwright test`; note both pass counts.
+- `npm run build` exits 0.
+- `npm test`: no test removed, all pass.
+- `PW_PORT=5184 npx playwright test`: every earlier test passes; `git diff main -- app/e2e/scene.spec.ts` shows additions only; in ui.spec.ts the only changed assertion is the D4 count.
+- `node ~/.claude/skills/ui/check-slop.mjs app/src` reports nothing new (run from the worktree root).
+- New Playwright tests, one per line: middle-drag changes the view direction and leaves the camera position within 1e-6; wheel moves the camera along the view direction and stops at the floor; right-click opens the menu with the seven entries in order and the browser's own menu does not appear; "Add point here" adds a point at the clicked lat/lon and is disabled off the Moon; each of the six viewpoints leaves the camera outside every body; the View button reaches the same six by keyboard; a globe click adds a point; typed coordinates add a point; rename, delete, Start and End work and a second Start replaces the first; a copied link restores points with name and role; an old-format `pts=` link still loads; a user point shows "No terrain data for this point" and no number; Simulate reaches a time T and a fresh page opened at T shows the same answer text and the same sunAzEl/earthAzEl; site, period, cursor and stations in the hash are unchanged after every camera action; no horizontal scroll at 1600 × 1000, 1440 × 900 and 375 × 812.
+- Screenshots at those three sizes of: main view, Mission panel with two points, top view, Point start viewpoint. Read each one yourself and compare with the reference images where they exist.
+
+ABORT: if T14–T18 cannot be kept green, or part 1 is not green by Sun 15 Nov 09:00, stop, leave `track-c4` unmerged and main untouched, and report what is missing.
+
+FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; every visible string added; the D4 count change; the top-view orientation and compression as built; BUILD_LOG line and ai-use-log row (prompt cell: "Brief C4"); open items for Bene (look, control feel), ninja (strings, two more controls on the main screen), Leo (viewpoints do not change eye-level numbers).
+```
+
+### Brief C4 — Addendum (ninja, 14 Nov ~16:45; paste into the running C4 session, or read with the brief)
+
+```text
+Three clarifications from ninja. They replace the conflicting lines of Brief C4 and of the start prompt.
+1. "Walk" (notebook note 6) IS built, as a camera move: at site and eye level, a left-click on the terrain that moved less than 5 px flies the camera to stand on that spot, 1.75 m above the terrain. It is the camera only. hs.site and every number stay those of the selected site, and the answer line keeps naming it. Left-drag is unchanged. In test mode the move is instant.
+2. Because of 1, a left-click no longer adds a user point. Points are added by "Add point here" in the right-click menu or by typed coordinates. A left-click on a site pin on the globe still selects that site, as today.
+3. The right-click menu, including "Add point here", works at every level: on the globe (complete view) and in the zoomed-in site and eye views.
+Tests: replace "a globe click adds a point" with "right-click → Add point here adds a point, on the globe and in the site view", and add "a left-click on terrain moves the camera and leaves site, period, cursor and stations in the hash unchanged".
+"Find better dates" stays in the header.
+```

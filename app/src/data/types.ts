@@ -93,9 +93,19 @@ export interface TerrainMeta {
   illum_res_m: number | null
   illum_crs?: string // terrain_tiles.py: how the map's projection was read (85S label lon_0 overridden)
   dem: string
+  // Optional extra levels (track-terrain, 14 Nov): terrain/<id>-<level>.json/.bin, same grid convention,
+  // Int16 format, nodata and height reference. Absent fields = the 80 m tile alone, rendered as before.
+  level?: 'fine' | 'mid' | 'far' // set on a level file; absent on the 80 m tile
+  levels?: string[] // on the 80 m tile: the level files that exist for this site
+  ground_m?: number // the one reference height (m above 1737.4 km) every level of the site is relative to
+  height_scale_m?: number // metres per Int16 unit (levels: 0.1–1); absent = 1
+  resampling?: string // how a level was sampled from the DEM
+  fill_dem?: string // far level: dataset used outside the polar DEM
+  fill_fraction?: number // far level: share of samples taken from fill_dem
 }
 
 export interface TerrainTile {
   meta: TerrainMeta
   heights: Int16Array
+  levels?: TerrainTile[] // the 80 m tile's extra levels (load.ts), finest first; absent = none
 }
