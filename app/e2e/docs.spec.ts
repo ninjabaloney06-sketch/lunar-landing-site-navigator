@@ -69,3 +69,13 @@ test('a link with drawer=docs opens the documentation; Esc closes it and the sce
   await page.waitForTimeout(700)
   expect(await hash(page)).not.toContain('view=globe')
 })
+
+test('wave 3: points of interest, the layer, the search and this view are described; nothing calls the pins a stub', async ({ page }) => {
+  await openApp(page, `${DEMO}&drawer=docs`)
+  const docs = page.getByTestId('docs')
+  await expect(docs.getByRole('heading', { level: 4, name: 'Points of interest', exact: true })).toHaveCount(1)
+  for (const t of ['Points of interest layer.', 'Search sites.', 'Documentation view.']) await expect(docs.locator('strong', { hasText: t })).toHaveCount(1)
+  await expect(docs).toContainText('206 records, of which 195 lie at or south of 80° S')
+  await expect(docs).toContainText('A point row offers "Show" only')
+  await expect(docs).not.toContainText('stub')
+})
