@@ -51,6 +51,15 @@ beforeAll(async () => {
   cap = await openCap(diskIo().io)
 })
 const site = (id: string) => sites.find((s) => s.id === id) as Site
+/** Does cap.json's tile index of a level list the tile that holds this point? */
+function hasTile(level: string, lat: number, lon: number): boolean {
+  const l = cap.meta.levels.find((v) => v.name === level)
+  if (!l) return false
+  const [x, y] = capXY(lat, lon)
+  const side = l.tile_size * l.spacing_m
+  const tc = Math.floor((x - l.x0_m) / side)
+  return (l.tiles[String(Math.floor((l.y0_m - y) / side))] ?? []).some(([a, b]) => tc >= a && tc <= b)
+}
 
 describe('projection', () => {
   // Reference: pyproj, +proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +R=1737400 (computed 14 Nov 2026).
@@ -156,8 +165,8 @@ describe('capTerrain has the shape and content of a prepared site', () => {
       expect(f.rms).toBeLessThan(Math.abs(dg) + 60)
       expect(mid.meta.cap.source_res_m).toBe(400)
       expect(far.meta.cap.source_res_m).toBe(2000)
-      // Fine exists exactly where the 40 m level does (south of 85.1 S) and states its real spacing.
-      expect(Boolean(fine)).toBe(s.lat < -85.2)
+      // Fine exists exactly where cap.json's 40 m tile index covers the point, and states its real spacing.
+      expect(Boolean(fine)).toBe(hasTile('40', s.lat, s.lon))
       if (fine) {
         expect(fine.meta.spacing_m).toBe(40)
         expect(fine.meta.cap.source_res_m).toBe(40)
@@ -243,7 +252,18 @@ describe('capTerrain has the shape and content of a prepared site', () => {
         `${id}: terrain ${afterTerrain.tiles} tiles ${(afterTerrain.bytes / 1e6).toFixed(2)} MB; with horizon ${stats.tiles} tiles ` +
           `${(stats.bytes / 1e6).toFixed(2)} MB ${JSON.stringify(c.fetchedTiles())}`,
       )
-      expect(stats.tiles).toBeLessThanOrEqual(18)
+      // Upper bound from the grids and cap.json: a rotated square of side L spans at most ceil(L·√2·k / tile) + 1
+      // tiles per axis (k ≤ 1.01: the projection's scale at 80° S).
+      const t = await c.terrain(s.lat, s.lon)
+      const sides: Record<string, number> = { '80': t ? (t.meta.size - 1) * t.meta.spacing_m : 0 }
+      const fine = t?.levels.find((l) => l.meta.level === 'fine')
+      if (fine) sides['40'] = (fine.meta.size - 1) * fine.meta.spacing_m
+      let bound = 0
+      for (const l of c.meta.levels) {
+        const n = Math.ceil(((sides[l.name] ?? 0) * Math.SQRT2 * 1.01) / (l.tile_size * l.spacing_m)) + 1
+        if (sides[l.name]) bound += n * n
+      }
+      expect(stats.tiles).toBeLessThanOrEqual(bound)
     }
     console.log(rows.join('\n'))
   })
@@ -305,7 +325,7 @@ describe('capHorizon against the 18 pipeline horizons', () => {
     expect(h.observer_height_m).toBe(1.75)
     expect(h.ray_max_km).toBe(300)
     expect(h.truncated).toEqual([])
-    expect(h.computed).toMatchObject({ from: 'south-cap raster', site_res_m: 40, near_res_m: 80, far_res_m: 400, approximate: true, validated: false })
+    expect(h.computed).toMatchObject({ from: 'south-cap raster', site_res_m: hasTile('40', s.lat, s.lon) ? 40 : 80, near_res_m: 80, far_res_m: 400, approximate: true, validated: false })
     expect(h.dem).toContain('approximate')
     await expect(cap.horizon(-79, 0)).rejects.toThrow(RangeError)
     await expect(cap.horizon(-90, 0)).rejects.toThrow(RangeError)
