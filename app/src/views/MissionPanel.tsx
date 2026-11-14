@@ -409,7 +409,10 @@ export function MissionPanel(p: Props) {
               <button type="button" className="link" data-testid="add-point" onClick={addTyped}>
                 Add point
               </button>
-            )}{' '}
+            )}
+            <span className="quiet" aria-hidden="true">
+              {' · '}
+            </span>
             {inPinRegion(coords.lat) ? (
               <button
                 type="button"
