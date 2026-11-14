@@ -225,6 +225,33 @@ New follow-through missing from the existing checklist:
 - [ ] `[AI+H]` `L1·Haiku` **S (Leo)** — **Sources for the science goals.** Check the 56 entries in `scripts/site_potential.json` that the ranking reads. For "biology experiments": find a primary source for the conditions such an experiment needs on the lunar surface (temperature range, water, radiation); without it the goal is not offered. The app never claims that anything grows on the Moon.
 - [ ] `[H]` **I + team** — **3-minute walkthrough** (jury: 3 minutes, a walkthrough and our reasoning): the gap in existing tools (27 Oct timed run) → state a mission and a science goal → the ranked sites and why they differ → fly to the site, slope warning, light and station timeline → how the numbers were checked → what comes next. The ≤ 30 s global demo is cut from the same run.
 
+### Competitor review — LunaHorizon (Team Astral, Cumilla), 14 Nov 2026
+
+Reviewed: https://lunahorizon.vercel.app and https://github.com/Mozahid-DIU/LunaHorizon (README, docs/data.md, docs/ai-use.md, six live pages). Same challenge, different local event: they compete with us only at global judging, not for the Heilbronn nomination. Their README states development started 28 Oct with their mentor's approval, so the scope of their build (9 pages, 20 sites, 128 checks) is about 2.5 weeks of work, not a weekend. Do not try to match their breadth.
+
+**What they have that we lack:** a Proof page (128 checks vs JPL Horizons / SPICE, worst difference shown in the header on every page), a one-sentence verdict per page ("Golden for all 14 days"), a slip table (1 / 7 / 30 days later, nearest listed site), a landing-ellipse page (24 points up to 1 km around the target), replays of five real landings against what the teams reported, a printable two-page brief, a limits section in their data document.
+
+**Where they are weak (our openings):** Sun and Earth count as visible when the disc centre is above the skyline, with no margin: their own default demo (Shackleton rim, 29 Dec 2027 21:00 UTC) shows Earth at −0.70° against a skyline of −0.71° and still reports "Golden for all 14 days". Comms is three fixed DSN 70 m dishes, no station selection. Horizons stop at 150 km. No slope, roughness, thermal, PSR or science-value data, so the tool answers "when" but not "where and why". Custom points only south of 65° S. Power model is a made-up example lander. The scope is spread over 9 pages plus chat, classroom and replay.
+
+Rules for the tasks below: none of them replaces or reorders a required gate; the Sun 12:00 freeze holds; each number needs Leo's sign-off like any other.
+
+**Before the freeze — only where the required core has passed**
+
+- [ ] `[AI+H]` `L2·Opus` **S + I** — **Marginal windows.** Decide and state one rule for windows whose clearance above the terrain mask is smaller than the mask's own uncertainty (DEM resolution, 1° azimuth sampling): label them "marginal", do not count them as plain visible. Show the clearance in degrees next to the result. This is the one place where our numbers can be visibly more honest than a centre-above-skyline rule. S sets the threshold and signs it; no new calculation if the clearance is already available from `windows.py`.
+- [ ] `[AI+H]` `L1·Haiku` **D + S** — **Validation visible in the app.** After V1–V5 are signed: one line in the details drawer or header, read from the signed evidence in docs/event/validation.md: number of checks, reference (JPL Horizons), worst difference in degrees, link to the table. Signed checks only; nothing shown as passed that Leo has not signed. Skip if it already exists.
+- [ ] `[AI+H]` `L2·Opus` **I + S** — **Slip rows on the finder result** (extends the 5B finder, not a second finder): for the chosen landing, the same result 1, 7 and 30 days later and at the nearest validated site. This is the challenge's "schedule slipped" user story in one table. Only after V8 and T12 pass.
+- [ ] `[H]` **I + team** — **Positioning in the 3-minute walkthrough and on the project page.** One sentence each, with our own numbers: (1) we rank sites by science goal and show slope, thermal, PSR and access, others show light and comms only; (2) the user picks the ground stations (DSN + ESTRACK), others fix three dishes; (3) how we treat marginal windows. Do not name or attack another team; state what ours does.
+- [ ] `[AI]` `L1·Haiku` — **Limits section** in the technical documentation (extends the 6A documentation task): a plain list of what is not modelled and at which resolution each result holds, written like their docs/data.md §6. Judges read stated limits as rigour.
+
+**Phase 7 — only if the continuation decision is CONTINUE (nominated for global judging)**
+
+- [ ] `[AI+H]` `L3·Opus` **S + I** — **Replay of real south-pole landings as validation:** IM-1, IM-2 and Chandrayaan-3 from touchdown, engine result beside what the mission teams reported (end of operations, sunset, loss of contact), every reported fact with a primary source. Replaces the cut "historic landers" breadth item with a validation use.
+- [ ] `[AI+H]` `L3·Opus` **S** — **Landing dispersion:** score the target plus sample points 100 m, 500 m and 1 km around it, each with its own horizon; show best, worst and spread instead of a single-point answer.
+- [ ] `[AI+H]` `L2·Opus` **S** — **Horizon range check:** compare 150 km and 300 km ray lengths at three polar sites and record the largest skyline difference in docs/event/validation.md; state the range we use and why.
+- [ ] `[AI+H]` `L2·Opus` **D + I** — **Mission brief export:** one printable page for a site and period (ranking reason, light and station timeline, slope and thermal values, sources, limits) with a link back to the same view.
+- [ ] `[AI+H]` `L2·Opus` **D + I** — **Educator mode** (the challenge names educators as users): a short explanation and one question per view, answered from the engine's numbers; builds on the glossary.
+- [ ] `[AI]` `L1·Haiku` — **AI-use log columns:** give every entry "what we asked / what it produced / how we verified it", as their docs/ai-use.md does; ours already logs entries, add the verification column where it is missing.
+
 ## Phase 5 — Sunday: complete, validate and release (resume 01:00 as available; final sprint 07:30 → 12:00)
 
 **Entry:** I reviews Q's branch reports at the agreed handoff; retain existing owners and S's sign-off gates. Overnight outputs are not automatically accepted. Phase-4 prerequisites and required assessments must be complete before final acceptance; independent remaining work can continue alongside them. This phase finishes existing work, not a second implementation of Saturday's core.
