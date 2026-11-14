@@ -259,7 +259,7 @@ utc                             goldstone                 madrid               c
 
 ## Mandatory site assessments — method and evidence (AI, not validated)
 
-Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 143 KB; full run 6.5-11.6 s including one memmap pass over the 605 MB Diviner table). **Not validated by S; code not checked by Q.** Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
+Claude Code (Opus 5.5), 14 Nov 2026, branch `claude/track-d-cf38ff`. Code `scripts/assessments.py`, tests `scripts/tests/test_assessments.py`, output `app/public/data/assessments.json` (18 sites, 143 KB; full run 6.5-11.6 s including one memmap pass over the 605 MB Diviner table). **Sign-off (as reported by ninja, 14 Nov 2026 ~15:25): Otto (Q) reviewed all the code and Leo (S) accepted the numbers, at commit `6650ed1`.** No written sign-off by S or Q is in the repo; later commits changed only tests, documentation and citation text (all 942 numeric values in `assessments.json` unchanged). Thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria (ninja), not NASA or vehicle limits.
 
 ### Data and method
 
@@ -322,13 +322,15 @@ The 20 m reading reproduces all three. The 5 m product differs from the 20 m pro
 
 ### Open for Leo (S) and Otto (Q)
 
+Leo accepted the numbers computed with these choices (ninja, 14 Nov); the choices themselves are not recorded here as separately decided.
+
 1. Landing area radius (100 m) and pass rule (all pixels ≤ 5° vs a percentile or % ≤ 5°), and the slope baseline (2 px vs 100 m).
 2. Minimum zero-visibility cluster area (0.1 km²) and 50 km search radius.
 3. Whether RMS height from a plane at DEM scale is acceptable as the roughness measure.
 4. The lon_0 = 0 reading of the 60 m / 240 m Sun-visibility maps (above).
 5. Use of the 5 m LOLA GDR for 7 sites given the Site04 difference (above).
 6. Site04 boulder statement matched by site number ("site 004") — confirm it is the Data Book Site04.
-7. Thermal: the Site04 annual maximum and the Cabeus edge case (below, both checked by AI, not validated), and whether annual mean/max without a minimum is enough for the thermal requirement.
+7. Thermal: whether annual mean/max without a minimum is enough for the thermal requirement.
 
 ### Thermal: Diviner Polar Resource Product (used)
 
@@ -355,20 +357,18 @@ File `diviner/dlre_prp_south.tab` (604,800,210 bytes, SHA-256 `393deaa5…a62d`;
 | im-2-intended | 138.07 | 239.06 | sourced | 0.149 |
 | viper-mons-mouton | 105.3 | 214.3 | sourced | 0.104 |
 
-**Reference-point check** (replaces the earlier "Site04 must be colder" check, which assumed a shadowed floor). The sourced coordinates are given to 0.01° (about 0.3 km in latitude) and the triangles are about 0.4 km across, so one triangle is not a fair comparison. Rule: the sourced value (± half its last digit) must lie within the product's `temp_max` range over triangles whose centre is within 0.5 km of the stated coordinate. Pytest `test_prp_reference_points` (skips without the file). Sourced T_max values: McClanahan et al. ([arXiv 2303.03911](https://www.arxiv.org/pdf/2303.03911)) via `psr_and_ice.json`; the paper's own Diviner product was not checked (its PDF was not downloaded).
+**Reference-point check** (replaces the earlier "Site04 must be colder" check, which assumed a shadowed floor). Reference: McClanahan et al. 2024, PSJ 5:217 ([arXiv 2303.03911v5](https://arxiv.org/abs/2303.03911), PDF read 14 Nov with ninja's approval, SHA-256 `7d547ab1…6f4c`, not stored in the repo), Table 1 column 6: "maximum temperature at the maximum suppression location", taken from the Diviner maximum-temperature map (Paige et al. 2010b, the same model basis as the PRP) on the paper's 2 km × 2 km pixels. Like-for-like comparison: mean product `temp_max` over triangle centres in a 2 km × 2 km box centred on the Table 1 coordinate. Pytest `test_prp_reference_points` (skips without the file).
 
-| Reference point (coordinate) | Sourced T_max | Containing triangle | Range within 0.5 km (n) | Passes | Longitude + 180°, range within 0.5 km |
+| Table 1 location | Table 1 max temp | Product, 2 km box centred (n) | Any 2 km box containing the point | Containing triangle | Longitude + 180° |
 |---|---|---|---|---|---|
-| Haworth LEND maximum (−87.28, 4.31) | 60.3 K | 60.0 K | 50.0–66.7 K (7) | yes | 203.5–222.3 K |
-| Shoemaker LEND maximum (−87.98, 43.67) | 59 K | 60.7 K | 58.0–60.8 K (6) | yes | 159.7–229.5 K |
-| Faustini LEND maximum (−86.92, 81.24) | 73 K | 74.4 K | 69.7–74.8 K (7) | yes | 223.8–251.1 K |
-| Cabeus-1 LEND maximum (−84.35, −48.22) | 78 K | 68.1 K | 68.1–78.0 K (5) | **at the edge only** | 73.8–184.5 K (not discriminating) |
+| Haworth (−87.28, 4.31) | 60 K | 60.3 K (28) | 56.3–63.8 K | 60.0 K | box mean > 200 K |
+| Shoemaker (−87.98, 43.67) | 59 K | 59.3 K (32) | 58.2–60.8 K | 60.7 K | — |
+| Faustini (−86.92, 81.24) | 73 K | 73.0 K (32) | 62.6–80.0 K | 74.4 K | — |
+| Cabeus-1 (−84.35, −48.22) | 78 K | 75.1 K (28) | 68.3–84.2 K | 68.1 K | — |
 
-Other context points: Shackleton floor (−89.66, 129.2, point chosen by AI) 85.2 K vs ~88–90 K (`hazards_and_science.json` thermal_extremes, secondary sources); Haworth PSR (Lemelin 2021 coordinate) 60.8 K max / 39.7 K mean vs a PSR-wide max 128 K / mean 42 K (area vs point; consistent, not like-for-like).
+**Cabeus resolved.** The earlier 68.1 vs 78 K came from comparing one ~0.4 km triangle with a 2 km pixel value. On the paper's scale Haworth, Shoemaker and Faustini agree within 0.3 K. Cabeus-1 is 2.9 K off for a centred box and within range for the 2 km boxes that contain the point; the paper's grid alignment is not stated in the text, and Cabeus has the steepest temperature gradient of the four (65.5–86.3 K within 1 km), so the residual is a grid-alignment effect, not a pipeline error. Other context: Shackleton floor (−89.66, 129.2, point chosen by AI) 85.2 K vs ~88–90 K (`hazards_and_science.json`, secondary sources). Citation note: the paper's reference list gives Paige et al. 2010b as Science 330(6003), 479; the PDS catalogue prpds.cat prints "497".
 
-**Cabeus, resolved as a precision effect, not a pipeline error:** within 1 km of the stated coordinate the product spans 65.5–86.3 K (median 75.4 K, 22 triangles) and a 78.0 K triangle lies 0.17 km away, so the 10 K gap at the single containing triangle comes from a steep temperature gradient plus 0.01° coordinate rounding. Cabeus passes only at the edge of the range and its flipped-longitude control also passes, so it is weak evidence either way; the georeferencing evidence rests on Haworth, Shoemaker and Faustini, whose flipped controls fail by more than 85 K.
-
-**Site04 check (AI plausibility check, for Leo to confirm).** Annual maximum 319.6 K, annual mean 112.5 K. All 57 triangle centres within 1.5 km have temp_max 82–332 K (median 315 K), so it is not a single-triangle outlier. Independent bound (pytest `test_site04_hot_wall_is_physically_plausible`): a plane fitted to the DEM over the triangle's footprint (radius 220 m), SPICE Sun directions every 2 h over 2009-09-15 to 2010-09-14 (approximating the label's "first year of mapping"), the site's horizon mask from Track B, and radiative equilibrium T = (S (1 − A) cos i / (ε σ))^¼ with S = 1361 W/m², A = 0.12, ε = 0.95 (typical values, AI choice; not fitted):
+**Site04 check (AI plausibility check; numbers accepted by Leo).** Annual maximum 319.6 K, annual mean 112.5 K. All 57 triangle centres within 1.5 km have temp_max 82–332 K (median 315 K), so it is not a single-triangle outlier. Independent bound (pytest `test_site04_hot_wall_is_physically_plausible`): a plane fitted to the DEM over the triangle's footprint (radius 220 m), SPICE Sun directions every 2 h over 2009-09-15 to 2010-09-14 (approximating the label's "first year of mapping"), the site's horizon mask from Track B, and radiative equilibrium T = (S (1 − A) cos i / (ε σ))^¼ with S = 1361 W/m², A = 0.12, ε = 0.95 (typical values, AI choice; not fitted):
 
 | Site | Plane slope / facing | Lit (horizon mask) | max cos i | Equilibrium bound | Product temp_max |
 |---|---|---|---|---|---|

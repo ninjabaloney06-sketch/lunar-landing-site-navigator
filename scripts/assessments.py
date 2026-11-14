@@ -516,7 +516,7 @@ DIVINER_TERMS = (
     "cite the product as below")
 DIVINER_CITATION = ("Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, "
                     "LRO-L-DLRE-5-PRP-V2.0, 2018 (citation as given in the PDS catalogue prpds.cat); "
-                    "method: Paige et al. 2010, Science 330 (cited in prpds.cat as p. 497)")
+                    "method: Paige et al. 2010, Science 330(6003), 479 (prpds.cat prints p. 497)")
 PRP_CANDIDATE_KM = 3.0         # triangle centres searched for the containing triangle
 PRP_FIELDS = ("tri1_x", "tri1_y", "tri1_z", "tri2_x", "tri2_y", "tri2_z", "tri3_x", "tri3_y", "tri3_z",
               "tri_clon", "tri_clat", "temp_avg", "temp_max")
@@ -600,7 +600,8 @@ SITE_THERMAL_NOTES = {
         "for 2009-09-15..2010-09-14 and this site's horizon mask it is lit 10.2 % of the time "
         "(Sun-visibility map: 0.11) and the best incidence gives cos(i) = 0.554, a radiative "
         "equilibrium of 333 K (albedo 0.12, emissivity 0.95, 1361 W/m2). A sunward wall can be "
-        "hot at its annual maximum while cold on average; for Leo to confirm.",
+        "hot at its annual maximum while cold on average. Numbers accepted by Leo (S), 14 Nov 2026, "
+        "as reported by ninja.",
     ],
 }
 
@@ -751,8 +752,9 @@ def build(root=None, sites=None):
                       "note": "triangle mesh, 2,880,000 triangles, square to 80 S"})
     meta = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "generator": "scripts/assessments.py (AI-built, not validated by S; code not checked by Q)",
-        "validation_status": "not validated",
+        "generator": "scripts/assessments.py (AI-built)",
+        "validation_status": ("code reviewed by Otto (Q) and numbers accepted by Leo (S), 14 Nov 2026, "
+                              "as reported by ninja for commit 6650ed1; no written sign-off in the repo"),
         "frame": "MOON_ME planetocentric, east-positive longitude, sphere R = 1737.4 km",
         "files": files,
         "thresholds": {

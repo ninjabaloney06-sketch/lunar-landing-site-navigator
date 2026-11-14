@@ -255,35 +255,40 @@ def test_prp_missing_table_is_unknown():
 PRP_TAB = Path(__import__("os").environ.get("CLPS_DATA", "/nonexistent")) / A.DIVINER_TAB
 
 
-REFERENCE_POINTS = [  # (name, lat, lon, sourced temp_max K, half of its last digit); psr_and_ice.json
-    ("Cabeus-1 LEND maximum", -84.35, -48.22, 78.0, 0.5),
-    ("Haworth LEND maximum", -87.28, 4.31, 60.3, 0.05),
-    ("Shoemaker LEND maximum", -87.98, 43.67, 59.0, 0.5),
-    ("Faustini LEND maximum", -86.92, 81.24, 73.0, 0.5),
+REFERENCE_POINTS = [  # McClanahan et al. 2024, PSJ 5:217, Table 1: Diviner max temperature (Paige et al.
+    # 2010b map) at the maximum-suppression location, on the paper's 2 km x 2 km pixels; (name, lat, lon, K)
+    ("Cabeus-1", -84.35, -48.22, 78.0),
+    ("Haworth", -87.28, 4.31, 60.0),
+    ("Shoemaker", -87.98, 43.67, 59.0),
+    ("Faustini", -86.92, 81.24, 73.0),
 ]
-REF_RADIUS_KM = 0.5  # coordinates given to 0.01 deg (~0.3 km in latitude) plus about half a triangle
 
 
 @pytest.mark.skipif(not PRP_TAB.exists(), reason="needs CLPS_DATA/diviner/dlre_prp_south.tab")
 def test_prp_reference_points():
-    """Sourced Diviner T_max (McClanahan et al., arXiv 2303.03911) lies within the product's range
-    over triangles within the coordinate's precision; the Haworth control fails with longitude + 180."""
+    """Mean product temp_max over a 2 km x 2 km box centred on each Table 1 location matches the
+    paper within 1 K (Haworth, Shoemaker, Faustini); Cabeus-1 lies within the range of 2 km boxes
+    that contain the point (grid alignment unknown). Haworth with longitude + 180 does not match."""
     prp = A.PRPMesh.from_files(PRP_TAB)
     tmax = prp.column("temp_max")
+    crs = CRS(A.DEM_CRS)
+    tr = Transformer.from_crs(crs.geodetic_crs, crs, always_xy=True)
+    X, Y = (np.asarray(v) for v in tr.transform(prp.column("tri_clon"), prp.column("tri_clat")))
 
-    def rng(lat, lon):
-        d = A.R_KM * np.arctan2(np.linalg.norm(np.cross(prp.centre, A.unit(lat, lon)), axis=-1),
-                                    prp.centre @ A.unit(lat, lon))
-        v = tmax[d <= REF_RADIUS_KM]
-        return v.min(), v.max()
+    def box_mean(lat, lon, dx=0.0, dy=0.0):
+        x, y = tr.transform(lon, lat)
+        w = (np.abs(X - x - dx) <= 1000) & (np.abs(Y - y - dy) <= 1000)
+        return tmax[w].mean()
 
-    for name, lat, lon, ref, half in REFERENCE_POINTS:
-        lo, hi = rng(lat, lon)
-        assert lo - half <= ref <= hi + half, (name, lo, hi, ref)
-    for _, lat, lon, ref, half in REFERENCE_POINTS:   # longitude + 180 control, printed for the record
-        print("flipped", lat, lon, ref, rng(lat, lon + 180 if lon < 0 else lon - 180))
-    lo, hi = rng(-87.28, 4.31 - 180)                     # discriminating control: Haworth flipped is warm
-    assert lo > 60.3 + 50
+    for name, lat, lon, ref in REFERENCE_POINTS:
+        if name == "Cabeus-1":
+            shifts = np.linspace(-900, 900, 7)
+            means = [box_mean(lat, lon, dx, dy) for dx in shifts for dy in shifts]
+            assert min(means) <= ref <= max(means), (name, min(means), max(means))
+            assert abs(box_mean(lat, lon) - ref) < 4.0
+        else:
+            assert abs(box_mean(lat, lon) - ref) < 1.0, (name, box_mean(lat, lon), ref)
+    assert box_mean(-87.28, 4.31 - 180) > 60.0 + 50
     i = prp.lookup(-89.66, 129.2, 0.1)["containing_idx"]           # Shackleton floor, ~88-90 K (secondary)
     assert prp.column("temp_max", [i])[0] < 100.0
 
