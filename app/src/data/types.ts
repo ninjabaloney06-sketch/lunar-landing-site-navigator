@@ -67,7 +67,7 @@ export interface Period {
 export interface Station {
   id: string
   name: string
-  network: 'DSN' | 'ESTRACK'
+  network: 'DSN' | 'ESTRACK' | 'JAXA'
   complex: string
   lat_deg: number
   lon_deg: number // east-positive
