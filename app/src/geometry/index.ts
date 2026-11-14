@@ -345,7 +345,7 @@ export interface Series {
   endMs: number
   stepMin: number
   samples: Sample[]
-  months?: EphemMonth[] // set by computeSeries; lets windows() bisect edges to ±1 min
+  months?: EphemMonth[] // set by computeSeries; lets windows() scan at 1 min (5 min > 31 d) and bisect edges to ±10 s
 }
 
 function discOf(c: SiteCtx, body_km: Vec3, radius_km: number) {

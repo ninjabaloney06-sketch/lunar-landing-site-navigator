@@ -163,11 +163,10 @@ def test_csv_round_trip(tmp_path):
     assert len(data) == 1 and set(data[0]) == STATION_KEYS
 
 
-def test_shipped_stations_json_rows_are_sourced_or_marked_synthetic():
+def test_shipped_stations_json_is_generated_from_stations_csv():
     rows = json.loads((APP_DATA / "stations.json").read_text())
     assert rows
+    assert rows == st_mod.load_csv(), "stations.json is stale: run python3 scripts/stations.py"
     for r in rows:
-        if "SYNTHETIC" in r.get("_note", "") + r.get("source_label", ""):
-            continue  # pre-pipeline sample; replaced once scripts/stations.csv is merged
-        assert set(r) == STATION_KEYS
+        assert set(r) == STATION_KEYS and "SYNTHETIC" not in json.dumps(r)
         assert r["source_url"].startswith("https://") and isinstance(r["min_elev_deg"], float)
