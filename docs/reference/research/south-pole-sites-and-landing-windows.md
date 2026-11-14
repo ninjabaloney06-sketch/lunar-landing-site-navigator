@@ -39,7 +39,7 @@ Research date is 14 November 2026. Coordinates are decimal degrees, latitude neg
 | Mission | Status | Date | Profile | Source |
 |---|---|---|---|---|
 | Artemis I | FLOWN | Launch 16 Nov 2022 06:47:44 UTC, 25 days | Uncrewed, distant retrograde orbit | [WP-ART] **[secondary]** |
-| Artemis II | FLOWN | Launch 1 Apr 2026 22:35:12 UTC; splashdown 10 Apr 2026 8:07 pm ET off San Diego | Crewed free-return flyby; 695,081 miles; re-entry 24,664 mph | [WP-ART] **[secondary]**; [Space.com, Apr 2026](https://www.space.com/space-exploration/artemis/artemis-2-astronauts-return-to-earth-ending-historic-moon-mission/amp/) |
+| Artemis II | FLOWN | Launch 1 Apr 2026 22:35:12 UTC; splashdown 10 Apr 2026 8:07 pm ET off San Diego | Crewed free-return flyby; 695,081 miles (NASA's official figure); re-entry 24,664 mph | [NASA release, 10 Apr 2026, updated 7 May 2026](https://www.nasa.gov/news-release/nasa-welcomes-record-setting-artemis-ii-moonfarers-back-to-earth/); [WP-ART] **[secondary]**; [Space.com, Apr 2026](https://www.space.com/space-exploration/artemis/artemis-2-astronauts-return-to-earth-ending-historic-moon-mission/amp/) |
 | Artemis III | PLANNED, LEO test | 2027 | Orion on SLS Block 1 to about 230 nmi (430 km), 33 deg inclination; day 3 docking with Blue Moon vehicle, day 8 docking with Starship for about 2 hours | [PAYLOAD-Oct26]; [SPOL-Oct26]; orbit from [WP-A3] **[secondary]** |
 | Artemis IV | PLANNED, first landing | 2028 | Four crew on Orion/SLS, two land | [NASA-Oct26] |
 | Artemis V | PLANNED, second landing | Late 2028 | Start of base build-up | [WP-ART] **[secondary]** |
@@ -201,7 +201,7 @@ Wueller et al. 2026 list 130 candidate landing sites inside the Artemis regions 
 
 | Planned mission | Target | Coordinates | Latest date found | Notes | Source |
 |---|---|---|---|---|---|
-| Moon Base I, Blue Moon MK1 "Endurance" | Shackleton Connecting Ridge | not published | NET Q1 2027 per listings; another source says no earlier than second half of 2027 (was NET fall 2026, SUPERSEDED) | SCALPSS plume cameras and LRA retroreflectors; precision landing within 100 m | [WP-BMP] **[secondary]**; [NASA, 4 Aug 2026](https://nasa.gov/missions/moon-base/nasa-provides-updates-on-moon-base-cargo-landers-tech-demonstrations); [MM277] |
+| Moon Base I, Blue Moon MK1 "Endurance" | Shackleton Connecting Ridge | not published | NASA's launch schedule lists **2027** with no month (page updated 21 Oct 2026, [NASA launch schedule](https://www.nasa.gov/event/clps-flight-blue-origins-blue-moon-mark-1/)); listings say NET Q1 2027, a newsletter no earlier than the second half of 2027 (was NET fall 2026, SUPERSEDED) | SCALPSS plume cameras and LRA retroreflectors; precision landing within 100 m | [WP-BMP] **[secondary]**; [NASA, 4 Aug 2026](https://nasa.gov/missions/moon-base/nasa-provides-updates-on-moon-base-cargo-landers-tech-demonstrations); [MM277] |
 | Moon Base II, Griffin Mission One | Nobile crater region | not published | Listing moved from 31 Dec 2026 to 31 Jan 2027 | Astrolab FLIP rover; METAL helium-3 payload | [Lunar Week tracker](https://spacenexus.us/moon/weekly/week-of-2026-11-02) **[secondary]**; [MB-PHASES] |
 | VIPER (CS-7, second MK1) | Mons Mouton, west of Nobile | 2027 site not confirmed | Late 2027; a newsletter judges second half of 2028 more likely | 100-day mission; contingent on the first MK1 landing | [MB-PHASES]; [MM277] |
 | IM-4 | Mons Mouton plateau | not published | 2027 | ESA PROSPECT; two relay satellites | [WP-CLPS] **[secondary]** |
@@ -249,7 +249,7 @@ None of these rankings includes seismic hazard, contamination persistence or SPA
 | Quantity | Value | Evidence | Source |
 |---|---|---|---|
 | Lunar obliquity to the ecliptic | 1.54 deg | ESTABLISHED | [GLAESER18]; [WP-POLE] |
-| Maximum Sun elevation at the pole (disc centre) | 1.54 deg | ESTABLISHED | [GLAESER18] |
+| Maximum Sun elevation at the pole (disc centre) | About 1.54 deg (the obliquity, as Gläser states it); the actual extremes reach about 1.56-1.59 deg (row below; the app's ephemeris 2026-2030 gives subsolar latitude -1.59 to +1.56 deg). Add about 0.27 deg for the upper limb | ESTABLISHED | [GLAESER18]; [BUSSEY10] |
 | Subsolar latitude extremes over 1,000 years of Horizons ephemerides | +/-1.59 deg | ESTABLISHED | [BUSSEY10] |
 | Sun as seen from Shackleton rim | Never more than 1.5 deg above or below the horizon; circles 360 deg | ESTABLISHED | [NASA SVS 4944](https://svs.gsfc.nasa.gov/4944/) |
 | Highest Sun elevation in the Artemis landing regions | 7 deg | ESTABLISHED | [NASA NESC](https://www.nasa.gov/centers-and-facilities/nesc/characterizing-the-visual-experience-of-astronauts-at-the-lunar-south-pole/) |
@@ -260,8 +260,8 @@ None of these rankings includes seismic hazard, contamination persistence or SPA
 | Nodal cycle used for long-run averages | 18.6 years | ESTABLISHED | [PGDA69] |
 | Distance of terrain that can shadow a polar site | Mountains up to 120 km away | ESTABLISHED | [OCHMO] |
 | Horizon structure at a ridge site | Near field about 100 m away (tens of m to 1 km); far field 50-200 km away | ESTABLISHED | [BARKER21] |
-| Shadow length at 1.5-2 deg Sun elevation | About 27 x object height | ESTABLISHED | [OCHMO] |
-| Maximum geometric Sun elevation on a smooth sphere | About (90 - latitude) + 1.54 deg: 3.5 deg at 88 S, 5.5 deg at 86 S, 7.5 deg at 84 S | **[derived]** | consistent with [HLS-OV] |
+| Shadow length at 1.5-2 deg Sun elevation | OCHMO: "about 27 x" object height; geometry (1/tan of the elevation) gives 29 x at 2 deg and 38 x at 1.5 deg, so treat 27 x as a rounded lower value | ESTABLISHED (rule of thumb) | [OCHMO] |
+| Maximum geometric Sun elevation on a smooth sphere | About (90 - |latitude|) + 1.54 deg: 3.5 deg at 88 S, 5.5 deg at 86 S, 7.5 deg at 84 S | **[derived]** | consistent with [HLS-OV] |
 
 No south-polar location is continuously sunlit, lighting differs between adjacent touchdown sites within one sortie, and a few metres of hardware height add sunlight ([WP-SITE]; [IAC22]). The most-lit points are local topographic maxima, in strips several kilometres long but only 20-40 m wide at surface level ([BUSSEY10]; [GLAESER18]).
 
@@ -383,7 +383,7 @@ Percent of each lunar day illuminated from midsummer (day 1) to midwinter (day 7
 
 ### Solstice dates 2024-2040 are researcher-derived, not NASA-published
 
-No NASA or peer-reviewed source lists dated south-polar solstices. The table below was **[derived]** by one researcher from mean lunar-node and solar-longitude formulae (subsolar latitude most negative when the Sun's ecliptic longitude minus the mean ascending node equals 270 degrees), with stated accuracy of about 1-2 days. A second researcher's independent derivation gives dates within two days (for example 16 Nov 2026, 29 Oct 2027, 10 Oct 2028 for midsummer; 9 May 2027 and 19 Apr 2028 for midwinter) with a stated uncertainty of about 5 days. Both rest on textbook constants not sourced in the research (synodic month 29.5306 d, draconic year 346.62 d). **Verify with SPICE sub-solar latitude before use.** The physical check is NASA's own statement: 365.25 - 346.62 = 18.6 days per year earlier, matching "2-3 weeks earlier each year" ([LPSC26]).
+No NASA or peer-reviewed source lists dated south-polar solstices. The table below was **[derived]** by one researcher from mean lunar-node and solar-longitude formulae (subsolar latitude most negative when the Sun's ecliptic longitude minus the mean ascending node equals 270 degrees), with stated accuracy of about 1-2 days. **Check, 14 Nov (repo review): the stated 1-2-day accuracy is too optimistic.** The subsolar latitude in the app's own DE440 ephemeris (`app/public/data/ephem/`, MOON_ME, LT+S), which agrees with the JPL Horizons spot checks, reaches its instantaneous extremes on: south summer 14 Nov 2026 (-1.557 deg), 7 Nov 2027 (-1.552), 4 Oct 2028 (-1.576), 23 Sep 2029 (-1.588), 11 Sep 2030 (-1.540); south winter 27 Apr 2027 (+1.547), 19 Apr 2028 (+1.559), 19 Mar 2029 (+1.524), 10 Mar 2030 (+1.554); first zero crossing (equinox) 11 Feb 2027. A monthly ripple of about 0.04 deg flattens each extreme into a plateau of up to a month, so the derived dates below are smoothed mid-season markers, up to about 10 days from the instantaneous extremes (e.g. derived 30 Oct 2027 vs 7 Nov 2027). **[derived]** A second researcher's independent derivation gives dates within two days (for example 16 Nov 2026, 29 Oct 2027, 10 Oct 2028 for midsummer; 9 May 2027 and 19 Apr 2028 for midwinter) with a stated uncertainty of about 5 days. Both rest on textbook constants not sourced in the research (synodic month 29.5306 d, draconic year 346.62 d). **Verify with SPICE sub-solar latitude before use.** The physical check is NASA's own statement: 365.25 - 346.62 = 18.6 days per year earlier, matching "2-3 weeks earlier each year" ([LPSC26]).
 
 | South-summer solstice (best lighting) | Following equinox | South-winter solstice (worst lighting) | Following equinox |
 |---|---|---|---|
@@ -621,7 +621,7 @@ A sensitivity estimate by the researchers shows why edges are uncertain: a 0.4 m
 | Dataset (year) | Class | Depth and resolution | Finding | Where | Status and conflicts | Source |
 |---|---|---|---|---|---|---|
 | LCROSS impact and spectrometers (2009) | DIRECT | Excavated possibly deeper than 0.7 m; one sample of about 50 m | 155 +/- 12 kg water in view; 5.6 +/- 2.9 wt% in regolith | Cabeus PSR | Single point; depends on excavated-mass estimate | [COLAPRETE10]; [LWIMS] |
-| LRO LAMP on the LCROSS plume | DIRECT (gas) | Plume | About 140 kg H2, equal to 1.4 % initial concentration | Cabeus | Cited within Colaprete | [COLAPRETE10] |
+| LRO LAMP on the LCROSS plume | DIRECT (gas) | Plume | About 140 kg H2, equal to 1.4 % initial concentration | Cabeus | Primary source: Gladstone et al. 2010, Science 330, 472 ([doi:10.1126/science.1186474](https://doi.org/10.1126/science.1186474)); also cited in Colaprete | [COLAPRETE10] |
 | Lunar Prospector neutrons | INDIRECT | 0.8-1 m; footprint about 45 km | About 1.5 +/- 0.8 wt% WEH if confined to PSRs; pixon maps up to about 1 wt% | Cabeus, Shoemaker, Haworth, Faustini | Background-dependent | [ICE-REVIEW]; [Eke et al.](https://arxiv.org/pdf/0810.2478) |
 | Lunar Prospector at Shoemaker; end-of-mission impact 31 Jul 1999 | INDIRECT / attempted DIRECT | — | About 146 ppm H on the floor against about 50 ppm average; no water plume from the crash | Shoemaker | Negative plume | [WP-SHOE] **[secondary]** |
 | LRO LEND collimated (2010-2024) | INDIRECT | Top 1 m; claimed 10 km resolution is "controversial"; 30 km footprint used in 2024 | 502 PSRs consistent with 0.28 +/- 0.03 wt% WEH above background; evidence to at least 77 S; maxima at the coldest spots below 75 K | 75-90 S | Resolution disputed | [MCCLANAHAN24]; [LEND-NASA24]; [LWIMS] |
@@ -630,7 +630,7 @@ A sensitivity estimate by the researchers shows why edges are uncertain: a 0.4 m
 | LRO Diviner | INDIRECT | Surface temperature | LCROSS site among the coldest; CO2 cold traps (below about 60 K) total 204 km2, 82 km2 in Amundsen | Whole region | Temperature does not prove ice | [Paige et al. 2010](https://pubs.usgs.gov/publication/70036393); [AGU 2021](https://news.agu.org/press-release/carbon-dioxide-cold-traps-on-the-moon-are-confirmed-for-the-first-time) |
 | Chandrayaan-1 M3 (Li et al. 2018) | DIRECT, surface only | 280 m pixels | About 3.5 % of cold traps show ice; some pixels about 30 wt% if intimately mixed; all below 110 K | Near Haworth, Shoemaker, Sverdrup, Shackleton; none in Amundsen, Idel'son L, Wiechert | Low signal in shadow; contradicted at face value by ShadowCam | [LI18] |
 | Arecibo radar | INDIRECT | — | No thick ice deposits | Shackleton | Negative | [WP-SHACK] **[secondary]** |
-| Mini-SAR / Mini-RF | INDIRECT | 1-2 m; 150 m baseline | High-CPR craters could be ice or roughness; no thick ice at the LCROSS site; the "at least 600 million t" estimate depends on assumed thickness | Cabeus and others | Anomalous craters "resolved as boulders" | [ICE-REVIEW]; [LWIMS] |
+| Mini-SAR / Mini-RF | INDIRECT | 1-2 m; 150 m baseline | High-CPR craters could be ice or roughness; no thick ice at the LCROSS site; the "at least 600 million t" estimate (Mini-SAR 2010) is for more than 40 small **north**-polar craters, not the south pole, and depends on assumed thickness ([ScienceDaily, NASA release 2 Mar 2010](https://sciencedaily.com/releases/2010/03/100302085214.htm)) | Cabeus and others | Anomalous craters "resolved as boulders" | [ICE-REVIEW]; [LWIMS] |
 | Chandrayaan-2 DFSAR (ISRO release 27 May 2026) | INDIRECT | Subsurface | Possible ice beneath 4 of 9 doubly shadowed craters; strongest case a 1.1 km crater in Faustini | Faustini, Haworth, Shoemaker | "Possible" | [ISRO DFSAR](https://www.isro.gov.in/ISRO_EN/Chandrayaan2_Dual_Frequency_Synthetic_Aperture_Radar.html) |
 | Kaguya Terrain Camera | INDIRECT | 10 m/px | No exposed ice on the Shackleton floor | Shackleton | Negative | [WP-SHACK] **[secondary]** |
 | SOFIA | DIRECT, sunlit surface | Grains | 100-412 ppm H2O at Clavius (about 58 S) | Not PSRs | Not a deposit | [NASA, 26 Oct 2020](https://www.nasa.gov/news-release/nasas-sofia-discovers-water-on-sunlit-surface-of-moon/) |
@@ -691,24 +691,24 @@ McClanahan et al. 2024, Table 1 ([MCCLANAHAN24]). NASA's release adds that each 
 
 ### Host craters: centres and sizes
 
-Most centres are Wikipedia infobox values (stated to derive from the IAU/USGS Gazetteer) and are **[secondary]**; Cabeus and Amundsen were confirmed on the Gazetteer list.
+Centres and diameters are from the IAU/USGS Gazetteer of Planetary Nomenclature (read 14 Nov 2026; one link per row). Depths and notes are from the sources named in the row's note or the research notes; the earlier Wikipedia values were off by up to about 17 km (Haworth) and 10 km (Faustini).
 
 | Feature | Lat | Lon E | Diameter (km) | Note | Source |
 |---|---|---|---|---|---|
-| Shackleton | -89.67 | 129.78 | 21.0 | Depth 4.2 km; walls about 30 deg | [WP-SHACK] |
-| Haworth | -86.9 | -4.0 | 51.4 | IAU notice gives 86.8 S, 4 W | [WP-HAW] |
-| Shoemaker | -88.1 | 44.9 | 50.9 | Depth 3.81 km | [WP-SHOE] |
-| Faustini | -87.3 | 77.0 | 42.48 | 664 km2 PSR | [WP-FAU] |
-| Cabeus | -85.33 | -42.13 | 100.58 | Wikipedia gives -84.9, -35.5 (conflict) | [USGS Gazetteer list](https://planetarynames.wr.usgs.gov/SearchResults?Target=16_Moon&Feature%20Type=9_Crater,%20craters); [WP-CAB] |
-| Cabeus A / Cabeus B | -82.2 / -82.4 | -39.1 / -53.0 | 48 / 61 | — | [WP-CAB] |
-| de Gerlache | -88.5 | -87.1 | 32.4 | Depth 7.5 km; possible CO2 cold trap | [WP-DEG] |
-| Sverdrup | -88.5 | -152.0 | 35 | — | [Wikipedia](https://en.wikipedia.org/wiki/Sverdrup_(crater)) |
-| Slater | -88.08 | 111.29 | 25.12 | — | [Wikipedia](https://en.wikipedia.org/wiki/Slater_(crater)) |
-| Nobile | -85.28 | 53.27 | 79.27 | — | [Wikipedia](https://en.wikipedia.org/wiki/Nobile_(crater)) |
-| Amundsen | -84.44 | 83.07 | 103.39 | — | [USGS Gazetteer list](https://planetarynames.wr.usgs.gov/SearchResults?Target=16_Moon&Feature%20Type=9_Crater,%20craters) |
-| Wiechert / Wiechert J | -84.5 / -85.6 | 165.0 / -177.0 | 41 / 34 | — | [Wikipedia](https://en.wikipedia.org/wiki/Wiechert_(crater)) |
-| Idel'son L | -84.2 | 115.8 | 28 | — | [Wikipedia](https://en.wikipedia.org/wiki/Idel%27son_(crater)) |
-| Malapert | -84.9 | 12.9 | 69 | Massif peak near longitude 0 | [Wikipedia](https://en.wikipedia.org/wiki/Malapert_(crater)) |
+| Shackleton | -89.67 | 129.78 | 20.92 | Depth 4.2 km; walls about 30 deg | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5450); depth [WP-SHACK] |
+| Haworth | -87.45 | -5.17 | 51.42 | 2008 IAU approval notice gave 86.8 S, 4 W | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/14502) |
+| Shoemaker | -88.14 | 45.91 | 51.82 | Depth 3.81 km | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5494); depth [WP-SHOE] |
+| Faustini | -87.18 | 84.31 | 42.48 | 664 km2 PSR | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/1919) |
+| Cabeus | -85.33 | -42.13 | 100.58 | Wikipedia gives -84.9, -35.5 (older value) | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/953) |
+| Cabeus A / Cabeus B | -82.08 / -82.26 | -40.24 / -54.58 | 40.88 / 59.62 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/8057); [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/8058) |
+| de Gerlache | -88.48 | -88.34 | 32.71 | Possible CO2 cold trap (depth not sourced to a primary paper) | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/1439) |
+| Sverdrup | -88.32 | -153.39 | 32.83 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5782) |
+| Slater | -88.08 | 111.29 | 25.12 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/15325) |
+| Nobile | -85.28 | 53.27 | 79.27 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/4321) |
+| Amundsen | -84.44 | 83.07 | 103.39 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/247) |
+| Wiechert / Wiechert J | -84.03 / -85.20 | 164.70 / -177.64 | 40.82 / 34.89 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/6541); [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/13888) |
+| Idel'son L | -83.99 | 118.56 | 28.04 | — | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/10114) |
+| Malapert | -85.00 | 11.40 | 72.38 | Massif peak near longitude 0 | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/3603) |
 | Schrodinger (context, 75 S) | -75.0 | 132.4 | 312 | Peak-ring basin | [Wikipedia](https://en.wikipedia.org/wiki/Schr%C3%B6dinger_(crater)) |
 
 ### The 40 largest south-polar PSRs (LROC PSR Atlas)
@@ -1010,7 +1010,7 @@ All south-polar NASA rasters share one projection: polar stereographic, latitude
 | Wueller 2025 and 2026 figures; Malapert and Leibnitz beta 100 % Earth visibility; under 60 % at Shackleton and de Gerlache | **[excerpt]** | Full texts and the Zenodo archive |
 | Crater centre coordinates other than Cabeus and Amundsen | **[secondary]** (Wikipedia infoboxes) | IAU Gazetteer shapefile |
 | Chang'e-7 target -88.8, 123.4; IM-1 position | **[secondary]** in the notes; the repository holds a NASA source for IM-1 | CNSA publication |
-| New Glenn pad explosion in May 2026 | Reported by a CRS brief and press; one researcher could not verify | Blue Origin or NASA statement |
+| New Glenn pad explosion in May 2026 | Verified 14 Nov: exploded during a static-fire test at SLC-36 on 28 May 2026 ([PBS NewsHour/AP](https://www.pbs.org/newshour/science/blue-origin-rocket-explodes-on-the-launch-pad-during-an-engine-firing-test)); Blue Origin called it an "anomaly" | Blue Origin or NASA statement on return to flight |
 | Blue Moon polar orbit of 100 x 6,500 km; Artemis III orbit of 430 km at 33 deg | **[secondary]** (Wikipedia) | NASA mission documents |
 | Mazarico 2011 PSR totals (16,055 and 12,866 km2) | Cited by one note, unconfirmed by another | The paper |
 | Diviner "about 25 K" coldest value | Press attribution to a north-polar crater; not retrieved from a primary source | Paige et al. 2010 |
@@ -1043,7 +1043,7 @@ All south-polar NASA rasters share one projection: polar stereographic, latitude
 | `docs/reference/sources.md` | "(ours)" the candidate-region set remains the reference list for landings beginning with Artemis IV | NASA states the nine are specific to Artemis III and do not affect site selection for Artemis IV and later; an Artemis IV landing-site workshop took place on 10 Sep 2025 | [LPSC26]; [LEAG25] |
 | `docs/reference/sources.md`, `scripts/sites.csv`, `app/public/data/sites.json` | Nine-region update listed without coordinates; no rows for Peak near Cabeus B, Mons Mouton Plateau, Mons Mouton or Slater Plain | LROC mosaic centres exist for Peak near Cabeus B (-83.6, -68.8) and Mons Mouton Plateau (-84.3, 30.6); none for Slater Plain | [LROC RDR](https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_CABEUSPKLO2); [LROC RDR](https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MOUTNPLTLO1) |
 | `docs/reference/sources.md` | Griffin-1: "planned launch to the Moon in late 2026", no named site | Listing moved to 31 Jan 2027; target described as the Nobile crater region | [Lunar Week tracker](https://spacenexus.us/moon/weekly/week-of-2026-11-02) **[secondary]** |
-| `docs/reference/sources.md` | Blue Moon MK1: no firm launch date | NET Q1 2027 per listings, or no earlier than the second half of 2027 per a newsletter; sources conflict | [WP-BMP] **[secondary]**; [MM277] |
+| `docs/reference/sources.md` | Blue Moon MK1: no firm launch date | NASA's launch schedule says 2027, no month ([NASA launch schedule](https://www.nasa.gov/event/clps-flight-blue-origins-blue-moon-mark-1/)); listings say NET Q1 2027, a newsletter no earlier than the second half of 2027 | [WP-BMP] **[secondary]**; [MM277] |
 | `docs/reference/sources.md` | Chang'e-7 and IM-3 "not verified" | Chang'e-7 missed its August 2026 window and is now 2027 at the earliest, unofficial target -88.8, 123.4; IM-3 is early 2027 | [SpaceNews, Aug 2026](https://spacenews.com/china-delays-change-7-lunar-south-pole-landing-mission-launch/); [WP-CLPS] **[secondary]** |
 | `docs/reference/sources.md` | "NASA has awarded 17 lunar deliveries to five CLPS vendors" | Other sources count 14 CLPS 1.0 missions to five vendors with four launched, and report eight CLPS 2.0 providers selected on 7 Nov 2026; the counts conflict | [ASTRO-Jun26]; [WP-CLPS] **[secondary]**; [SpaceQ, Nov 2026](https://spaceq.ca/?p=53144) |
 | `docs/reference/sources.md`, `scripts/sites.csv` (viper-mons-mouton) | Mission-area centre 31.6218 E, 85.42088 S (Beyer et al. 2025) | NASA's 2021 plan gave a planned landing location of -85.449452, 31.064135; the two are different quantities, and the 2027 site is unconfirmed | [VIPER-21] |
@@ -1052,7 +1052,7 @@ All south-polar NASA rasters share one projection: polar stereographic, latitude
 | `scripts/sites.csv` (shackleton-rim-site04) | -89.7668, -171.87 | The illumination statistics in this report attach to other rim points (for example -89.7849, 203.97 E and -89.6866, 197.19 E), so they cannot be copied to the Site04 coordinates | [GLAESER18] |
 | `docs/reference/primer.md` | Open item: find out which lunar frame Horizons uses for a surface observer | A Horizons call returned "Center pole/equ: MEAN_ME (high precision)", radii 1737.4 km | [Horizons docs](https://ssd-api.jpl.nasa.gov/doc/horizons.html) |
 | `docs/reference/primer.md` | Horizon mask with 360 directions out to 100-150 km (team design choice) | Barker et al. 2021 use 720 sight lines at 0.5 deg; far-field horizons lie 50-200 km away; NASA says mountains up to 120 km away cast shadows | [BARKER21]; [OCHMO] |
-| `docs/reference/primer.md` | Libration in latitude cycle of about 27.12 days (NASA SVS) | The research notes use a 27.21-day draconic month from unsourced textbook values; the primer's sourced figure stands until checked | this report, section on Earth visibility |
+| `docs/reference/primer.md` | Libration in latitude cycle of about 27.12 days (NASA SVS) | Resolved 14 Nov: the period is the draconic month, mean 27.21222 days ([NASA Eclipse: Eclipses and the Moon's Orbit](https://eclipse.gsfc.nasa.gov/SEhelp/moonorbit.html)); the SVS 27.12 is a transposed digit and the primer now says so. The notes' 27.21 d is right | this report, section on Earth visibility |
 | `docs/reference/data-guide.md` | PGDA product 69 offers cloud-optimised GeoTIFFs | Every `*_COG.TIF` link returned a 404 page on 14 Nov 2026; the plain `.TIF` files work | [PGDA69] |
 | `docs/reference/data-guide.md`, `docs/reference/data-sources.md` | "The canonical 5 m files live in the PDS LOLA archive"; `ldem_875s_5m.img` (PDS V2.0) was downloaded | Track-adjusted 5 m products exist at PGDA (87-90 S mosaic and 27 site DEMs with error maps); the PDS grid dates from 2017 and predates the adjustment; it also stops at 87.5 S, so Malapert, Mons Mouton, Nobile and Haworth lie outside it | [PGDA78]; [PGDA81](https://pgda.gsfc.nasa.gov/products/81) |
 | `docs/reference/data-sources.md` | Illumination files downloaded from `.../extras/illumination/release_2016/img/` | The research notes list the base path without `release_2016`; the repository path was checksum-verified, so the notes' path is probably abbreviated | [PDS readme](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/readme_illumination_2016.txt) |

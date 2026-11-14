@@ -18,7 +18,7 @@ Only one measurement is a ground-truth direct detection of bulk water at the sou
 | Dataset / instrument (year of result) | Evidence class | Sensing depth / resolution | What it found | Where (south pole) | Status / conflicts | Source |
 |---|---|---|---|---|---|---|
 | LCROSS Centaur impact + shepherding spacecraft spectrometers (impact 2009-10-09, paper 2010) | DIRECT (ejecta plume, NIR + UV/vis) | Excavated to possibly > 0.7 m (NASA LWIMS table lists "3 to 5 m", single ~50 m sample) | 155 +/- 12 kg water vapour + ice in field of view; regolith water concentration 5.6 +/- 2.9 % by mass; other volatiles (table 1.2) | Cabeus PSR ("Cabeus-1") | Single point; depends on excavated-mass estimate; possible propellant contamination noted by later review | [Colaprete et al. 2010, Science 330:463](https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf); [NASA LWIMS TM-20205008626](https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf); [review arXiv:2502.06056](https://arxiv.org/html/2502.06056v2) |
-| LRO LAMP observing the LCROSS plume (2010) | DIRECT (gas) | plume | ~140 kg H2 released, equivalent to initial regolith concentration of 1.4 % | Cabeus | Cited inside Colaprete et al. | [Colaprete et al. 2010](https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf) |
+| LRO LAMP observing the LCROSS plume (2010) | DIRECT (gas) | plume | ~140 kg H2 released, equivalent to initial regolith concentration of 1.4 % | Cabeus | Primary: Gladstone et al. 2010, Science 330, 472 ([doi:10.1126/science.1186474](https://doi.org/10.1126/science.1186474)); also cited inside Colaprete et al. | [Colaprete et al. 2010](https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf) |
 | Lunar Prospector Neutron Spectrometer, LPNS (1998-2001; pixon reconstructions 2009) | INDIRECT (epithermal neutron dip = hydrogen) | ~0.8-1 m depth; footprint ~45 km at 30 km altitude | Polar epithermal dip; ~1.5 +/- 0.8 wt% WEH if excess confined to PSRs (drops to ~0.5 % if surrounding H is higher); pixon reconstruction requires H concentrated in cold traps at up to ~1 wt% WEH; pixon WEH accurate to ~30 % within polar craters | Both poles; south: Cabeus, Shoemaker, Haworth, Faustini region | Background-dependent; cannot give depth distribution | [review arXiv:2502.06056](https://arxiv.org/html/2502.06056v2); [Eke, Teodoro & Elphic, arXiv:0810.2478](https://arxiv.org/pdf/0810.2478); [Teodoro et al. arXiv:1304.8123](https://ar5iv.arxiv.org/html/1304.8123); [LWIMS TM](https://ntrs.nasa.gov/api/citations/20205008626/downloads/TM-20205008626.pdf) |
 | LPNS hydrogen at Shoemaker; Lunar Prospector end-of-mission impact (1999-07-31) | INDIRECT / attempted DIRECT | - | ~146 ppm H on Shoemaker floor vs ~50 ppm lunar average; deliberate crash into Shoemaker produced no detectable water vapour plume | Shoemaker | Negative plume result | [Wikipedia: Shoemaker (lunar crater)](https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)) |
 | LRO LEND collimated sensor CSETN (2010; Sanin 2017; McClanahan 2024) | INDIRECT | top ~1 m; claimed ~10 km (CSETN) at 50 km altitude, "controversial"; McClanahan uses a fixed ~30 km diameter footprint | Neutron suppression regions (NSRs) overlapping PSRs in Cabeus, Shoemaker, Haworth; broad non-PSR hydrogen < ~0.30 wt% water. 2024: 502 PSRs positively correlated, consistent with a common 0.28 +/- 0.03 wt% WEH relative to background (lower bound), evidence to at least 77 deg S; max collimated WEH: Cabeus-1 0.39, Shoemaker 0.37, Haworth 0.27, Faustini 0.26 wt% (table 1.3); maxima coincide with coldest (< 75 K) spots at base of poleward-facing slopes; Cabeus-1 anomalously enhanced -> at least two hydrogen sources | 75-90 deg S | Resolution disputed (see 1.4). Colaprete 2010 quotes LEND as implying > 2 wt% for Cabeus floor (model-dependent) | [Sanin et al. 2017 Icarus abstract](https://experts.arizona.edu/en/publications/hydrogen-distribution-in-the-lunar-polar-regions/); [NASA LRO nugget 2017](https://science.nasa.gov/wp-content/uploads/2023/05/NuggetHydrogenAtTheLunarPoles20170210.pdf); [McClanahan et al. 2024 PSJ, arXiv:2303.03911](https://www.arxiv.org/pdf/2303.03911); [NASA release 2024-10-03](https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/) |
@@ -119,23 +119,23 @@ The three largest PSRs (Shoemaker ~1,075 km2, Haworth ~1,018 km2, Faustini ~664 
 
 | Feature | Centre lat | Centre lon (E+) | Diameter (km) | Depth (km) | Source |
 |---|---|---|---|---|---|
-| Shackleton | -89.67 | 129.78 | 21.0 | 4.2 (floor 6.6 km wide; walls ~30 deg) | [WP: Shackleton](https://en.wikipedia.org/wiki/Shackleton_(crater)) |
-| Haworth | -86.9 | -4.0 | 51.4 | n/a | [WP: Haworth](https://en.wikipedia.org/wiki/Haworth_(crater)) (IAU approval notice gives 86.8 S, 4 W: [USGS news](https://planetarynames.wr.usgs.gov/News?page=37)) |
-| Shoemaker | -88.1 | 44.9 | 50.9 | 3.81 | [WP: Shoemaker](https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)) |
-| Faustini | -87.3 | 77.0 | 42.48 | n/a | [WP: Faustini](https://en.wikipedia.org/wiki/Faustini_(crater)) |
-| Cabeus | -85.33 | -42.13 | 100.58 | ~4 (floor ~60 km across) | [USGS Gazetteer list](https://planetarynames.wr.usgs.gov/SearchResults?Target=16_Moon&Feature%20Type=9_Crater,%20craters); WP gives -84.9, -35.5: [WP: Cabeus](https://en.wikipedia.org/wiki/Cabeus_(crater)) |
-| Cabeus A | -82.2 | -39.1 | 48 | n/a | [WP: Cabeus](https://en.wikipedia.org/wiki/Cabeus_(crater)) |
-| Cabeus B | -82.4 | -53.0 | 61 | n/a | [WP: Cabeus](https://en.wikipedia.org/wiki/Cabeus_(crater)) |
-| de Gerlache | -88.5 | -87.1 | 32.4 | n/a | [WP: De Gerlache](https://en.wikipedia.org/wiki/De_Gerlache_(crater)) |
-| Sverdrup | -88.5 | -152.0 | 35 | n/a | [WP: Sverdrup](https://en.wikipedia.org/wiki/Sverdrup_(crater)) |
-| Slater | -88.08 | 111.29 | 25.12 | n/a | [WP: Slater](https://en.wikipedia.org/wiki/Slater_(crater)) |
-| Nobile | -85.28 | 53.27 | 79.27 | n/a | [WP: Nobile](https://en.wikipedia.org/wiki/Nobile_(crater)) |
-| Amundsen | -84.44 | 83.07 | 103.39 | n/a | [USGS Gazetteer list](https://planetarynames.wr.usgs.gov/SearchResults?Target=16_Moon&Feature%20Type=9_Crater,%20craters) |
-| Wiechert | -84.5 | 165.0 | 41 | n/a | [WP: Wiechert](https://en.wikipedia.org/wiki/Wiechert_(crater)) |
-| Wiechert J | -85.6 | -177.0 | 34 | n/a | [WP: Wiechert](https://en.wikipedia.org/wiki/Wiechert_(crater)) |
-| Idel'son (parent) | -81.5 | 110.9 | 60 | 2.83 | [WP: Idel'son](https://en.wikipedia.org/wiki/Idel%27son_(crater)) |
-| Idel'son L | -84.2 | 115.8 | 28 | n/a | [WP: Idel'son](https://en.wikipedia.org/wiki/Idel%27son_(crater)) |
-| Malapert | -84.9 | 12.9 | 69 | n/a | [WP: Malapert](https://en.wikipedia.org/wiki/Malapert_(crater)) |
+| Shackleton | -89.67 | 129.78 | 20.92 | 4.2 (floor 6.6 km wide; walls ~30 deg) | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5450); depth: [WP: Shackleton](https://en.wikipedia.org/wiki/Shackleton_(crater)) |
+| Haworth | -87.45 | -5.17 | 51.42 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/14502) |
+| Shoemaker | -88.14 | 45.91 | 51.82 | 3.81 | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5494); depth: [WP: Shoemaker](https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)) |
+| Faustini | -87.18 | 84.31 | 42.48 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/1919) |
+| Cabeus | -85.33 | -42.13 | 100.58 | ~4 (floor ~60 km across) | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/953); depth: [USGS Gazetteer list](https://planetarynames.wr.usgs.gov/SearchResults?Target=16_Moon&Feature%20Type=9_Crater,%20craters); WP gives -84.9, -35.5: [WP: Cabeus](https://en.wikipedia.org/wiki/Cabeus_(crater)) |
+| Cabeus A | -82.08 | -40.24 | 40.88 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/8057) |
+| Cabeus B | -82.26 | -54.58 | 59.62 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/8058) |
+| de Gerlache | -88.48 | -88.34 | 32.71 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/1439) |
+| Sverdrup | -88.32 | -153.39 | 32.83 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/5782) |
+| Slater | -88.08 | 111.29 | 25.12 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/15325) |
+| Nobile | -85.28 | 53.27 | 79.27 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/4321) |
+| Amundsen | -84.44 | 83.07 | 103.39 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/247) |
+| Wiechert | -84.03 | 164.70 | 40.82 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/6541) |
+| Wiechert J | -85.20 | -177.64 | 34.89 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/13888) |
+| Idel'son (parent) | -81.35 | 112.69 | 59.82 | 2.83 | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/2650); depth: [WP: Idel'son](https://en.wikipedia.org/wiki/Idel%27son_(crater)) |
+| Idel'son L | -83.99 | 118.56 | 28.04 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/10114) |
+| Malapert | -85.00 | 11.40 | 72.38 | n/a | [Gazetteer](https://planetarynames.wr.usgs.gov/Feature/3603) |
 | Malapert Massif (peak) | n/a (peak "almost exactly on 0 deg longitude") | ~0 | ~5 km relief | - | [WP: Malapert](https://en.wikipedia.org/wiki/Malapert_(crater)) |
 | Mons Mouton | -84.6 | 31.0 | just under 100 km wide, ~6 km base-to-peak, flat-topped | - | [WP: Mons Mouton](https://en.wikipedia.org/wiki/Mons_Mouton) |
 
@@ -289,7 +289,7 @@ South of 80 deg S the mapped PSR area is ~20,800 km2 (LOLA 20 m/px, 2023), sprea
 |---|---|---|---|---|
 | Arnold 1979 (theory) | 5-50 g/cm2 column; 1-10 % by mass in top 2 m | delivery + gardening over ~2 Ga | MODEL | [review](https://arxiv.org/html/2502.06056v2) |
 | Lunar Prospector 1998 | ~300 million t up to ~3 billion t per pole (early); 44 million-1.3 billion t depending on depth | neutron data | INDIRECT | [ScienceDaily 1998](https://www.sciencedaily.com/releases/1998/09/980904041903.htm); [Scientific American](https://www.scientificamerican.com/article/moon-ice/) |
-| Mini-SAR 2010 | >= 600 million t | anomalous-CPR craters x assumed thickness | INDIRECT, contested | [Physics Today](https://physicstoday.aip.org/news/water-ice-estimates-for-the-moon) |
+| Mini-SAR 2010 (north pole) | >= 600 million t | anomalous-CPR craters (40+ small north-polar craters, 2-15 km) x assumed thickness; not a south-pole estimate | INDIRECT, contested | [Physics Today](https://physicstoday.aip.org/news/water-ice-estimates-for-the-moon) |
 | Range quoted from 2020-2023 commentary | 100 million t to ~1-2.9 billion t | mixed | SPEC | [The Conversation 2020](https://theconversation.com/cool-discovery-new-studies-confirm-moon-has-icy-poles-148639); [SpaceDaily](https://spacedaily.com/?p=1090113) |
 | Per-PSR upper limits | Haworth, Shoemaker ~9e9-3e10 kg each; Faustini ~6e9-2e10 kg (if LCROSS 5.6 wt% applied) | area x depth x LCROSS grade | SPEC upper bound | [Lemelin 2021](https://iopscience.iop.org/article/10.3847/PSJ/abf3c5) |
 | LEND 2024 | >= ~5 L more ice per m2 in top metre over PSR deposits; uniform 0.28 +/- 0.03 wt% WEH | neutrons | INDIRECT lower bound | [NASA 2024](https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/) |
