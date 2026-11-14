@@ -6,8 +6,7 @@ import { Matrix4, Quaternion, Vector3 } from 'three'
 import type { Vec3 } from '../data/types'
 import { azEl, siteVector, type Enu } from '../geometry'
 
-export const EARTH_RADIUS_KM = 6371.0 // IUGG mean radius
-export const SUN_RADIUS_KM = 695_700 // IAU 2015 nominal solar radius
+export { EARTH_RADIUS_KM, SUN_RADIUS_KM } from '../geometry' // one source for the disc radii (Track A)
 
 export const v3 = (a: Vec3) => new Vector3(a[0], a[1], a[2])
 export const arr = (v: Vector3): Vec3 => [v.x, v.y, v.z]

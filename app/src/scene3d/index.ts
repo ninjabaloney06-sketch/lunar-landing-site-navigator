@@ -192,7 +192,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const sunE = sky.worldDir('sun')
     const earthE = sky.worldDir('earth')
     const eye = new Vector3(0, 0, site.eyeHeight)
-    const earthUp = frame.site ? !site.occluded(eye, earthE) : false
+    const earthUp = frame.site ? !site.occluded(eye, earthE, Infinity, true) : false
     site.setLights(sunE, earthE, earthUp ? EARTHSHINE * sky.earthPhase : 0)
     const sunM = v3(frame.state.sun_km).normalize()
     const earthM = v3(frame.state.earth_km).normalize()
@@ -208,7 +208,15 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       enuToMe = enuToMeQuat(enuBasis(f.site.lat, f.site.lon))
       meToEnu = enuToMe.clone().invert()
     }
-    if (!builtFor || builtFor.site !== f.site || builtFor.horizon !== f.horizon || builtFor.terrain !== f.terrain) {
+    // Rebuild only when the site's data changes (compared by id: C2 may hand new objects for every time step).
+    const same = (a: { id?: string; site_id?: string } | null | undefined, b: typeof a) =>
+      (a?.id ?? a?.site_id ?? null) === (b?.id ?? b?.site_id ?? null)
+    if (
+      !builtFor ||
+      !same(builtFor.site, f.site) ||
+      !same(builtFor.horizon, f.horizon) ||
+      (builtFor.terrain?.meta.site_id ?? null) !== (f.terrain?.meta.site_id ?? null)
+    ) {
       if (f.site) site.build(f.horizon, f.terrain, f.site.elev_m)
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
     }
@@ -381,6 +389,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function projectSky(b: 'sun' | 'earth'): ScreenPoint | null {
     if (!sky || !frame) return null
+    site.setEyeMode(level === 'eye')
     syncSky()
     const sp = toScreen(sky.worldPos(b), sky.camera)
     if (!sp.visible) return sp
@@ -412,6 +421,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function render() {
     if (!sky || !globe) return
+    site.setEyeMode(level === 'eye')
     const cam = activeCam()
     if (inSpace()) globe.updatePins(globeCam, size.y)
     else site.updateMarker(siteCam, size.y, level === 'site')

@@ -61,7 +61,7 @@ const params = new URLSearchParams(window.location.search)
 const handle = mountScene(document.getElementById('scene')!, deps)
 const siteId = params.get('site')
 if (siteId) {
-  const utc = Date.parse(params.get('utc') ?? '2026-11-14T00:00:00Z')
+  const utc = Date.parse(params.get('utc') ?? '2027-08-16T12:00:00Z') // demo time
   handle.update(await loadFrame(siteId, utc))
   await handle.ready
   handle.setLevel((params.get('level') as SceneLevel | null) ?? 'site')

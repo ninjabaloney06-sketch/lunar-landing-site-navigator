@@ -31,8 +31,9 @@ const D_EARTH = 1000 // display distances in sky units; Earth in front of the Su
 const D_SUN = 1500
 const D_STARS = 5000
 
-// Unverified until Track B's stars_4k.jpg lands: SVS sky maps are drawn as seen from inside (RA grows to the
-// left). Leo/Bene check with a known star; flip this if the sky is mirrored.
+// stars_4k.jpg (NASA SVS 4851): RA 0h at the image centre, RA growing to the left, as seen from inside. Checked
+// on the image itself (C1, 14 Nov): the brightest region sits at RA 266°/Dec −29° (galactic centre) and the
+// Magellanic Clouds at RA 81°/Dec −70° and RA 13°/Dec −73° only under this convention.
 const STARMAP_RA_INCREASES_LEFT = true
 
 const ATMO_VERT = /* glsl */ `
@@ -82,7 +83,7 @@ export class Sky {
     this.scene.add(this.root)
 
     if (tex.stars) {
-      const m = new MeshBasicMaterial({ map: tex.stars, side: BackSide, depthWrite: false, color: new Color(0.42, 0.42, 0.42) })
+      const m = new MeshBasicMaterial({ map: tex.stars, side: BackSide, depthWrite: false, color: new Color(0.22, 0.22, 0.22) })
       const s = new Mesh(new SphereGeometry(D_STARS, 64, 32), m)
       if (STARMAP_RA_INCREASES_LEFT) s.scale.set(1, 1, -1)
       s.renderOrder = -1

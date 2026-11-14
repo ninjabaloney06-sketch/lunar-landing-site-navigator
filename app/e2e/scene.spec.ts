@@ -1,27 +1,45 @@
 // Track C1 numeric screen tests (build-plan §5.4 layer 3) and the screenshot set, against the scene harness
 // /src/scene3d/harness.html?test=1. Run: PW_PORT=5181 npx playwright test e2e/scene.spec.ts
 //
-// Expectations are computed here, independently of scene3d/: body directions from geometry/ (azEl.dirEnu),
-// pinhole projection and the horizon mask (linear between 0.5° samples) with plain trig in this file.
+// Expectations are computed here, independently of scene3d/: body directions from geometry/ (interpolate on the
+// real ephemeris months, azEl.dirEnu), the horizon from geometry.maskAt on the real horizon files, and the
+// pinhole projection with plain trig in this file. Test times are found by searching the real data, so the
+// cases stay valid if a data file is regenerated.
 
 import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PNG } from 'pngjs'
 import type { EphemMonth, Horizon, Site } from '../src/data/types'
-import { azEl, enuBasis, interpolate, siteVector, type AzEl } from '../src/geometry'
+import { SUN_RADIUS_KM, angRadiusDeg, azEl, enuBasis, interpolate, maskAt, siteVector, type AzEl } from '../src/geometry'
 
 const APP = fileURLToPath(new URL('..', import.meta.url))
 const DATA = `${APP}public/data`
 const SHOTS = `${APP}test-results`
 const read = <T>(p: string): T => JSON.parse(fs.readFileSync(`${DATA}/${p}`, 'utf8')) as T
 const sites = read<Site[]>('sites.json')
-const ephem = read<EphemMonth>('ephem/sample.json')
+const siteById = (id: string) => sites.find((s) => s.id === id)!
+const horizonOf = (s: Site) => read<Horizon>(`horizons/${s.horizon}`)
 
-// Sample data covers 2026-11-14 00:00–01:30 UTC only (synthetic). Real months replace it when Track A merges.
-const T0 = '2026-11-14T00:00:00Z'
-const SUN_RADIUS_KM = 695_700
+const DEMO = 'connecting-ridge' // demo site (ninja, 14 Nov)
+const DEMO_UTC = '2027-08-16T12:00:00Z' // required screenshot time
+const MOCKUP_UTC = '2026-11-14T12:00:00Z' // the reference mockup's site and time
 const D2R = Math.PI / 180
+
+const monthCache = new Map<string, EphemMonth | null>()
+function month(key: string): EphemMonth | null {
+  if (!monthCache.has(key)) {
+    const p = `ephem/${key}.json`
+    monthCache.set(key, fs.existsSync(`${DATA}/${p}`) ? read<EphemMonth>(p) : null)
+  }
+  return monthCache.get(key)!
+}
+const key = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+function monthsFor(ms: number): EphemMonth[] {
+  const d = new Date(ms)
+  const next = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+  return [month(key(d)), month(key(next))].filter((m): m is EphemMonth => m !== null)
+}
 
 type Vec = [number, number, number]
 const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
@@ -36,9 +54,10 @@ const dirAzEl = (az: number, el: number): Vec => [
   Math.sin(el * D2R),
 ]
 
-function body(siteOrId: string | Site, utc: string, which: 'sun' | 'earth'): AzEl {
-  const s = typeof siteOrId === 'string' ? sites.find((x) => x.id === siteOrId)! : siteOrId
-  const st = interpolate([ephem], Date.parse(utc))
+/** Topocentric Sun or Earth seen from a site (site height from sites.json), real ephemeris. */
+function body(s: Site, utc: string | number, which: 'sun' | 'earth'): AzEl {
+  const ms = typeof utc === 'number' ? utc : Date.parse(utc)
+  const st = interpolate(monthsFor(ms), ms)
   const site = siteVector(s.lat, s.lon, (s.elev_m ?? 0) / 1000)
   return azEl(which === 'sun' ? st.sun_km : st.earth_km, site, enuBasis(s.lat, s.lon))
 }
@@ -54,14 +73,13 @@ function pinhole(az0: number, el0: number, fov: number, w: number, h: number, d:
   return { x: ((x + 1) / 2) * w, y: ((1 - y) / 2) * h }
 }
 
-/** Horizon mask (deg) at az, linear between samples (note 7: computed from the JSON, not geometry.maskAt). */
-function maskAt(h: Horizon, az: number) {
-  const n = h.mask.length
-  const x = (((az % 360) + 360) % 360) / h.az_step
-  const i = Math.floor(x) % n
-  const f = x - Math.floor(x)
-  return h.mask[i] * (1 - f) + h.mask[(i + 1) % n] * f
+/** First time in [from, to) (30 min steps) at which pred holds; null if none. */
+function findTime(from: string, to: string, pred: (ms: number) => boolean): number | null {
+  for (let t = Date.parse(from); t < Date.parse(to); t += 30 * 60_000) if (pred(t)) return t
+  return null
 }
+
+const azDiff = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
 
 async function open(page: Page) {
   await page.goto('/src/scene3d/harness.html?test=1')
@@ -115,12 +133,20 @@ function brightCentroid(png: PNG, cx: number, cy: number, half: number, thr: num
 test.describe('scene3d numeric tests (1280 × 720)', () => {
   test('T14 projection: eye-level Sun and Earth match the pinhole projection of geometry az/el within 1 px', async ({ page }) => {
     await open(page)
-    // im-1 (80.1° S): Sun ~11° and Earth ~10° up at the sample time, clear of the real terrain tile.
-    const site = 'im-1'
-    const sun = body(site, T0, 'sun')
-    const earth = body(site, T0, 'earth')
     const W = 1280
     const H = 720
+    // A site and time with Sun and Earth both ≥ 1.5° above the real mask and within 25° of azimuth of each other.
+    const site = siteById('im-1')
+    const hz = horizonOf(site)
+    const t = findTime('2027-08-01T00:00:00Z', '2027-09-01T00:00:00Z', (ms) => {
+      const s = body(site, ms, 'sun')
+      const e = body(site, ms, 'earth')
+      return s.el - maskAt(hz, s.az) > 1.5 && e.el - maskAt(hz, e.az) > 1.5 && azDiff(s.az, e.az) < 25 && s.el < 12 && e.el < 12
+    })
+    expect(t, 'a time with Sun and Earth well above the im-1 mask in Aug 2027').not.toBeNull()
+    const utc = new Date(t!).toISOString()
+    const sun = body(site, utc, 'sun')
+    const earth = body(site, utc, 'earth')
     for (const [dAz, el0] of [
       [0, 0],
       [0, 3],
@@ -129,7 +155,7 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
       [25, 8],
     ]) {
       const az0 = sun.az + dAz
-      const cam = await setView(page, { site, utc: T0, level: 'eye', az: az0, el: el0, fov: 54 })
+      const cam = await setView(page, { site: site.id, utc, level: 'eye', az: az0, el: el0, fov: 54 })
       expect(cam.level).toBe('eye')
       for (const [name, b] of [
         ['sun', sun],
@@ -137,7 +163,10 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
       ] as const) {
         const want = pinhole(az0, el0, 54, W, H, b.dirEnu)
         const got = (await project(page, name))!
-        expect(got.visible, `${name} visible`).toBe(true)
+        // Above the mask by ≥ 1.5°, so visible exactly when inside the frame.
+        const inFrame = want.x >= 0 && want.x <= W && want.y >= 0 && want.y <= H
+        expect(got.visible, `${name} visible = in frame, camera az ${az0.toFixed(2)}, ${utc}`).toBe(inFrame)
+        if (name === 'sun') expect(inFrame, 'Sun in frame for every pose').toBe(true)
         expect(Math.abs(got.x - want.x), `${name} x at camera az ${az0.toFixed(2)}`).toBeLessThan(1)
         expect(Math.abs(got.y - want.y), `${name} y at camera az ${az0.toFixed(2)}`).toBeLessThan(1)
       }
@@ -150,22 +179,22 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
       expect(Math.abs(c!.y - want.y), 'rendered Sun y').toBeLessThan(1)
     }
 
-    // Demo site, bodies within a degree of the horizon (trap 7): projected positions only; whether terrain hides
-    // them is T17's subject.
-    const demo = 'shackleton-rim-site04'
-    const dSun = body(demo, T0, 'sun')
-    const dEarth = body(demo, T0, 'earth')
+    // Demo site at the demo time, bodies within a degree of the horizon (trap 7): projected positions; whether
+    // terrain hides them is T17's subject.
+    const demo = siteById(DEMO)
+    const dSun = body(demo, DEMO_UTC, 'sun')
+    const dEarth = body(demo, DEMO_UTC, 'earth')
     for (const dAz of [0, 10]) {
       const az0 = dSun.az + dAz
-      await setView(page, { site: demo, utc: T0, level: 'eye', az: az0, el: 0, fov: 54 })
+      await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'eye', az: az0, el: 0, fov: 54 })
       for (const [name, b] of [
         ['sun', dSun],
         ['earth', dEarth],
       ] as const) {
         const want = pinhole(az0, 0, 54, W, H, b.dirEnu)
         const got = (await project(page, name))!
-        expect(Math.abs(got.x - want.x), `${demo} ${name} x (el ${b.el.toFixed(2)}°)`).toBeLessThan(1)
-        expect(Math.abs(got.y - want.y), `${demo} ${name} y (el ${b.el.toFixed(2)}°)`).toBeLessThan(1)
+        expect(Math.abs(got.x - want.x), `${DEMO} ${name} x (el ${b.el.toFixed(2)}°)`).toBeLessThan(1)
+        expect(Math.abs(got.y - want.y), `${DEMO} ${name} y (el ${b.el.toFixed(2)}°)`).toBeLessThan(1)
       }
     }
   })
@@ -176,7 +205,7 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
       { ...sites[0], id: 't16-0n0e', name: 'T16 0N 0E', lat: 0, lon: 0 },
       { ...sites[0], id: 't16-0n90e', name: 'T16 0N 90E', lat: 0, lon: 90 },
     ]
-    await setView(page, { site: 'shackleton-rim-site04', utc: T0, level: 'globe' })
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'globe' })
     await call(page, 'setSites', [...sites, ...extra])
     const p0 = (await call<number[]>(page, 'pinSurface', 't16-0n0e'))!
     const p90 = (await call<number[]>(page, 'pinSurface', 't16-0n90e'))!
@@ -201,7 +230,7 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
       const [r, g, b] = rgb(png, pin.x, pin.y + 12)
       if (colour === 'red') expect(r > 150 && g < 90 && b < 90, `red at 0°E, got ${r},${g},${b}`).toBe(true)
       else expect(g > 140 && r < 90 && b < 110, `green at 90°E, got ${r},${g},${b}`).toBe(true)
-      // East is to the right seen from outside: 8° east of the pin is the next checker square, not a band colour.
+      // East is to the right seen from outside: east of the pin is a grey checker square, not a band colour.
       const [r2, g2, b2] = rgb(png, pin.x + 60, pin.y + 40)
       expect(Math.abs(r2 - g2) < 20 && Math.abs(g2 - b2) < 20, `grey checker east of the pin, got ${r2},${g2},${b2}`).toBe(true)
     }
@@ -209,35 +238,44 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
 
   test('T17 occlusion: Sun pixel dark where the mask hides it, bright where the mask shows it', async ({ page }) => {
     await open(page)
-    // No real horizon file exists yet (Track B): two synthetic test sites use the synthetic horizons/sample-site.json
-    // mask and have no terrain tile, so the scene draws exactly the flat disc + the far ring built from that mask.
-    const horizon = read<Horizon>('horizons/sample-site.json')
-    const shack = sites.find((x) => x.id === 'shackleton-rim-site04')!
-    const masked: Site = { ...shack, id: 't17-masked', horizon: 'sample-site.json' } // Shackleton coordinates
-    const open_: Site = { ...shack, id: 't17-open', lat: horizon.lat, lon: horizon.lon, horizon: 'sample-site.json' }
-    await call(page, 'setSites', [...sites, masked, open_])
-    const cases = [
-      { site: masked, expectLit: false },
-      { site: open_, expectLit: true },
-    ]
-    for (const c of cases) {
-      const sun = body(c.site, T0, 'sun')
-      const rDeg = Math.asin(SUN_RADIUS_KM / sun.dist_km) / D2R
-      const m = maskAt(horizon, sun.az)
-      // Premise of the case, from the mask alone: whole disc below / above the terrain.
-      if (c.expectLit) expect(sun.el - rDeg, 'premise: disc fully above the mask').toBeGreaterThan(m)
-      else expect(sun.el + rDeg, 'premise: disc fully below the mask').toBeLessThan(m)
-      await setView(page, { site: c.site.id, utc: T0, level: 'eye', az: sun.az, el: sun.el, fov: 54 })
-      const want = pinhole(sun.az, sun.el, 54, 1280, 720, sun.dirEnu)
+    // Real horizons + real ephemeris; the expectation comes from geometry.maskAt (Track A) alone. Cases: the Sun's
+    // whole disc ≥ 0.3° below the mask but within 3° of it (terrain occlusion near the skyline), and the whole disc
+    // ≥ 0.3° above the mask. Searched in Aug 2027 at the demo site first, then other sites if needed.
+    const sunState = (s: Site, hz: Horizon, ms: number) => {
+      const b = body(s, ms, 'sun')
+      return { b, m: maskAt(hz, b.az), r: angRadiusDeg(SUN_RADIUS_KM, b.dist_km) }
+    }
+    const pick = (want: 'dark' | 'lit') => {
+      for (const id of [DEMO, 'shackleton-rim-site04', 'malapert-site23', 'im-1']) {
+        const s = siteById(id)
+        const hz = horizonOf(s)
+        const t = findTime('2027-08-01T00:00:00Z', '2027-09-01T00:00:00Z', (ms) => {
+          const { b, m, r } = sunState(s, hz, ms)
+          return want === 'dark' ? b.el + r < m - 0.3 && b.el > m - 3 : b.el - r > m + 0.3 && b.el < m + 8
+        })
+        if (t !== null) return { s, hz, t }
+      }
+      return null
+    }
+    for (const want of ['dark', 'lit'] as const) {
+      const c = pick(want)
+      expect(c, `a ${want} case in Aug 2027`).not.toBeNull()
+      const { s, hz, t } = c!
+      const utc = new Date(t).toISOString()
+      const { b: sun, m } = sunState(s, hz, t)
+      await setView(page, { site: s.id, utc, level: 'eye', az: sun.az, el: sun.el, fov: 54 })
+      const px = pinhole(sun.az, sun.el, 54, 1280, 720, sun.dirEnu)
       const png = await pixels(page)
-      const l = lum(png, want.x, want.y)
+      const l = lum(png, px.x, px.y)
       const p = (await project(page, 'sun'))!
-      if (c.expectLit) {
-        expect(l, `${c.site.id}: Sun pixel lit (mask ${m.toFixed(3)}°, Sun ${sun.el.toFixed(3)}°)`).toBeGreaterThan(200)
-        expect(p.visible).toBe(true)
+      const msg = `${s.id} ${utc}: mask ${m.toFixed(3)}°, Sun ${sun.el.toFixed(3)}°`
+      console.log(`T17 ${want}: ${msg}, pixel luminance ${l.toFixed(0)}, project().visible ${p.visible}`)
+      if (want === 'lit') {
+        expect(l, `Sun pixel lit, ${msg}`).toBeGreaterThan(200)
+        expect(p.visible, msg).toBe(true)
       } else {
-        expect(l, `${c.site.id}: Sun pixel dark (mask ${m.toFixed(3)}°, Sun ${sun.el.toFixed(3)}°)`).toBeLessThan(30)
-        expect(p.visible).toBe(false)
+        expect(l, `Sun pixel dark, ${msg}`).toBeLessThan(30)
+        expect(p.visible, msg).toBe(false)
       }
     }
   })
@@ -246,23 +284,21 @@ test.describe('scene3d numeric tests (1280 × 720)', () => {
 test.describe('screenshots (1440 × 900)', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('globe, site default, eye level, Shackleton default, im-1 nodata', async ({ page }) => {
+  test('globe, site default (mockup site/time), demo default, eye level, im-1 nodata', async ({ page }) => {
     fs.mkdirSync(SHOTS, { recursive: true })
     await open(page)
-    await setView(page, { site: 'shackleton-rim-site04', utc: T0, level: 'globe' })
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'globe' })
     await page.screenshot({ path: `${SHOTS}/c1-globe.png` })
-    // The mockup's site, default view.
-    await setView(page, { site: 'connecting-ridge', utc: T0, level: 'site' })
+    // The reference mockup shows Connecting Ridge on 14 Nov 2026 12:00 UTC: same site and time, default view.
+    await setView(page, { site: DEMO, utc: MOCKUP_UTC, level: 'site' })
     await page.screenshot({ path: `${SHOTS}/c1-site-default.png` })
-    // Eye level at the demo site, facing the Sun.
-    const sun = body('shackleton-rim-site04', T0, 'sun')
-    await setView(page, { site: 'shackleton-rim-site04', utc: T0, level: 'eye', az: sun.az + 10, el: 2 })
+    // Required: demo site at 2027-08-16 12:00 UTC, default view, then E (eye level at the current heading).
+    await setView(page, { site: DEMO, utc: DEMO_UTC, level: 'site' })
+    await page.screenshot({ path: `${SHOTS}/c1-demo-connecting-ridge-2027-08-16T1200Z.png` })
+    await setView(page, { level: 'eye' })
     await page.screenshot({ path: `${SHOTS}/c1-eye-level.png` })
-    // 2027-08-16 12:00 UTC needs Track A's real ephemeris; until then the sample time (synthetic) is used.
-    await setView(page, { site: 'shackleton-rim-site04', utc: T0, level: 'site' })
-    await page.screenshot({ path: `${SHOTS}/c1-shackleton-default-SAMPLE-TIME.png` })
     // Extra: im-1's tile is ~40 % nodata (north of 80° S); it must render as a hole, not as flat ground.
-    await setView(page, { site: 'im-1', utc: T0, level: 'site' })
+    await setView(page, { site: 'im-1', utc: DEMO_UTC, level: 'site' })
     await page.screenshot({ path: `${SHOTS}/c1-im1-nodata.png` })
   })
 })
