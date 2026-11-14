@@ -71,3 +71,4 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Repo skeleton (app/ Vite+React+TS+D3+three, scripts/config.py, contract test, synthetic sample JSON, LICENSE); TASKS.md difficulty/model levels L1–L4; .claude/settings.json subagents default to Haiku. Build, vitest, pytest pass. (Claude Code, ninja's Mac)
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · 2026 Project Submission Guide read; demo limit, no-login links, code link not required recorded in decisions.md
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Leo's rocket-energy task parked after freeze (ninja), rewritten as sourced rough Δv estimate
+- 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Codex accounts assigned in TASKS.md: codex1 side scripts + Playwright + README, codex2 cross-model reviews + unit tests + security
