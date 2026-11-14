@@ -12,6 +12,8 @@ Roles: **S** = science lead: physics, orbital and coordinate math, horizon geome
 
 **The rule that shapes this plan:** before Sat 14 Nov 09:00 only general preparation is allowed: learning the physics, getting to know NASA datasets and existing tools, collecting sources, raw data downloads, logistics. The project itself (scripts, processed data, designs of our app, the spec, app code) is built at the event; a finished solution adapted slightly does not count (participant FAQ, Team Formation Guide, organiser reply 12 Oct; see `docs/reference/decisions.md`). Phases 1–2 are preparation, phases 3–6 happen at the event. **Local submission deadline: Sun 15 Nov, 15:45.**
 
+important: in the last step i told you to include energy calculation for a flight to moon. Instead of fully calculating it with the space launch system, only show the physical energy needed to bring the requested payload to moon, so the result is easier to calculate and more universal. you have to remove all parts that say about using data from sls and such efficiency data and just use 100% efficiency, but clearly state that its one hundred percent efficiency while displaying the data. also its important that there is a tiny info button which when clicks shows the whole calculation. when displaying the best route to this point, also show the required burns for most efficient flight
+
 ---
 
 Preparation status reconciled25Oct: the six AI-only writing artifacts already exist in merged `c56eb24`; human physics/source sign-off, timed tools run, per-device checks and future guide reads remain unchecked.
