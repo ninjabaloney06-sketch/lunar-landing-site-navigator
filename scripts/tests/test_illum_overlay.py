@@ -4,8 +4,10 @@ A correctly placed average-illumination map is brighter on local highs (ridges, 
 on a 40 km tile its values correlate positively with local relief (height minus a ~2 km box mean). A map that is
 offset, scaled or rotated against the terrain gives r close to 0. Review of 14 Nov: tiles from the 75S map give
 r = +0.31..+0.52; all 14 tiles from the 85S map give |r| <= 0.07 under any flip or rotation, i.e. misplaced.
-Those are marked xfail(strict=True): after terrain_tiles.py is rerun with the 75S map (or a fixed 85S map)
-the test passes and pytest reports XPASS as a failure, so the mark must then be removed.
+Cause: GDAL reads the 85S label's CENTER_LONGITUDE = 180, the data line up with lon_0 = 0 (assessments.py,
+ILLUM_CRS_NOTE). terrain_tiles.py now reads that map with the DEM's CRS and records "illum_crs" in each tile JSON.
+Tiles from the 85S map without that field were built before the fix and are marked xfail(strict=True) until
+terrain_tiles.py is rerun on the data computer; after the rerun they carry the field and must pass.
 """
 import json
 
@@ -45,8 +47,8 @@ def _params():
     for sid in _tiles():
         meta = json.loads((TERRAIN / f"{sid}.json").read_text(encoding="utf-8"))
         marks = []
-        if str(meta.get("illum_map", "")).startswith("avgvisib_85s"):
-            marks.append(pytest.mark.xfail(strict=True, reason="85S overlay misregistered (review 14 Nov); rerun terrain_tiles.py"))
+        if str(meta.get("illum_map", "")).startswith("avgvisib_85s") and "illum_crs" not in meta:
+            marks.append(pytest.mark.xfail(strict=True, reason="85S overlay built with the label's lon_0 = 180 (review 14 Nov); rerun terrain_tiles.py"))
         out.append(pytest.param(sid, marks=marks, id=sid))
     return out
 

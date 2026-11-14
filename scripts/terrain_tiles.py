@@ -38,16 +38,16 @@ DEM_NAME = "LDEM_80S_20MPP_ADJ.TIF"
 SITES_CSV = REPO / "scripts" / "sites.csv"
 OUT = APP_DATA / "terrain"
 
-# Illumination maps (PGDA average visibility). Brief B step 5 chose the 60 m 85S map south of 85 S, but the
-# overlays built from it do not line up with the terrain: on all 14 tiles from that map, lit fraction and local
-# relief are uncorrelated (|r| <= 0.07, under any flip or rotation), while the 4 tiles from the 75S map give
-# r = +0.31..+0.52 (review 14 Nov; tests/test_illum_overlay.py). The 85S georeferencing (its PDS3 label as read
-# by GDAL) is suspect. Until it is checked against a known feature, every site uses the 75S map at 120 m
-# (south of 75 S; check that the run reports illum_valid=1.000 for the polar sites, and rerun
-# tests/test_illum_overlay.py). Set USE_85S = True only after the 85S map passes that test.
+# Illumination maps (PGDA average visibility), chosen by site latitude (Brief B step 5).
+# The 85S (60 m) label states CENTER_LONGITUDE = 180 and GDAL reads it as lon_0 = 180, but the data line up with
+# lon_0 = 0: the 14 overlays built that way did not correlate with terrain relief at all (|r| <= 0.07; 75S tiles
+# r = +0.31..+0.52; tests/test_illum_overlay.py), and assessments.py (ILLUM_CRS_NOTE) found the same with lon_0 = 0
+# giving r = 0.98 against the 120 m map. So the 85S map is read with the DEM's CRS (lon_0 = 0), as in assessments.py.
+# Leo to confirm, as there. Set USE_85S = False to fall back to the 75S map (120 m) for every site.
 MAP_85S = ("avgvisib_85s_060m_201608", "avgvisib_85s_060m_201608.lbl", 60.0)
 MAP_75S = ("avgvisib_75s_120m_201608", "AVGVISIB_75S_120M_201608.LBL", 120.0)
-USE_85S = False
+USE_85S = True
+READ_85S_WITH_DEM_CRS = True
 
 
 def load_sites():
@@ -163,8 +163,8 @@ def main():
             rasterio.open(data_root() / "illumination" / MAP_75S[1]) as m75:
         dem_crs = CRS.from_wkt(dem.crs.to_wkt())
         dem_tr = Transformer.from_crs(dem_crs.geodetic_crs, dem_crs, always_xy=True)
-        m85_tr = Transformer.from_crs(CRS.from_wkt(m85.crs.to_wkt()).geodetic_crs,
-                                      CRS.from_wkt(m85.crs.to_wkt()), always_xy=True)
+        m85_crs = dem_crs if READ_85S_WITH_DEM_CRS else CRS.from_wkt(m85.crs.to_wkt())
+        m85_tr = Transformer.from_crs(m85_crs.geodetic_crs, m85_crs, always_xy=True)
         m75_tr = Transformer.from_crs(CRS.from_wkt(m75.crs.to_wkt()).geodetic_crs,
                                       CRS.from_wkt(m75.crs.to_wkt()), always_xy=True)
         for site_id, lat, lon in load_sites():
@@ -195,6 +195,8 @@ def main():
                 "illum_png": f"{site_id}-illum.png",
                 "illum_map": illum_name,
                 "illum_res_m": illum_res,
+                "illum_crs": ("DEM CRS (lon_0 = 0), label's lon_0 = 180 overridden"
+                              if illum_name == MAP_85S[0] and READ_85S_WITH_DEM_CRS else "as labelled"),
                 "dem": DEM_NAME,
             }
             (OUT / f"{site_id}.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
