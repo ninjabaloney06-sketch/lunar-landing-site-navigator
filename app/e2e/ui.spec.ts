@@ -161,7 +161,7 @@ test('UX-01: screen numbers agree with the integrator preview run (wiring check,
   // Preview: integrator's Python run, 10-min steps, not validated. Tolerance covers the step difference only.
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await page.getByTestId('answer').click()
+  await page.getByTestId('details').click()
   const drawer = page.getByTestId('drawer')
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 0)) - 91)).toBeLessThan(4)
   expect(Math.abs((await compareValue(drawer, 'Station coverage', 0)) - 98)).toBeLessThan(3)
@@ -218,7 +218,7 @@ test('basic comparison: Connecting Ridge ↔ Malapert Massif, same period; Aug �
   await step(() => choosePeriod(page, AUG), RIDGE, AUG)
 
   // The drawer's Switch button changes context and results together too.
-  await page.getByTestId('answer').click()
+  await page.getByTestId('details').click()
   const drawer = page.getByTestId('drawer')
   await drawer.getByLabel('Compare with site').selectOption(MASSIF)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
@@ -341,20 +341,53 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
   await expect(page.locator('body')).not.toContainText('NaN')
 })
 
-// ---------- D4: three header controls ----------
+// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details) ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 3 controls, main screen 5, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 4 controls, main screen 5, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(3)
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(4)
+    // 4 in the header + the footer's "how this is computed"; the answer line is text, not a control.
     await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
+    await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
   })
 }
+
+test('answer sits in the timeline as text; Details opens the drawer; nothing on the screen can be highlighted', async ({ page }) => {
+  await page.goto(DEMO)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  // The answer is one line of text inside the timeline, directly above the tracks: not a button, not a link.
+  const answer = page.getByTestId('answer')
+  await expect(page.locator('.timeline').getByTestId('answer')).toHaveCount(1)
+  expect(await answer.evaluate((e) => e.tagName)).toBe('P')
+  const a = (await answer.boundingBox())!
+  const track = (await page.getByTestId('track-sun').boundingBox())!
+  expect(a.y + a.height).toBeLessThanOrEqual(track.y)
+  expect(track.y - (a.y + a.height)).toBeLessThan(40)
+  expect(Math.abs(a.x - track.x)).toBeLessThan(2)
+  await answer.click()
+  await expect(page.getByTestId('drawer')).toBeHidden()
+  // Dragging or select-all highlights nothing; form fields stay editable.
+  expect(await page.evaluate(() => getComputedStyle(document.body).userSelect)).toBe('none')
+  await page.keyboard.press('ControlOrMeta+a')
+  expect(await page.evaluate(() => String(window.getSelection()))).toBe('')
+  await page.getByTestId('mission').click()
+  const name = page.getByTestId('mission-panel').getByLabel('Name', { exact: true })
+  expect(await name.evaluate((e) => getComputedStyle(e).userSelect)).toBe('text')
+  await page.keyboard.press('Escape')
+  // The gear button top right opens the details drawer the answer used to open.
+  const details = page.getByTestId('details')
+  const box = (await details.boundingBox())!
+  expect(box.x + box.width).toBeGreaterThan(page.viewportSize()!.width - 60)
+  expect(box.y).toBeLessThan(60)
+  await details.click()
+  await expect(page.getByTestId('drawer')).toBeVisible()
+})
 
 // ---------- URL state, keys, drawer ----------
 
@@ -540,8 +573,8 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 3 controls and the main screen 5.
-  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(3)
+  // The warning is text, not a control: the header still has 4 controls and the main screen 5.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(4)
   await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(5)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
@@ -622,7 +655,7 @@ test('keys and drag move the cursor; space plays', async ({ page }) => {
 test('drawer: stations, comms meaning, finder, potential and sources', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await page.getByTestId('answer').click()
+  await page.getByTestId('details').click()
   const drawer = page.getByTestId('drawer')
   await expect(drawer.getByRole('heading', { name: 'Stations' })).toBeVisible()
   const n = (await stationIds(page)).length
@@ -680,7 +713,7 @@ for (const vp of [
     await shot('main-steep')
     await chooseSite(page, RIDGE)
     await expectAnswer(page, RIDGE, AUG)
-    await page.getByTestId('answer').click()
+    await page.getByTestId('details').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')
     await page.getByTestId('drawer').getByRole('heading', { name: 'Compare' }).scrollIntoViewIfNeeded()

@@ -353,9 +353,24 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
         </div>
-        <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
-          Find better dates
-        </button>
+        <div className="actions">
+          <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
+            Find better dates
+          </button>
+          {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
+          <button
+            type="button"
+            className="details-btn"
+            data-testid="details"
+            aria-label="Details"
+            title="Details"
+            aria-haspopup="dialog"
+            aria-expanded={hs.drawer !== null}
+            onClick={() => patch({ drawer: 'details' })}
+          >
+            <Icon name="settings" />
+          </button>
+        </div>
       </header>
 
       <div className="bottom">
@@ -368,23 +383,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             </span>
           </p>
         )}
-        {ready && answer ? (
-          <button
-            type="button"
-            className="answer"
-            data-testid="answer"
-            data-state="ready"
-            data-site-id={site.id}
-            data-period-id={period.id}
-            onClick={() => patch({ drawer: 'details' })}
-          >
-            <span className="answer-line answer-sun">{answer.sun}</span>
-            <span className="answer-line answer-comms">{answer.comms}</span>
-          </button>
-        ) : (
-          <AnswerPending state={results} siteName={site.name} />
-        )}
         <Timeline
+          answer={
+            ready && answer ? (
+              <p className="answer" data-testid="answer" data-state="ready" data-site-id={site.id} data-period-id={period.id}>
+                <span className="answer-line answer-sun">{answer.sun}</span>
+                <span className="answer-line answer-comms">{answer.comms}</span>
+              </p>
+            ) : (
+              <AnswerPending state={results} siteName={site.name} />
+            )
+          }
           startMs={ctxStart}
           endMs={ctxEnd}
           missionStartMs={period.startMs}
