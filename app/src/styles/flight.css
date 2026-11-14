@@ -1,0 +1,372 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Flight plan tab: the docked panel (FlightPanel) and the playback bar (FlightTransport). Tokens: tokens.css. */
+
+/* ---------- tabs: Landing site | Flight plan, beside the header actions ---------- */
+
+.tabs {
+  flex: none;
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-veil);
+}
+
+.tab {
+  padding: var(--s-2) var(--s-4);
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.tab + .tab {
+  border-left: 1px solid var(--line);
+}
+
+.tab:hover {
+  color: var(--fg);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
+.actions [hidden],
+.place [hidden] {
+  display: none;
+}
+
+/* ---------- labels on the flight scene ---------- */
+
+/* Earth and Moon: the name above the body, no elevation number and no tick. */
+.obj-body {
+  bottom: var(--s-1);
+  padding-bottom: 0;
+}
+
+.obj-ghost {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Launchpad, landing site, TLI, LOI: small text beside the dot. */
+.obj-tag {
+  position: absolute;
+  left: var(--s-2);
+  top: 0;
+  transform: translateY(-50%);
+  font: 400 var(--t-small) / 1.2 var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- Flight panel: docked under the header, ends above the playback bar, scrolls inside itself ---------- */
+
+.flight-panel {
+  width: min(420px, calc(100vw - var(--s-8)));
+  max-height: max(240px, calc(100dvh - 340px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--s-4);
+}
+
+/* The playback bar replaces the timeline; the scene stays draggable above it. */
+.flight-bottom {
+  padding-top: var(--s-10);
+}
+
+.bottom[hidden] {
+  display: none;
+}
+
+.flight-head {
+  padding-bottom: 0;
+}
+
+.flight-head .quiet {
+  margin: var(--s-1) 0 0;
+}
+
+/* Labels are wider than the Mission panel's: "Launchpad", "Touchdown" */
+.flight-panel .mp-field {
+  grid-template-columns: var(--s-24) minmax(0, 1fr);
+  align-items: start;
+}
+
+.flight-panel .mp-label {
+  padding-top: var(--s-2);
+}
+
+.flight-control {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+  justify-items: start;
+}
+
+.flight-control .field {
+  width: 100%;
+}
+
+.flight-note,
+.flight-foot {
+  margin: var(--s-2) 0 0;
+}
+
+.flight-line {
+  margin: 0;
+  padding-top: var(--s-2);
+  overflow-wrap: anywhere;
+}
+
+.flight-sub {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-burns th,
+.flight-burns td {
+  white-space: nowrap;
+}
+
+.flight-burns .flight-name {
+  font-weight: 400;
+  color: var(--fg);
+}
+
+.flight-num {
+  text-align: right;
+}
+
+.flight-burns tfoot th,
+.flight-burns tfoot td {
+  padding-top: var(--s-3);
+  color: var(--muted);
+}
+
+.flight-burns tfoot .flight-num {
+  color: var(--fg);
+}
+
+.flight-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  font-size: var(--t-small);
+}
+
+.flight-facts > div {
+  display: contents;
+}
+
+.flight-facts dt,
+.flight-facts dd {
+  margin: 0;
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.flight-facts dd {
+  overflow-wrap: anywhere;
+  color: var(--fg);
+}
+
+.flight-sources {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+}
+
+.flight-sources li {
+  margin-bottom: var(--s-2);
+}
+
+/* ---------- Flight transport: the bottom bar; one row on desktop, wrapping on phones ---------- */
+
+.flight-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4) var(--s-6);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-veil);
+  border-top: 1px solid var(--line);
+}
+
+.flight-play {
+  flex: none;
+  min-width: var(--s-16);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.flight-readout {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s-4);
+}
+
+.flight-readout p {
+  margin: 0;
+}
+
+.flight-elapsed {
+  font-size: var(--t-ui);
+  color: var(--fg);
+}
+
+.flight-phase {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-track {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  padding-top: var(--s-6);
+}
+
+.flight-ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--s-6);
+}
+
+/* A 1px tick above the track; the button is the hit area. Labels sit above the tick. */
+.flight-tick {
+  position: absolute;
+  top: var(--s-2);
+  bottom: 0;
+  width: var(--s-2);
+  transform: translateX(-50%);
+}
+
+.flight-tick::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--faint);
+}
+
+.flight-tick:hover::before,
+.flight-tick:focus-visible::before {
+  background: var(--fg);
+}
+
+.flight-tick-text {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  padding-bottom: 2px;
+  font: 400 var(--t-small) / 1 var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Scrubber: a 1px --track line with a 2px --fg bar for the thumb */
+.flight-scrub {
+  display: block;
+  width: 100%;
+  height: var(--s-3);
+  margin: 0;
+  background: transparent;
+  cursor: ew-resize;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.flight-scrub::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--track);
+}
+
+.flight-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 2px;
+  height: var(--s-3);
+  margin-top: calc((1px - var(--s-3)) / 2);
+  border: 0;
+  background: var(--fg);
+}
+
+.flight-scrub::-moz-range-track {
+  height: 1px;
+  background: var(--track);
+}
+
+.flight-scrub::-moz-range-thumb {
+  width: 2px;
+  height: var(--s-3);
+  border: 0;
+  border-radius: 0;
+  background: var(--fg);
+}
+
+.flight-speed-field {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s-3);
+  cursor: pointer;
+}
+
+.flight-speed-field .mono {
+  min-width: var(--s-16);
+}
+
+.flight-speed {
+  width: var(--s-24);
+  margin: 0;
+  accent-color: var(--fg);
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 640px) {
+  .flight-panel {
+    width: auto;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .flight-transport {
+    gap: var(--s-3) var(--s-4);
+    padding: var(--s-3) var(--s-4);
+  }
+
+  .flight-track {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .flight-speed-field {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-play,
+  .flight-tick::before {
+    transition: none;
+  }
+
+  .flight-panel {
+    animation: none;
+  }
+}

@@ -1,5 +1,5 @@
 // URL-hash state (build-plan §5.2): site, cursor time, period, selected stations, view, drawer, user
-// points, mission name and science goal. A copied link reproduces the view. Parsing never throws and never
+// points, mission name, science goal and the flight plan's choices (launchpad, rocket, transfer time). A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ScienceGoal } from './geometry'
@@ -24,6 +24,9 @@ export interface HashState {
   pts: UserPoint[]
   name: string | null // mission name, plain text; null = DEFAULT_MISSION_NAME
   goal: ScienceGoal
+  pad: string | null // flight plan: launchpad id; null = the default pad
+  rocket: string | null // flight plan: vehicle id; null = the default vehicle
+  tmax: number | null // flight plan: longest transfer in days; null = minimum energy
 }
 
 // Supported coverage (spec.md "Dates"): [2026-11-01, 2031-01-01) UTC.
@@ -38,7 +41,7 @@ export const DEFAULT_DAYS = 14
 export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
-const VIEWS: SceneLevel[] = ['globe', 'site', 'eye']
+const VIEWS: SceneLevel[] = ['globe', 'site', 'eye', 'flight']
 const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources']
 export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', 'science']
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/
@@ -47,6 +50,8 @@ export const MAX_DAYS = 60
 // Defaults decided by ninja, 14 Nov: a neutral mission name, and the goal whose ranking uses our own numbers.
 export const DEFAULT_MISSION_NAME = 'Mission 1'
 export const DEFAULT_GOAL: ScienceGoal = 'light'
+// Transfer-time caps the flight plan offers (days); anything else in a link falls back to minimum energy.
+export const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
 
 export const EMPTY_STATE: HashState = {
   site: null,
@@ -60,6 +65,9 @@ export const EMPTY_STATE: HashState = {
   pts: [],
   name: null,
   goal: DEFAULT_GOAL,
+  pad: null,
+  rocket: null,
+  tmax: null,
 }
 
 /** Mission name as plain text: control characters dropped, runs of white space collapsed, at most 40
@@ -123,6 +131,12 @@ export function parseHash(hash: string): HashState {
   s.name = cleanName(p.get('name'))
   const goal = p.get('goal') as ScienceGoal | null
   if (goal && GOALS.includes(goal)) s.goal = goal
+  const pad = p.get('pad')
+  if (pad && ID_RE.test(pad)) s.pad = pad
+  const rocket = p.get('rocket')
+  if (rocket && ID_RE.test(rocket)) s.rocket = rocket
+  const tmax = Number(p.get('tmax'))
+  if (TRANSFER_CAPS.includes(tmax)) s.tmax = tmax
   if (s.period === 'custom' && s.from === null) s.period = null
   return s
 }
@@ -142,6 +156,9 @@ export function serializeHash(s: HashState): string {
   if (s.pts.length) p.set('pts', s.pts.map((q) => `${q.lat.toFixed(4)},${q.lon.toFixed(4)}`).join(';'))
   if (s.name) p.set('name', s.name)
   if (s.goal !== DEFAULT_GOAL) p.set('goal', s.goal)
+  if (s.pad) p.set('pad', s.pad)
+  if (s.rocket) p.set('rocket', s.rocket)
+  if (s.tmax !== null) p.set('tmax', String(s.tmax))
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }

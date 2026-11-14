@@ -36,7 +36,7 @@ const D_STARS = 5000
 // Magellanic Clouds at RA 81°/Dec −70° and RA 13°/Dec −73° only under this convention.
 const STARMAP_RA_INCREASES_LEFT = true
 
-const ATMO_VERT = /* glsl */ `
+export const ATMO_VERT = /* glsl */ `
 #include <common>
 #include <logdepthbuf_pars_vertex>
 varying vec3 vN;
@@ -49,7 +49,7 @@ void main() {
   #include <logdepthbuf_vertex>
 }`
 
-const ATMO_FRAG = /* glsl */ `
+export const ATMO_FRAG = /* glsl */ `
 #include <logdepthbuf_pars_fragment>
 uniform vec3 uSun;
 varying vec3 vN;
@@ -168,6 +168,11 @@ export class Sky {
   /** Position of the body in sky-world units (for projection with this.camera). */
   worldPos(b: SkyBody): Vector3 {
     return (b === 'sun' ? this.sun : this.earth).getWorldPosition(new Vector3())
+  }
+
+  setEarthVisible(v: boolean) {
+    this.earth.visible = v
+    this.atmo.visible = v
   }
 
   syncCamera(main: PerspectiveCamera) {

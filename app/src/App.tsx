@@ -1,11 +1,16 @@
 // Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, three header
 // controls (mission, date, Find better dates), the answer sentence, the timeline and one footer line.
+// Two tabs share the stage: "Landing site" (the above) and "Flight plan" (the Earth-to-Moon trajectory for the
+// mission's site and start date, with its own panel and playback bar).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
+import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
+import type { LandingTarget } from './flight/types'
+import { DEFAULT_VEHICLE_ID, VEHICLES } from './flight/vehicles'
 import { webglAvailable } from './scene3d'
 import {
   cleanName,
@@ -22,13 +27,17 @@ import {
 import { DateMenu } from './views/DateMenu'
 import { Drawer } from './views/Drawer'
 import type { ViewPeriod } from './views/Drawer'
+import { FlightPanel } from './views/FlightPanel'
+import { FlightTransport } from './views/FlightTransport'
 import { HorizonStrip } from './views/HorizonStrip'
 import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
 import { SceneView } from './views/SceneView'
+import type { FlightScene } from './views/SceneView'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtDeg, fmtRange, fmtShort } from './views/format'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
+import { useFlight } from './views/useFlight'
 import './styles/mission.css'
 
 type Boot =
@@ -69,6 +78,9 @@ export default function App() {
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
+// Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
+const FLIGHT_STEP_MS = 10 * 60_000
+const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -150,6 +162,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
 
+  // ---------- Flight plan tab: launchpad → this mission's site, touching down at the mission start ----------
+  const inFlight = hs.view === 'flight'
+  const pad = LAUNCHPADS.find((x) => x.id === hs.pad) ?? LAUNCHPADS.find((x) => x.id === DEFAULT_PAD_ID) ?? LAUNCHPADS[0]
+  const vehicle = VEHICLES.find((x) => x.id === hs.rocket) ?? VEHICLES.find((x) => x.id === DEFAULT_VEHICLE_ID) ?? VEHICLES[0]
+  const target: LandingTarget = useMemo(() => ({ id: site.id, name: site.name, latDeg: site.lat, lonDeg: site.lon }), [site])
+  const flight = useFlight({ active: inFlight, pad, vehicle, target, landingMs: period.startMs, maxTransferDays: hs.tmax })
+  const [trueScale, setTrueScale] = useState(false)
+  const [flightViewKey, setFlightViewKey] = useState(0)
+  const flightScene: FlightScene = useMemo(
+    () => ({ plan: flight.plan, trueScale, clock: flight.clock, viewKey: flightViewKey }),
+    [flight.plan, flight.clock, trueScale, flightViewKey],
+  )
+
   const deps = useMemo(() => ({ sites, loadFrame: makeLoadFrame(sites) }), [sites])
   const onUnavailable = useCallback(() => setWebgl(false), [])
 
@@ -164,13 +189,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   // Play: one 30-minute step every 50 ms until the period ends.
   useEffect(() => {
     if (!playing) return
-    if (cursor >= lastStep) {
+    if (inFlight || cursor >= lastStep) {
       setPlaying(false)
       return
     }
     const id = window.setTimeout(() => patch({ t: cursor + STEP_MS }), 50)
     return () => window.clearTimeout(id)
-  }, [playing, cursor, lastStep, patch])
+  }, [playing, inFlight, cursor, lastStep, patch])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -179,10 +204,21 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
       if (e.key === 'Escape') {
         if (menu) closeMenu(true)
         else if (hs.drawer) patch({ drawer: null })
-        else patch({ view: 'globe' })
+        else patch({ view: inFlight ? 'site' : 'globe' })
         return
       }
       if (menu || hs.drawer || e.metaKey || e.ctrlKey || e.altKey) return
+      if (inFlight) {
+        // The flight has its own clock: Space plays it, the arrows step it.
+        if (e.key === ' ' && t.tagName !== 'BUTTON') {
+          e.preventDefault()
+          flight.setPlaying(!flight.playing)
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault()
+          flight.seek(flight.clock.timeMs + (e.shiftKey ? FLIGHT_STEP_BIG_MS : FLIGHT_STEP_MS) * (e.key === 'ArrowLeft' ? -1 : 1))
+        }
+        return
+      }
       if (e.key === ' ' && t.tagName !== 'BUTTON') {
         e.preventDefault()
         setPlaying((p) => !p)
@@ -196,7 +232,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [menu, hs.drawer, hs.view, cursor, snap, patch, closeMenu])
+  }, [menu, hs.drawer, hs.view, inFlight, flight, cursor, snap, patch, closeMenu])
 
   const toggleStation = (id: string) => {
     const next = ids.includes(id) ? ids.filter((x) => x !== id) : stations.map((s) => s.id).filter((x) => x === id || ids.includes(x))
@@ -259,13 +295,20 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             view={hs.view}
             sunEl={atCursor ? atCursor.sun.el : null}
             earthEl={atCursor ? atCursor.earth.el : null}
+            flight={flightScene}
             onUnavailable={onUnavailable}
             onPick={onPick}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
-            <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={atCursor} height={220} className="strip-main" />
-            <p className="quiet">The 3D view needs WebGL, which this browser does not provide. The horizon strip shows the same sky.</p>
+            {inFlight ? (
+              <p className="quiet">The flight view needs WebGL, which this browser does not provide. The flight plan's numbers are not affected.</p>
+            ) : (
+              <>
+                <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={atCursor} height={220} className="strip-main" />
+                <p className="quiet">The 3D view needs WebGL, which this browser does not provide. The horizon strip shows the same sky.</p>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -305,6 +348,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           <button
             ref={dateBtn}
             type="button"
+            hidden={inFlight}
             className="date"
             data-testid="date"
             data-period-id={period.id}
@@ -333,7 +377,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                 // Closes like the site menu did, so the flight and the new answer are seen; the ranking is kept,
                 // so reopening the panel shows it at once.
                 setMenu(null)
-                patch({ site: id, view: 'site' })
+                patch(inFlight ? { site: id } : { site: id, view: 'site' })
                 missionBtn.current?.focus()
               }}
               onToggleStation={toggleStation}
@@ -355,14 +399,63 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onClose={closeMenuQuiet}
             />
           )}
+          {inFlight && menu === null && (
+            <FlightPanel
+              pads={LAUNCHPADS}
+              padId={pad.id}
+              onPad={(id) => patch({ pad: id === DEFAULT_PAD_ID ? null : id })}
+              vehicles={VEHICLES}
+              vehicleId={vehicle.id}
+              onVehicle={(id) => patch({ rocket: id === DEFAULT_VEHICLE_ID ? null : id })}
+              target={target}
+              landingMs={period.startMs}
+              maxTransferDays={hs.tmax}
+              onMaxTransferDays={(tmax) => patch({ tmax })}
+              status={flight.status}
+              trueScale={trueScale}
+              onTrueScale={setTrueScale}
+              onChangeSite={() => {
+                setPanelAtStations(false)
+                setMenu('mission')
+              }}
+              onSeek={flight.seek}
+            />
+          )}
         </div>
         <div className="actions">
-          <button type="button" className="find" onClick={() => patch({ drawer: 'finder' })}>
+          <div className="tabs" role="tablist" aria-label="View">
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              data-testid="tab-site"
+              aria-selected={!inFlight}
+              onClick={() => inFlight && patch({ view: 'site' })}
+            >
+              Landing site
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              data-testid="tab-flight"
+              aria-selected={inFlight}
+              onClick={() => {
+                setMenu(null)
+                setPlaying(false)
+                patch({ view: 'flight', drawer: null })
+              }}
+            >
+              Flight plan
+            </button>
+          </div>
+          <button type="button" className="find" hidden={inFlight} onClick={() => patch({ drawer: 'finder' })}>
             Find better dates
           </button>
           {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
           <button
             type="button"
+            hidden={inFlight}
             className="details-btn"
             data-testid="details"
             aria-label="Details"
@@ -376,7 +469,34 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </div>
       </header>
 
-      <div className="bottom">
+      {inFlight && (
+        <div className="bottom flight-bottom">
+          {flight.plan && (
+            <FlightTransport
+              plan={flight.plan}
+              timeMs={flight.timeMs}
+              playing={flight.playing}
+              speed={flight.speed}
+              onPlaying={flight.setPlaying}
+              onSeek={flight.seek}
+              onSpeed={flight.setSpeed}
+            />
+          )}
+          <footer className="foot">
+            <p>
+              Patched conics, impulsive burns · ephemeris JPL DE440 · drag to turn, scroll to zoom ·{' '}
+              <button type="button" className="link" onClick={() => setFlightViewKey((k) => k + 1)}>
+                reset view
+              </button>
+            </p>
+            <p className="foot-sample" data-testid="flight-flag">
+              Planning estimate — not validated
+            </p>
+          </footer>
+        </div>
+      )}
+
+      <div className="bottom" hidden={inFlight}>
         {/* Only when the site fails the slope criterion; passing and unknown are stated in the Mission panel. */}
         {slope.state === 'fail' && slope.deg !== null && (
           <p className="slope-warning" data-testid="slope-warning">

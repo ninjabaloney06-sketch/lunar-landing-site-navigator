@@ -4,6 +4,7 @@
 // Two scenes, two unit systems (build-plan §5.4 trap 3):
 //   globe: origin = Moon centre, MOON_ME axes, km (globe.ts)
 //   site/eye: origin = the site's ground point, ENU axes, metres (site.ts)
+//   flight: origin = Earth centre, J2000 axes, km (flight.ts); the flight plan's own level, never flown into
 // Sun, Earth and stars are a sky layer drawn first at true directions and true angular sizes (sky.ts).
 // No angle-triple rotations, no trig and no hand-typed matrices here: directions come from geometry/ via frames.ts.
 
@@ -11,22 +12,28 @@ import {
   ACESFilmicToneMapping,
   PerspectiveCamera,
   Quaternion,
+  Ray,
   SRGBColorSpace,
+  Sphere,
   Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
+import type { FlightPlan } from '../flight/types'
+import { qconj, qrot, scale } from '../flight/vec'
 import { MOON_RADIUS_KM, enuBasis, siteVector, type BodyState } from '../geometry'
 import { loadTextures } from './assets'
 import { installDebug, type DebugView } from './debug'
-import { azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
+import { FlightWorld, type FlightAnchor } from './flight'
+import { azElOfEnu, enuDir, enuToMeQuat, latLonOf, quat, v3 } from './frames'
 import { GlobeWorld } from './globe'
 import { SiteWorld } from './site'
 import { Sky } from './sky'
 
-export type SceneLevel = 'globe' | 'site' | 'eye'
+export type SceneLevel = 'globe' | 'site' | 'eye' | 'flight'
+export type { FlightAnchor } from './flight'
 
 export interface SceneFrame {
   site: Site | null
@@ -54,6 +61,12 @@ export interface SceneHandle {
   project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null // 'site' = mast top, for the "Landing site" label
   onCameraChange(cb: () => void): () => void
   onPick(cb: (lat: number, lon: number) => void): () => void
+  // Flight level (additive, 14 Nov): the plan to draw, the simulated instant, and label points on its objects.
+  setFlight(plan: FlightPlan | null, trueScale: boolean): void
+  setFlightTime(utcMs: number): void
+  projectFlight(name: FlightAnchor): ScreenPoint | null
+  /** Back to the default flight view (the whole transfer). */
+  resetFlightView(): void
   dispose(): void
 }
 
@@ -74,6 +87,20 @@ const EYE_DEFAULT_EL = 3
 const FLY_MS = 1500
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
+// Flight view: seen from 50 deg above the transfer plane (viewUp, viewSide = sin, cos of 50 deg), Earth left and
+// the Moon right, the Earth-Moon span filling 1/fit of the width that the flight panel (panelPx) leaves free.
+const FLIGHT = {
+  fov: 35,
+  viewUp: 0.766,
+  viewSide: 0.643,
+  fit: 1.3,
+  panelPx: 470,
+  minDistKm: 2500,
+  maxDistKm: 3e6,
+  reframeCos: 0.9986, // re-frame when the transfer plane has turned by more than 3 deg
+}
+const AU_KM = 149_597_870.7
+const ORIGIN = new Vector3()
 
 interface Fly {
   t0: number
@@ -114,6 +141,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   siteControls.enablePan = false
   siteControls.enableDamping = !testMode
   siteControls.dampingFactor = 0.1
+  // Flight camera (J2000, km). Its controls are built per plan: OrbitControls reads camera.up once, and "up" here
+  // is the transfer plane's normal.
+  const flightCam = new PerspectiveCamera(FLIGHT.fov, 1, 20, 1e7)
+  flightCam.up.set(0, 0, 1)
+  let flightControls: OrbitControls | null = null
   const globeControls = new OrbitControls(globeCam, canvas)
   globeControls.enablePan = false
   globeControls.enableDamping = !testMode
@@ -127,6 +159,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let builtFor: { site: Site | null; horizon: Horizon | null; terrain: TerrainTile | null } | null = null
   let sky: Sky | null = null
   let globe: GlobeWorld | null = null
+  let flight: FlightWorld | null = null
+  let flightPlan: FlightPlan | null = null
+  let flightTrueScale = false
+  let flightMs = 0
+  let flightFramed: Vector3 | null = null // transfer-plane normal the flight camera was last framed for
   const site = new SiteWorld()
   let siteKm = new Vector3()
   let enuToMe = new Quaternion()
@@ -150,7 +187,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const h = Math.max(container.clientHeight, 1)
     size.set(w, h)
     renderer.setSize(w, h, false)
-    for (const c of [siteCam, globeCam]) {
+    for (const c of [siteCam, globeCam, flightCam]) {
       c.aspect = w / h
       c.updateProjectionMatrix()
     }
@@ -161,11 +198,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   resize()
 
   const inSpace = () => level === 'globe' || fly !== null
-  const activeCam = () => (inSpace() ? globeCam : siteCam)
+  const activeCam = () => (level === 'flight' ? flightCam : inSpace() ? globeCam : siteCam)
 
   function setControls() {
     globeControls.enabled = level === 'globe' && !fly
-    siteControls.enabled = level !== 'globe' && !fly
+    siteControls.enabled = (level === 'site' || level === 'eye') && !fly
+    if (flightControls) flightControls.enabled = level === 'flight'
     if (level === 'eye') {
       siteControls.minDistance = siteControls.maxDistance = 0.01
       siteControls.enableZoom = false
@@ -184,7 +222,21 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // ---------- frame / sky ----------
 
+  /** Sky for the flight level: stars fixed in J2000 and the Sun where the plan's ephemeris puts it. */
+  function flightSkyState(): BodyState | null {
+    if (!flightPlan) return frame?.state ?? null
+    const q = flightPlan.ephem.moonFixedToInertial(flightMs)
+    const sunMe = scale(qrot(qconj(q), flightPlan.ephem.sunDir(flightMs)), AU_KM)
+    return { utcMs: flightMs, sun_km: sunMe, earth_km: [384400, 0, 0], q_me_to_j2000: q, q_earth_to_me: [0, 0, 0, 1] }
+  }
+
   function syncSky() {
+    if (sky && level === 'flight') {
+      const st = flightSkyState()
+      if (st) sky.update(st, ORIGIN, quat(st.q_me_to_j2000))
+      sky.syncCamera(flightCam)
+      return
+    }
     if (!sky || !frame) return
     if (inSpace()) sky.update(frame.state, globeCam.position, new Quaternion())
     else sky.update(frame.state, siteKm, meToEnu)
@@ -230,11 +282,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
     applyLights()
-    if (!f.site && level !== 'globe') {
+    if (!f.site && level !== 'globe' && level !== 'flight') {
       level = 'globe'
       fly = null
       setGlobeView()
-    } else if (siteChanged && level !== 'globe') setSiteView()
+    } else if (siteChanged && (level === 'site' || level === 'eye')) setSiteView()
     if (wanted && f.site && !fly) setLevel(wanted, false)
     setControls()
     markDirty()
@@ -313,6 +365,87 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     markDirty()
   }
 
+  // ---------- flight level ----------
+
+  /** Default flight view: the whole transfer, Earth left, Moon right, from above the transfer plane. */
+  function setFlightView() {
+    const vf = flight?.viewFrame()
+    if (!vf) return
+    flightControls?.dispose()
+    flightCam.up.copy(vf.normal)
+    const c = new OrbitControls(flightCam, canvas)
+    c.enableDamping = !testMode
+    c.dampingFactor = 0.1
+    c.rotateSpeed = 0.5
+    c.zoomSpeed = 2 // from the whole transfer down to a lunar orbit is a factor of 100
+    c.zoomToCursor = true
+    c.minDistance = FLIGHT.minDistKm
+    c.maxDistance = FLIGHT.maxDistKm
+    c.addEventListener('change', markDirty)
+    flightControls = c
+    const side = vf.toMoon.clone().cross(vf.normal) // toward the viewer: puts the Moon on the right
+    const dir = vf.normal.clone().multiplyScalar(FLIGHT.viewUp).addScaledVector(side, FLIGHT.viewSide).normalize()
+    const tanHalfH = flightCam.aspect / flightCam.projectionMatrix.elements[5]
+    const panel = size.x >= 900 ? Math.min(FLIGHT.panelPx / size.x, 0.45) : 0
+    const dist = (vf.span * FLIGHT.fit) / (2 * tanHalfH * (1 - panel))
+    // Shift the target toward Earth so the transfer sits in the middle of the area the panel leaves free.
+    const target = vf.center.clone().addScaledVector(vf.toMoon, -panel * dist * tanHalfH)
+    flightCam.position.copy(target).addScaledVector(dir, dist)
+    c.target.copy(target)
+    flightCam.lookAt(target)
+    c.update()
+    flightFramed = vf.normal.clone()
+    setControls()
+    markDirty()
+  }
+
+  function setFlight(plan: FlightPlan | null, trueScale: boolean) {
+    flightPlan = plan
+    flightTrueScale = trueScale
+    if (!flight) return // applied once the textures are in
+    flight.setPlan(plan, trueScale)
+    if (plan) {
+      flightMs = Math.min(plan.landingMs, Math.max(plan.launchMs, flightMs))
+      flight.setTime(flightMs)
+    }
+    const vf = flight.viewFrame()
+    if (level === 'flight' && vf && (!flightFramed || flightFramed.dot(vf.normal) < FLIGHT.reframeCos)) setFlightView()
+    markDirty()
+  }
+
+  function setFlightTime(utcMs: number) {
+    if (utcMs === flightMs) return
+    flightMs = utcMs
+    flight?.setTime(utcMs)
+    if (level === 'flight') markDirty()
+  }
+
+  /** True when the sphere blocks the segment from `from` to `to`. */
+  function blocked(from: Vector3, to: Vector3, centre: Vector3, radius: number): boolean {
+    const dir = to.clone().sub(from)
+    const len = dir.length()
+    const hit = new Ray(from, dir.normalize()).intersectSphere(new Sphere(centre, radius), new Vector3())
+    return hit !== null && hit.distanceTo(from) < len - 1e-6
+  }
+
+  function projectFlight(name: FlightAnchor): ScreenPoint | null {
+    if (level !== 'flight' || !flight || !flightPlan) return null
+    const p = flight.anchor(name)
+    const moon = flight.anchor('moon')
+    if (!p || !moon) return null
+    const earthR = flight.bodyRadius('earth')
+    const moonR = flight.bodyRadius('moon')
+    if (name === 'earth' || name === 'moon' || name === 'arrival') {
+      // The label sits above the body (or the ring): its top edge as the camera sees it.
+      const up = new Vector3(0, 1, 0).applyQuaternion(flightCam.quaternion)
+      return toScreen(p.addScaledVector(up, name === 'earth' ? earthR : moonR), flightCam)
+    }
+    const sp = toScreen(p, flightCam)
+    if (!sp.visible) return sp
+    const hidden = blocked(flightCam.position, p, ORIGIN, earthR * 0.98) || blocked(flightCam.position, p, moon, moonR * 0.98)
+    return { ...sp, visible: !hidden }
+  }
+
   /** Site-camera pose expressed in MOON_ME km (for the fly between the two scenes). */
   function sitePoseInMe(): { p: Vector3; q: Quaternion } {
     const p = siteCam.position.clone().multiplyScalar(0.001).applyQuaternion(enuToMe).add(siteKm)
@@ -345,12 +478,21 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function setLevel(next: SceneLevel, animate = !testMode) {
     // C2 may ask for 'site' before the first frame or while a fly runs: remember it and apply it then.
-    if ((!frame?.site && next !== 'globe') || fly) {
+    if ((!frame?.site && next !== 'globe' && next !== 'flight') || fly) {
       wanted = next
       return
     }
     wanted = null
     const prev = level
+    if (prev === 'flight') animate = false // no fly between the Earth-centred flight frame and the Moon frames
+    if (next === 'flight') {
+      level = 'flight'
+      if (!flightFramed) setFlightView()
+      setControls()
+      markDirty()
+      notifyCamera()
+      return
+    }
     if (next === 'globe') {
       if (prev !== 'globe' && animate) {
         const from = sitePoseInMe()
@@ -417,6 +559,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // C2 calls project() for three labels on every animation frame; the raycasts run once per view version.
   const projCache = new Map<string, { v: number; p: ScreenPoint | null }>()
   function project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
+    if (level === 'flight') return null // the flight level has its own labels (projectFlight)
     const c = projCache.get(name)
     if (c && c.v === viewVersion) return c.p && { ...c.p }
     const p = projectNow(name)
@@ -447,6 +590,17 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function render() {
     if (!sky || !globe) return
+    sky.setEarthVisible(level !== 'flight') // the flight scene draws its own Earth, at its real distance
+    if (level === 'flight') {
+      if (!flight) return
+      flight.updateSizes(flightCam, size.y)
+      syncSky()
+      renderer.clear()
+      if (flightPlan || frame) sky.render(renderer)
+      renderer.clearDepth()
+      renderer.render(flight.scene, flightCam)
+      return
+    }
     site.setEyeMode(level === 'eye')
     const cam = activeCam()
     if (inSpace()) globe.updatePins(globeCam, size.y)
@@ -477,8 +631,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (disposed) return
     raf = requestAnimationFrame(loop)
     if (fly) stepFly(now)
-    const moved = (inSpace() ? globeControls : siteControls).update()
-    if (moved) markDirty()
+    const controls = level === 'flight' ? flightControls : inSpace() ? globeControls : siteControls
+    if (controls?.update()) markDirty()
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
@@ -523,7 +677,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     sky = new Sky(tex)
     globe = new GlobeWorld(tex)
     globe.setSites(deps.sites, null)
+    flight = new FlightWorld(tex)
+    if (flightPlan) setFlight(flightPlan, flightTrueScale)
     setGlobeView()
+    if (level === 'flight') setFlightView()
     setControls()
     if (pending) applyFrame(pending)
     pending = null
@@ -548,6 +705,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       pickCbs.add(cb)
       return () => pickCbs.delete(cb)
     },
+    setFlight,
+    setFlightTime,
+    projectFlight,
+    resetFlightView: setFlightView,
     dispose() {
       disposed = true
       cancelAnimationFrame(raf)
@@ -556,6 +717,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       canvas.removeEventListener('pointerup', onUp)
       siteControls.dispose()
       globeControls.dispose()
+      flightControls?.dispose()
+      flight?.dispose()
       renderer.dispose()
       canvas.remove()
       fpsEl?.remove()
