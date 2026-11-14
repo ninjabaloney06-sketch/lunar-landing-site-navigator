@@ -104,6 +104,53 @@
   border-radius: 2px;
 }
 
+/* ---------- user points in the Mission panel: name, role, delete; coordinates select the point ---------- */
+
+.pt-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--s-8);
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  padding: var(--s-2) 0;
+}
+
+.pt-row.is-selected {
+  box-shadow: inset 2px 0 0 var(--fg);
+  margin-left: calc(-1 * var(--s-4));
+  padding-left: var(--s-4);
+}
+
+.pt-role {
+  width: auto;
+}
+
+.pt-select {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line);
+}
+
+.pt-select:hover,
+.pt-select[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
+.pt-none {
+  grid-column: 1 / -1;
+  font-size: var(--t-small);
+  color: var(--faint);
+}
+
+.menu-msg .link {
+  color: var(--fg);
+}
+
 @media (max-width: 640px) {
   .tl-tools {
     gap: var(--s-4);

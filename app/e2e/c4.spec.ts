@@ -269,7 +269,7 @@ async function chooseView(page: Page, label: string) {
 test.describe('C4 part 2: viewpoints', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('the View button reaches the viewpoints by keyboard; Moon, Earth, Sun and the top view leave the camera outside every body', async ({ page }) => {
+  test('the View button reaches the six viewpoints by keyboard; Moon, Earth, Sun and the top view leave the camera outside every body', async ({ page }) => {
     await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid`)
     const before = await selection(page)
     const view = page.getByTestId('view')
@@ -360,7 +360,7 @@ test.describe('C4 part 2: viewpoints', () => {
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
   })
 
-  test('right-click opens the viewpoint menu in order and the browser menu does not appear, at every level', async ({ page }) => {
+  test('right-click opens the menu with the seven entries in order and the browser menu does not appear, at every level', async ({ page }) => {
     await openApp(page, `site=${RIDGE}&period=${AUG}`)
     await page.evaluate(() => {
       const w = window as unknown as { __ctx: boolean[] }
@@ -372,7 +372,7 @@ test.describe('C4 part 2: viewpoints', () => {
       await page.mouse.click(720, 400, { button: 'right' })
       const menu = page.getByTestId('scene-menu')
       await expect(menu, `menu at ${level} level`).toBeVisible()
-      await expect(menu.getByRole('menuitem')).toHaveText(VIEW_LABELS)
+      await expect(menu.getByRole('menuitem')).toHaveText(['Add point here', ...VIEW_LABELS])
       const box = (await menu.boundingBox())!
       expect(Math.abs(box.x - 720)).toBeLessThan(2)
       expect(Math.abs(box.y - 400)).toBeLessThan(2)
@@ -471,4 +471,204 @@ test('note 12: hovering a site pin on the globe shows its name; moving away hide
   await page.mouse.move(pin.x + 200, pin.y - 150)
   await expect(page.getByTestId('pin-name')).toBeHidden()
   await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge') // hovering selects nothing
+})
+
+// ---------- part 3: user points ----------
+
+type SceneP3 = SceneP2 & {
+  surfaceAt(x: number, y: number): { lat: number; lon: number } | null
+  projectMark(i: number): { x: number; y: number; visible: boolean } | null
+}
+const scene3 = <T>(page: Page, fn: (s: SceneP3) => T | Promise<T>) => page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
+const surfaceAt = (page: Page, x: number, y: number) =>
+  page.evaluate(([x, y]) => (window as unknown as { __scene: SceneP3 }).__scene.surfaceAt(x, y), [x, y])
+const hashPts = (page: Page) => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('pts'))
+const coordText = (lat: number, lon: number) =>
+  `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'} · ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? 'W' : 'E'}`
+
+async function addHere(page: Page, x: number, y: number) {
+  await page.mouse.click(x, y, { button: 'right' })
+  await page.getByTestId('scene-menu').getByRole('menuitem', { name: 'Add point here' }).click()
+}
+
+async function openPanel(page: Page) {
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  await expect(panel).toBeVisible()
+  await panel.getByTestId('points').scrollIntoViewIfNeeded()
+  return panel
+}
+
+test.describe('C4 part 3: user points', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('right-click → Add point here adds a point at the clicked place, on the globe and in the site view; it is disabled off the Moon; a left-click adds none', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid`)
+    const before = await selection(page)
+    // Site view: the terrain point under the pointer.
+    const onTerrain = (await surfaceAt(page, 800, 430))!
+    expect(onTerrain, 'terrain under the pointer').not.toBeNull()
+    expect(onTerrain.lat).toBeLessThan(-88) // near Connecting Ridge (89.46° S)
+    await addHere(page, 800, 430)
+    await expect.poll(() => hashPts(page)).toBe(`${onTerrain.lat.toFixed(4)},${onTerrain.lon.toFixed(4)},,Point A`)
+    await expect.poll(() => scene(page, (s) => s.level()), 'adding a point is not a walk').toBe('site')
+    // The marker stands where the click was.
+    const mark = (await scene3(page, (s) => s.projectMark(0)))!
+    expect(mark).not.toBeNull()
+    expect(Math.abs(mark.x - 800)).toBeLessThan(6)
+    expect(mark.y).toBeLessThan(430 + 3) // the head sits on a short stem above the ground point
+
+    // Globe: the surface point under the pointer; over the sky the entry is disabled.
+    await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'globe', el: -70, az: 30, dist: 6500 }))
+    const onGlobe = (await surfaceAt(page, 700, 420))!
+    expect(onGlobe).not.toBeNull()
+    await addHere(page, 700, 420)
+    await expect.poll(() => hashPts(page)).toBe(
+      `${onTerrain.lat.toFixed(4)},${onTerrain.lon.toFixed(4)},,Point A;${onGlobe.lat.toFixed(4)},${onGlobe.lon.toFixed(4)},,Point B`,
+    )
+    expect(await surfaceAt(page, 60, 300), 'sky beside the Moon').toBeNull()
+    await page.mouse.click(60, 300, { button: 'right' })
+    const menu = page.getByTestId('scene-menu')
+    await expect(menu.getByRole('menuitem', { name: 'Add point here' })).toBeDisabled()
+    await expect(menu.getByRole('menuitem', { name: 'Moon' })).toBeEnabled()
+    await page.keyboard.press('Escape')
+    // A left-click on the globe's surface adds no point (ninja, 14 Nov) and selects no site.
+    await page.mouse.click(700, 440)
+    await page.waitForTimeout(600)
+    expect((await hashPts(page))!.split(';')).toHaveLength(2)
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+    // Hovering the new point's marker shows its name.
+    const m = (await scene3(page, (s) => s.projectMark(1)))!
+    await page.mouse.move(m.x, m.y)
+    await expect(page.getByTestId('pin-name')).toHaveText('Point B')
+    // The scientific selection is untouched, and the answer still describes the landing site.
+    expect(await selection(page)).toBe(before)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
+  })
+
+  test('typed coordinates add a point; rename, role and delete work; a second Start replaces the first; a point shows "No terrain data for this point" and no number', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}`)
+    const panel = await openPanel(page)
+    await expect(panel.getByTestId('point')).toHaveCount(0)
+    const search = panel.getByRole('combobox', { name: 'Search a site or type coordinates' })
+    await search.fill('89.3 S, 130 W')
+    await expect(panel.getByRole('status')).toContainText('89.30° S · 130.00° W')
+    await panel.getByTestId('add-point').click()
+    await expect(panel.getByTestId('point')).toHaveCount(1)
+    await expect(search).toHaveValue('')
+    await search.fill('-85.5, 12.25')
+    await search.press('Enter') // Enter adds typed coordinates too
+    const rows = panel.getByTestId('point')
+    await expect(rows).toHaveCount(2)
+    await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Point A')
+    await expect(rows.nth(1).getByRole('textbox')).toHaveValue('Point B')
+    await expect(rows.nth(0)).toContainText('89.30° S · 130.00° W')
+    await expect(rows.nth(1)).toContainText('85.50° S · 12.25° E')
+    // Sunlight and station visibility: the text, never a value.
+    for (const i of [0, 1]) {
+      const none = rows.nth(i).locator('[data-fact=none]')
+      await expect(none).toHaveText('No terrain data for this point')
+      expect(await none.innerText()).not.toMatch(/\d/)
+      await expect(rows.nth(i)).not.toContainText('%')
+      await expect(rows.nth(i)).not.toContainText(/lit|comms/)
+    }
+    await expect.poll(() => hashPts(page)).toBe('-89.3000,-130.0000,,Point A;-85.5000,12.2500,,Point B')
+
+    // Rename (cleanName rules: white space collapsed, 40 characters at most).
+    await rows.nth(0).getByRole('textbox').fill('  Ridge   camp ')
+    await rows.nth(0).getByRole('textbox').blur()
+    await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Ridge camp')
+    await rows.nth(1).getByRole('textbox').fill('x'.repeat(45))
+    await expect(rows.nth(1).getByRole('textbox')).toHaveValue('x'.repeat(40))
+    await rows.nth(1).getByRole('textbox').fill('Far, east; 50%')
+    // Roles: one Start, one End; a second Start takes the role from the first.
+    await rows.nth(0).getByRole('combobox').selectOption('start')
+    await expect(rows.nth(0)).toHaveAttribute('data-role', 'start')
+    await rows.nth(1).getByRole('combobox').selectOption('start')
+    await expect(rows.nth(1)).toHaveAttribute('data-role', 'start')
+    await expect(rows.nth(0)).toHaveAttribute('data-role', '')
+    await rows.nth(0).getByRole('combobox').selectOption('end')
+    await expect.poll(() => hashPts(page)).toBe('-89.3000,-130.0000,e,Ridge camp;-85.5000,12.2500,s,Far%2C east%3B 50%25')
+    // Select: the coordinates are the control. The point added last is selected; choosing another moves it.
+    await expect(rows.nth(1).getByRole('button', { name: /^Select Far, east; 50%/ })).toHaveAttribute('aria-pressed', 'true')
+    await rows.nth(0).getByRole('button', { name: /^Select Ridge camp/ }).click()
+    await expect(rows.nth(0).getByRole('button', { name: /^Select / })).toHaveAttribute('aria-pressed', 'true')
+    await expect(rows.nth(1).getByRole('button', { name: /^Select / })).toHaveAttribute('aria-pressed', 'false')
+    // The "Add a point" hint stays a disabled line; the page never shows NaN.
+    await expect(panel.getByRole('button', { name: /Add a point/ })).toBeDisabled()
+    await expect(page.locator('body')).not.toContainText('NaN')
+
+    // A copied link restores both points with name and role.
+    const link = await page.evaluate(() => location.href)
+    await page.goto('about:blank')
+    await page.goto(link)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+    const panel2 = await openPanel(page)
+    const rows2 = panel2.getByTestId('point')
+    await expect(rows2).toHaveCount(2)
+    await expect(rows2.nth(0).getByRole('textbox')).toHaveValue('Ridge camp')
+    await expect(rows2.nth(0)).toHaveAttribute('data-role', 'end')
+    await expect(rows2.nth(1).getByRole('textbox')).toHaveValue('Far, east; 50%')
+    await expect(rows2.nth(1)).toHaveAttribute('data-role', 'start')
+    // Delete the first: the second keeps its name and role.
+    await rows2.nth(0).getByRole('button', { name: 'Delete Ridge camp' }).click()
+    await expect(rows2).toHaveCount(1)
+    await expect(rows2.nth(0).getByRole('textbox')).toHaveValue('Far, east; 50%')
+    await expect.poll(() => hashPts(page)).toBe('-85.5000,12.2500,s,Far%2C east%3B 50%25')
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: 'test-results/c4-panel-one-point-1440.png', animations: 'disabled' })
+  })
+
+  test('an old-format pts= link still loads: both points listed with letter names, the link is not rewritten', async ({ page }) => {
+    await openApp(page, `site=${RIDGE}&period=${AUG}&pts=-89.3000,-130.0000;-85.5000,12.2500`)
+    const panel = await openPanel(page)
+    const rows = panel.getByTestId('point')
+    await expect(rows).toHaveCount(2)
+    await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Point A')
+    await expect(rows.nth(1).getByRole('textbox')).toHaveValue('Point B')
+    await expect(rows.nth(1)).toContainText(coordText(-85.5, 12.25))
+    await page.waitForTimeout(700)
+    expect(await hashPts(page)).toBe('-89.3000,-130.0000;-85.5000,12.2500')
+    // Deleting the first does not rename the second.
+    await rows.nth(0).getByRole('button', { name: 'Delete Point A' }).click()
+    await expect(rows).toHaveCount(1)
+    await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Point B')
+  })
+
+  test('Point start and Point end viewpoints: on the terrain tile the camera stands 1.75 m above the point, elsewhere it looks at the point from above the globe; outside every body', async ({ page }) => {
+    // Start: 3 km from Connecting Ridge (inside its 80 m tile). End: Malapert, far outside it.
+    const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; lat: number; lon: number }[]
+    const ridge = sites.find((s) => s.id === RIDGE)!
+    const start = { lat: ridge.lat + 0.1, lon: ridge.lon }
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&pts=${start.lat.toFixed(4)},${start.lon.toFixed(4)},s,Near;-85.9900,0.5000,e,Far`)
+    const before = await selection(page)
+    const view = page.getByTestId('view')
+    await view.click()
+    const menu = page.getByTestId('view-menu')
+    await expect(menu.getByRole('menuitem', { name: 'Point start' })).toBeEnabled()
+    await expect(menu.getByRole('menuitem', { name: 'Point end' })).toBeEnabled()
+    await menu.getByRole('menuitem', { name: 'Point start' }).click()
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    expect(await scene(page, (s) => s.surfaceDist()), '1.75 m above the terrain at the point').toBeCloseTo(1.75, 6)
+    await expectOutsideBodies(page, 'Point start')
+    const cam = await camera(page)
+    // 0.1° of latitude on the Moon is 3.03 km: the camera stands that far from the landing site.
+    expect(Math.hypot(cam.position[0], cam.position[1])).toBeGreaterThan(2900)
+    expect(Math.hypot(cam.position[0], cam.position[1])).toBeLessThan(3150)
+    // The same entry from the right-click menu.
+    await chooseView(page, 'Point end')
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('globe')
+    const v = await expectOutsideBodies(page, 'Point end')
+    const p = v.bodies[0].camera
+    const r = Math.hypot(...p)
+    expect(r).toBeCloseTo(3000, 3)
+    expect((Math.asin(p[2] / r) * 180) / Math.PI, 'above the point: latitude').toBeCloseTo(-85.99, 3)
+    expect((Math.atan2(p[1], p[0]) * 180) / Math.PI, 'above the point: longitude').toBeCloseTo(0.5, 2)
+    await page.mouse.click(720, 300, { button: 'right' })
+    await page.getByTestId('scene-menu').getByRole('menuitem', { name: 'Point start' }).click()
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    expect(await scene(page, (s) => s.surfaceDist())).toBeCloseTo(1.75, 6)
+    expect(await selection(page)).toBe(before)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
+  })
 })

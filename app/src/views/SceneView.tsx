@@ -39,6 +39,8 @@ interface Props {
   points: ScenePoint[] // user points, drawn as markers
   api: RefObject<SceneApi | null>
   onTopView(on: boolean): void // the not-to-scale top view is shown
+  canAddPoint: boolean // false when the list of user points is full
+  onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
 }
 
 function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
@@ -51,7 +53,8 @@ function place(el: HTMLElement | null, p: ScreenPoint | null, ok: boolean) {
   el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`
 }
 
-export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView }: Props) {
+export function SceneView(props: Props) {
+  const { deps, siteId, utcMs, view, sunEl, earthEl, onUnavailable, onPick, onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
@@ -188,7 +191,16 @@ export function SceneView({ deps, siteId, utcMs, view, sunEl, earthEl, onUnavail
           label="View"
           testId="scene-menu"
           at={ctx}
-          items={viewpointItems(points, (v) => handle.current?.goTo(v))}
+          items={[
+            {
+              // Disabled when the pointer is not on the Moon (sky, or another body in view).
+              id: 'add',
+              label: 'Add point here',
+              disabled: !ctx.hit || !canAddPoint,
+              onSelect: () => ctx.hit && onAddPoint(ctx.hit.lat, ctx.hit.lon),
+            },
+            ...viewpointItems(points, (v) => handle.current?.goTo(v)),
+          ]}
           onClose={closeCtx}
         />
       )}

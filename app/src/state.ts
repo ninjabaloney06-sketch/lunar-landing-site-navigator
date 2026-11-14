@@ -7,10 +7,19 @@ import type { SceneLevel } from './scene3d'
 
 export type DrawerSection = 'details' | 'finder' | 'sources'
 
+/** Start and End are places and viewpoints only: no route, and unrelated to the period's start and end times. */
+export type PointRole = 'start' | 'end'
+
+/** A place the user marked: planetocentric lat/lon in the Moon body-fixed frame (MOON_ME), degrees, east-positive.
+ *  It has no horizon file, so nothing is computed for it. */
 export interface UserPoint {
   lat: number
   lon: number
+  name: string | null // null = "Point A", "Point B", … by position (links written before names existed)
+  role: PointRole | null
 }
+
+export const MAX_POINTS = 26
 
 export interface HashState {
   site: string | null // site id; null = default site
@@ -87,16 +96,82 @@ function parseTime(v: string | null): number | null {
   return ms
 }
 
+// ---------- user points ----------
+// Link format: pts=lat,lon[,role[,name]];… with role "s" (Start), "e" (End) or empty. The first form,
+// "lat,lon;lat,lon", is what older links hold and still parses. In a name "%", "," and ";" are written
+// %25, %2C and %3B, so the separators stay unambiguous.
+
+const escapeName = (s: string) => s.replace(/[%,;]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
+const unescapeName = (s: string) => s.replace(/%(25|2C|3B)/gi, (_, h: string) => String.fromCharCode(parseInt(h, 16)))
+
 function parsePoints(v: string | null): UserPoint[] {
   if (!v) return []
   const out: UserPoint[] = []
-  for (const part of v.split(';').slice(0, 26)) {
-    const [a, b] = part.split(',').map(Number)
-    if (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 90 && b >= -180 && b <= 360) {
-      out.push({ lat: a, lon: b > 180 ? b - 360 : b })
-    }
+  const taken = new Set<PointRole>()
+  for (const part of v.split(';').slice(0, MAX_POINTS)) {
+    const [la, lo, r, ...rest] = part.split(',')
+    const a = Number(la)
+    const b = Number(lo)
+    if (la === '' || lo === undefined || lo === '' || !Number.isFinite(a) || !Number.isFinite(b) || Math.abs(a) > 90 || b < -180 || b > 360) continue
+    let role: PointRole | null = r === 's' ? 'start' : r === 'e' ? 'end' : null
+    if (role && taken.has(role)) role = null // at most one Start and one End
+    if (role) taken.add(role)
+    out.push({ lat: a, lon: b > 180 ? b - 360 : b, name: cleanName(rest.length ? unescapeName(rest.join(',')) : null), role })
   }
   return out
+}
+
+function serializePoints(pts: UserPoint[]): string {
+  return pts
+    .map((q) => {
+      const base = `${q.lat.toFixed(4)},${q.lon.toFixed(4)}`
+      const role = q.role === 'start' ? 's' : q.role === 'end' ? 'e' : ''
+      if (q.name) return `${base},${role},${escapeName(q.name)}`
+      return role ? `${base},${role}` : base
+    })
+    .join(';')
+}
+
+const letterName = (i: number) => `Point ${String.fromCharCode(65 + i)}`
+
+/** The name shown for point i: its own, or "Point A", "Point B", … by position. */
+export function pointName(p: UserPoint, i: number): string {
+  return p.name ?? letterName(i)
+}
+
+/** Every point with its name written out, so that adding or deleting one never renames another. */
+function named(pts: UserPoint[]): UserPoint[] {
+  return pts.map((p, i) => (p.name ? p : { ...p, name: pointName(p, i) }))
+}
+
+function freeName(pts: UserPoint[]): string {
+  const used = new Set(pts.map(pointName))
+  for (let i = 0; i < MAX_POINTS; i++) if (!used.has(letterName(i))) return letterName(i)
+  return letterName(0)
+}
+
+/** A new point at the end of the list, or null when the list is full or the coordinates are not on the Moon. */
+export function addPoint(pts: UserPoint[], lat: number, lon: number): UserPoint[] | null {
+  if (pts.length >= MAX_POINTS || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90) return null
+  const lo = ((((lon + 180) % 360) + 360) % 360) - 180
+  const all = named(pts)
+  return [...all, { lat, lon: lo, name: freeName(all), role: null }]
+}
+
+/** Renames point i (cleanName rules); an empty name gives it a free "Point X" name back. */
+export function renamePoint(pts: UserPoint[], i: number, name: string): UserPoint[] {
+  const all = named(pts)
+  const rest = all.filter((_, j) => j !== i)
+  return all.map((p, j) => (j === i ? { ...p, name: cleanName(name) ?? freeName(rest) } : p))
+}
+
+/** Gives point i a role; the point that held that role before loses it. */
+export function setPointRole(pts: UserPoint[], i: number, role: PointRole | null): UserPoint[] {
+  return named(pts).map((p, j) => (j === i ? { ...p, role } : role && p.role === role ? { ...p, role: null } : p))
+}
+
+export function removePoint(pts: UserPoint[], i: number): UserPoint[] {
+  return named(pts).filter((_, j) => j !== i)
 }
 
 export function parseHash(hash: string): HashState {
@@ -139,7 +214,7 @@ export function serializeHash(s: HashState): string {
   if (s.st) p.set('st', s.st.join(','))
   if (s.view !== 'site') p.set('view', s.view)
   if (s.drawer) p.set('drawer', s.drawer)
-  if (s.pts.length) p.set('pts', s.pts.map((q) => `${q.lat.toFixed(4)},${q.lon.toFixed(4)}`).join(';'))
+  if (s.pts.length) p.set('pts', serializePoints(s.pts))
   if (s.name) p.set('name', s.name)
   if (s.goal !== DEFAULT_GOAL) p.set('goal', s.goal)
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.

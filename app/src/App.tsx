@@ -9,6 +9,7 @@ import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
 import type { SceneLevel, ScenePoint, Viewpoint } from './scene3d'
 import {
+  addPoint,
   cleanName,
   COVERAGE_END_MS,
   COVERAGE_START_MS,
@@ -17,6 +18,11 @@ import {
   DEFAULT_PERIOD_ID,
   DEFAULT_MISSION_NAME,
   DEFAULT_SITE_ID,
+  MAX_POINTS,
+  pointName,
+  removePoint,
+  renamePoint,
+  setPointRole,
   STEP_MS,
   useHashState,
 } from './state'
@@ -107,6 +113,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const viewBtn = useRef<HTMLButtonElement>(null)
   const scene = useRef<SceneApi | null>(null)
   const [topView, setTopView] = useState(false)
+  const [selPoint, setSelPoint] = useState<number | null>(null) // user point highlighted in the panel and the scene
   // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
   const menuOpen = useRef(false)
   menuOpen.current = menu !== null
@@ -237,10 +244,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [sites, patch],
   )
 
-  // User points as the scene draws them (names and roles arrive with Brief C4 part 3).
+  // User points as the scene draws them: places only, nothing is computed for them.
   const scenePoints: ScenePoint[] = useMemo(
-    () => hs.pts.map((p, i) => ({ name: `Point ${String.fromCharCode(65 + i)}`, lat: p.lat, lon: p.lon, role: null, selected: false })),
-    [hs.pts],
+    () => hs.pts.map((p, i) => ({ name: pointName(p, i), lat: p.lat, lon: p.lon, role: p.role, selected: i === selPoint })),
+    [hs.pts, selPoint],
+  )
+  const addUserPoint = useCallback(
+    (lat: number, lon: number) => {
+      const next = addPoint(hs.pts, lat, lon)
+      if (!next) return
+      patch({ pts: next })
+      setSelPoint(next.length - 1)
+    },
+    [hs.pts, patch],
   )
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
@@ -299,6 +315,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             points={scenePoints}
             api={scene}
             onTopView={setTopView}
+            canAddPoint={hs.pts.length < MAX_POINTS}
+            onAddPoint={addUserPoint}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -363,6 +381,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               name={hs.name}
               goal={hs.goal}
               points={hs.pts}
+              selectedPoint={selPoint}
+              onAddPoint={addUserPoint}
+              onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
+              onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
+              onPointSelect={setSelPoint}
+              onPointDelete={(i) => {
+                patch({ pts: removePoint(hs.pts, i) })
+                setSelPoint(null)
+              }}
               focusStations={panelAtStations}
               onName={(v) => patch({ name: cleanName(v) })}
               onDates={setMissionDates}
