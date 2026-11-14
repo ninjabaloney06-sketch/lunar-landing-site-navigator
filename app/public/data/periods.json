@@ -1,10 +1,42 @@
 [
  {
-  "_note": "SYNTHETIC placeholder for frontend work before real pipeline output. Not real data. Replace with scripts/ output.",
+  "_note": "SAMPLE copy of the Brief A step 5 periods for frontend work. Replaced by scripts/periods.py output.",
   "id": "now",
-  "label": "Now",
+  "label": "Now, 14\u201328 Nov 2026",
   "start_utc": "2026-11-14T00:00:00Z",
-  "end_utc": "2026-11-28T00:00:00Z",
-  "reason": "demo question period"
+  "end_utc": "2026-11-29T00:00:00Z",
+  "reason": "demo period of the build plan"
+ },
+ {
+  "_note": "SAMPLE copy of the Brief A step 5 periods for frontend work. Replaced by scripts/periods.py output.",
+  "id": "shackleton-2027-08",
+  "label": "Shackleton Rim, 16\u201329 Aug 2027",
+  "start_utc": "2027-08-16T00:00:00Z",
+  "end_utc": "2027-08-30T00:00:00Z",
+  "reason": "team candidate period, not a verified best window"
+ },
+ {
+  "_note": "SAMPLE copy of the Brief A step 5 periods for frontend work. Replaced by scripts/periods.py output.",
+  "id": "shackleton-2027-09",
+  "label": "Shackleton Rim, 12\u201326 Sep 2027",
+  "start_utc": "2027-09-12T00:00:00Z",
+  "end_utc": "2027-09-27T00:00:00Z",
+  "reason": "team candidate period, not a verified best window"
+ },
+ {
+  "_note": "SAMPLE copy of the Brief A step 5 periods for frontend work. Replaced by scripts/periods.py output.",
+  "id": "malapert-2026-12",
+  "label": "Malapert, 21\u201327 Dec 2026",
+  "start_utc": "2026-12-21T00:00:00Z",
+  "end_utc": "2026-12-28T00:00:00Z",
+  "reason": "team candidate period, not a verified best window"
+ },
+ {
+  "_note": "SAMPLE copy of the Brief A step 5 periods for frontend work. Replaced by scripts/periods.py output.",
+  "id": "malapert-2028-01",
+  "label": "Malapert, 9\u201315 Jan 2028",
+  "start_utc": "2028-01-09T00:00:00Z",
+  "end_utc": "2028-01-16T00:00:00Z",
+  "reason": "team candidate period, not a verified best window"
  }
 ]

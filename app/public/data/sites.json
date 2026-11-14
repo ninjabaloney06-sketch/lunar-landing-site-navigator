@@ -14,5 +14,39 @@
   "horizon": "sample-site.json",
   "label": null,
   "potential": []
+ },
+ {
+  "_note": "SAMPLE entry for frontend work: coordinates from spec.md (Lunar Surface Data Book table A2-2); horizon is the synthetic sample. Replaced by scripts/sites.py output.",
+  "id": "shackleton-rim-site04",
+  "name": "Shackleton Rim Site04",
+  "group": "reference",
+  "label": "NASA reference point, not a chosen landing site",
+  "lat": -89.7668,
+  "lon": -171.87,
+  "frame_note": "sample; source frame to be verified by Track B",
+  "elev_m": null,
+  "slope_deg": null,
+  "far_side": false,
+  "source_url": "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+  "source_label": "NASA Lunar Surface Data Book Rev A, table A2-2 (sample entry)",
+  "horizon": "sample-site.json",
+  "potential": []
+ },
+ {
+  "_note": "SAMPLE entry for frontend work: coordinates from spec.md (Lunar Surface Data Book table A2-2); horizon is the synthetic sample. Replaced by scripts/sites.py output.",
+  "id": "malapert-site23",
+  "name": "Malapert Massif Site23",
+  "group": "reference",
+  "label": "NASA reference point, not a chosen landing site",
+  "lat": -85.9948,
+  "lon": -0.23578,
+  "frame_note": "sample; source frame to be verified by Track B",
+  "elev_m": null,
+  "slope_deg": null,
+  "far_side": false,
+  "source_url": "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
+  "source_label": "NASA Lunar Surface Data Book Rev A, table A2-2 (sample entry)",
+  "horizon": "sample-site.json",
+  "potential": []
  }
 ]
