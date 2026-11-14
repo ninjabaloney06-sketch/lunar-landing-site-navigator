@@ -14,10 +14,12 @@ x = x0_m + (c + 0.5) s, y = y0_m - (r + 0.5) s.
 
   cap.json      meta: projection, origin, spacing, height reference, nodata, source files with the SHA-256 of
                 the raw-data register (docs/reference/data-sources.md), tile index, measured sizes
-  base.bin      1520 x 1520 at 400 m: 20 x 20 block means of LDEM_80S_20MPP_ADJ.TIF (its whole 608 km square,
-                the square around the 80 S circle)
-  outer.bin     640 x 640 at 1920 m: 16 x 16 block means of LDEM_60S_120MPP_ADJ.TIF, +-614.4 km around the pole,
-                so a 300 km horizon ray or far level from any point of the cap stays on data
+  base.bin      1520 x 1520 at 400 m: 20 x 20 block means of LDEM_80S_20MPP_ADJ.TIF (its whole 608 km square;
+                the 80 S circle has a projected radius of 304,005.6 m, so it leaves the square by 5.6 m at the
+                four axis longitudes: there the outer raster is used)
+  outer.bin     768 x 768 at 1920 m: 16 x 16 block means of LDEM_60S_120MPP_ADJ.TIF, +-737.3 km around the pole:
+                a 300 km horizon ray from any point of the cap, and the corners of its +-300 km far level
+                (projected up to 729 km from the pole for a site on the 80 S edge), stay on data
   <level>/<row>/<col>.bin   tile pyramid, 256 x 256 samples per tile, level = spacing in metres:
                 80 (4 x 4 block means) south of 80 S, 40 (2 x 2 block means) south of 85.1 S (85 S would put the
                 folder over its 200 MB ceiling). Tile (row, col) holds
@@ -53,7 +55,7 @@ NODATA = -32768
 TILE = 256
 BASE_FACTOR = 20          # 400 m
 OUTER_FACTOR = 16         # 1920 m on the 120 m DEM
-OUTER_HALF_BLOCKS = 320   # +-614.4 km: the 304 km cap half-width + 300 km rays + margin
+OUTER_HALF_BLOCKS = 384   # +-737.3 km: a far-level corner of a site at 80 S projects to 729 km from the pole
 TILE_SCALE_M = 0.25       # Int16 unit of the tiles; holds +-8191 m (checked while writing)
 # Tiled levels, finest first: name = spacing in metres -> (block factor on the 20 m DEM, northern latitude limit)
 LEVELS = {"40": (2, -85.1), "80": (4, -80.0)}
@@ -179,8 +181,9 @@ def build_outer(path):
         out = np.empty((n, n))
         step = OUTER_FACTOR * 40
         for r in range(0, 2 * half, step):
-            a = ds.read(1, window=Window(cx - half, cy - half + r, 2 * half, step)).astype(np.float32)
-            out[r // OUTER_FACTOR:(r + step) // OUTER_FACTOR] = block_mean(a, OUTER_FACTOR)
+            rows = min(step, 2 * half - r)
+            a = ds.read(1, window=Window(cx - half, cy - half + r, 2 * half, rows)).astype(np.float32)
+            out[r // OUTER_FACTOR:(r + rows) // OUTER_FACTOR] = block_mean(a, OUTER_FACTOR)
         spacing = res * OUTER_FACTOR
         crs = CRS.from_wkt(ds.crs.to_wkt())
     return out, spacing, -OUTER_HALF_BLOCKS * spacing, OUTER_HALF_BLOCKS * spacing, crs
@@ -255,6 +258,11 @@ def main(argv=None):
         plans = {name: plan_level(name, width, x0, y0, near=near) for name in LEVELS}
 
         if OUT.exists():
+            old = OUT / "cap.json"
+            if near is not None and old.exists() and any(
+                    lv.get("complete") for lv in json.loads(old.read_text(encoding="utf-8")).get("levels", [])):
+                raise SystemExit(f"{OUT} holds a complete tile level; --sample would replace it with a sample. "
+                                 "Delete the folder first if that is what you want.")
             shutil.rmtree(OUT)
         OUT.mkdir(parents=True)
         for name, plan in plans.items():

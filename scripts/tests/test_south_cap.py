@@ -127,8 +127,12 @@ def test_rho_of_lat_matches_pyproj(lat):
     assert sc.rho_of_lat(lat) == pytest.approx(math.hypot(x, y), abs=1e-6)
 
 
-def test_dem_square_is_the_square_around_the_80s_circle():
-    assert sc.rho_of_lat(-80.0) == pytest.approx(304_000, abs=10)  # the DEM's half-width
+def test_the_80s_circle_leaves_the_dem_square_by_a_few_metres():
+    # The DEM's half-width is 304,000 m; the 80 S circle is 5.6 m wider (the browser falls back on the outer raster).
+    assert sc.rho_of_lat(-80.0) == pytest.approx(304_005.6, abs=0.1)
+    # A far-level corner (300 km east and north in the tangent plane) of a site on the 80 S edge, projected:
+    arc = math.degrees(math.atan(300_000 * math.sqrt(2) / R_M))
+    assert sc.rho_of_lat(-80.0 + arc) < sc.OUTER_HALF_BLOCKS * sc.OUTER_FACTOR * 120.0 - 2 * 1920
 
 
 def test_block_mean_ignores_nan_and_marks_empty_blocks():
@@ -186,7 +190,7 @@ def test_meta_states_projection_reference_and_sources(meta):
     assert (CAP / "base.bin").stat().st_size == 1520 * 1520 * 2 < 10e6
     o = meta["outer"]
     assert (CAP / "outer.bin").stat().st_size == o["width"] * o["height"] * 2
-    assert -o["x0_m"] == o["y0_m"] >= 304_000 + 300_000  # a 300 km ray from the cap's edge stays on data
+    assert -o["x0_m"] == o["y0_m"] >= 730_000  # rays and far-level corners of a site on the 80 S edge stay on data
 
 
 @needs_cap

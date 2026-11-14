@@ -182,6 +182,50 @@ describe('capTerrain has the shape and content of a prepared site', () => {
     expect(t.levels.map((l) => l.meta.level)).toEqual(['mid', 'far'])
   })
 
+  it('works on the 80 S edge: no holes in the far level, and the points where the circle leaves the DEM square', async () => {
+    // Review 14 Nov: far-level corners project up to 729 km from the pole; the 80 S circle is 5.6 m wider than the
+    // 20 m DEM's square at longitudes 0, ±90, 180.
+    for (const [lat, lon] of [[-80.0005, 151.5], [-80.0001, 45], [-80, 0], [-80.003, 90], [-80, 180], [-80.59, -81.5]] as const) {
+      expect(cap.height(lat, lon)).not.toBeNull()
+      const t = await cap.terrain(lat, lon)
+      expect(t).not.toBeNull()
+      const far = t?.levels.find((l) => l.meta.level === 'far')
+      expect(far?.heights.some((v) => v === far.meta.nodata)).toBe(false)
+      const h = await cap.horizon(lat, lon)
+      expect(h.truncated).toEqual([])
+      expect(h.mask.every((v) => Number.isFinite(v))).toBe(true)
+    }
+    // A grid that is mostly outer-raster data names the 120 m DEM, not the 20 m one.
+    const far = (await cap.terrain(-80.3, 45))?.levels.find((l) => l.meta.level === 'far')
+    if (far && far.meta.cap.source_res_m === 1920) expect(far.meta.dem).toContain('LDEM_60S_120MPP_ADJ.TIF')
+  })
+
+  it('a tile that failed once is used after a later request loads it (no stale lookup)', async () => {
+    const s = site('malapert-massif')
+    let fail = true
+    const inner = diskIo().io
+    const flaky: CapIo = { json: inner.json, bytes: (p) => (fail && /cap\/(40|80)\//.test(p) ? Promise.resolve(null) : inner.bytes(p)) }
+    const c = await openCap(flaky)
+    const first = await c.terrain(s.lat, s.lon)
+    expect(first?.meta.cap.source_res_m).toBe(400)
+    fail = false
+    const second = await c.terrain(s.lat, s.lon)
+    const good = await cap.terrain(s.lat, s.lon)
+    expect(second?.meta.cap.source_res_m).toBe(80)
+    expect(second?.meta.ground_m).toBe(good?.meta.ground_m)
+    expect(second?.levels.map((l) => l.meta.level)).toEqual(good?.levels.map((l) => l.meta.level))
+  })
+
+  it('the tile cache never drops tiles of the request that is running', async () => {
+    const c = await openCap(diskIo().io)
+    // Fill the 80 m cache well past its limit, then ask for a point whose tiles are partly the oldest ones.
+    const first = await c.terrain(-87, 0)
+    for (let k = 0; k < 40; k++) await c.terrain(-86.5 + (k % 8) * 0.9 - 3, -170 + k * 9)
+    const again = await c.terrain(-87, 0)
+    expect(again?.meta.cap.share).toEqual(first?.meta.cap.share)
+    expect(again?.meta.cap.share['80']).toBeCloseTo(1, 6)
+  })
+
   it('returns null outside the cap', async () => {
     expect(await cap.terrain(-79.5, 0)).toBeNull()
   })

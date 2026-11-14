@@ -1,7 +1,9 @@
 // South-cap terrain in the browser: heights, a site terrain and a horizon mask for ANY point south of 80° S,
 // from the rasters scripts/south_cap.py writes to public/data/terrain/cap/ (cap.json describes them):
-//   base   400 m, the whole 608 km square around the 80° S circle (loaded once, 4.6 MB)
-//   outer  1920 m, ±614 km around the pole (loaded once, 0.8 MB): keeps 300 km rays and far levels on data
+//   base   400 m, the 20 m DEM's whole 608 km square (loaded once, 4.6 MB). The 80° S circle is 5.6 m wider than
+//          the square at the four axis longitudes; samples there come from the outer raster.
+//   outer  1920 m, ±737 km around the pole, from the 120 m DEM (loaded once, 1.2 MB): keeps 300 km rays and the
+//          corners of a ±300 km far level on data for every point of the cap
 //   80     80 m tiles south of 80° S, 40: 40 m tiles south of 85.1° S (256 × 256 samples, fetched on demand)
 // All are box means of the LOLA polar DEMs in the DEM's own south polar stereographic projection on the 1737.4 km
 // sphere (+x toward 90° E, +y toward longitude 0), heights in metres above that sphere. The projection of a unit
@@ -25,7 +27,7 @@ const NODATA = -32768
 const ORDER = 'row-major; row 0 = north edge; col 0 = west edge'
 const HEIGHT_REF = "metres relative to the site's ground height"
 const HEIGHT_SCALES = [0.1, 0.25, 0.5, 1] // m per Int16 unit, as terrain_tiles.py (the 80 m tile keeps 1 m)
-const MAX_TILES = 400 // tiles kept in memory (131 kB each); the oldest are dropped beyond this
+const MAX_TILES = 200 // tiles kept in memory per level (131 kB each); the least recently requested go first
 
 // Site grids, as scripts/terrain_tiles.py (SIZE/SPACING_M and LEVELS); fine is 40 m here, not 20 m.
 const TILE_GRID = { size: 500, spacing: 80 }
@@ -76,7 +78,7 @@ export interface CapMeta {
   north_lat: number
   source: { file: string; sha256: string; url: string; citation: string }
   base: CapRasterInfo
-  outer: CapRasterInfo
+  outer: CapRasterInfo & { source: { file: string } }
   levels: CapLevelInfo[] // finest first
 }
 
@@ -235,12 +237,26 @@ class TileLevel {
 
   private async ensureKeys(keys: Set<number>): Promise<void> {
     const jobs: Promise<void>[] = []
+    const wanted: number[] = [] // keys of this.tiles
     for (const k of keys) {
       const tr = Math.floor(k / 4096)
       const tc = k % 4096
-      if (tr >= 0 && tc >= 0 && tr < this.nTiles && tc < this.nTiles && this.exists(tr, tc)) jobs.push(this.load(tr, tc))
+      if (tr >= 0 && tc >= 0 && tr < this.nTiles && tc < this.nTiles && this.exists(tr, tc)) {
+        jobs.push(this.load(tr, tc))
+        wanted.push(tr * this.nTiles + tc)
+      }
     }
     await Promise.all(jobs)
+    // Requested tiles become the most recent; only then are the oldest dropped, so a request never loses its own.
+    for (const k of wanted) {
+      const t = this.tiles.get(k)
+      if (t) {
+        this.tiles.delete(k)
+        this.tiles.set(k, t)
+      }
+    }
+    while (this.tiles.size > Math.max(MAX_TILES, wanted.length)) this.tiles.delete(this.tiles.keys().next().value as number)
+    this.lastKey = -1 // the one-tile lookup may hold a tile that was absent or has gone
   }
 
   private load(tr: number, tc: number): Promise<void> {
@@ -253,12 +269,8 @@ class TileLevel {
         .then((buf) => {
           const n = this.info.tile_size
           if (!buf || buf.byteLength !== n * n * 2) return // missing or broken: samples fall back on a coarser raster
-          if (this.tiles.size >= MAX_TILES) {
-            const oldest = this.tiles.keys().next().value as number
-            this.tiles.delete(oldest)
-            this.lastKey = -1
-          }
           this.tiles.set(key, int16(buf))
+          this.lastKey = -1
           this.fetched++
         })
         .catch(() => undefined)
@@ -319,9 +331,9 @@ export interface CapHorizon extends Horizon {
   /** Marks a mask computed in the browser from the cap rasters, with the terrain spacing it used per ring. */
   computed: {
     from: 'south-cap raster'
-    /** Spacing (m) of the terrain under the point and inside rings.fineKm. */
+    /** Spacing (m) of the terrain at the point itself (ground height and slope). */
     site_res_m: number
-    /** Spacing (m) used out to rings.nearKm, and beyond it. */
+    /** Coarsest spacing (m) any ray sample used out to rings.nearKm, and the spacing used beyond it. */
     near_res_m: number
     far_res_m: number
     /** Spacing (m) of the outer raster where rays left the 20 m DEM's square; null when none did. */
@@ -392,11 +404,15 @@ export class SouthCap {
     return this.height(lat, lon) !== null
   }
 
-  /** Bilinear height of the 400 m base (m above the 1737.4 km sphere); null outside the cap. */
+  /**
+   * Bilinear height of the 400 m base (m above the 1737.4 km sphere); null outside the cap. Within 0.007° of
+   * 80° S near longitudes 0, ±90 and 180 the base's square ends: there the 1920 m outer raster answers.
+   */
   height(lat: number, lon: number): number | null {
     if (!inPinRegion(lat) || lat > this.meta.north_lat) return null
     const [x, y] = capXY(lat, lon)
-    const h = this.base.sample(x, y)
+    let h = this.base.sample(x, y)
+    if (Number.isNaN(h)) h = this.outer.sample(x, y)
     return Number.isNaN(h) ? null : h
   }
 
@@ -536,7 +552,7 @@ export class SouthCap {
         illum_png: null,
         illum_map: null,
         illum_res_m: null,
-        dem: `south-cap raster, ${source_res_m} m (from ${this.meta.source.file})`,
+        dem: `south-cap raster, ${source_res_m} m (from ${source_res_m === this.outer.spacing ? this.meta.outer.source.file : this.meta.source.file})`,
         ground_m: Math.round(ground * 100) / 100,
         resampling:
           `bilinear samples of ${describe(source_res_m)}` +
@@ -678,7 +694,7 @@ export class SouthCap {
       dem:
         `approximate: computed in the browser from the south-cap rasters (box means of ${this.meta.source.file}): ` +
         `${siteRes} m at the point, up to ${nearRes} m within ${rings.nearKm} km, ${farRes || this.outer.spacing} m beyond` +
-        `${outerUsed ? ` (${this.outer.spacing} m past the DEM's square)` : ''}; not validated`,
+        `${outerUsed || nearRes === this.outer.spacing ? `; ${this.outer.spacing} m means of ${this.meta.outer.source.file} outside that DEM's square` : ''}; not validated`,
       slope_deg: Math.round(slope * 10) / 10,
       computed: {
         from: 'south-cap raster',
