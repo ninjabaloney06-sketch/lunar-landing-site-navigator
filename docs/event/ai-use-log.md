@@ -5,6 +5,8 @@ One row per task or session. Times are local (CET). Use first names only; remove
 | Time | Tool + account owner | Run by | What it did (task / files) | Output used where | Checked by | Notes (errors caught, things rejected) |
 |---|---|---|---|---|---|---|
 | Sat 11:09 | Codex (account owner unconfirmed) | Isaac | Added the AI-use logging rule | AGENTS.md | none | Account owner and human review to be confirmed. |
+| Sat 10:04–11:11 | Codex (account owner unconfirmed) | Isaac | Spec interview; wrote the spec review draft; transcribed kickoff recordings with 4-bit Whisper | docs/event/spec.md | none | Transcript had a repetition loop and gaps; replaced by the Claude Code re-run below. |
+| Sat 11:15–11:30 | Claude Code (account owner unconfirmed) | Isaac | Reviewed the Codex session; re-transcribed both kickoff recordings with full-precision Whisper large-v3-turbo; added judging/admin facts to the spec | docs/event/spec.md, TASKS.md | none | Corrected the spec's claim that recordings gave no judging-format information. |
 
 ## Summary for the project page (fill in Sun ~12:30)
 
