@@ -16,8 +16,6 @@ Roles: **S** = science lead: physics, orbital and coordinate math, horizon geome
 
 Preparation status reconciled25Oct: the six AI-only writing artifacts already exist in merged `c56eb24`; human physics/source sign-off, timed tools run, per-device checks and future guide reads remain unchecked.
 
-IMPORTANT: When clicking on the potential landing sight, use advanced rocket simulation to 100% accurately tell the needed energy to get to this landing sight from the certain picked starting point on earth with the best flight strategy with a simulated Payload to compare different landing sights by how convenient and fuel efficient they are. Use data from the space launch system efficiency and mass for certain energy in fuel to accurately predict how much energy is roughly needed.
-
 ## Difficulty and model per task (14 Nov, ninja)
 
 Every event task carries a level. Pick the model by level, not by habit. Fable costs 2× Opus per token (API list price), Opus 40× Haiku.
@@ -140,6 +138,8 @@ Track C — frontend (D + agents):
 - [ ] `[AI+H]` `L1·Haiku` `device` **I** — Fill in the submission form on the team's project page; Isaac opens every link in the form (app, demo, code if required) in a private window, then reviews and clicks submit **by 15:00** (local deadline 15:45). (winners P1) Agent saves the confirmation screenshot to `docs/`.
 - [ ] `[H]` **All** — Rehearse the pitch twice with a timer. Live demo, with the screen recording and an offline build as backup. Before the second rehearsal, someone outside the team (the Betreuerin or a mentor) watches the demo once with no context. Done when they can repeat the problem and the app's answer in their own words; if not, fix the first 10 seconds. (winners P6)
 - [ ] `[H]` **I** — Pitch to the local judges (from 16:00). Stay within the time slot.
+
+- [ ] `[AI+H]` `L2·Opus` **S** — PARKED until after the 12:00 freeze (ninja, 14 Nov; Leo's idea): per-site energy/Δv comparison for reaching each landing site from a chosen launch site with a sample payload. Only as a labelled rough estimate with a source for every number (e.g. SLS performance, published Earth–Moon Δv budgets), not a "100 % accurate" simulation; most Δv is site-independent, so show the site-dependent part only. Build plan §1 excludes trajectories from the core; never ships before the core passes V7.
 
 ## Phase 7 — After the event
 
