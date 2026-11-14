@@ -170,7 +170,12 @@ export function Drawer(p: Props) {
 
       <section className="drawer-sec" aria-labelledby="sec-horizon">
         <h3 id="sec-horizon">Horizon</h3>
-        <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={ready ? atCursor : null} height={168} />
+        <HorizonStrip
+          horizon={ready ? results.results.series.horizon : null}
+          sample={ready ? atCursor : null}
+          track={ready ? results.results.series.samples : null}
+          height={168}
+        />
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-stations">

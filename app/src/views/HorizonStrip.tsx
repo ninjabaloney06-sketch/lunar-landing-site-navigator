@@ -1,6 +1,10 @@
 // Horizon strip (build-plan §5.2): terrain mask over azimuth 0–360°, elevation −2…+10° (taller when the
 // site's terrain mask rises above 9°, so a 32° crater wall is not flattened at 10°), with the Sun and
 // Earth at the cursor. A body below the axis is pinned to the bottom edge as a hollow dot; its label keeps the true value. Exact values on hover or tap. Also the full fallback view when WebGL is unavailable.
+// U7 (ninja, 14 Nov: "a line indicator which shows where the two dots will be"): each body's path over the mission
+// period, from the series samples the app already computed, as a thin line in its colour; the part still to come is
+// brighter than the part already passed. The line breaks where the azimuth wraps at north and where the body leaves
+// the chart.
 import { area, line, scaleLinear } from 'd3'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { maskAt } from '../geometry'
@@ -31,9 +35,29 @@ interface Props {
   sample: Sample | null // Sun and Earth at the cursor; null while loading
   height: number
   className?: string
+  track?: Sample[] | null // the series over the mission period; null or absent = no paths
 }
 
-export function HorizonStrip({ horizon, sample, height, className }: Props) {
+/** SVG path of one body over the samples: pen up outside [elMin, elMax] and across the 360°/0° wrap. */
+function trackPath(samples: Sample[], key: 'sun' | 'earth', x: (az: number) => number, y: (el: number) => number, elMax: number): string {
+  let d = ''
+  let pen = false
+  let prevAz: number | null = null
+  for (const s of samples) {
+    const b = s[key]
+    const wrap = prevAz !== null && Math.abs(b.az - prevAz) > 180
+    prevAz = b.az
+    if (b.el < EL_MIN || b.el > elMax) {
+      pen = false
+      continue
+    }
+    d += `${pen && !wrap ? 'L' : 'M'}${x(b.az).toFixed(1)},${y(b.el).toFixed(1)}`
+    pen = true
+  }
+  return d
+}
+
+export function HorizonStrip({ horizon, sample, height, className, track }: Props) {
   const wrap = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const [hoverAz, setHoverAz] = useState<number | null>(null)
@@ -68,6 +92,19 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
       .y((d) => y(d[1]))
     return { fill: a(pts) ?? '', edge: l(pts) ?? '' }
   }, [horizon, x, y])
+
+  // Split at the cursor (the cursor sample belongs to both parts, so they join).
+  const cursorMs = sample?.utcMs ?? null
+  const tracks = useMemo(() => {
+    if (!track || track.length === 0) return []
+    const past = cursorMs === null ? [] : track.filter((s) => s.utcMs <= cursorMs)
+    const next = cursorMs === null ? track : track.filter((s) => s.utcMs >= cursorMs)
+    return (['sun', 'earth'] as const).map((key) => ({
+      key,
+      past: trackPath(past, key, x, y, elMax),
+      next: trackPath(next, key, x, y, elMax),
+    }))
+  }, [track, cursorMs, x, y, elMax])
 
   const onPointer = (e: React.PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -123,6 +160,12 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
             ))}
             <path className="strip-terrain" d={paths.fill} />
             <path className="strip-edge" d={paths.edge} />
+            {tracks.map((t) => (
+              <g key={t.key} className={`strip-track strip-track-${t.key}`} data-testid={`strip-track-${t.key}`}>
+                <path className="is-past" d={t.past} />
+                <path className="is-next" d={t.next} />
+              </g>
+            ))}
             {AZ_TICKS.map(([az, lab]) => (
               <text key={az} className="strip-tick" x={x(az)} y={height - 6} textAnchor={az === 0 ? 'start' : az === 360 ? 'end' : 'middle'}>
                 {width < 480 ? lab : `${lab} ${az}°`}
@@ -155,6 +198,7 @@ export function HorizonStrip({ horizon, sample, height, className }: Props) {
       <figcaption className="strip-readout">
         {readout || ' '}
         {!horizon && <span> · flat horizon, no terrain data</span>}
+        {tracks.length > 0 && <span className="strip-track-note"> · lines: paths over the mission dates, brighter for the part still to come</span>}
       </figcaption>
     </figure>
   )

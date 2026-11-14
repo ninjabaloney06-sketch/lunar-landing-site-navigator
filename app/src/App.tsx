@@ -359,7 +359,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           />
         ) : (
           <div className="fallback" data-testid="fallback">
-            <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={atCursor} height={220} className="strip-main" />
+            <HorizonStrip
+              horizon={ready ? results.results.series.horizon : null}
+              sample={atCursor}
+              track={ready ? results.results.series.samples : null}
+              height={220}
+              className="strip-main"
+            />
             <p className="quiet">The 3D view needs WebGL, which this browser does not provide. The horizon strip shows the same sky.</p>
           </div>
         )}

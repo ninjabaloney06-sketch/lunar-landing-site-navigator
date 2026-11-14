@@ -387,6 +387,33 @@ test('U6: the examples in the search, name, date and point-name fields are accep
   await expect.poll(() => page.evaluate(() => location.hash)).toContain(`period=${AUG}`)
 })
 
+// ---------- U7: Sun and Earth paths over the mission on the horizon chart ----------
+
+test('U7: the horizon chart draws each body\'s path over the mission, unbroken except at the north wrap, through its dot', async ({ page }) => {
+  await page.goto(`${DEMO}&t=2027-08-20T06:00Z&drawer=details`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
+  const width = await strip.locator('svg').evaluate((e) => (e as SVGSVGElement).width.baseVal.value)
+  for (const key of ['sun', 'earth']) {
+    const track = strip.getByTestId(`strip-track-${key}`)
+    const d = (await track.locator('path').evaluateAll((ps) => ps.map((p) => p.getAttribute('d') ?? ''))).join('')
+    // Vertices and the segments between them ("L" continues, "M" lifts the pen).
+    const cmds = [...d.matchAll(/([ML])(-?[\d.]+),(-?[\d.]+)/g)].map((m) => ({ c: m[1], x: Number(m[2]), y: Number(m[3]) }))
+    expect(cmds.length, `${key}: path vertices`).toBeGreaterThan(50)
+    for (let i = 1; i < cmds.length; i++) if (cmds[i].c === 'L') expect(Math.abs(cmds[i].x - cmds[i - 1].x), `${key}: no line across the chart`).toBeLessThan(width / 2)
+    // The dot at the cursor lies on its path (both from the same sample), unless it is pinned below the axis.
+    const dot = strip.getByTestId(`strip-${key}`)
+    if (!(await dot.getAttribute('class'))!.includes('is-below')) {
+      const c = await dot.locator('circle').evaluate((e) => ({ x: Number(e.getAttribute('cx')), y: Number(e.getAttribute('cy')) }))
+      expect(Math.min(...cmds.map((v) => Math.hypot(v.x - c.x, v.y - c.y))), `${key}: dot on its path`).toBeLessThan(0.1)
+    }
+  }
+  // The part already passed is drawn fainter than the part still to come.
+  const op = (sel: string) => strip.locator(`[data-testid=strip-track-sun] ${sel}`).evaluate((e) => Number(getComputedStyle(e).opacity))
+  expect(await op('.is-past')).toBeLessThan(await op('.is-next'))
+  await expect(strip).toContainText('lines: paths over the mission dates')
+})
+
 // ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search ----------
 
 for (const vp of VIEWPORTS) {
