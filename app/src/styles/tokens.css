@@ -1,0 +1,48 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Colour carries meaning only: sunlight yellow, comms/Earth blue, dark = background, unknown = hatch. */
+:root {
+  color-scheme: dark;
+
+  --bg: oklch(11% 0.006 260);
+  --bg-clear: oklch(11% 0.006 260 / 0);
+  --bg-veil: oklch(11% 0.006 260 / 0.88);
+  --surface: oklch(14.5% 0.007 260);
+  --surface-2: oklch(20% 0.008 260);
+  --line: oklch(28% 0.008 260);
+  --track: oklch(27% 0.008 260);
+  --terrain: oklch(19% 0.01 260);
+  --fg: oklch(94% 0.008 85);
+  --muted: oklch(72% 0.01 85);
+  --faint: oklch(56% 0.01 85);
+  --sun: oklch(86% 0.15 95);
+  --comms: oklch(72% 0.11 245);
+  --hatch: oklch(72% 0.01 85);
+  --error: oklch(76% 0.12 40);
+
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --t-display: 32px;
+  --t-display-sm: 24px;
+  --t-ui: 14px;
+  --t-small: 12px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-24: 96px;
+
+  --radius: 4px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-move: cubic-bezier(0.3, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-panel: 180ms;
+}
