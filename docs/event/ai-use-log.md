@@ -47,6 +47,10 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:30 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Correction: the integrator's earlier rows and notes in spec.md and validation.md carried clock times up to an hour too late (written from an estimate, not from the machine clock); fixed to the real times | docs/event/ai-use-log.md; docs/event/spec.md; docs/event/validation.md | none | AI error, corrected by the same session. |
 
+| Sat 13:08–13:45 | Claude Code, Claude Opus 5.5 subagent (ninja's account) | ninja (integrator session) | Track C1 3D scene: finished the WIP, real data, tests, screenshots, integration with C2 | app/src/scene3d/, app/e2e/scene.spec.ts; merged into main (6218d95) | none | Rejected along the way: far ring with crests pushed out to 20.8 km (fake walls), GGX specular (glare). Look awaits Bene, T14–T17 await Leo. |
+
+| Sat 13:45–13:55 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Integrator: merged C1 and C2, enabled the two label tests against the real scene and fixed their test URL, ran the step-1 checks on main, updated TASKS.md | app/e2e/ui.spec.ts; TASKS.md; BUILD_LOG.md | none | First attempt at the label test failed for a test reason (test=1 in the URL hash, not the query); app code was not changed. |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:

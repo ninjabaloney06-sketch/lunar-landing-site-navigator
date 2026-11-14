@@ -101,18 +101,23 @@ for (const vp of VIEWPORTS) {
     await expect(page.getByTestId('drawer').getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
   })
 
-  test.fixme(`UX-01/02: Sun and Earth labels on their objects at ${vp.width} px`, async ({ page }) => {
-    // Waits for C1: the scene3d stub's project() returns null, so every label stays hidden until C1 merges.
+  test(`UX-01/02: Sun and Earth labels on their objects at ${vp.width} px`, async ({ page }) => {
+    // Runs against C1's real scene (merged 14 Nov): labels follow scene.project().
     await page.setViewportSize(vp)
-    await page.goto(`${DEMO}&test=1`)
+    await page.goto(`/?test=1${DEMO.slice(1)}`) // test=1 is a query parameter (scene debug API), the view state lives in the hash
     await expectAnswer(page, RIDGE, AUG, 60_000)
     await expect(page.getByTestId('label-site')).toBeVisible()
     await expect(page.getByTestId('label-site')).toHaveText('Landing site')
+    // The scene loads its first frame after the answer appears and the camera may still be moving:
+    // wait until it is ready, then require label visibility to agree with project() at the same moment.
+    type DebugScene = { ready: Promise<void>; project(n: string): { visible: boolean } | null }
+    await page.waitForFunction(() => (window as unknown as { __scene?: DebugScene }).__scene !== undefined)
+    await page.evaluate(() => (window as unknown as { __scene: DebugScene }).__scene.ready)
     for (const name of ['sun', 'earth'] as const) {
-      const p = await page.evaluate((n) => (window as unknown as { __scene?: { project(n: string): { visible: boolean } | null } }).__scene?.project(n), name)
       const label = page.getByTestId(`label-${name}`)
-      if (p?.visible) await expect(label).toContainText(name === 'sun' ? /^Sun −?\d+\.\d°$/ : /^Earth −?\d+\.\d°$/)
-      else await expect(label).toBeHidden()
+      const projected = () => page.evaluate((n) => (window as unknown as { __scene: DebugScene }).__scene.project(n)?.visible === true, name)
+      await expect.poll(async () => (await projected()) === (await label.isVisible())).toBe(true)
+      if (await projected()) await expect(label).toContainText(name === 'sun' ? /^Sun −?\d+\.\d°$/ : /^Earth −?\d+\.\d°$/)
     }
   })
 }
