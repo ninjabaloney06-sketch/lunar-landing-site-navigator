@@ -444,13 +444,13 @@
   "label": "NASA reference point, not a chosen landing site",
   "lat": -85.9948,
   "lon": -0.23578,
-  "frame_note": "frame not stated in source; MOON_ME assumed - Leo to verify",
+  "frame_note": "frame not stated in source (coordinates generated from the PGDA LOLA DEM files, Data Book A2.1); MOON_ME assumed - Leo to verify",
   "elev_m": 4784.2,
   "slope_deg": 3.2,
   "horizon": "malapert-site23.json",
   "far_side": false,
   "source_url": "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
-  "source_label": "NASA Lunar Surface Data Book, table A2-2",
+  "source_label": "NASA Lunar Surface Data Book, table A2-2 (p. 58); centre point of a DEM polygon, not a point picked on the terrain (section A2.1, p. 57)",
   "potential": [
    {
     "category": "science",
@@ -479,13 +479,13 @@
   "label": "NASA reference point, not a chosen landing site",
   "lat": -89.7668,
   "lon": -171.87,
-  "frame_note": "frame not stated in source; MOON_ME assumed - Leo to verify",
+  "frame_note": "frame not stated in source (coordinates generated from the PGDA LOLA DEM files, Data Book A2.1); MOON_ME assumed - Leo to verify",
   "elev_m": 770.9,
   "slope_deg": 31.8,
   "horizon": "shackleton-rim-site04.json",
   "far_side": false,
   "source_url": "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
-  "source_label": "NASA Lunar Surface Data Book, table A2-2",
+  "source_label": "NASA Lunar Surface Data Book, table A2-2 (p. 58); centre point of a DEM polygon, not a point picked on the terrain (section A2.1, p. 57)",
   "potential": [
    {
     "category": "illumination",

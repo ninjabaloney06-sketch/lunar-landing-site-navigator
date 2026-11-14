@@ -35,6 +35,10 @@ One row per task or session. Times are local (CET). Use first names only; remove
 
 | Sat 13:05–13:50 | Claude Code, Claude Fable 5.2 (ninja's account) | ninja | Integrator: resumed step-1 orchestration, re-ran track A and B done-checks, merged track A, filled the Horizons comparison in validation.md by script, checked the Site04 coordinate in the Data Book PDF (downloaded to a scratch folder outside the repo on ninja's instruction) | docs/event/validation.md; BUILD_LOG.md; merges on main | none | Comparison is machine-filled, not a sign-off. Site04 coordinate is a region centre, not a rim point; no coordinate changed. |
 
+| Sat 12:15–12:35 | Claude Code, Claude Opus 5.5 subagent (ninja's account) | ninja (integrator session) | Track B (Opus part): horizon.py + test_horizon.py, 18 horizon files, site_potential.json, regenerated sites.json | app/public/data/horizons/, app/public/data/sites.json, scripts/ | none | Found the Shackleton Site04 coordinate on the inner crater wall (flagged, not changed); IM-1 elevation/slope cross-check vs NASA passed. |
+
+| Sat 13:20–13:55 | Claude Code, Claude Opus 5.5 subagent (ninja's account) | ninja (integrator session) | Read-only review of track-b before merge: independent far-field and azimuth checks on the DEM, 17 mutation tests, source check of site_potential.json | merge decision for track-b | none | MERGE OK; 6 non-blocking findings recorded in BUILD_LOG. Two source pages could not be fetched and stay unchecked (science.nasa.gov Haworth/Faustini, Beyer et al. 2025). |
+
 ## Summary for the project page (fill in Sun ~12:30)
 
 - Tools used:
