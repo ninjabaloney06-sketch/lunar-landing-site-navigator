@@ -166,7 +166,7 @@
   },
   {
    "category": "cold-trap",
-   "text": "LROC marks a relatively flat area on the Shackleton-de Gerlache ridge with a direct line of sight onto the floor of Shackleton crater, which has been in perpetual shadow, an opportunity to observe a cold trap from sunlit ground; this is not evidence of ice, and that flat area is not necessarily this point.",
+   "text": "LROC marks a relatively flat area on the Shackleton-de Gerlache ridge with a direct line of sight onto the floor of Shackleton crater, which has been in perpetual shadow, an opportunity to observe a cold trap; this is not evidence of ice, and that flat area is not necessarily this point.",
    "evidence": "remote observation",
    "source_url": "https://lroc.im-ldi.com/images/1247"
   },
@@ -252,7 +252,7 @@
   },
   {
    "category": "water-ice",
-   "text": "NASA reports that prior studies found signs of ice in permanently shadowed areas within Faustini crater, on whose rim this region lies by name, a possible target for ice prospecting; the evidence is indirect, gives no amount or depth, and the distance from this point to those areas has not been computed.",
+   "text": "NASA reports that prior studies found signs of ice in permanently shadowed areas within Faustini crater, whose rim gives this region its name, a possible target for ice prospecting; the evidence is indirect, gives no amount or depth, and the distance from this point to those areas has not been computed.",
    "evidence": "remote observation",
    "source_url": "https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/"
   }
@@ -354,7 +354,7 @@
  "viper-mons-mouton": [
   {
    "category": "cold-trap",
-   "text": "Beyer et al. describe the VIPER mission area as containing accessible permanent shadows in craters of varying ages, giving a rover nearby cold traps to sample; accessibility was judged for VIPER's rover, and permanent shadow is not proof of ice.",
+   "text": "Beyer et al. describe the VIPER mission area as containing accessible permanent shadows in craters of varying ages, giving a rover nearby cold traps to sample; 'accessible' is that mission analysis's judgement, and permanent shadow is not proof of ice.",
    "evidence": "modeled condition",
    "source_url": "https://iopscience.iop.org/article/10.3847/PSJ/ae061a"
   },
