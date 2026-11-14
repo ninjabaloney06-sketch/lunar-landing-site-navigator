@@ -35,6 +35,7 @@ import {
   PerspectiveCamera,
   Raycaster,
   Scene,
+  Vector2,
   Vector3,
   type Object3D,
 } from 'three'
@@ -597,6 +598,14 @@ export class SiteWorld {
   covers(x: number, y: number): boolean {
     const { tile } = this.ground
     return tile !== null && Math.hypot(x, y) <= TILE_RADIUS_M && tileHeight(tile, x, y) !== null
+  }
+
+  /** Terrain point under a screen position (normalised device coordinates) at the current level, or null. */
+  pick(ndc: Vector2, cam: PerspectiveCamera): Vector3 | null {
+    this.raycaster.setFromCamera(ndc, cam)
+    this.raycaster.far = Infinity
+    const targets = [...this.rays.both, ...(this.eyeMode ? this.rays.eye : this.rays.orbit)]
+    return this.raycaster.intersectObjects(targets, false)[0]?.point ?? null
   }
 
   /** First terrain point along unit `dir` from `from` (ENU m) at the current level, or null. */

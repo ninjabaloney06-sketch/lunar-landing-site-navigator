@@ -60,6 +60,11 @@ export interface SceneHandle {
   onCameraChange(cb: () => void): () => void
   onPick(cb: (lat: number, lon: number) => void): () => void
   dispose(): void
+  // Brief C4 additions (every member above is unchanged).
+  /** The scene changed level by itself: a walk ends at eye level, a viewpoint in space ends at 'globe'. */
+  onLevel(cb: (level: SceneLevel) => void): () => void
+  /** Asked before a click on the scene acts (select a pin, walk); false = ignore this click. */
+  setClickGuard(guard: (() => boolean) | null): void
 }
 
 export function webglAvailable(): boolean {
@@ -86,6 +91,7 @@ const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's
 const BACKGROUND = 0x0b0d11
 
 interface Fly {
+  cam: PerspectiveCamera // globeCam: a flight through space (MOON_ME km); siteCam: a walk in the site scene (ENU m)
   t0: number
   p0: Vector3
   p1: Vector3
@@ -148,6 +154,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let enuToMe = new Quaternion()
   let meToEnu = new Quaternion()
   let fly: Fly | null = null
+  // Where the eye-level camera stands after a walk (ENU m, eye point); null = on the landing site.
+  let stand: Vector3 | null = null
   let dirty = true
   let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
   let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
@@ -159,6 +167,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let raf = 0
   const cameraCbs = new Set<() => void>()
   const pickCbs = new Set<(lat: number, lon: number) => void>()
+  const levelCbs = new Set<(level: SceneLevel) => void>()
+  let clickGuard: (() => boolean) | null = null
+  const emitLevel = (l: SceneLevel) => {
+    for (const cb of levelCbs) cb(l)
+  }
 
   const size = new Vector2(1, 1)
   function resize() {
@@ -176,8 +189,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   ro.observe(container)
   resize()
 
-  const inSpace = () => level === 'globe' || fly !== null
+  const inSpace = () => level === 'globe' || (fly !== null && fly.cam === globeCam)
   const activeCam = () => (inSpace() ? globeCam : siteCam)
+  // Eye-level terrain (mask ring or crest strip) is built for the landing site's eye point only: after a walk
+  // the site-level terrain is drawn and the mast is shown again, as from any other place.
+  const eyeTerrain = () => level === 'eye' && !stand
+  const showMast = () => level === 'site' || (level === 'eye' && stand !== null)
 
   function setControls() {
     globeControls.enabled = level === 'globe' && !fly
@@ -332,7 +349,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       level = 'globe'
       fly = null
       setGlobeView()
-    } else if (siteChanged && level !== 'globe') setSiteView()
+    } else if (siteChanged && level === 'eye') setEyeView()
+    else if (siteChanged && level !== 'globe') setSiteView()
     if (wanted && f.site && !fly) setLevel(wanted, false)
     setControls()
     markDirty()
@@ -352,6 +370,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function placeSiteCam(az: number, el: number, distKm: number) {
     viewVersion++
     free.site = { dist: false, look: false }
+    stand = null
     resetZoom()
     setControls()
     siteCam.position.copy(enuDir(az + 180, el)).multiplyScalar(distKm * 1000)
@@ -360,10 +379,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     siteControls.update()
   }
 
-  function placeEyeCam(az: number, el: number) {
+  function placeEyeCam(az: number, el: number, at: Vector3 | null = null) {
     viewVersion++
     free.site = { dist: false, look: false }
-    const eye = new Vector3(0, 0, site.eyeHeight)
+    stand = at
+    const eye = at ?? new Vector3(0, 0, site.eyeHeight)
     siteCam.position.copy(eye)
     siteControls.target.copy(eye).addScaledVector(enuDir(az, el), 0.01)
     siteCam.lookAt(siteControls.target)
@@ -424,19 +444,51 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return { p, q }
   }
 
-  function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void) {
-    fly = { t0: performance.now(), p0, q0, p1, q1, done }
+  function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void, cam: PerspectiveCamera = globeCam) {
+    fly = { cam, t0: performance.now(), p0, q0, p1, q1, done }
     setControls()
     markDirty()
+  }
+
+  /**
+   * Walk (notebook note 6; ninja, 14 Nov): the camera goes to stand on the terrain at ENU (x, y), eye height
+   * above it, facing the way it came. A camera move only: the site, the sky directions and every number stay
+   * those of the landing site.
+   */
+  function walkTo(x: number, y: number, animate = !testMode): boolean {
+    if (!frame?.site || fly || level === 'globe') return false
+    if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
+    const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
+    const to = new Vector3(x, y, site.groundZ(x, y) + site.eyeHeight)
+    const way = to.clone().sub(from.p).setZ(0)
+    const az = way.lengthSq() > 1 ? azElOfEnu(way.normalize()).az : currentHeading()
+    const was = level
+    level = 'eye'
+    wanted = null
+    resetZoom()
+    setControls()
+    placeEyeCam(az, EYE_DEFAULT_EL, to)
+    if (animate) {
+      const q1 = siteCam.quaternion.clone()
+      siteCam.position.copy(from.p)
+      siteCam.quaternion.copy(from.q)
+      startFly(from.p, from.q, to.clone(), q1, () => placeEyeCam(az, EYE_DEFAULT_EL, to), siteCam)
+    }
+    markDirty()
+    if (was !== 'eye') emitLevel('eye')
+    notifyCamera()
+    return true
   }
 
   function stepFly(now: number) {
     if (!fly) return
     const t = Math.min((now - fly.t0) / FLY_MS, 1)
     const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2 // ease in-out cubic
-    globeCam.position.lerpVectors(fly.p0, fly.p1, e)
-    globeCam.quaternion.slerpQuaternions(fly.q0, fly.q1, e)
-    globeCam.updateMatrixWorld(true)
+    fly.cam.position.lerpVectors(fly.p0, fly.p1, e)
+    fly.cam.quaternion.slerpQuaternions(fly.q0, fly.q1, e)
+    // A walk never cuts through a hill on its way.
+    if (fly.cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
+    fly.cam.updateMatrixWorld(true)
     markDirty()
     if (t >= 1) {
       const done = fly.done
@@ -509,7 +561,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function projectSky(b: 'sun' | 'earth'): ScreenPoint | null {
     if (!sky || !frame) return null
-    site.setEyeMode(level === 'eye')
+    site.setEyeMode(eyeTerrain())
     syncSky()
     const sp = toScreen(sky.worldPos(b), sky.camera)
     if (!sp.visible) return sp
@@ -538,10 +590,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       const sp = toScreen(top, globeCam)
       return { ...sp, visible: sp.visible && !globe.occluded(globeCam.position, top) }
     }
-    site.updateMarker(siteCam, size.y, level === 'site')
+    site.updateMarker(siteCam, size.y, showMast())
     const top = site.mastTop()
     const sp = toScreen(top, siteCam)
-    if (level === 'eye') return { ...sp, visible: false } // the mast is hidden while standing on the site
+    if (!showMast()) return { ...sp, visible: false } // the mast is hidden while standing on the site
     const dir = top.clone().sub(siteCam.position)
     const len = dir.length()
     return { ...sp, visible: sp.visible && !site.occluded(siteCam.position, dir.normalize(), len - 1) }
@@ -551,10 +603,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   function render() {
     if (!sky || !globe) return
-    site.setEyeMode(level === 'eye')
+    site.setEyeMode(eyeTerrain())
     const cam = activeCam()
     if (inSpace()) globe.updatePins(globeCam, size.y)
-    else site.updateMarker(siteCam, size.y, level === 'site')
+    else site.updateMarker(siteCam, size.y, showMast())
     syncSky()
     renderer.clear()
     if (frame) sky.render(renderer)
@@ -607,20 +659,40 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // Keys (E = eye level, Esc = back) belong to the page: App.tsx maps them to setLevel through its view state,
   // the harness binds them itself. The scene binds none, so a key never acts twice.
 
+  // A click is a press of the main button (or one finger) that moved less than 5 px. On the globe it selects
+  // the pin under it; at site and eye level it walks to the terrain point under it.
   let down: { x: number; y: number } | null = null
-  const onDown = (e: PointerEvent) => (down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null)
+  let fingers = 0
+  const toNdc = (clientX: number, clientY: number) => {
+    const r = canvas.getBoundingClientRect()
+    return new Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1)
+  }
+  const onDown = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') fingers++
+    down = e.button === 0 && fingers <= 1 ? { x: e.clientX, y: e.clientY } : null
+  }
   const onUp = (e: PointerEvent) => {
-    if (!down || level !== 'globe' || fly || !globe) return
+    if (e.pointerType === 'touch') fingers = Math.max(0, fingers - 1)
+    if (!down || fly || !globe) return
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
     down = null
-    if (moved > 5) return
-    const r = canvas.getBoundingClientRect()
-    const ndc = new Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
-    const hit = globe.pick(ndc, globeCam, size)
-    if (hit) for (const cb of pickCbs) cb(hit.lat, hit.lon)
+    if (moved > 5 || fingers > 0 || (clickGuard && !clickGuard())) return
+    const ndc = toNdc(e.clientX, e.clientY)
+    if (level === 'globe') {
+      const hit = globe.pick(ndc, globeCam, size)
+      if (hit) for (const cb of pickCbs) cb(hit.lat, hit.lon)
+      return
+    }
+    const spot = site.pick(ndc, siteCam)
+    if (spot) walkTo(spot.x, spot.y)
+  }
+  const onCancel = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') fingers = Math.max(0, fingers - 1)
+    down = null
   }
   canvas.addEventListener('pointerdown', onDown)
   canvas.addEventListener('pointerup', onUp)
+  canvas.addEventListener('pointercancel', onCancel)
 
   // ---------- startup ----------
 
@@ -655,12 +727,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       pickCbs.add(cb)
       return () => pickCbs.delete(cb)
     },
+    onLevel(cb) {
+      levelCbs.add(cb)
+      return () => levelCbs.delete(cb)
+    },
+    setClickGuard(guard) {
+      clickGuard = guard
+    },
     dispose() {
       disposed = true
       cancelAnimationFrame(raf)
       ro.disconnect()
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointerup', onUp)
+      canvas.removeEventListener('pointercancel', onCancel)
       freeCam.dispose()
       siteControls.dispose()
       globeControls.dispose()
@@ -745,6 +825,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }),
       surfaceDist: () => (inSpace() ? globeRig : siteRig).surface(activeCam().position),
+      terrainAt(x, y) {
+        const r = canvas.getBoundingClientRect()
+        const p = site.pick(toNdc(r.left + x, r.top + y), siteCam)
+        return p ? { x: p.x, y: p.y, z: site.groundZ(p.x, p.y) } : null
+      },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
       camera() {
         const cam = activeCam()

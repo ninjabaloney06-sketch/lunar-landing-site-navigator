@@ -7,6 +7,7 @@ import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { webglAvailable } from './scene3d'
+import type { SceneLevel } from './scene3d'
 import {
   cleanName,
   COVERAGE_END_MS,
@@ -99,6 +100,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const [webgl, setWebgl] = useState(() => webglAvailable())
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
+  // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
+  const menuOpen = useRef(false)
+  menuOpen.current = menu !== null
+  const menuClosedAt = useRef(0)
+  const clickGuard = useCallback(() => !menuOpen.current && performance.now() - menuClosedAt.current > 400, [])
+  const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
   const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
@@ -154,6 +161,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const onUnavailable = useCallback(() => setWebgl(false), [])
 
   const closeMenu = useCallback((focus = false) => {
+    menuClosedAt.current = performance.now()
     setMenu((m) => {
       if (focus) (m === 'date' ? dateBtn : missionBtn).current?.focus()
       return null
@@ -261,6 +269,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             earthEl={atCursor ? atCursor.earth.el : null}
             onUnavailable={onUnavailable}
             onPick={onPick}
+            onLevel={onLevel}
+            clickGuard={clickGuard}
           />
         ) : (
           <div className="fallback" data-testid="fallback">

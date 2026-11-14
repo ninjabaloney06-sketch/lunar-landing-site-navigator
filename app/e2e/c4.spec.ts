@@ -16,6 +16,8 @@ type Scene = {
   camera(): Cam
   surfaceDist(): number
   skySize(b: string): number | null
+  terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
+  level(): string
 }
 const scene = <T>(page: Page, fn: (s: Scene) => T | Promise<T>) =>
   page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
@@ -141,5 +143,97 @@ test.describe('C4 part 1: camera controls (harness, 1280 × 720)', () => {
     await wheel(page, -100, 5)
     const site = await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'site' }))
     expect(site.fov).toBe(54)
+  })
+})
+
+// ---------- walk (notebook note 6; ninja, 14 Nov) ----------
+
+const RIDGE = 'connecting-ridge'
+const AUG = 'shackleton-2027-08'
+
+async function openApp(page: Page, hash: string) {
+  await page.goto(`/?test=1#${hash}`)
+  await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+  await page.waitForFunction(() => (window as unknown as { __scene?: unknown }).__scene !== undefined)
+  await scene(page, (s) => s.ready)
+}
+
+/** The four scientific selections in the link: site, period (with custom start and length), cursor, stations. */
+async function selection(page: Page) {
+  // The link is written 400 ms after the last change.
+  await page.waitForTimeout(700)
+  return page.evaluate(() => {
+    const p = new URLSearchParams(location.hash.slice(1))
+    return ['site', 'period', 'from', 'days', 't', 'st'].map((k) => `${k}=${p.get(k)}`).join('&')
+  })
+}
+
+test.describe('walk: a left-click on terrain moves the camera only', () => {
+  test('harness: a click at site level stands the camera 1.75 m above the clicked terrain point; a click at eye level walks on', async ({ page }) => {
+    await openHarness(page)
+    await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ site: 'connecting-ridge', utc: '2027-08-16T12:00:00Z', level: 'site' }))
+    const spot = (await scene(page, (s) => s.terrainAt(700, 420)))!
+    expect(spot, 'terrain under the click').not.toBeNull()
+    await page.mouse.click(700, 420)
+    await frames(page)
+    const a = await camera(page)
+    expect(a.level).toBe('eye')
+    expect(Math.hypot(a.position[0] - spot.x, a.position[1] - spot.y), 'on the clicked spot').toBeLessThan(1e-6)
+    expect(a.position[2] - spot.z, '1.75 m above the terrain').toBeCloseTo(1.75, 6)
+    expect(await scene(page, (s) => s.surfaceDist())).toBeCloseTo(1.75, 6)
+    // At eye level: click the ground ahead and the camera walks there.
+    const ahead = (await scene(page, (s) => s.terrainAt(640, 600)))!
+    expect(ahead).not.toBeNull()
+    await page.mouse.click(640, 600)
+    await frames(page)
+    const b = await camera(page)
+    expect(b.level).toBe('eye')
+    expect(Math.hypot(b.position[0] - ahead.x, b.position[1] - ahead.y)).toBeLessThan(1e-6)
+    expect(await scene(page, (s) => s.surfaceDist())).toBeCloseTo(1.75, 6)
+    expect(dist(a.position, b.position), 'the camera moved').toBeGreaterThan(0.5)
+    // A click on the sky moves nothing; a drag of more than 5 px is not a click.
+    await page.mouse.click(640, 40)
+    await frames(page)
+    expect(dist((await camera(page)).position, b.position)).toBe(0)
+    await page.mouse.move(640, 600)
+    await page.mouse.down()
+    await page.mouse.move(700, 600, { steps: 3 })
+    await page.mouse.up()
+    await frames(page)
+    expect(dist((await camera(page)).position, b.position), 'a drag turns the view, the camera stays within its 1 cm orbit').toBeLessThan(0.03)
+    // Eye level again (the E key in the harness, "Eye level" in the app) is back on the landing site.
+    const home = await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ level: 'eye' }))
+    expect(Math.hypot(home.position[0], home.position[1])).toBeLessThan(1e-9)
+  })
+
+  test('app: a left-click on terrain moves the camera and leaves site, period, cursor and stations in the hash unchanged', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid`)
+    const before = await selection(page)
+    const answer = await page.getByTestId('answer').innerText()
+    const a = await camera(page)
+    expect(a.level).toBe('site')
+    const spot = (await scene(page, (s) => s.terrainAt(900, 430)))!
+    expect(spot).not.toBeNull()
+    await page.mouse.click(900, 430)
+    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
+    const b = await camera(page)
+    expect(Math.hypot(b.position[0] - spot.x, b.position[1] - spot.y)).toBeLessThan(1e-6)
+    expect(await scene(page, (s) => s.surfaceDist())).toBeCloseTo(1.75, 6)
+    expect(await selection(page)).toBe(before)
+    // The answer still names the selected site and has not changed.
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
+    expect(await page.getByTestId('answer').innerText()).toBe(answer)
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+    // The link's view becomes eye level; that change does not move the camera back to the landing site.
+    expect(dist((await camera(page)).position, b.position)).toBe(0)
+    // A click that only closes the Mission panel is not a walk.
+    await page.getByTestId('mission').click()
+    await expect(page.getByTestId('mission-panel')).toBeVisible()
+    await page.mouse.click(1000, 430)
+    await expect(page.getByTestId('mission-panel')).toBeHidden()
+    await page.waitForTimeout(300)
+    expect(dist((await camera(page)).position, b.position)).toBe(0)
+    expect(await selection(page)).toBe(before)
   })
 })

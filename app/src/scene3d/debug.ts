@@ -36,6 +36,7 @@ export interface DebugView {
   setFlat(on: boolean): void
   renderInfo(): { calls: number; triangles: number }
   surfaceDist(): number
+  terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
   skySize(b: 'sun' | 'earth'): number | null
 }
 
@@ -98,6 +99,8 @@ export function installDebug(v: DebugView) {
     // Brief C4: distance from the camera to the nearest surface (m at site and eye level, km in space), and a
     // sky body's drawn radius over its drawn distance (must not change with the eye-level zoom).
     surfaceDist: () => v.surfaceDist(),
+    // Terrain point (ENU m, z = ground height) under a screen position at site or eye level: where a click walks to.
+    terrainAt: (x: number, y: number) => v.terrainAt(x, y),
     skySize: (b: 'sun' | 'earth') => v.skySize(b),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
