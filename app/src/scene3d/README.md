@@ -34,3 +34,6 @@ calls for any number; landing records with the site-pin shape, the others a came
 stem). At site and eye level only those within POI_NEAR_KM (60 km, pins.ts) of the current site are drawn,
 together with the other landing sites within that distance, each standing on the loaded terrain. named()
 reports a hovered or tapped POI with its poiId; a site pin wins over a user point, a user point over a POI.
+Pin region (S5): on the globe the cap south of region.ts PIN_REGION_NORTH_LAT is marked by a 1.5 px line on its
+boundary and a 9 % tint, both unlit in the colour of the user points and built from geometry.siteVector at the
+constant's latitude (globe.ts buildRegion). Picking is unchanged; the views decide where a point may be added.

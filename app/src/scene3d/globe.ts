@@ -3,7 +3,10 @@
 
 import {
   BoxGeometry,
+  BufferGeometry,
   DirectionalLight,
+  DoubleSide,
+  Float32BufferAttribute,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -18,12 +21,16 @@ import {
   Vector2,
   Vector3,
 } from 'three'
+import { Line2 } from 'three/examples/jsm/lines/Line2.js'
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import type { Site } from '../data/types'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
 import { checkerTexture, type TextureSet } from './assets'
 import { SPHERE_TO_BODY, latLonOf, v3 } from './frames'
 import type { ScenePoi } from './index'
 import { PinField } from './pins'
+import { PIN_REGION_NORTH_LAT } from './region'
 
 const PIN_LEN_PX = 26
 const PIN_W_PX = 1.6
@@ -33,6 +40,15 @@ const MARK_HEAD_PX = 3
 const PIN_MAX_DIST_KM = 60_000 // farther out the pins would be longer than the Moon is wide: hidden
 const NAME_RADIUS_PX = 10
 const Z = new Vector3(0, 0, 1)
+// The pin region (S5): the cap south of region.ts PIN_REGION_NORTH_LAT, where user points can be placed. Drawn in
+// the colour of the user points themselves (0xece9e2, tokens.css --fg), unlit, so it reads the same on the lit
+// and on the dark side: a line on the boundary and a faint tint over the cap.
+const REGION_COLOR = 0xece9e2
+const REGION_LINE_PX = 1.5
+const REGION_LINE_OPACITY = 0.9
+const REGION_TINT_OPACITY = 0.09
+const REGION_LIFT_KM = 0.4 // above the Moon's mesh, below the 1 km the camera keeps from the sphere
+const REGION_STEP_DEG = 1 // spacing of the vertices along the boundary and across the cap
 
 /** A user point on the globe (Brief C4 part 3): a place, never a computed site. */
 export interface GlobeMarker {
@@ -68,6 +84,9 @@ export class GlobeWorld {
   private readonly marks: Mark[] = []
   private readonly markGroup = new Group()
   private readonly pois = new PinField()
+  private readonly region = new Group()
+  private regionLine: number[] = []
+  private regionCap: number[] = []
   private readonly sunLight = new DirectionalLight(0xfff4e6, 3 * Math.PI)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
@@ -86,7 +105,60 @@ export class GlobeWorld {
     })
     this.moon = new Mesh(new SphereGeometry(MOON_RADIUS_KM, 256, 128), this.moonMat)
     this.moon.quaternion.copy(SPHERE_TO_BODY) // texture longitude 0 → +x MOON_ME, north → +z (T16)
-    this.scene.add(this.moon, this.pinGroup, this.markGroup, this.pois.group, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+    this.buildRegion()
+    this.scene.add(this.moon, this.region, this.pinGroup, this.markGroup, this.pois.group, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+  }
+
+  /**
+   * The pin region. Every vertex comes from geometry.siteVector at the constant's latitude or south of it, so
+   * the boundary is where region.ts inPinRegion() changes, in the same latitude convention.
+   */
+  private buildRegion() {
+    const north = PIN_REGION_NORTH_LAT
+    const line: number[] = []
+    for (let lon = 0; lon <= 360; lon += REGION_STEP_DEG) line.push(...siteVector(north, lon, REGION_LIFT_KM))
+    const boundary = new Line2(
+      new LineGeometry().setPositions(line),
+      new LineMaterial({ color: REGION_COLOR, linewidth: REGION_LINE_PX, transparent: true, opacity: REGION_LINE_OPACITY, depthWrite: false, toneMapped: false }),
+    )
+    boundary.renderOrder = 2
+    // The cap: parallels from the boundary to the pole, a vertex every REGION_STEP_DEG of longitude.
+    const rings = Math.max(2, Math.ceil((north + 90) / REGION_STEP_DEG))
+    const cols = Math.round(360 / REGION_STEP_DEG)
+    const cap: number[] = []
+    for (let i = 0; i <= rings; i++) {
+      const lat = north + ((-90 - north) * i) / rings
+      for (let j = 0; j <= cols; j++) cap.push(...siteVector(lat, (360 * j) / cols, REGION_LIFT_KM))
+    }
+    const idx: number[] = []
+    for (let i = 0; i < rings; i++) {
+      for (let j = 0; j < cols; j++) {
+        const a = i * (cols + 1) + j
+        const b = a + cols + 1
+        idx.push(a, b, a + 1, a + 1, b, b + 1)
+      }
+    }
+    const geo = new BufferGeometry()
+    geo.setAttribute('position', new Float32BufferAttribute(cap, 3))
+    geo.setIndex(idx)
+    const tint = new Mesh(
+      geo,
+      new MeshBasicMaterial({ color: REGION_COLOR, transparent: true, opacity: REGION_TINT_OPACITY, depthWrite: false, toneMapped: false, side: DoubleSide }),
+    )
+    tint.renderOrder = 1
+    this.region.add(tint, boundary)
+    this.regionLine = line
+    this.regionCap = cap
+  }
+
+  /** Test helpers: the drawn boundary and cap vertices (MOON_ME km), and the region on or off. */
+  regionInfo(): { boundary: number[][]; cap: number[][] } {
+    const rows = (a: number[]) => Array.from({ length: a.length / 3 }, (_, i) => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]])
+    return { boundary: rows(this.regionLine), cap: rows(this.regionCap) }
+  }
+
+  showRegion(on: boolean) {
+    this.region.visible = on
   }
 
   /** 'checker' = T16 debug texture with labelled meridians, unlit so the terminator cannot hide it. */

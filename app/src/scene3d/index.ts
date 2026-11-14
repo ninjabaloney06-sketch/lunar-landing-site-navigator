@@ -1453,6 +1453,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         globe?.setSites(sites, frame?.site?.id ?? null)
         placePois()
       },
+      region: () => globe?.regionInfo() ?? null,
+      showRegion(on) {
+        globe?.showRegion(on)
+        markDirty()
+      },
       pins: () => ({ globe: globe?.poiCount ?? 0, near: site.nearInfo() }),
       projectPoi(id) {
         if (!globe || top) return null

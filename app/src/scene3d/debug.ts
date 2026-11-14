@@ -46,6 +46,8 @@ export interface DebugView {
   pins(): { globe: number; near: { kind: string; id: string; shape: string; base: number[]; ground: number; sphere: number }[] }
   projectPoi(id: string): ScreenPoint | null
   projectMe(p: number[]): ScreenPoint | null
+  region(): { boundary: number[][]; cap: number[][] } | null
+  showRegion(on: boolean): void
   flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
   topView(): boolean
   named(): SceneName | null
@@ -142,6 +144,9 @@ export function installDebug(v: DebugView) {
     pins: () => v.pins(),
     projectPoi: (id: string) => v.projectPoi(id),
     projectMe: (p: number[]) => v.projectMe(p),
+    // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.
+    region: () => v.region(),
+    showRegion: (on: boolean) => v.showRegion(on),
     // A new frame as the app delivers it (update(frame)): the site and time change, the camera is not placed.
     load: async (siteId: string, utc: string | number) => {
       await v.load(siteId, typeof utc === 'number' ? utc : Date.parse(utc))
