@@ -73,3 +73,4 @@ Who: `S`, `D`, `Isaac`, `AI (<tool>)` for repo-agent work, or `AI (<tool>, devic
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Leo's rocket-energy task parked after freeze (ninja), rewritten as sourced rough Δv estimate
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Codex accounts assigned in TASKS.md: codex1 side scripts + Playwright + README, codex2 cross-model reviews + unit tests + security
 - 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · Codex model per task in TASKS.md: Astra reviews L4, Sol tests/harness, Terra scripts/security, Luna README
+- 2026-11-14 · AI (Claude Code, device: ninja's Mac / Guest123) · TASKS.md level table now lists Claude + Codex model per level; tags model-only (account by Isaac); 4 more Codex tasks; Qwen-flash-next rule for checked drafts

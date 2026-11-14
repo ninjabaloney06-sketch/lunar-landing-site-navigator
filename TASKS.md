@@ -18,18 +18,20 @@ Preparation status reconciled25Oct: the six AI-only writing artifacts already ex
 
 ## Difficulty and model per task (14 Nov, ninja)
 
-Every event task carries a level. Pick the model by level, not by habit. Fable costs 2× Opus per token (API list price), Opus 40× Haiku.
+Every event task carries a level and a model. Pick the model by level, not by habit. API list price in/out per MTok: Fable $8/$40, Opus $4/$20, Haiku $0.10/$0.50; Astra $10/$50, Sol $2/$10, Terra $1/$5, Luna $0.10/$0.50 (Codex prices from third-party sources, 14 Nov).
 
-| Level | Meaning | Model | Effort |
-|---|---|---|---|
-| L1 | Mechanical: copy, list, config, deploy, glossary, log | Haiku (`/model haiku`) | low |
-| L2 | Normal feature or test work against a fixed contract | Opus | medium |
-| L3 | Correctness-critical numbers (ephemeris, windows, finder, validation help) | Opus | high |
-| L4 | Hardest, sinks the demo if wrong: `horizon.py`, TS geometry + fixture parity (T9), 3D core (T14/T16) | Fable | high |
+| Level | Meaning | Claude | Codex | Effort |
+|---|---|---|---|---|
+| L1 | Mechanical: copy, list, config, deploy, glossary, log, README | Haiku | Luna `gpt-6-luna` | low (Luna medium) |
+| L2 | Normal feature or test work against a fixed contract | Opus | Terra `gpt-6.1-terra` for scripts and checks, Sol `gpt-6.1-sol` for tests and harness | medium |
+| L3 | Correctness-critical numbers (ephemeris, windows, finder, validation help) | Opus | Sol `gpt-6.1-sol` | high |
+| L4 | Hardest, sinks the demo if wrong: `horizon.py`, TS geometry + fixture parity (T9), 3D core (T14/T16) | Fable builds | Astra `gpt-6-astra` reviews only | high |
 
-**Codex (two ChatGPT Pro accounts, 14 Nov):** Pick the model per task with `codex -m <model>`, on either account (`codex1` builds, `codex2` reviews, so the usage spreads). Tiers (API list price in/out per MTok, third-party sources, 14 Nov): **Astra** `gpt-6-astra` $10/$50, strongest, only for reviewing L4 code; **Sol** `gpt-6.1-sol` $2/$10, tests and harness work; **Terra** `gpt-6.1-terra` $1/$5, close to Sol at half the price, self-contained scripts and checks; **Luna** `gpt-6-luna` $0.10/$0.50, docs and chores. Effort high, Luna medium. The tag shows account and model, e.g. `Codex2·Astra`. A different model family, so it catches errors Claude repeats, and it is cheap on tokens for long terminal runs. Use it for: (a) cross-model review of every L4 file, (b) tests written from a fixed spec, (c) self-contained pipeline scripts with a clear §3 contract. Tasks tagged `Codex1` / `Codex2` run there. Same file rule as Claude: never two agents on one file; Codex reviews read-only and reports findings, the file's owner applies them.
+**Tags:** `L2·Opus` = run in Claude Code with that model; `L2·Codex·Terra` = run in Codex with `codex -m gpt-6.1-terra`. Isaac picks the Codex account. Codex is a different model family, so it catches errors Claude repeats; it reviews read-only and reports findings, and the file's owner applies them. Never two agents on one file.
 
-Budget rules: Fable only on L4 tasks; one agent per task, `/clear` between tasks; no subagents unless a task needs a fresh-context check. Redeem the Fable reset (Settings → Usage → Limit resets) only once the weekly Fable limit is hit, not earlier. `[H]` tasks have no level.
+**Qwen-flash-next (unlimited, weaker):** only for drafts a human or a stronger model checks anyway: AI-use log entries, caption and glossary first drafts, renaming. Never for numbers, physics, code that ships unreviewed, or anything judges read without a check.
+
+**Budget rules:** Fable only on L4; Astra only for reviews of L4 code; one agent per task, `/clear` between tasks; no subagents unless a task needs a fresh-context check. Redeem the Fable reset (Settings → Usage → Limit resets) only once the weekly Fable limit is hit, not earlier. `[H]` tasks have no level.
 
 ## Phase 0 — Organisation (now → 1 Nov)
 
@@ -96,23 +98,23 @@ Learning material and knowledge only. No project code, no project data files, no
 
 Track A — ephemeris (I + agents, S validates):
 - [ ] `[AI]` `L3·Opus` — `scripts/ephemeris.py`: input lat, lon, elevation on the Moon (frame per the primer note) + time range + step; output Sun and Earth azimuth and elevation in the local horizon frame. Python + `spiceypy`, kernels from the USB stick.
-- [ ] `[AI+H]` `L2·Codex2·Sol` **Q** — Unit tests: known geometry checks (symmetry, Earth always low at the pole, Sun elevation bounds). S supplies the expected values; Q reviews the tests and the script.
-- [ ] `[AI+H]` `L2·Opus` **Q + S** — UX-01: add regression checks for the wrong-but-plausible Horizons result: observer body must be Moon (301), targets Sun (10) and Earth (399), with local azimuth/elevation in degrees and UTC dates. Reject an Earth-observatory/geocentre or RA/Dec-only reference before validation. Check selected site coordinates/frame match the output metadata; Q reviews, S signs the reference configuration. Record evidence in docs/event/validation.md by 16:00.
+- [ ] `[AI+H]` `L2·Codex·Sol` **Q** — Unit tests: known geometry checks (symmetry, Earth always low at the pole, Sun elevation bounds). S supplies the expected values; Q reviews the tests and the script.
+- [ ] `[AI+H]` `L2·Codex·Sol` **Q + S** — UX-01: add regression checks for the wrong-but-plausible Horizons result: observer body must be Moon (301), targets Sun (10) and Earth (399), with local azimuth/elevation in degrees and UTC dates. Reject an Earth-observatory/geocentre or RA/Dec-only reference before validation. Check selected site coordinates/frame match the output metadata; Q reviews, S signs the reference configuration. Record evidence in docs/event/validation.md by 16:00.
 - [ ] `[AI+H]` `L1·Haiku` **S** — Validate 10 sample points against JPL Horizons (observer on the Moon at the site). Target < 0.05°. Table in `docs/event/validation.md`. **Checkpoint 16:00.**
 - [ ] `[AI]` `L2·Opus` — Earth phase and Sun–Earth separation output.
 
 Track B — terrain horizon (Q + agents, S validates):
 - [ ] `[AI]` `L1·Haiku` — `app/public/data/sites.json` from `docs/reference/sources.md` (only checked entries, with source link per site).
 - [ ] `[AI]` `L4·Fable` — `scripts/horizon.py`: for a site, cast rays in 720 directions (0.5° steps) out to 300 km (build plan §4.2, changed 13 Nov) over the LOLA tiles; maximum terrain elevation angle including lunar curvature; vectorised with numpy; profiles cached as JSON.
-- [ ] `[AI]` `L2·Codex1·Terra` — Track B side scripts, build plan §4.3 and §5.4 assets: `coarse_dem.py`, `basemap.py`, `textures.py`, `terrain_tiles.py`, each with a pytest in `scripts/tests/`. Only these files; never `horizon.py`. Outputs > 10 MB need Isaac's yes.
-- [ ] `[AI+H]` `L4·Codex2·Astra` **Q** — Cross-model review of `horizon.py` and its tests (T5–T8, T13) as soon as the first version lands: read-only, findings ranked by severity to Q; Q decides what the owner fixes. Same pass later for `app/src/geometry/` (T4, T9) and `ephemeris.py` (T1–T3).
+- [ ] `[AI]` `L2·Codex·Terra` — Track B side scripts, build plan §4.3 and §5.4 assets: `coarse_dem.py`, `basemap.py`, `textures.py`, `terrain_tiles.py`, each with a pytest in `scripts/tests/`. Only these files; never `horizon.py`. Outputs > 10 MB need Isaac's yes.
+- [ ] `[AI+H]` `L4·Codex·Astra` **Q** — Cross-model review of `horizon.py` and its tests (T5–T8, T13) as soon as the first version lands: read-only, findings ranked by severity to Q; Q decides what the owner fixes. Same pass later for `app/src/geometry/` (T4, T9) and `ephemeris.py` (T1–T3).
 - [ ] `[AI+H]` `L3·Opus` **S** — Validate terrain/window results using compatible reference periods and visibility definitions; do not compare a 14-day Earth-centre result directly with 18.6-year any-disc averages. Check DEM frame/height scaling and sensitivity to horizon ray distance; published averages are a contextual cross-check unless definitions match. Document evidence and limitations in docs/event/validation.md (see data-guide.md, 28 Oct review).
 - [ ] `[H]` **All** — **Go / no-go 21:30:** if horizon masks are not validated, cut to fewer sites or published data and label it clearly, rather than show wrong numbers.
 
 Track C — frontend (D + agents):
 - [ ] `[AI+H]` `L2·Opus` **D** — UX-02/03: app shell with visible site and supported-date controls, curated named lunar sites, labelled lat/lon and UTC; no account, hidden tool menu or output-column setup for the core answer. Use a site list if the map fails/is cut; a south-pole map must reach every offered site. Reject invalid/out-of-coverage selections, show loading/error/empty states, and never show stale results as the newly selected site/date. D reviews in browser.
 - [ ] `[AI+H]` `L2·Opus` **D** — Polar sky plot: horizon outline, Sun and Earth tracks. Isaac checks it against a known case. **Checkpoint 20:00: sky plot with real ephemeris data.**
-- [ ] `[AI+H]` `L2·Codex1·Sol` **Q** — Playwright harness for T14–T17 (build plan §5.4: `?test=1`, `window.__scene`, fixed 1280×720, the four numeric screen tests) in `app/e2e/`. Never edits `app/src/scene3d/`; C1 exposes the debug API, Codex tests against it. Cross-model review of the `scene3d/` core is a separate read-only run on `Codex2·Astra`.
+- [ ] `[AI+H]` `L2·Codex·Sol` **Q** — Playwright harness for T14–T17 (build plan §5.4: `?test=1`, `window.__scene`, fixed 1280×720, the four numeric screen tests) in `app/e2e/`. Never edits `app/src/scene3d/`; C1 exposes the debug API, Codex tests against it. Cross-model review of the `scene3d/` core is a separate read-only run on `Codex·Astra`.
 - [ ] `[AI+H]` `L1·Haiku` `device` **D** — First public preview by the 20:00 checkpoint: deploy the current static build (hosting account from phase 2), with no login and no secrets (Q glances at the build first). Done when the URL opens in a private window on a phone and shows the sky plot. The Sunday deploy then only updates it. (winners P1)
 - [ ] `[H]` **Demo owner** — After each passed checkpoint (Sat 20:00, Sun 12:00), record a 10–20 s screen clip of the real app answering the spec question. Clips stay on the laptop, not in git (size rule). Done when at least one clip of real data exists before Sunday 12:00. (winners P6)
 - [ ] `[H]` **All** — 22:30 wrap-up: what works, what gets cut; save the morning queue. Sleep shifts (ninja, 13 Nov): Leo + Isaac 22:00–01:00, Otto + Bene 01:00–04:00; Otto + Bene attend this wrap-up; Dagny confirms. No required human night shift; see docs/event/event-plan.md. Tired people ship wrong numbers.
@@ -120,7 +122,8 @@ Track C — frontend (D + agents):
 ## Phase 5 — Sunday build: windows, views, deploy (Sun 07:30 → 12:00)
 
 - [ ] `[AI]` `L3·Opus` — `scripts/windows.py`: per time step `sun_visible` (upper limb above mask), `earth_visible` (centre above mask + margin), both; fraction of solar disk above the horizon (Sun is ~0.5° wide).
-- [ ] `[AI]` `L2·Opus` — Summaries: % time lit, % time Earth visible, longest darkness, longest comms blackout, overlapping windows. Export static JSON per site.
+- [ ] `[AI]` `L2·Codex·Terra` — Summaries: % time lit, % time Earth visible, longest darkness, longest comms blackout, overlapping windows. Export static JSON per site.
+- [ ] `[AI+H]` `L3·Codex·Sol` **S** — V5 + T12: 1-minute brute-force check of the bisection window edges (3 sites × 3 days) and the finder's synthetic always-lit / always-dark / far-side tests, in `scripts/tests/`. Read-only on `windows.py`; mismatches go to its owner. Leo signs V5.
 - [ ] `[AI+H]` `L2·Opus` **D** — UX-04/05: daily timeline (lit / Earth visible / both), Sun + Earth together with numeric azimuth/elevation in degrees for the selected UTC time, and summaries visible without reading raw tables. Touch and mouse must both expose the values. Show selected site/coordinates, period, sources and terrain/model limitations beside the results.
 - [ ] `[AI+H]` `L2·Opus` **D + I** — Required basic comparison: switch between at least two validated sites for the same supported period, and two supported periods for the same site; keep result labels and numeric scales comparable. A list/select control is sufficient. This capability stays when score, side-by-side layout or map is cut; fewer than two supported sites/periods is a documented challenge gap, not a complete fallback.
 - [ ] `[AI+H]` `L4·Fable` **D** — 3D viewer as the main screen from step 1 (build plan §5.4): globe + site view v1 Saturday (T14, T16), time play (T17), terrain mesh + overlay (T15), polish step 6. Stop rule: T14 red at Sat 21:30 → horizon strip becomes the main view.
@@ -128,9 +131,9 @@ Track C — frontend (D + agents):
 - [ ] `[AI+H]` `L2·Opus` **D** — Panel-type toggle and "vs. Earth" card (step 3, V9); PSR layer on the map, PGDA 60 m inset per site, CSV export (step 4).
 - [ ] `[AI+H]` `L2·Opus` **S** — Optional power-and-comms score, explainable in one sentence and approved by S; only after required site/date comparison and UX-01–05 pass.
 - [ ] `[AI+H]` `L2·Opus` **D** — Optional side-by-side view of 2–3 validated sites, only if 20:00 and 21:30 checkpoints passed. Add a score only after S approves its formula; basic site/date comparison does not depend on this enhancement.
-- [ ] `[AI]` `L1·Haiku` — Glossary in the app (horizon mask, DTE, libration, PSR) in plain language, from the primer.
+- [ ] `[AI]` `L1·Codex·Luna` — Glossary in the app (horizon mask, DTE, libration, PSR) in plain language, from the primer.
 - [ ] `[AI+H]` `L1·Haiku` **S** — Spot-check 5 values in the UI against the validated scripts. Any mismatch blocks the freeze.
-- [ ] `[AI+H]` `L1·Codex2·Terra` **Q** — Security check before deploy: no secrets, keys or personal data in the repo or the build; dependencies pinned.
+- [ ] `[AI+H]` `L1·Codex·Terra` **Q** — Security check before deploy: no secrets, keys or personal data in the repo or the build; dependencies pinned.
 - [ ] `[AI+H]` `L1·Haiku` `device` **D** — Deploy the freeze build to the same URL as Saturday's preview (https://nasa.digi-works.org, build-plan §5.3); test the URL on a phone in a private window, without login. (winners P1)
 - [ ] `[AI+H]` `L2·Opus` **I + Q + D** — UX-01–05 acceptance run before 12:00 freeze: fresh signed-out browser, repeat ninja's Connecting Ridge / 14–28 Nov UTC question without instructions; get correct Sun + Earth values, plot and windows within 60 s, then switch site/date and read the updated answer within 10 s. Test desktop and a 375 px touch viewport; verify wrong-observer/invalid-coordinate rejection, data-load failure and usable core results with map unavailable. Record times, failures/fixes and S's numeric sign-off in docs/event/validation.md. Core failures block freeze; cut optional views first.
 - [ ] `[H]` **All** — **Feature freeze 12:00.** Only bug fixes after.
@@ -139,7 +142,7 @@ Track C — frontend (D + agents):
 
 - [ ] `[AI+H]` `L2·Opus` **I** — Project page text: summary, how it works, data sources, limitations. Cite every source, even open-source ones, and state the license of every material (NASA can reject Solutions or strip nominations for missing citations or license documentation). Include the AI-use description from the phase 3 log. The page must have: the gap in existing tools, in one sentence from the 27 Oct timed run; a data section naming each dataset with link, version and what we computed from it; "How we checked the numbers" with S's results from docs/event/validation.md; "Not done yet" listing cut features plainly. AI drafts; Isaac cuts. Done when every row of docs/reference/data-sources.md appears on the page and S approves the validation paragraph. (winners P2, P5, P7)
 - [ ] `[AI+H]` `L1·Haiku` **Demo owner** — Slides or demo video in the actual submission format checked in phase 2 (default if unchanged: ≤30 s video or ≤7 slides). Build it from the spec storyboard and the checkpoint clips. Screen recording with English captions or TTS only, retaining the previously recorded submission constraints. AI drafts structure and captions; the demo owner records. Done when the measured runtime/slide count is within the limit and the hosted link opens in a private window without login. (winners P1, P6)
-- [ ] `[AI]` `L1·Codex1·Luna` — README: data sources, licenses, how to run. Make the judged code public only if the Submission Guide requires a code link (Isaac decides).
+- [ ] `[AI]` `L1·Codex·Luna` — README: data sources, licenses, how to run. Make the judged code public only if the Submission Guide requires a code link (Isaac decides).
 - [ ] `[AI+H]` `L1·Haiku` `device` **I** — Fill in the submission form on the team's project page; Isaac opens every link in the form (app, demo, code if required) in a private window, then reviews and clicks submit **by 15:00** (local deadline 15:45). (winners P1) Agent saves the confirmation screenshot to `docs/`.
 - [ ] `[H]` **All** — Rehearse the pitch twice with a timer. Live demo, with the screen recording and an offline build as backup. Before the second rehearsal, someone outside the team (the Betreuerin or a mentor) watches the demo once with no context. Done when they can repeat the problem and the app's answer in their own words; if not, fix the first 10 seconds. (winners P6)
 - [ ] `[H]` **I** — Pitch to the local judges (from 16:00). Stay within the time slot.
