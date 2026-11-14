@@ -2,6 +2,8 @@
 
 Copy-paste prompts for the agents on Sat 14 Nov. Written 13 Nov from [build-plan.md](build-plan.md) and ninja's mockup review (§5.1); updated 14 Nov ~11:45 with the kickoff decisions in [spec.md](spec.md) and the research in [lunar-interest-points.md](../reference/lunar-interest-points.md). Plan text only; nothing here is code.
 
+**Handoff (14 Nov, 12:05):** step-1 orchestration moved to another device before any track was built. Read [handoff/README.md](handoff/README.md) first: ninja's decisions, device setup, pre-flight, shared contracts, agent split and brief corrections.
+
 **Precedence:** the decisions in `spec.md` (14 Nov) override `build-plan.md`; `build-plan.md` overrides these briefs. Where they disagree, fix the brief. The 14 Nov changes that override the build plan:
 
 | Topic | Build plan (13 Nov) | Now (spec.md, ninja 14 Nov) |
