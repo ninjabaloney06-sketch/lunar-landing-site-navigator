@@ -11,7 +11,9 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 | V4 | Real horizons vs PGDA averages (context) | open | — | — |
 | V5–V9 | Window edges, coarse DEM, UI values, finder, panel types | open | — | — |
 
-## How Leo checks V1, V2 and the station check (about 40 min)
+## How Leo checks V1, V2 and the station check (now about 5 min)
+
+> **Update 14 Nov 13:35 (integrator, AI):** the Horizons values, the differences and the V2 arithmetic are already filled in below by a script that fetched the seven links. Leo: open two or three links, spot-check that the numbers in the tables match what Horizons shows, read the worst-case lines in the evidence box, decide the two station questions, then sign in the table at the top. Nothing is marked passed until you sign.
 
 You need a browser and a calculator. Each link below opens a plain-text JPL Horizons table with every setting fixed: observer table, apparent azimuth/elevation (quantity 4), refraction off (`AIRLESS`), decimal degrees, UTC, 6-hour steps. Our values are already in the tables below; you type in the Horizons values and the differences. Edit this file on GitHub (pencil icon), or send the numbers to Isaac and the orchestrator copies them in.
 
@@ -35,26 +37,26 @@ Sites: Connecting Ridge −89.46°, −136.68° (= 223.32° E); Shackleton Rim S
 
 | # | Site | UTC | Body | Our az | Our el | Horizons az | Horizons el | Δaz | Δel |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | Connecting Ridge | 14 Nov 2026 00:00 | Sun | 263.2832 | 1.4935 | | | | |
-| 2 | Connecting Ridge | 14 Nov 2026 00:00 | Earth | 135.4222 | -5.0329 | | | | |
-| 3 | Connecting Ridge | 14 Nov 2026 06:00 | Sun | 260.2364 | 1.4651 | | | | |
-| 4 | Connecting Ridge | 14 Nov 2026 06:00 | Earth | 135.0767 | -4.7727 | | | | |
-| 5 | Connecting Ridge | 14 Nov 2026 12:00 | Sun | 257.1899 | 1.4369 | | | | |
-| 6 | Connecting Ridge | 14 Nov 2026 12:00 | Earth | 134.7297 | -4.5014 | | | | |
-| 7 | Connecting Ridge | 14 Nov 2026 18:00 | Sun | 254.1439 | 1.4090 | | | | |
-| 8 | Connecting Ridge | 14 Nov 2026 18:00 | Earth | 134.3825 | -4.2197 | | | | |
-| 9 | Connecting Ridge | 15 Nov 2026 00:00 | Sun | 251.0982 | 1.3815 | | | | |
-| 10 | Connecting Ridge | 15 Nov 2026 00:00 | Earth | 134.0362 | -3.9282 | | | | |
-| 11 | Shackleton Site04 | 16 Aug 2027 00:00 | Sun | 186.3703 | 0.0906 | | | | |
-| 12 | Shackleton Site04 | 16 Aug 2027 00:00 | Earth | 172.1676 | -0.8013 | | | | |
-| 13 | Shackleton Site04 | 16 Aug 2027 06:00 | Sun | 183.3231 | 0.0963 | | | | |
-| 14 | Shackleton Site04 | 16 Aug 2027 06:00 | Earth | 171.8156 | -0.4488 | | | | |
-| 15 | Shackleton Site04 | 16 Aug 2027 12:00 | Sun | 180.2760 | 0.1026 | | | | |
-| 16 | Shackleton Site04 | 16 Aug 2027 12:00 | Earth | 171.4660 | -0.0961 | | | | |
-| 17 | Shackleton Site04 | 16 Aug 2027 18:00 | Sun | 177.2291 | 0.1096 | | | | |
-| 18 | Shackleton Site04 | 16 Aug 2027 18:00 | Earth | 171.1193 | 0.2558 | | | | |
-| 19 | Shackleton Site04 | 17 Aug 2027 00:00 | Sun | 174.1822 | 0.1172 | | | | |
-| 20 | Shackleton Site04 | 17 Aug 2027 00:00 | Earth | 170.7763 | 0.6062 | | | | |
+| 1 | Connecting Ridge | 14 Nov 2026 00:00 | Sun | 263.2832 | 1.4935 | 263.2832 | 1.4935 | -0.0000 | +0.0000 |
+| 2 | Connecting Ridge | 14 Nov 2026 00:00 | Earth | 135.4222 | -5.0329 | 135.4222 | -5.0329 | -0.0000 | +0.0000 |
+| 3 | Connecting Ridge | 14 Nov 2026 06:00 | Sun | 260.2364 | 1.4651 | 260.2364 | 1.4651 | -0.0000 | +0.0000 |
+| 4 | Connecting Ridge | 14 Nov 2026 06:00 | Earth | 135.0767 | -4.7727 | 135.0767 | -4.7727 | -0.0000 | +0.0000 |
+| 5 | Connecting Ridge | 14 Nov 2026 12:00 | Sun | 257.1899 | 1.4369 | 257.1899 | 1.4369 | +0.0000 | +0.0000 |
+| 6 | Connecting Ridge | 14 Nov 2026 12:00 | Earth | 134.7297 | -4.5014 | 134.7297 | -4.5014 | +0.0000 | -0.0000 |
+| 7 | Connecting Ridge | 14 Nov 2026 18:00 | Sun | 254.1439 | 1.4090 | 254.1439 | 1.4090 | -0.0000 | +0.0000 |
+| 8 | Connecting Ridge | 14 Nov 2026 18:00 | Earth | 134.3825 | -4.2197 | 134.3825 | -4.2197 | +0.0000 | -0.0000 |
+| 9 | Connecting Ridge | 15 Nov 2026 00:00 | Sun | 251.0982 | 1.3815 | 251.0982 | 1.3815 | -0.0000 | -0.0000 |
+| 10 | Connecting Ridge | 15 Nov 2026 00:00 | Earth | 134.0362 | -3.9282 | 134.0362 | -3.9282 | +0.0000 | -0.0000 |
+| 11 | Shackleton Site04 | 16 Aug 2027 00:00 | Sun | 186.3703 | 0.0906 | 186.3703 | 0.0906 | -0.0000 | +0.0000 |
+| 12 | Shackleton Site04 | 16 Aug 2027 00:00 | Earth | 172.1676 | -0.8013 | 172.1676 | -0.8013 | -0.0000 | -0.0000 |
+| 13 | Shackleton Site04 | 16 Aug 2027 06:00 | Sun | 183.3231 | 0.0963 | 183.3231 | 0.0963 | +0.0000 | -0.0000 |
+| 14 | Shackleton Site04 | 16 Aug 2027 06:00 | Earth | 171.8156 | -0.4488 | 171.8156 | -0.4488 | +0.0000 | +0.0000 |
+| 15 | Shackleton Site04 | 16 Aug 2027 12:00 | Sun | 180.2760 | 0.1026 | 180.2760 | 0.1026 | +0.0000 | +0.0000 |
+| 16 | Shackleton Site04 | 16 Aug 2027 12:00 | Earth | 171.4660 | -0.0961 | 171.4660 | -0.0961 | -0.0000 | +0.0000 |
+| 17 | Shackleton Site04 | 16 Aug 2027 18:00 | Sun | 177.2291 | 0.1096 | 177.2291 | 0.1096 | -0.0000 | +0.0000 |
+| 18 | Shackleton Site04 | 16 Aug 2027 18:00 | Earth | 171.1193 | 0.2558 | 171.1193 | 0.2559 | +0.0000 | +0.0001 |
+| 19 | Shackleton Site04 | 17 Aug 2027 00:00 | Sun | 174.1822 | 0.1172 | 174.1822 | 0.1172 | -0.0000 | +0.0000 |
+| 20 | Shackleton Site04 | 17 Aug 2027 00:00 | Earth | 170.7763 | 0.6062 | 170.7763 | 0.6062 | +0.0000 | -0.0000 |
 
 ### V2: one row by hand (pass: sign and size agree)
 
@@ -72,11 +74,11 @@ Compare the Horizons elevation with our `madrid_ctr` / `canberra_ctr` columns (M
 
 | UTC (16 Aug 2027) | Our Madrid el | Horizons Madrid el | Δ | Our Canberra el | Horizons Canberra el | Δ |
 |---|---|---|---|---|---|---|
-| 00:00 | 29.9062 | | | -34.3161 | | |
-| 06:00 | -16.4283 | | | -6.8698 | | |
-| 12:00 | -65.9508 | | | 61.1885 | | |
-| 18:00 | -10.0222 | | | 28.9276 | | |
-| 00:00 (17 Aug) | 34.9398 | | | -34.5199 | | |
+| 00:00 | 29.9062 | 29.8941 | -0.0121 | -34.3161 | -34.3423 | -0.0262 |
+| 06:00 | -16.4283 | -16.4979 | -0.0696 | -6.8698 | -6.8018 | +0.0680 |
+| 12:00 | -65.9508 | -65.9413 | +0.0095 | 61.1885 | 61.2502 | +0.0617 |
+| 18:00 | -10.0222 | -9.9532 | +0.0690 | 28.9276 | 28.8513 | -0.0763 |
+| 00:00 (17 Aug) | 34.9398 | 34.9425 | +0.0027 | -34.5199 | -34.5620 | -0.0421 |
 
 Also decide and write down:
 - Is IAU_EARTH acceptable for station positions, given the differences above?
@@ -90,7 +92,21 @@ Also decide and write down:
 Evidence box (paste the Horizons header lines, V2 arithmetic, tolerance and notes):
 
 ```text
-
+AI-filled comparison (integrator, Claude Code, 14 Nov 2026 ~13:35 CET). NOT a sign-off: Leo reviews and signs.
+Method: a script fetched the seven links above and wrote the Horizons values and differences into the tables.
+V1 worst |Δaz| = 0.0000 deg, worst |Δel| = 0.0001 deg over 20 rows (limit 0.05).
+Station check worst |Δel| = 0.0763 deg over 10 values (tolerance: Leo sets it).
+V2: Horizons sub-solar point 14 Nov 2026 12:00 UTC: lon_s = 120.523877, lat_s = -1.557282.
+    sin(el) = sin(-89.46)*sin(-1.557282) + cos(-89.46)*cos(-1.557282)*cos(223.32 - 120.523877)  ->  el = 1.4376 deg; ours 1.4369; difference +0.0007 deg.
+    Rough check: -lat_s = 1.5573 deg (site is 0.54 deg from the pole).
+Horizons headers:
+V1-a: Target body name: Sun (10)                        {source: DE441} | Center body name: Moon (301)                      {source: DE441} | Center geodetic : 223.32, -89.46, .00175          {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : MEAN_ME (high precision)        {East-longitude positive} | Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}
+V1-b: Target body name: Earth (399)                     {source: DE441} | Center body name: Moon (301)                      {source: DE441} | Center geodetic : 223.32, -89.46, .00175          {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : MEAN_ME (high precision)        {East-longitude positive} | Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}
+V1-c: Target body name: Sun (10)                        {source: DE441} | Center body name: Moon (301)                      {source: DE441} | Center geodetic : 188.13, -89.7668, .00175        {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : MEAN_ME (high precision)        {East-longitude positive} | Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}
+V1-d: Target body name: Earth (399)                     {source: DE441} | Center body name: Moon (301)                      {source: DE441} | Center geodetic : 188.13, -89.7668, .00175        {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : MEAN_ME (high precision)        {East-longitude positive} | Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}
+V2: Target body name: Moon (301)                      {source: DE441} | Center body name: Earth (399)                     {source: DE441} | Center geodetic : 0.0, 0.0, -6378.137             {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : ITRF93                          {East-longitude positive} | Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}
+S-mad: Target body name: Moon (301)                      {source: DE441} | Center body name: Earth (399)                     {source: DE441} | Center geodetic : 355.7459032,40.4256217,.837051  {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : ITRF93                          {East-longitude positive} | Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}
+S-can: Target body name: Moon (301)                      {source: DE441} | Center body name: Earth (399)                     {source: DE441} | Center geodetic : 148.9819644,-35.3984788,.69202  {E-lon(deg),Lat(deg),Alt(km)} | Center pole/equ : ITRF93                          {East-longitude positive} | Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}
 ```
 
 ## V1 / V2 / station check — inputs (AI output, not validated)
@@ -232,3 +248,10 @@ utc                             goldstone                 madrid               c
 2027-08-16T23:00Z  171.2636    0.0168  S  170.8093   -0.2102  T  170.5367    1.2970  S
 2027-08-17T00:00Z  171.2884    0.0055  S  170.5832   -0.1067  T  170.6326    1.3349  S
 ```
+
+## Shackleton Rim Site04 coordinate — source check (integrator, AI, 14 Nov 13:30; not validated)
+
+- **Printed value confirmed.** [NASA Lunar Surface Data Book, ACD-50044 Rev A](https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf), table A2-2, p. 58: "R04 or Site04 — Shackleton Rim — -89.7668 — -171.87". The spec value is not a transcription error. The same table prints "R23 or Site23 — Malapert Massif — -85.9948 — -0.23578" (the name printed is "Malapert Massif", not "Malapert Site23") and "R01 or Site01 — Connecting Ridge — -89.4632 — -137.49".
+- **What the coordinate is.** Same document, section A2.1, p. 57: "Coordinates have been generated from the DEM files on the PGDA website (https://pgda.gsfc.nasa.gov/products/81), so the center points of the original polygons are accurate to 5 to 10 meters." So −89.7668, −171.87 is the centre of the Site04 DEM polygon (a region named Shackleton Rim), not a point chosen on the rim crest. No frame is named; the PGDA LOLA products it points to are the frame source.
+- **Consequence (Track B, re-run by the integrator).** In the LOLA DEM that centre point lies about 1.8 km inside the rim crest, on the inner wall: elevation 771 m, slope 31.8°, horizon mask 0.08° … 32.0° (peak at azimuth 87.5°). The Sun reaches about 0.1° there on 16 Aug 2027, so the spec demo question (Shackleton Rim, 16–29 Aug 2027) answers "dark" for this exact point. The number is correct for the point; the point is a region centre.
+- **Open decision (Isaac + Leo):** keep the region centre and label it as such, or use a sourced point on lit ground for the demo. The Data Book itself names one: landing location CR1 at 89.468° S, 222.6° E on the Shackleton–de Gerlache connecting ridge (section 7.3.3, p. 46; also Figure caption p. 38).
