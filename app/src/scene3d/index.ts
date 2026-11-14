@@ -1050,8 +1050,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (top && topView) return toScreen(topView.worldPos(b), topView.camera)
     const sp = toScreen(sky.worldPos(b), sky.camera)
     if (!sp.visible) return sp
-    const cam = activeCam()
-    const blocked = inSpace() ? globe!.occludedDir(globeCam.position, sky.worldDir(b)) : site.occluded(cam.position, sky.worldDir(b))
+    // Hidden behind another body (from space the Moon is one of them) or, at site and eye level, behind terrain.
+    const blocked = inSpace()
+      ? covered(b, globeCam.position, true)
+      : site.occluded(siteCam.position, sky.worldDir(b)) || covered(b, sitePoseInMe().p, false)
     return { ...sp, visible: !blocked }
   }
 
@@ -1149,6 +1151,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     renderer.clearDepth()
     if (top && topView) renderer.render(topView.scene, topView.camera)
     else renderer.render(globe.scene, globeCam)
+    // Earth or the Sun nearer than the Moon (their viewpoints): drawn over the Moon, which is behind them.
+    if (frame && sky.hasFront && !top) {
+      renderer.clearDepth()
+      sky.render(renderer, 'front')
+    }
   }
 
   /** The site scene from the site camera. */
@@ -1520,6 +1527,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         deps.sites = sites
         globe?.setSites(sites, frame?.site?.id ?? null)
         placePois()
+      },
+      setMoonVisible(on) {
+        globe?.showMoon(on)
+        markDirty()
       },
       region: () => globe?.regionInfo() ?? null,
       showRegion(on) {

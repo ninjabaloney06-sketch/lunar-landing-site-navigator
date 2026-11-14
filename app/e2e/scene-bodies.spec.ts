@@ -328,3 +328,99 @@ test.describe('S8: the Moon has a label anchor where it is a body in the picture
     expect(checked, 'frames with a Moon disc wider than 40 px').toBeGreaterThan(2)
   })
 })
+
+test.describe('S9: a body behind another is hidden by it, and its label with it', () => {
+  test('Sun viewpoint over 17 days: Earth and the Moon are reported visible exactly when the Sun does not cover them', async ({ page }) => {
+    await open(page)
+    const T0 = Date.parse('2027-08-03T00:00:00Z')
+    await setView(page, { site: SITE, utc: T0, level: 'globe' })
+    await goTo(page, 'sun')
+    const seen = { earth: { open: 0, covered: 0 }, moon: { open: 0, covered: 0 } }
+    for (let k = 0; k <= 34; k++) {
+      await load(page, T0 + (k * DAY) / 2)
+      const s = await snapshot(page)
+      for (const name of ['earth', 'moon'] as const) {
+        const want = pinhole(s.cam, s.bodies.find((b) => b.name === name)!.center)
+        const got = s[name]!
+        if (!want.inView) {
+          expect(got.visible, `step ${k}: ${name} outside the picture`).toBe(false)
+          continue
+        }
+        expect(Math.hypot(got.x - want.x, got.y - want.y), `step ${k}: ${name} on screen`).toBeLessThan(1)
+        const hid = behind(name, s.bodies)
+        if (hid === 'edge') continue
+        expect(got.visible, `step ${k}: ${name} ${hid ? `is behind the ${hid}` : 'is beside the Sun, in the open'}`).toBe(hid === null)
+        seen[name][hid ? 'covered' : 'open']++
+        if (hid === 'sun' && name === 'earth' && seen.earth.covered === 1) {
+          console.log(`S9: Sun viewpoint, step ${k}: Earth is behind the Sun at ${got.x.toFixed(0)}, ${got.y.toFixed(0)} px → visible ${got.visible}`)
+          await page.screenshot({ path: 'test-results/s9-sun-viewpoint-earth-behind-sun.png' })
+        }
+      }
+      // The Sun itself is never covered from its own viewpoint.
+      expect(s.sun!.visible).toBe(true)
+    }
+    console.log(`S9: Sun viewpoint: Earth in the open ${seen.earth.open} steps, behind the Sun ${seen.earth.covered}; Moon in the open ${seen.moon.open}, behind the Sun ${seen.moon.covered}`)
+    for (const name of ['earth', 'moon'] as const) {
+      expect(seen[name].open, `${name}: frames beside the disc`).toBeGreaterThan(1)
+      expect(seen[name].covered, `${name}: frames behind the disc`).toBeGreaterThan(1)
+    }
+  })
+
+  test('Earth viewpoint at full Moon: the Moon behind Earth is not drawn over it and not reported visible; turned aside, it is', async ({ page }) => {
+    const { PNG } = await import('pngjs')
+    await open(page)
+    await setView(page, { site: SITE, utc: FULL_MOON, level: 'globe' })
+    await goTo(page, 'earth')
+    const s = await snapshot(page)
+    const want = pinhole(s.cam, [0, 0, 0])
+    expect(want.inView, 'at full Moon the Moon is behind Earth, in the middle of the picture').toBe(true)
+    expect(behind('moon', s.bodies)).toBe('earth')
+    expect(s.moon!.visible, 'the Moon is behind Earth').toBe(false)
+    expect(s.earth!.visible, 'Earth is in front of the Moon, not hidden by it').toBe(true)
+    // The picture is the same with and without the Moon's mesh: Earth covers it.
+    const patch = async () => {
+      const png = PNG.sync.read(await page.screenshot())
+      const out: number[] = []
+      for (let y = Math.round(want.y) - 8; y <= Math.round(want.y) + 8; y++) {
+        for (let x = Math.round(want.x) - 8; x <= Math.round(want.x) + 8; x++) out.push(...png.data.subarray((y * png.width + x) * 4, (y * png.width + x) * 4 + 3))
+      }
+      return out
+    }
+    const withMoon = await patch()
+    await page.screenshot({ path: 'test-results/s9-earth-viewpoint-moon-behind-earth.png' })
+    await scene(page, (sc) => {
+      sc.setMoonVisible(false)
+      sc.advance(0)
+    })
+    await frames(page)
+    const without = await patch()
+    await scene(page, (sc) => {
+      sc.setMoonVisible(true)
+      sc.advance(0)
+    })
+    const changed = withMoon.reduce((n, v, i) => n + Math.abs(v - without[i]), 0)
+    expect(changed, 'pixels at the Moon\'s place changed by its mesh').toBe(0)
+
+    // Orbit the camera around Earth until the Moon comes out beside it: reported visible, and drawn.
+    let out: Awaited<ReturnType<typeof snapshot>> | null = null
+    for (let i = 0; i < 12 && !out; i++) {
+      await page.mouse.move(640, 600)
+      await page.mouse.down()
+      await page.mouse.move(700, 600)
+      await page.mouse.move(760, 600)
+      await page.mouse.up()
+      await frames(page)
+      const t = await snapshot(page)
+      const w = pinhole(t.cam, [0, 0, 0])
+      if (w.inView && behind('moon', t.bodies) === null) out = t
+    }
+    expect(out, 'the Moon comes out from behind Earth').not.toBeNull()
+    expect(out!.moon!.visible, 'beside Earth the Moon is visible').toBe(true)
+    const at = pinhole(out!.cam, [0, 0, 0])
+    expect(Math.hypot(out!.moon!.x - at.x, out!.moon!.y - at.y)).toBeLessThan(1)
+    const png = PNG.sync.read(await page.screenshot())
+    const i = (Math.round(at.y) * png.width + Math.round(at.x)) * 4
+    expect(png.data[i] + png.data[i + 1] + png.data[i + 2], 'the sunlit Moon is drawn at its place').toBeGreaterThan(120)
+    await page.screenshot({ path: 'test-results/s9-earth-viewpoint-moon-beside-earth.png' })
+  })
+})

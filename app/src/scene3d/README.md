@@ -46,3 +46,6 @@ viewpoint or level ends it.
 Moon label anchor (S8): project('moon') and labelPoint('moon') give the Moon's centre (top edge once its disc is
 wider than 40 px) where the camera is farther from the Moon than the globe view goes (20 000 km: the Earth and
 Sun viewpoints and the flights to them), visible: false off screen or behind Earth or the Sun; null elsewhere.
+Bodies hiding each other (S9): of Earth and the Sun the sky layer draws the one nearer to the observer in front;
+one that is nearer than the Moon (at its own viewpoint) is drawn after the Moon, over it. project() and
+labelPoint() report visible: false for the Sun, Earth or Moon whose centre is behind another body.

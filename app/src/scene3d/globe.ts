@@ -157,6 +157,11 @@ export class GlobeWorld {
     return { boundary: rows(this.regionLine), cap: rows(this.regionCap) }
   }
 
+  /** Test helper: the Moon's own mesh on or off (the pins and the region stay). */
+  showMoon(on: boolean) {
+    this.moon.visible = on
+  }
+
   showRegion(on: boolean) {
     this.region.visible = on
   }
@@ -347,10 +352,5 @@ export class GlobeWorld {
     const len = dir.length()
     const hit = new Ray(from, dir.normalize()).intersectSphere(new Sphere(new Vector3(), MOON_RADIUS_KM * 0.9995), new Vector3())
     return hit !== null && hit.distanceTo(from) < len - 1e-6
-  }
-
-  /** True when the Moon blocks the ray from `from` along unit `dir`. */
-  occludedDir(from: Vector3, dir: Vector3): boolean {
-    return new Ray(from, dir).intersectSphere(new Sphere(new Vector3(), MOON_RADIUS_KM * 0.9995), new Vector3()) !== null
   }
 }
