@@ -11,6 +11,8 @@
   "far_side": false,
   "source_url": "",
   "source_label": "SYNTHETIC placeholder for frontend work before real pipeline output. Not real data. Replace with scripts/ output.",
-  "horizon": "sample-site.json"
+  "horizon": "sample-site.json",
+  "label": null,
+  "potential": []
  }
 ]

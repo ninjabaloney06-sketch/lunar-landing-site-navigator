@@ -12,3 +12,5 @@ __pycache__/
 *.bpc
 .DS_Store
 *.tsbuildinfo
+app/test-results/
+app/playwright-report/
