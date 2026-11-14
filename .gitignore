@@ -11,3 +11,4 @@ __pycache__/
 *.bsp
 *.bpc
 .DS_Store
+*.tsbuildinfo
