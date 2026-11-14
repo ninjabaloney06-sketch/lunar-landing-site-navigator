@@ -4,6 +4,7 @@ A web app that compares landing sites near the Moon's south pole by sunlight and
 
 - Hosted preview: <https://nasa.digi-works.org> (the deployed revision is recorded in [BUILD_LOG.md](BUILD_LOG.md))
 - Technical and product documentation: [docs/documentation.md](docs/documentation.md)
+- Project page draft: [docs/event/project-page.md](docs/event/project-page.md)
 - Status of the numbers: the app marks every computed value "sample values — not validated". Which checks are passed and which are open: [docs/event/validation.md](docs/event/validation.md).
 
 > SI marking: this README was drafted by an SI (AI) tool, Claude Code, on 14 Nov 2026 from the repository's own files. See [AI/SI use](#aisi-use).
@@ -152,6 +153,8 @@ Full list with the resolution of each result: [docs/documentation.md, Limits](do
 - Terrain data ends at 80° S, so the horizon search stops there; the app names the affected directions per site.
 - The slope shown is one measurement over a 100 m baseline on the 20 m terrain model, compared with a project criterion of 5°.
 - The site assessments (slope statistics, roughness, shadow access, temperature) are computed and shipped in `assessments.json` but not shown in the user interface.
+
+Added after this text was written: see [BUILD_LOG.md](BUILD_LOG.md).
 
 ## Repository layout
 

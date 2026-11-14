@@ -211,4 +211,6 @@ Added after this text was written: see [BUILD_LOG.md](../BUILD_LOG.md).
 - The site assessments in `assessments.json`: computed, not yet shown.
 - Scientific validation with a written sign-off. See [Validation results](#validation-results).
 
+Added after this text was written: see [BUILD_LOG.md](../BUILD_LOG.md).
+
 The complete list is under [Limits](#limits).
