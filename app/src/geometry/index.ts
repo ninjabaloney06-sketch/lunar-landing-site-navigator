@@ -348,20 +348,22 @@ export interface Series {
   months?: EphemMonth[] // set by computeSeries; lets windows() bisect edges to ±1 min
 }
 
+function discOf(c: SiteCtx, body_km: Vec3, radius_km: number) {
+  const a = azEl(body_km, c.siteKm, c.enu)
+  const mask = maskAt(c.horizon, a.az)
+  return { ...a, mask, frac: discFraction(a.el, mask, angRadiusDeg(radius_km, a.dist_km)) }
+}
+
 function sampleAt(c: SiteCtx, pre: StationPre[], s: BodyState): Sample {
-  const sun = azEl(s.sun_km, c.siteKm, c.enu)
-  const sunMask = maskAt(c.horizon, sun.az)
-  const sunFrac = discFraction(sun.el, sunMask, angRadiusDeg(SUN_RADIUS_KM, sun.dist_km))
-  const earth = azEl(s.earth_km, c.siteKm, c.enu)
-  const earthMask = maskAt(c.horizon, earth.az)
-  const earthFrac = discFraction(earth.el, earthMask, angRadiusDeg(EARTH_RADIUS_KM, earth.dist_km))
+  const sun = discOf(c, s.sun_km, SUN_RADIUS_KM)
+  const earth = discOf(c, s.earth_km, EARTH_RADIUS_KM)
   const R = quatToMatrix(s.q_earth_to_me)
   const stations: Record<string, StationLos> = {}
   for (const p of pre) stations[p.st.id] = losAt(p, c, s, R)
   return {
     utcMs: s.utcMs,
-    sun: { ...sun, mask: sunMask, frac: sunFrac, lit: sunFrac > 0 },
-    earth: { ...earth, mask: earthMask, frac: earthFrac, visible: earthFrac > 0 },
+    sun: { ...sun, lit: sun.frac > 0 },
+    earth: { ...earth, visible: earth.frac > 0 },
     stations,
   }
 }
@@ -415,42 +417,90 @@ function stateOf(kind: Window['kind'], s: Sample, ids: string[]): Window['state'
   return coverageOf(s, ids)
 }
 
-/** Contiguous runs, edges refined by bisection to ±1 min on the interpolated ephemeris (needs series.months;
- *  without it the edge falls midway between samples), clipped to [startMs, endMs). A state change that
- *  starts and ends between two samples is not seen. Coverage defaults to all series stations. */
+type State = Window['state']
+
+/** State at any instant from the interpolated ephemeris; same arithmetic as sampleAt, so it agrees with the
+ *  series samples at their times. */
+function stateFn(series: Series, months: EphemMonth[], kind: Window['kind'], ids: string[]): (t: number) => State {
+  const at = makeInterpolator(months)
+  const c = siteCtx(series.site, series.horizon)
+  if (kind === 'sun') return (t) => (discOf(c, at(t).sun_km, SUN_RADIUS_KM).frac > 0 ? 'lit' : 'dark')
+  if (kind === 'earth') return (t) => (discOf(c, at(t).earth_km, EARTH_RADIUS_KM).frac > 0 ? 'visible' : 'hidden')
+  const pre = series.stations.filter((s) => ids.includes(s.id)).map(prepStation)
+  const missing = ids.some((id) => !series.stations.some((s) => s.id === id))
+  return (t) => {
+    const s = at(t)
+    const R = quatToMatrix(s.q_earth_to_me)
+    for (const p of pre) if (losAt(p, c, s, R).state === 'los') return 'covered'
+    return missing ? 'unknown' : 'none'
+  }
+}
+
+const SCAN_FINE_MS = 60_000 // series up to 31 days
+const SCAN_COARSE_MS = 5 * 60_000 // longer series
+const EDGE_TOL_MS = 10_000
+
+function runs(times: number[], states: State[], kind: Window['kind'], endMs: number, edge: (k: number) => number): Window[] {
+  const out: Window[] = []
+  let cur = states[0]
+  let start = times[0]
+  for (let k = 1; k < states.length; k++) {
+    if (states[k] === cur) continue
+    const e = edge(k)
+    out.push({ kind, startMs: start, endMs: e, state: cur })
+    start = e
+    cur = states[k]
+  }
+  out.push({ kind, startMs: start, endMs, state: cur })
+  return out
+}
+
+function computeWindows(series: Series, kind: Window['kind'], ids: string[]): Window[] {
+  const { samples, startMs, endMs } = series
+  if (samples.length === 0) return []
+  if (!series.months) {
+    const times = samples.map((s) => s.utcMs)
+    const states = samples.map((s) => stateOf(kind, s, ids))
+    return runs(times, states, kind, endMs, (k) => Math.round((times[k - 1] + times[k]) / 2))
+  }
+  const f = stateFn(series, series.months, kind, ids)
+  const scan = Math.min(series.stepMin * 60_000, endMs - startMs <= 31 * 24 * HOUR_MS ? SCAN_FINE_MS : SCAN_COARSE_MS)
+  const times: number[] = []
+  for (let k = 0; startMs + k * scan < endMs; k++) times.push(startMs + k * scan)
+  const states = times.map(f)
+  return runs(times, states, kind, endMs, (k) => {
+    let lo = times[k - 1]
+    let hi = times[k]
+    const a = states[k - 1]
+    while (hi - lo > EDGE_TOL_MS) {
+      const mid = lo + (hi - lo) / 2
+      if (f(mid) === a) lo = mid
+      else hi = mid
+    }
+    return Math.round(lo + (hi - lo) / 2)
+  })
+}
+
+const windowCache = new WeakMap<Series, Map<string, Window[]>>()
+
+/** Contiguous runs clipped to [startMs, endMs). With series.months (set by computeSeries) the state is scanned
+ *  every 1 min (5 min for series longer than 31 days) on the interpolated ephemeris and each edge is bisected to
+ *  ±10 s; shorter events can be missed. Without months, runs come from the samples and edges fall midway between
+ *  them. Coverage defaults to all series stations. Results are cached per series object. */
 export function windows(series: Series, kind: Window['kind'], stationIds?: string[]): Window[] {
   const ids = stationIds ?? series.stations.map((s) => s.id)
-  const { samples } = series
-  if (samples.length === 0) return []
-  let refine: ((lo: number, hi: number, a: Window['state']) => number) | null = null
-  if (series.months) {
-    const at = makeInterpolator(series.months)
-    const c = siteCtx(series.site, series.horizon)
-    const pre = series.stations.filter((s) => kind !== 'coverage' || ids.includes(s.id)).map(prepStation)
-    refine = (lo, hi, a) => {
-      while (hi - lo > 60_000) {
-        const mid = lo + (hi - lo) / 2
-        if (stateOf(kind, sampleAt(c, pre, at(mid)), ids) === a) lo = mid
-        else hi = mid
-      }
-      return Math.round(lo + (hi - lo) / 2)
-    }
+  const key = kind === 'coverage' ? `coverage|${[...ids].sort().join(',')}` : kind
+  let cache = windowCache.get(series)
+  if (!cache) {
+    cache = new Map()
+    windowCache.set(series, cache)
   }
-  const out: Window[] = []
-  let cur = stateOf(kind, samples[0], ids)
-  let start = series.startMs
-  for (let k = 1; k < samples.length; k++) {
-    const st = stateOf(kind, samples[k], ids)
-    if (st === cur) continue
-    const lo = samples[k - 1].utcMs
-    const hi = samples[k].utcMs
-    const edge = refine ? refine(lo, hi, cur) : Math.round((lo + hi) / 2)
-    out.push({ kind, startMs: start, endMs: edge, state: cur })
-    start = edge
-    cur = st
+  let ws = cache.get(key)
+  if (!ws) {
+    ws = computeWindows(series, kind, ids)
+    cache.set(key, ws)
   }
-  out.push({ kind, startMs: start, endMs: series.endMs, state: cur })
-  return out
+  return ws.map((w) => ({ ...w }))
 }
 
 // ---------- summaries ----------

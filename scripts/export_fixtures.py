@@ -42,7 +42,8 @@ def months_needed():
 
 def main():
     sites = [{"id": s["id"], "lat": s["lat"], "lon": s["lon"], "elev_m": s.get("elev_m")}
-             for s in json.loads((APP_DATA / "sites.json").read_text())] + EXTRA_SITES
+             for s in json.loads((APP_DATA / "sites.json").read_text())]
+    sites += [s for s in EXTRA_SITES if s["id"] not in {x["id"] for x in sites}]
     horizon = json.loads((APP_DATA / "horizons" / SAMPLE_HORIZON).read_text())
     stations_raw = json.loads((APP_DATA / "stations.json").read_text())
     stations = [{k: v for k, v in s.items() if not k.startswith("_")} for s in stations_raw]

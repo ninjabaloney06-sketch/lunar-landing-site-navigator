@@ -88,7 +88,8 @@ describe('T9 fixtures (Python reference = TypeScript, 1e-6 deg)', () => {
         }
       }
     }
-    expect(checkedFlags).toBeGreaterThan(1000)
+    // nearly every flag is checked (only exact-threshold cases are skipped)
+    expect(checkedFlags).toBeGreaterThan(0.95 * fx.cases.length * (2 + fx.stations.length))
     console.log(`T9 worst angular difference: ${worst.toExponential(2)} deg over ${fx.cases.length} cases`)
   })
 })
