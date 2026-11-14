@@ -59,10 +59,18 @@ async function loadFrame(siteId: string, utcMs: number): Promise<SceneFrame> {
 
 const params = new URLSearchParams(window.location.search)
 const handle = mountScene(document.getElementById('scene')!, deps)
+// E = eye level, Esc = back (eye → site → globe). In the app, App.tsx owns these keys.
+let level: SceneLevel = 'globe'
+window.addEventListener('keydown', (e) => {
+  if (e.altKey || e.ctrlKey || e.metaKey) return
+  const next = e.key === 'e' || e.key === 'E' ? (level === 'site' ? 'eye' : null) : e.key === 'Escape' ? ({ eye: 'site', site: 'globe', globe: null } as const)[level] : null
+  if (next) handle.setLevel((level = next))
+})
 const siteId = params.get('site')
 if (siteId) {
   const utc = Date.parse(params.get('utc') ?? '2027-08-16T12:00:00Z') // demo time
   handle.update(await loadFrame(siteId, utc))
   await handle.ready
-  handle.setLevel((params.get('level') as SceneLevel | null) ?? 'site')
+  level = (params.get('level') as SceneLevel | null) ?? 'site'
+  handle.setLevel(level)
 }

@@ -133,6 +133,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let meToEnu = new Quaternion()
   let fly: Fly | null = null
   let dirty = true
+  let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
+  let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
+  const markDirty = () => {
+    dirty = true
+    viewVersion++
+  }
   let disposed = false
   let raf = 0
   const cameraCbs = new Set<() => void>()
@@ -148,7 +154,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       c.aspect = w / h
       c.updateProjectionMatrix()
     }
-    dirty = true
+    markDirty()
   }
   const ro = new ResizeObserver(resize)
   ro.observe(container)
@@ -227,8 +233,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       fly = null
       setGlobeView()
     } else if (siteChanged && level !== 'globe') setSiteView()
+    if (wanted && f.site && !fly) setLevel(wanted, false)
     setControls()
-    dirty = true
+    markDirty()
   }
 
   // ---------- camera poses ----------
@@ -243,6 +250,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function placeSiteCam(az: number, el: number, distKm: number) {
+    viewVersion++
     siteCam.position.copy(enuDir(az + 180, el)).multiplyScalar(distKm * 1000)
     siteControls.target.set(0, 0, 0)
     siteCam.lookAt(siteControls.target)
@@ -250,6 +258,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   function placeEyeCam(az: number, el: number) {
+    viewVersion++
     const eye = new Vector3(0, 0, site.eyeHeight)
     siteCam.position.copy(eye)
     siteControls.target.copy(eye).addScaledVector(enuDir(az, el), 0.01)
@@ -273,7 +282,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         if (!fits(p) || !fits(s)) placeSiteCam(sAz + SITE_DEFAULT.sunLeftDeg, SITE_DEFAULT.el, SITE_DEFAULT.distKm)
       }
     }
-    dirty = true
+    markDirty()
   }
 
   function currentHeading(): number {
@@ -286,7 +295,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function setEyeView(az?: number, el?: number) {
     setControls()
     placeEyeCam(az ?? currentHeading(), el ?? EYE_DEFAULT_EL)
-    dirty = true
+    markDirty()
   }
 
   function setGlobeView(lat?: number, lon?: number, distKm?: number) {
@@ -299,7 +308,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     globeControls.target.set(0, 0, 0)
     globeCam.lookAt(globeControls.target)
     globeControls.update()
-    dirty = true
+    markDirty()
   }
 
   /** Site-camera pose expressed in MOON_ME km (for the fly between the two scenes). */
@@ -312,7 +321,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   function startFly(p0: Vector3, q0: Quaternion, p1: Vector3, q1: Quaternion, done: () => void) {
     fly = { t0: performance.now(), p0, q0, p1, q1, done }
     setControls()
-    dirty = true
+    markDirty()
   }
 
   function stepFly(now: number) {
@@ -322,18 +331,23 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     globeCam.position.lerpVectors(fly.p0, fly.p1, e)
     globeCam.quaternion.slerpQuaternions(fly.q0, fly.q1, e)
     globeCam.updateMatrixWorld(true)
-    dirty = true
+    markDirty()
     if (t >= 1) {
       const done = fly.done
       fly = null
       done()
       setControls()
+      if (wanted && wanted !== level) setLevel(wanted)
     }
   }
 
   function setLevel(next: SceneLevel, animate = !testMode) {
-    if (!frame?.site && next !== 'globe') return
-    if (fly) return
+    // C2 may ask for 'site' before the first frame or while a fly runs: remember it and apply it then.
+    if ((!frame?.site && next !== 'globe') || fly) {
+      wanted = next
+      return
+    }
+    wanted = null
     const prev = level
     if (next === 'globe') {
       if (prev !== 'globe' && animate) {
@@ -398,7 +412,17 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return { ...sp, visible: !blocked }
   }
 
+  // C2 calls project() for three labels on every animation frame; the raycasts run once per view version.
+  const projCache = new Map<string, { v: number; p: ScreenPoint | null }>()
   function project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
+    const c = projCache.get(name)
+    if (c && c.v === viewVersion) return c.p && { ...c.p }
+    const p = projectNow(name)
+    projCache.set(name, { v: viewVersion, p })
+    return p && { ...p }
+  }
+
+  function projectNow(name: 'sun' | 'earth' | 'site'): ScreenPoint | null {
     if (!sky || !frame || !globe) return null
     if (name !== 'site') return projectSky(name)
     if (!frame.site) return null
@@ -452,7 +476,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     raf = requestAnimationFrame(loop)
     if (fly) stepFly(now)
     const moved = (inSpace() ? globeControls : siteControls).update()
-    if (moved) dirty = true
+    if (moved) markDirty()
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
@@ -466,22 +490,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
   }
 
-  siteControls.addEventListener('change', () => (dirty = true))
-  globeControls.addEventListener('change', () => (dirty = true))
+  siteControls.addEventListener('change', markDirty)
+  globeControls.addEventListener('change', markDirty)
 
-  // ---------- input: keys and globe picking ----------
+  // ---------- input: globe picking ----------
 
-  function onKey(e: KeyboardEvent) {
-    const t = e.target as HTMLElement | null
-    if (e.altKey || e.ctrlKey || e.metaKey) return
-    if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return
-    if ((e.key === 'e' || e.key === 'E') && level === 'site') setLevel('eye')
-    else if (e.key === 'Escape') {
-      if (level === 'eye') setLevel('site')
-      else if (level === 'site') setLevel('globe')
-    }
-  }
-  window.addEventListener('keydown', onKey)
+  // Keys (E = eye level, Esc = back) belong to the page: App.tsx maps them to setLevel through its view state,
+  // the harness binds them itself. The scene binds none, so a key never acts twice.
 
   let down: { x: number; y: number } | null = null
   const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY })
@@ -535,7 +550,6 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       disposed = true
       cancelAnimationFrame(raf)
       ro.disconnect()
-      window.removeEventListener('keydown', onKey)
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointerup', onUp)
       siteControls.dispose()
@@ -588,6 +602,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         setEyeView(az)
       },
       setFov(fov) {
+        viewVersion++
         for (const c of [siteCam, globeCam]) {
           c.fov = fov
           c.updateProjectionMatrix()
