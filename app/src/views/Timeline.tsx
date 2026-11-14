@@ -3,8 +3,10 @@
 // mono, a 1 px cursor. The mission span is bracketed with its name and length and shown at full strength; the
 // context days are dimmed. Drag = scrub (the cursor stays inside the mission); a date inside the mission moves
 // the cursor to that day 12:00 UTC. Keys (space, arrows) are handled by the screen so they work without
-// focusing the track.
+// focusing the track. The answer sentences sit in one small line directly above the two tracks (ninja + Bene,
+// 14 Nov: no large text on the scene).
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import type { Window } from '../geometry'
 import { DAY_MS } from '../state'
 import { fmtDateTime, fmtDay } from './format'
@@ -19,6 +21,7 @@ interface Props {
   sun: Window[] | null // null while loading: tracks stay empty, never the previous selection's windows
   comms: Window[] | null
   valueText: string
+  answer: ReactNode // the answer line or its loading / empty / error state
   onScrub(ms: number): void
 }
 
@@ -40,7 +43,7 @@ function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number;
   )
 }
 
-export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, onScrub }: Props) {
+export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, onScrub }: Props) {
   const body = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const dragging = useRef(false)
@@ -82,6 +85,7 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
 
   return (
     <div className="timeline">
+      <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
         <span>Light</span>
         <span>Comms</span>
