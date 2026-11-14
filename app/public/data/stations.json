@@ -40,5 +40,33 @@
   "source_url": "https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301P.pdf",
   "source_label": "DSN 810-005 Rev P module 301 Table 5 (geodetic WGS 84; height h); min elev = generic receive limit 6.0 deg stated in Sec 2.2.3; per-antenna horizon masks (Figs 10-25) not transcribed",
   "link_state_inputs": "unknown"
+ },
+ {
+  "id": "usuda",
+  "name": "Usuda 64 m (DSS-48)",
+  "network": "JAXA",
+  "complex": "Usuda Deep Space Center",
+  "lat_deg": 36.132403748,
+  "lon_deg": 138.362773862,
+  "h_m": 1532.8122,
+  "datum": "GRS80 ellipsoid, ITRF2014, epoch 2026.0",
+  "min_elev_deg": 12.5,
+  "source_url": "https://ddor.nav.isas.jaxa.jp/station_coordinates/",
+  "source_label": "JAXA Station Coordinates page (H. Takeuchi, updated 11 Jan 2026): geodetic GRS80 coordinates of the antenna reference point, ellipsoidal height; min elev = highest value of JAXA's downlink horizon mask for this antenna (UDSC_horizon_mask.xls on the same page: -1 to 12.5 deg, peak at az 265 and 282), applied to all azimuths, so conservative",
+  "link_state_inputs": "unknown"
+ },
+ {
+  "id": "uchinoura",
+  "name": "Uchinoura 34 m (DSS-38)",
+  "network": "JAXA",
+  "complex": "Uchinoura Space Center",
+  "lat_deg": 31.25430804,
+  "lon_deg": 131.078392333,
+  "h_m": 375.7827,
+  "datum": "GRS80 ellipsoid, ITRF2014, epoch 2026.0",
+  "min_elev_deg": 6.22,
+  "source_url": "https://ddor.nav.isas.jaxa.jp/station_coordinates/",
+  "source_label": "JAXA Station Coordinates page (H. Takeuchi, updated 11 Jan 2026): geodetic GRS80 coordinates of the antenna reference point, ellipsoidal height; min elev = highest value of JAXA's downlink horizon mask for this antenna (USC_horizon_mask.xls on the same page: -0.2 to 6.22 deg, peak at az 250), applied to all azimuths, so conservative",
+  "link_state_inputs": "unknown"
  }
 ]

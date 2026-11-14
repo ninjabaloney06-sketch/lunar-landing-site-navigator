@@ -13,7 +13,7 @@ Leo (S) signs every check here; Otto (Q) checks reference configurations. Agents
 
 ## How Leo checks V1, V2 and the station check (now about 5 min)
 
-> **Update 14 Nov 13:35 (integrator, AI):** the Horizons values, the differences and the V2 arithmetic are already filled in below by a script that fetched the seven links. Leo: open two or three links, spot-check that the numbers in the tables match what Horizons shows, read the worst-case lines in the evidence box, decide the two station questions, then sign in the table at the top. Nothing is marked passed until you sign.
+> **Update 14 Nov ~13:10 (integrator, AI):** the Horizons values, the differences and the V2 arithmetic are already filled in below by a script that fetched the seven links. Leo: open two or three links, spot-check that the numbers in the tables match what Horizons shows, read the worst-case lines in the evidence box, decide the two station questions, then sign in the table at the top. Nothing is marked passed until you sign.
 
 You need a browser and a calculator. Each link below opens a plain-text JPL Horizons table with every setting fixed: observer table, apparent azimuth/elevation (quantity 4), refraction off (`AIRLESS`), decimal degrees, UTC, 6-hour steps. Our values are already in the tables below; you type in the Horizons values and the differences. Edit this file on GitHub (pencil icon), or send the numbers to Isaac and the orchestrator copies them in.
 
@@ -92,7 +92,7 @@ Also decide and write down:
 Evidence box (paste the Horizons header lines, V2 arithmetic, tolerance and notes):
 
 ```text
-AI-filled comparison (integrator, Claude Code, 14 Nov 2026 ~13:35 CET). NOT a sign-off: Leo reviews and signs.
+AI-filled comparison (integrator, Claude Code, 14 Nov 2026 ~13:10 CET). NOT a sign-off: Leo reviews and signs.
 Method: a script fetched the seven links above and wrote the Horizons values and differences into the tables.
 V1 worst |Δaz| = 0.0000 deg, worst |Δel| = 0.0001 deg over 20 rows (limit 0.05).
 Station check worst |Δel| = 0.0763 deg over 10 values (tolerance: Leo sets it).
@@ -249,10 +249,10 @@ utc                             goldstone                 madrid               c
 2027-08-17T00:00Z  171.2884    0.0055  S  170.5832   -0.1067  T  170.6326    1.3349  S
 ```
 
-## Shackleton Rim Site04 coordinate — source check (integrator, AI, 14 Nov 13:30; not validated)
+## Shackleton Rim Site04 coordinate — source check (integrator, AI, 14 Nov ~13:08; not validated)
 
 - **Printed value confirmed.** [NASA Lunar Surface Data Book, ACD-50044 Rev A](https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf), table A2-2, p. 58: "R04 or Site04 — Shackleton Rim — -89.7668 — -171.87". The spec value is not a transcription error. The same table prints "R23 or Site23 — Malapert Massif — -85.9948 — -0.23578" (the name printed is "Malapert Massif", not "Malapert Site23") and "R01 or Site01 — Connecting Ridge — -89.4632 — -137.49".
 - **What the coordinate is.** Same document, section A2.1, p. 57: "Coordinates have been generated from the DEM files on the PGDA website (https://pgda.gsfc.nasa.gov/products/81), so the center points of the original polygons are accurate to 5 to 10 meters." So −89.7668, −171.87 is the centre of the Site04 DEM polygon (a region named Shackleton Rim), not a point chosen on the rim crest. No frame is named; the PGDA LOLA products it points to are the frame source.
 - **Consequence (Track B, re-run by the integrator).** In the LOLA DEM that centre point lies about 1.8 km inside the rim crest, on the inner wall: elevation 771 m, slope 31.8°, horizon mask 0.08° … 32.0° (peak at azimuth 87.5°). The Sun reaches about 0.1° there on 16 Aug 2027, so the spec demo question (Shackleton Rim, 16–29 Aug 2027) answers "dark" for this exact point. The number is correct for the point; the point is a region centre.
-- **Decided (ninja, 14 Nov ~14:00): the demo site is Connecting Ridge** (spec.md). Preview, 10-min steps, Track B horizons, 3 DSN stations, not validated: Connecting Ridge 16–29 Aug 2027 lit 91 %, covered 98 %; 12–26 Sep 2027 lit 100 %, covered 96 %; Site04 centre lit 0 % and covered 0 % in both.
+- **Decided (ninja, 14 Nov ~13:15): the demo site is Connecting Ridge** (spec.md). Preview, 10-min steps, Track B horizons, 3 DSN stations, not validated: Connecting Ridge 16–29 Aug 2027 lit 91 %, covered 98 %; 12–26 Sep 2027 lit 100 %, covered 96 %; Site04 centre lit 0 % and covered 0 % in both.
 - Earlier open decision, now closed: keep the region centre and label it as such, or use a sourced point on lit ground for the demo. The Data Book itself names one: landing location CR1 at 89.468° S, 222.6° E on the Shackleton–de Gerlache connecting ridge (section 7.3.3, p. 46; also Figure caption p. 38).

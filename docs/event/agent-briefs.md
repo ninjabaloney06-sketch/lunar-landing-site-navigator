@@ -292,3 +292,130 @@ HUMAN DECISION: Bene approves the look; Isaac approves any visible wording; Leo 
 ## After each brief
 
 Isaac: read the agent's final message, check the pasted done-outputs, look at the screenshots, then merge with `git merge --no-ff track-x` on main. Log who signed what in docs/event/validation.md.
+
+---
+
+## Step 2-UI — Mission layer and science goals (plan + Brief C3, written 14 Nov 14:00)
+
+**Status: proposal. Not started. Needs ninja's yes and Bene's look at the plan before an agent runs it.** Sources: the four paper pages IMG_2339–2342 (copies in git-ignored `private/notes-14nov/`), the jury answers and kickoff transcript (decisions.md), ninja's instruction of 14 Nov ("prioritise points of interest for scientists; POIs can be water, places where bacteria could grow, consistent light, anything"), build-plan §5.1 and handoff D4.
+
+### What the paper asks for, and what is taken
+
+| Paper | Taken as | Not taken, and why |
+|---|---|---|
+| Rocket button + mission name, top left (2339, 2340) | The first header control becomes the mission: rocket icon + name. It opens the Mission panel. The header keeps exactly three controls (mission, date, Find better dates). | A fourth control, and the top-right menu icon (settings sidebar removed, decided 14 Nov). |
+| "Missions" dialog: name, start/end date, launch location, mission HQ, landing location, simulate (2340) | One panel in the paper's field order: Name, Start, End, **Science goal** (new), Landing site, Ground stations, Play mission. | Launch location and "Rocket flight" (parked energy/route scope, P4). No disabled button that does nothing. "NASA – Los Angeles" is a placeholder, not a station. |
+| "If no mission is added: all dates, blurred model, nothing to show" (2341) | — | A fresh URL must answer the demo question within 60 s (UX-02). A default mission is always loaded. |
+| Light / Com bars over dates, "Mission Time" bracket, filled = yes, line = no, click a date (2339, 2341) | The existing two-track timeline, widened to show days before and after the mission; the mission span is bracketed and full strength, the rest dimmed; clicking a date moves the cursor there. | A separate legend box: row labels and the bracket label sit on the tracks. |
+| Warning "landing not recommended, terrain too steep" (2339, 2342) | One warning line above the answer sentence, from `slope_deg` against the confirmed ≤ 5° criterion. Three states: fails, passes, unknown. | The 30 m / 50 m radius: the app's terrain is 80 m per sample. The line states the baseline it really used. |
+| Landing location by coordinates or click on the Moon; camera flies there; marker (2342) | Click a site pin on the globe to select it (curated sites). The mast marker already exists. | Arbitrary coordinates stay disabled until build step 7 passes (no flat-horizon numbers at the pole). |
+| Mission HQ: choose a NASA/ESA base, changes the com diagram (2341) | "Ground stations" checklist in the panel (the five sourced stations); changes the Comms track. | Picking on an Earth model: P2. |
+| Mission sim from the landing site; later from Earth/HQ (2342) | "Play mission": eye level at the site, cursor to mission start, plays to the end. | View from Earth: P3. |
+| Mouse: left = turn, middle = drag, wheel = zoom, right click = set landing (later) (2341) | Part 5 of the brief, after everything else passes. | Right-click placement waits for step 7. |
+| "Ray tracing?" for light and comms (2341) | — | Light and line of sight come from the precomputed horizon masks; no ray tracing in the browser. |
+| "Show Bene when finished, test for errors, fix" (2341) | Bene approves the look before merge, as for C1/C2. | — |
+
+### The innovative part: start from the science, not from coordinates
+
+Existing tools (Horizons, Moon Trek, QuickMap) start from a coordinate. Here a scientist states the mission: dates, what they want to study, which stations. The app ranks the evaluated sites for exactly that mission and shows why each one ranks where it does: sunlight and station line of sight computed for those dates, the slope check, and the sourced evidence for the science goal. This is the kickoff's own wording of the challenge ("show the differences between lunar landing sites", sunlight and a direct line of sight to Earth) and the jury's first criterion (usefulness for researchers). It needs no new data: it joins what tracks A and B already produce.
+
+**Science goals, in priority order** (ninja: POIs come first for scientists):
+
+| # | Goal shown | Ranks by | Data today |
+|---|---|---|---|
+| 1 | Water ice and volatiles | evidence tier of the site's `water-ice` entries | 18 entries: 3 remote observation, 1 hypothesis, 14 unknown |
+| 2 | Cold traps (permanent shadow) | evidence tier of `cold-trap` entries | 16 entries, mostly modeled condition |
+| 3 | Consistent light | our own numbers for the mission dates: % of the period sunlit, then shortest longest-darkness | computed in the browser per site and period; the strongest goal because it is date-specific |
+| 4 | Science targets (geology and others) | evidence tier of `science` and `other` entries | 7 entries |
+| 5 | Biology experiments ("where bacteria could grow") | **not offered until Leo supplies a primary source** for the conditions it needs (temperature range, water, radiation). Then it is a derived goal from thermal stability + light + water evidence, labelled hypothesis. | no source in the repo; the hard rule "no source → don't write it" applies. The app never says anything grows on the Moon. |
+| — | Any (default) | combined station coverage, as the finder does | computed |
+
+Evidence tiers, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown. No weighted score: hard filter first (slope ≤ 5°; unknown slope kept in a separate group, never counted as a pass), then the goal's rule, ties broken by combined coverage, then % sunlit. Every row shows the values it was ranked by, so the order can be checked by hand. Wording: "best among the 18 evaluated sites for this mission", never "optimal".
+
+### Screen plan (1440 × 900, must work at 375 px)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [rocket] Mission 1                                                        Find better dates  │
+│ Connecting Ridge · 89.46° S · 136.68° W                                                      │
+│ 16 – 29 August 2027 UTC                                                                      │
+│                                                                                              │
+│              Sun 1.2°                                         Earth 4.8°                     │
+│      ~~~~~~~~~~~~~~ 3D scene (C1), drag to turn, scroll to zoom ~~~~~~~~~~~~~~               │
+│                                   Landing site │                                             │
+│ ! Landing not recommended: slope 31.8° over 80 m, limit 5°      (only when it fails)         │
+│ Sunlight for 3 more days.                                                                    │
+│ Station contact for 6 more hours.                                                            │
+│ Light ░░░━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━░░░░   (cursor │)          │
+│ Comms ░░░━━━       ━━━━━━━━         ━━━━━━━━━━━━        ━━━━━━━━━░░░░                        │
+│        └────────────────────── Mission 1, 14 days ──────────────────┘                        │
+│ 13 Aug      16 Aug      19 Aug      22 Aug      25 Aug      28 Aug      31 Aug               │
+└ Terrain LOLA 20 m · ephemeris JPL DE440 · how this is computed ──────────────────────────────┘
+```
+
+- Header: three controls. (1) rocket icon + mission name opens the Mission panel; the site name, coordinates and label under it are plain text. (2) the date range opens the existing date menu. (3) Find better dates.
+- A fresh URL shows the default mission: name = site name, Connecting Ridge, period `shackleton-2027-08`, all stations, goal Any. Nothing is blurred or empty.
+- Mission panel: slides in from the left under the rocket button, close X top left as on the paper, title "Mission". Fields top to bottom: Name · Start · End · Science goal · Landing site (ranked list) · Ground stations · Play mission. At 375 px it is a full-height sheet.
+- Landing-site rows: rank, name, group label, then four facts in mono: `lit 71 %`, `comms 54 %`, `slope 3.7°` (or `slope 31.8° — too steep`, or `slope unknown`), and the goal's evidence label with the source link. Selecting a row flies the camera to the site and updates sentence, labels and timeline together.
+- Timeline: tracks labelled Light and Comms (wording to confirm, today "Sun" and "Comms"); three context days before and after the mission, dimmed; mission bracket with the mission name and length; clicking a date label moves the cursor to that day 12:00 UTC.
+- Warning line: only when the selected site fails the slope criterion. Passing and unknown states appear in the panel row and the details drawer, not on the main screen.
+- Details drawer: unchanged (horizon strip, finder, comparison, site potential, sources). The stations checklist moves into the Mission panel and stays reachable from the drawer by a link, so there is one checklist, not two.
+
+### Wording and decisions only ninja can make (before the agent starts)
+
+1. Yes or no to this plan (it replaces the paper dialog with a panel and drops launch location, rocket flight and the empty start state).
+2. Track labels: "Light / Comms" (paper) or keep "Sun / Comms".
+3. Date display in the panel: "16 Aug 2027" (recommended, cannot be misread) or the paper's MM.DD.YYYY, or DD.MM.YYYY. Data and URL stay ISO 8601 UTC.
+4. Icons: add the `ionicons` package (exact pin, MIT, one rocket and one warning outline) — a new dependency needs your yes. Without it the control reads "Mission" as text.
+
+### Brief C3 — paste into a fresh Claude Code session (Opus 5.5, L2; Bene drives, Isaac approves wording)
+
+```text
+Repo: /Users/Guest123/Documents/clps-lunar-mission-browser (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md sections "Shared preamble", "Brief C2" and "Step 2-UI" (the plan above this prompt: tables, screen plan, science goals); docs/event/spec.md (UX-01–05, mandatory site assessments, conditional extras P2); docs/event/handoff/README.md §3 (D4, D5) and the two contracts in §4. Then Read the four paper pages private/notes-14nov/2339.jpg, 2340.jpg, 2341.jpg, 2342.jpg as images. They are intent, not layout to copy: where the paper and the plan differ, the plan wins.
+
+TASK: add the Mission layer and science-goal site ranking to the existing app. Five parts, in this order, each committed separately on branch `track-c3` in your own worktree.
+
+START CONDITION (check, do not assume): `git log --oneline main | grep -c "Merge .*track-c1"` ≥ 1 and the same for track-c2. If either is 0, stop and report: C1 owns app/src/scene3d/ and C2 owns app/src/views/, app/src/state.ts, app/src/App.tsx, app/src/styles/ and app/e2e/ui.spec.ts until they are merged. Part 1 alone may start earlier (it only adds files under app/src/geometry/, free since track A merged as a4bd092).
+
+ALREADY DONE — do not rebuild (state on 14 Nov 13:30): geometry, windows, summarize, finder, answerSentence (track A, merged a4bd092); horizons with slope_deg for all 18 sites and site_potential.json with 56 evidence-labelled entries (track B, merged a92cdfd); app/public/data/sites.json carries slope_deg, label and potential per site; stations.json has goldstone, madrid, canberra, usuda, uchinoura (e0b5704). C2's branch (614bba0) has SiteMenu, DateMenu, Drawer, Finder, Compare, HorizonStrip, Timeline, SceneView, URL-hash state in app/src/state.ts, tokens in app/src/styles/tokens.css and 20 Playwright tests in app/e2e/ui.spec.ts. Extend these files; do not create parallel versions.
+
+TRAPS (read before coding):
+1. The header has exactly three controls after your change too: mission (rocket + name), date, Find better dates. The D4 test in app/e2e/ui.spec.ts counts them; update its selector for the first control, not its counts (3 in the header, 5 on the main screen, 1 slider).
+2. A fresh URL must still answer the demo question (Connecting Ridge, period shackleton-2027-08) with no panel open. Never an empty, blurred or "create a mission" start state.
+3. No invented numbers. Every ranked value comes from summarize() for the mission's own dates and stations, from sites.json slope_deg, or from a potential entry with its source_url. A site with no entry for the chosen goal ranks as "unknown" and says so.
+4. Slope: ≤ 5.0 passes the slope criterion only; > 5.0 fails; null or missing = unknown, shown in a separate group and never counted as a pass. The text says "passes the 5° slope limit", never "safe to land". State the baseline the number was computed on (read it from the horizon file / scripts/horizon.py; if you cannot find it, write "baseline not stated" and report it — do not write 30 m or 50 m from the paper).
+5. No weighted score. Order = hard filter, then the goal rule from the plan table, then combined coverage, then % sunlit. Ties stay visible as ties.
+6. Wording: "station line of sight" or "station contact" as answerSentence already says it; never "active link" or "connection guaranteed". "Best among the evaluated sites for this mission", never "optimal" or "best site on the Moon". The goal "Biology experiments" is NOT built unless ninja says Leo has delivered the source.
+7. Taste rules that got the first mockup rejected: no frosted glass, no pill chips with icons, no ALL-CAPS tracked labels, no legend box, no number shown twice on the main screen, accent colour ≤ 5 % of the screen. Sunlight yellow and comms blue are the tokens already in tokens.css; the warning uses text colour plus the icon, not a red filled box.
+8. Never show the previous site's values under a new site's name while results load (UX-03). Ranking 18 sites is async: show the list with "computing" per row, fill rows as they finish, keep the selected site usable meanwhile.
+9. VALIDATED in app/src/data/validation.ts is false. Leave it. Everything you show keeps the existing "sample values — not validated" footer until Leo signs.
+
+PART 1 — ranking (pure TypeScript, no DOM): new app/src/geometry/rankSites.ts + rankSites.test.ts.
+  type ScienceGoal = 'any' | 'water-ice' | 'cold-trap' | 'light' | 'science'
+  type SlopeState = 'pass' | 'fail' | 'unknown'
+  interface RankedSite { siteId; rank: number | null; slope: SlopeState; slopeDeg: number | null; litPct; coveragePct; longestDarkH; longestGapH; goalEvidence: SitePotential['evidence'] | null; goalSourceUrl: string | null; tiedWith: string[] }
+  rankSites(rows: { site: Site; summary: Summary | null }[], goal: ScienceGoal): { ranked: RankedSite[]; failed: RankedSite[]; unknown: RankedSite[] }
+  'science' reads categories 'science' and 'other'. summary null (no ephemeris or horizon) → unknown group.
+  Tests: a passing site, slope exactly 5.0 (pass), 5.1 (fail), null (unknown), a tie, a goal with no entry, every site failing (ranked = []), 'light' ordering by litPct then longestDarkH.
+PART 2 — state and header: add to the URL hash `name` (mission name, max 40 chars, plain text, default = site name) and `goal` (ScienceGoal, default 'any'); invalid values fall back to defaults like the other keys. Header control 1 becomes rocket icon + mission name; site name, coordinates and label move to plain text below it.
+PART 3 — Mission panel: extend views/SiteMenu.tsx into views/MissionPanel.tsx (rename, keep its tests passing): fields Name, Start, End (reuse DateMenu's validation and the supported range in state.ts), Science goal (5 radio rows incl. Any, or 4 + Any), Landing site (rankSites output: ranked, then "Too steep to land (slope above 5°)", then "Not enough data"), Ground stations (move the checklist component out of Drawer.tsx, leave a link there), Play mission (view 'eye', cursor = mission start, play). Clicking a site pin on the globe selects that site (SceneHandle.onPick → nearest curated site within the pin radius; no arbitrary coordinates).
+PART 4 — timeline and warning: Timeline gets contextDays = 3 on each side (clipped to coverage), dimmed outside the mission, a bracket with "<mission name>, <n> days", date labels clickable (cursor → that day 12:00 UTC). Warning line above the answer sentence only when the selected site's slope fails: "Landing not recommended: slope <x>° over <baseline>, limit 5°".
+PART 5 — only if parts 1–4 pass and ninja says go: middle-button drag pans in app/src/scene3d/ (left drag and wheel unchanged, touch unchanged). No right-click placement.
+
+DONE WHEN (paste every output in the final report):
+- `cd app && npx vitest run` passes, including rankSites.test.ts (≥ 8 cases above).
+- `cd app && PW_PORT=5183 npx playwright test e2e/ui.spec.ts` passes with all pre-existing tests still green plus new ones: (a) fresh URL shows the answer with no panel open at 1440 and 375 px; (b) header count 3 / main screen 5 / slider 1 / no horizontal scroll at 375 px; (c) opening the panel, choosing goal "Consistent light" and period shackleton-2027-09 lists all 18 site ids exactly once across the three groups, and the first ranked row's lit % equals summarize() for that site and period to display precision; (d) selecting shackleton-rim-site04 (slope_deg 31.8) shows the warning line, selecting connecting-ridge (3.7) does not; (e) a copied URL restores name and goal; (f) a name containing <script> renders as text.
+- `cd app && npm run build` passes; `node ~/.claude/skills/ui/check-slop.mjs app/src` → 0 ERROR, every WARN fixed or justified in one line.
+- Screenshots in app/test-results/: main and panel open, at 1440 × 900 and 375 × 812. Read them yourself, compare with the screen plan and the paper pages, list every difference, fix, at most 3 rounds.
+- `git diff --stat main...track-c3` touches only: app/src/geometry/rankSites*.ts, app/src/geometry/index.ts (one re-export), app/src/state.ts, app/src/App.tsx, app/src/views/, app/src/styles/, app/e2e/ui.spec.ts, and for part 5 app/src/scene3d/ + app/e2e/scene.spec.ts.
+
+SCOPE FENCE: no change to scripts/, app/public/data/, app/src/data/types.ts, answerSentence wording, finder defaults or VALIDATED. No launch location, rocket flight, Earth-view, settings menu, arbitrary coordinates, language switch or new site data. No new dependency without ninja's yes (see human decisions). Do not edit BUILD_LOG.md, TASKS.md or docs/event/ai-use-log.md: put the exact BUILD_LOG line and ai-use-log row in your final report; the integrator writes them on main.
+
+HUMAN DECISIONS (ask ninja once, at the start, in one message; do everything else on your own): (1) track labels "Light / Comms" or "Sun / Comms"; (2) date display in the panel: "16 Aug 2027", MM.DD.YYYY or DD.MM.YYYY; (3) may you add `ionicons` at an exact pinned version (MIT) for the rocket and warning icons — if no, the control reads "Mission" as text and the warning starts with "Warning:". Bene approves the look from the screenshots; ninja approves every visible string; Leo approves the numbers.
+
+AUTHORIZATION AND ABORT: running this prompt authorizes commits on track-c3 in your worktree only. Never merge into main, never push, never deploy. If a pre-existing test fails before you change anything, stop and report it with the output. If part 3 is not green after 3 fix rounds, hand over parts 1–2 (and 4 if it stands alone) and report what is missing; do not ship a half-working panel.
+
+RESOURCE LOCK: must not run while any other agent edits app/src/views/, app/src/state.ts, app/src/App.tsx or app/e2e/ui.spec.ts (C2 until merged; the UI–pipeline integration task if it touches App.tsx). Use Playwright port 5183.
+
+FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; list of visible strings added; differences from the plan; BUILD_LOG line and ai-use-log row; open items for Leo (numbers, slope baseline), Bene (look), ninja (wording).
+```

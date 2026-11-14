@@ -1,7 +1,8 @@
 """Earth ground-station catalogue: scripts/stations.csv -> app/public/data/stations.json (Brief A step 6).
 
 Every row needs a primary source URL and a sourced min_elev_deg; a missing value raises instead of defaulting
-(Brief A trap 8). Coordinates are geodetic (WGS 84 ellipsoid), east-positive longitude, height in metres.
+(Brief A trap 8). Coordinates are geodetic (WGS 84 or GRS80 ellipsoid, see each row's datum; the two differ by
+less than 0.1 mm at the surface), east-positive longitude, height in metres.
 
     python3 scripts/stations.py            # read scripts/stations.csv, write app/public/data/stations.json
     python3 scripts/stations.py --csv PATH # read another CSV (e.g. for a check), same output
@@ -18,7 +19,7 @@ CSV_PATH = REPO / "scripts" / "stations.csv"
 OUT_PATH = APP_DATA / "stations.json"
 COLUMNS = ["id", "name", "network", "complex", "lat_deg", "lon_deg", "h_m", "datum", "min_elev_deg",
            "source_url", "source_label"]
-NETWORKS = {"DSN", "ESTRACK"}
+NETWORKS = {"DSN", "ESTRACK", "JAXA"}
 
 
 class StationError(ValueError):

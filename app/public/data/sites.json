@@ -514,7 +514,7 @@
   "label": "Blue Moon MK1 target",
   "lat": -89.46,
   "lon": -136.68,
-  "frame_note": "mosaic centre as printed in LPSC 2024 #1775 Table 1; frame not named in source; sources.md: do not attach these coordinates to the Blue Moon mission (unverified landing point)",
+  "frame_note": "mosaic centre as printed in LPSC 2024 #1775 Table 1; frame not named in source; this point is not Blue Moon MK1's landing point, which is not published",
   "elev_m": 1944.6,
   "slope_deg": 3.7,
   "horizon": "connecting-ridge.json",
