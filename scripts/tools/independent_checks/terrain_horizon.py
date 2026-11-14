@@ -8,7 +8,7 @@ from rasterio.windows import Window
 from scipy.ndimage import map_coordinates
 R=1737400.0
 L=os.environ['CLPS_DATA']+'/lola/'
-HZ='/Users/Guest123/Documents/clps-lunar-mission-browser/app/public/data/horizons/'
+HZ='app/public/data/horizons/'
 far_ds=rasterio.open(L+'LDEM_60S_120MPP_ADJ.TIF'); far=far_ds.read(1); FT=far_ds.transform
 near_ds=rasterio.open(L+'LDEM_80S_20MPP_ADJ.TIF'); NT=near_ds.transform
 def xy(lat,lon):  # south polar stereographic on the sphere, lat/lon in rad
