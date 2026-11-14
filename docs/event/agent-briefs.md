@@ -93,7 +93,7 @@ Hard rules:
 - No secrets, keys or personal data in the repo. No backend, no database, no analytics.
 - Touch only the files your brief owns. Need a change elsewhere (package.json, another track's file, a contract)? Stop and write the request in your final message.
 - Before finishing: run your brief's done-checks, paste their output, list every file you changed, and add one line to BUILD_LOG.md (format: "- 2026-11-14 · AI (Claude Code, device: <machine>) · <what shipped>").
-- Add one line to docs/event/ai-use-log.md: time, tool + model, what it did, who ran it.
+- Add one line to docs/event/ai-use-log.md: time, tool + model, what it did, who ran it, and the prompt in one sentence (for a brief: its name, e.g. "Brief C1").
 ```
 
 ---
@@ -421,5 +421,5 @@ AUTHORIZATION AND ABORT: running this prompt authorizes commits on track-c3 in y
 
 RESOURCE LOCK: must not run while any other agent edits app/src/views/, app/src/state.ts, app/src/App.tsx or app/e2e/ui.spec.ts (C2 until merged; the UI–pipeline integration task if it touches App.tsx). Use Playwright port 5183.
 
-FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; list of visible strings added; differences from the plan; BUILD_LOG line and ai-use-log row; open items for Leo (numbers, slope baseline), Bene (look), ninja (wording).
+FINAL REPORT: branch, worktree path, SHA per part; each done-check with pasted output; screenshot paths; list of visible strings added; differences from the plan; BUILD_LOG line and ai-use-log row (with its prompt cell); open items for Leo (numbers, slope baseline), Bene (look), ninja (wording).
 ```

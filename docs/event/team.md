@@ -31,7 +31,7 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 
 | When | Task |
 |---|---|
-| Sat 08:30 | Check in, table, power strips, Wi-Fi. Start the AI-use log (tool, what it did, who ran it). |
+| Sat 08:30 | Check in, table, power strips, Wi-Fi. Start the AI-use log (tool, what it did, who ran it, the prompt in one sentence). |
 | Sat 10:30 | **Kickoff (~30 min):** confirm [build-plan.md](build-plan.md) and its §9 decisions, name the demo owner. Then step 0: app skeleton, LICENSE, `CLPS_DATA` set on every laptop. You decide. |
 | Sat first 2 h | **Talk to mentors:** what would a judge challenge; someone with lunar/geodesy background for the validation plan; first names of minors in the submission? |
 | Sat 11:00 → 21:30 | **Track A + integration (step 1):** `ephemeris.py` (LT+S, MOON_ME only), `periods.py`, `export_fixtures.py`, `app/src/geometry/` (build plan §4.1, §4.4, §4.5). Hand scripts to Otto for review and to Leo for V1/V2; assign tasks in this file. First deploy by 20:00. |

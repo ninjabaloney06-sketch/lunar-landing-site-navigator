@@ -143,9 +143,9 @@ Prompt for each agent = **orchestrator notes + shared preamble verbatim + its br
 3. The file split above: what you own, what the other half owns, the interface files.
 4. Shared IDs and formats from this section and the §4 contracts.
 5. Order of work, and the `git merge --no-edit main` pickup before the final done-checks.
-6. Do **not** edit BUILD_LOG.md or docs/event/ai-use-log.md: put the exact line and row in the final report; the orchestrator writes them on main (four parallel branches would conflict; AGENTS.md "hand the entry to the log owner"). This replaces the preamble's last two "Before finishing" bullets.
+6. Do **not** edit BUILD_LOG.md or docs/event/ai-use-log.md: put the exact line and row (the row includes its prompt cell: the name of your brief) in the final report; the orchestrator writes them on main (four parallel branches would conflict; AGENTS.md "hand the entry to the log owner"). This replaces the preamble's last two "Before finishing" bullets.
 7. The brief corrections in §6 that apply to this agent.
-8. Final report: branch + worktree path + SHA; each done-check with pasted output; files changed; BUILD_LOG line + ai-use-log row; screenshots (C1/C2) with paths; anything in the brief that looks wrong; items for Leo/Otto/Bene.
+8. Final report: branch + worktree path + SHA; each done-check with pasted output; files changed; BUILD_LOG line + ai-use-log row with its prompt cell; screenshots (C1/C2) with paths; anything in the brief that looks wrong; items for Leo/Otto/Bene.
 
 Fresh-context review: one Opus reviewer per Opus branch (A, B, C1, C2) before its merge, read-only, findings ranked. The orchestrator reviews the small Haiku branches itself and re-runs their checks.
 
@@ -164,7 +164,7 @@ Fresh-context review: one Opus reviewer per Opus branch (A, B, C1, C2) before it
 
 1. Merge order: **A-h → A → B-h → B → C1 → C2**. A goes first because it owns types.ts and stations. C1 and C2 run `git merge main` after A and B land, switch from sample to real data, and rerun their checks. If they have already finished, send them that follow-up (SendMessage to the same agent, or a Haiku agent for fixes a reviewer named exactly).
 2. For each branch: read the report, re-run its done-checks yourself in its worktree, look at its screenshots (C1/C2: `<worktree>/app/test-results/*.png`; compare with the §9 images), get the Opus review for A/B/C1/C2, then `git merge --no-ff <branch>` on main. Never merge a branch whose checks you have not re-run. After each merge run `cd app && npm run build && npx vitest run` and `python3 -m pytest scripts/tests -q` on main.
-3. After each merge, write that branch's BUILD_LOG line and ai-use-log row (from its report) on main.
+3. After each merge, write that branch's BUILD_LOG line and ai-use-log row (from its report, prompt cell included) on main.
 4. **Human gates** stop the orchestrator. At each one, post the evidence in one message and wait for ninja's "yes"; never mark a V-check passed:
    - V1/V2 (Leo, 16:00): the two `ephemeris.py --site` tables from Brief A's done-checks (Connecting Ridge 2026-11-14, and Shackleton Site04 2027-08-16 `--stations`).
    - V3 (20:00); V4 + horizon go/no-go + T14 stop rule (21:30).
