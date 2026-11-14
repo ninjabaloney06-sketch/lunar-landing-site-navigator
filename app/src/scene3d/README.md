@@ -29,3 +29,8 @@ camera back onto its orbit every frame: the globe → site fly stopped 3000 km f
 walk jumped to its end). The fly between the globe and the site (index.ts startDescent, 2.4 s) goes around the
 Moon on a great circle with the height falling geometrically, turns into the site view as it arrives, and
 cross-dissolves the two scenes drawn from the same pose (dissolve.ts); back is the same path reversed.
+Points of interest (S4): handle.setPois(pois) draws every given POI on the globe (pins.ts: instanced, three draw
+calls for any number; landing records with the site-pin shape, the others a camera-facing triangle on a short
+stem). At site and eye level only those within POI_NEAR_KM (60 km, pins.ts) of the current site are drawn,
+together with the other landing sites within that distance, each standing on the loaded terrain. named()
+reports a hovered or tapped POI with its poiId; a site pin wins over a user point, a user point over a POI.

@@ -40,11 +40,13 @@ import { installDebug, type DebugView } from './debug'
 import { Dissolve } from './dissolve'
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, v3 } from './frames'
 import { GlobeWorld } from './globe'
+import { POI_NEAR_KM, type PinItem } from './pins'
 import { SiteWorld } from './site'
 import { Sky } from './sky'
 import { TopView } from './topview'
 
 export { TOP_VIEW } from './topview'
+export { POI_NEAR_KM } from './pins'
 
 export type SceneLevel = 'globe' | 'site' | 'eye'
 
@@ -171,6 +173,7 @@ const LIGHT_EASE_MS = 500 // a change of the terrain light level (a jump of the 
 const MAX_FRAME_MS = 100 // a longer gap between two frames (hidden tab, a stall) counts as this much time
 const EARTHSHINE = 0.06 * Math.PI // faint fill at full Earth; scaled by Earth's phase, zero when Earth is hidden
 const BACKGROUND = 0x0b0d11
+const SITE_PIN_COLOR = 0xf2efe8 // the head of the globe's site pins (globe.ts)
 
 interface Fly {
   cam: PerspectiveCamera // globeCam: a flight through space (MOON_ME km); siteCam: a walk in the site scene (ENU m)
@@ -252,8 +255,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let topView: TopView | null = null
   let top = false // the not-to-scale top view is shown (level stays 'globe')
   let markers: ScenePoint[] = []
-  // The pin or user point whose name is shown: under the mouse, or last tapped.
-  let hover: { kind: 'site'; id: string } | { kind: 'point'; index: number } | null = null
+  let pois: ScenePoi[] = []
+  // The site pin, user point or point of interest whose name is shown: under the mouse, or last tapped.
+  type Named = { kind: 'site'; id: string } | { kind: 'point'; index: number } | { kind: 'poi'; id: string }
+  let hover: Named | null = null
   const site = new SiteWorld()
   let siteKm = new Vector3()
   let enuToMe = new Quaternion()
@@ -518,6 +523,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       if (f.site) site.build(f.horizon, f.terrain, f.site.elev_m)
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
       placeMarkers()
+      placePois()
     }
     globe?.setSites(deps.sites, f.site?.id ?? null)
     applyLights(siteChanged)
@@ -563,6 +569,35 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       }),
     )
     if (hover?.kind === 'point' && !markers[hover.index]) hover = null
+    markDirty()
+  }
+
+  // ---------- points of interest ----------
+
+  /**
+   * The globe gets every point of interest it was given. The site scene gets those within POI_NEAR_KM of the
+   * current site, and the other landing sites within the same distance, each standing on the terrain.
+   */
+  function placePois() {
+    globe?.setPois(pois)
+    const items: PinItem[] = []
+    const here = frame?.site
+    if (here) {
+      const at = v3(siteVector(here.lat, here.lon, 0))
+      const add = (kind: PinItem['kind'], id: string, name: string, lat: number, lon: number, color: string | number, shape: PinItem['shape']) => {
+        // Ground distance as the chord on the 1737.4 km sphere (shorter than the arc by 0.005 % at 60 km).
+        if (v3(siteVector(lat, lon, 0)).distanceTo(at) > POI_NEAR_KM) return
+        const grid = gridOf(lat, lon)
+        if (!grid) return
+        const { pos, up } = site.groundAt(grid.x, grid.y)
+        items.push({ kind, id, name, shape, base: pos, up, color, grid })
+      }
+      for (const s of deps.sites) if (s.id !== here.id) add('site', s.id, s.name, s.lat, s.lon, SITE_PIN_COLOR, 'site')
+      for (const p of pois) add('poi', p.id, p.name, p.lat, p.lon, p.color, p.landing ? 'site' : 'poi')
+    }
+    site.setNear(items)
+    const h = hover
+    if (h?.kind === 'poi' && !pois.some((p) => p.id === h.id)) hover = null
     markDirty()
   }
 
@@ -1078,19 +1113,27 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // ---------- names of pins and user points, the Moon point under the pointer ----------
 
-  function nameAt(ndc: Vector2): typeof hover {
+  /** Under the pointer: a site pin first, then a user point, then a point of interest. */
+  function nameAt(ndc: Vector2): Named | null {
     if (top || fly || !globe) return null
     if (inSpace()) {
       globe.updatePins(globeCam, size.y)
-      return globe.nameAt(ndc, globeCam, size)
+      const pin = globe.nameAt(ndc, globeCam, size)
+      if (pin) return pin
+      const id = globe.poiAt(ndc, globeCam, size)
+      return id === null ? null : { kind: 'poi', id }
     }
     site.updateMarks(siteCam, size.y)
+    const other = site.nearAt('site', ndc, siteCam, size.x, size.y)
+    if (other) return { kind: 'site', id: other.id }
     const index = site.markAt(ndc, siteCam, size.x, size.y)
-    return index === null ? null : { kind: 'point', index }
+    if (index !== null) return { kind: 'point', index }
+    const poi = site.nearAt('poi', ndc, siteCam, size.x, size.y)
+    return poi ? { kind: 'poi', id: poi.id } : null
   }
 
-  const sameName = (a: typeof hover, b: typeof hover) =>
-    a === b || (a !== null && b !== null && a.kind === b.kind && (a.kind === 'site' ? a.id === (b as typeof a).id : a.index === (b as typeof a).index))
+  const sameName = (a: Named | null, b: Named | null) =>
+    a === b || (a !== null && b !== null && a.kind === b.kind && (a.kind === 'point' ? a.index === (b as typeof a).index : a.id === (b as typeof a).id))
 
   function named(): SceneName | null {
     // The top view names the one body that has no label of its own, under its disc.
@@ -1103,23 +1146,25 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const sel = markers.findIndex((m) => m.selected)
     const h = hover ?? (sel >= 0 ? ({ kind: 'point', index: sel } as const) : null)
     if (!h) return null
-    const name = h.kind === 'site' ? deps.sites.find((x) => x.id === h.id)?.name : markers[h.index]?.name
+    const name =
+      h.kind === 'site' ? deps.sites.find((x) => x.id === h.id)?.name : h.kind === 'point' ? markers[h.index]?.name : pois.find((p) => p.id === h.id)?.name
     if (!name) return null
+    const poi = h.kind === 'poi' ? { poiId: h.id } : {}
     if (inSpace()) {
       globe.updatePins(globeCam, size.y)
-      const head = h.kind === 'site' ? globe.pinTop(h.id) : globe.markTop(h.index)
+      const head = h.kind === 'site' ? globe.pinTop(h.id) : h.kind === 'point' ? globe.markTop(h.index) : globe.poiTop(h.id)
       if (!head || !globe.pinsVisible) return null
       const sp = toScreen(head, globeCam)
-      return { ...sp, name, visible: sp.visible && !globe.occluded(globeCam.position, head) }
+      return { ...sp, name, ...poi, visible: sp.visible && !globe.occluded(globeCam.position, head) }
     }
-    if (h.kind === 'site') return null
     site.updateMarks(siteCam, size.y)
-    const head = site.markTop(h.index)
+    // At site and eye level a site pin is one of the other landing sites near this one.
+    const head = h.kind === 'point' ? site.markTop(h.index) : site.nearTop(h.kind, h.id)
     if (!head) return null
     const dir = head.clone().sub(siteCam.position)
     const len = dir.length()
     const sp = toScreen(head, siteCam)
-    return { ...sp, name, visible: sp.visible && !site.occluded(siteCam.position, dir.normalize(), len - 1) }
+    return { ...sp, name, ...poi, visible: sp.visible && !site.occluded(siteCam.position, dir.normalize(), len - 1) }
   }
 
   /** Planetocentric lat/lon (MOON_ME) of the Moon point under a pointer position, or null off the Moon. */
@@ -1215,7 +1260,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         hover = tapped
         markDirty()
         if (tapped) return
-      } else if (tapped?.kind === 'point') return
+      } else if (tapped && (tapped.kind !== 'site' || level !== 'globe')) return // only a site pin on the globe is selected by a second tap
     }
     if (level === 'globe') {
       const hit = globe.pick(ndc, globeCam, size)
@@ -1267,6 +1312,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     topView = new TopView(tex)
     globe.setSites(deps.sites, null)
     globe.setMarkers(markers)
+    globe.setPois(pois)
     setGlobeView()
     setControls()
     if (pending) applyFrame(pending)
@@ -1309,8 +1355,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       placeMarkers()
     },
     named,
-    setPois() {
-      // contract stub: drawn by the scene track
+    setPois(next) {
+      pois = next
+      placePois()
     },
     labelPoint,
     onMenu(cb) {
@@ -1404,6 +1451,25 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       setSites(sites) {
         deps.sites = sites
         globe?.setSites(sites, frame?.site?.id ?? null)
+        placePois()
+      },
+      pins: () => ({ globe: globe?.poiCount ?? 0, near: site.nearInfo() }),
+      projectPoi(id) {
+        if (!globe || top) return null
+        if (inSpace()) {
+          globe.updatePins(globeCam, size.y)
+          const head = globe.poiTop(id)
+          return head ? toScreen(head, globeCam) : null
+        }
+        site.updateMarks(siteCam, size.y)
+        const head = site.nearTop('poi', id)
+        return head ? toScreen(head, siteCam) : null
+      },
+      projectMe(p) {
+        if (!inSpace() || top) return null
+        const q = new Vector3(p[0], p[1], p[2])
+        const sp = toScreen(q, globeCam)
+        return { ...sp, visible: sp.visible && !globe!.occluded(globeCam.position, q) }
       },
       terrainInfo: () => site.info(),
       lights: () => site.lights(),

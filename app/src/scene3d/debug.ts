@@ -43,6 +43,9 @@ export interface DebugView {
   setAnimated(on: boolean): void
   advance(ms: number): void
   flying(): boolean
+  pins(): { globe: number; near: { kind: string; id: string; shape: string; base: number[]; ground: number; sphere: number }[] }
+  projectPoi(id: string): ScreenPoint | null
+  projectMe(p: number[]): ScreenPoint | null
   flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
   topView(): boolean
   named(): SceneName | null
@@ -133,6 +136,12 @@ export function installDebug(v: DebugView) {
     setAnimated: (on: boolean) => v.setAnimated(on),
     advance: (ms: number) => v.advance(ms),
     flying: () => v.flying(),
+    // Points of interest: how many pins the globe has, the pins of the site scene (POIs and other landing sites
+    // near the site) with the terrain height and the smooth-sphere height under each, a POI's head on screen at
+    // the current level (null where it has no pin), and a MOON_ME point (km) on screen in the space scene.
+    pins: () => v.pins(),
+    projectPoi: (id: string) => v.projectPoi(id),
+    projectMe: (p: number[]) => v.projectMe(p),
     // A new frame as the app delivers it (update(frame)): the site and time change, the camera is not placed.
     load: async (siteId: string, utc: string | number) => {
       await v.load(siteId, typeof utc === 'number' ? utc : Date.parse(utc))

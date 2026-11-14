@@ -22,6 +22,8 @@ import type { Site } from '../data/types'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
 import { checkerTexture, type TextureSet } from './assets'
 import { SPHERE_TO_BODY, latLonOf, v3 } from './frames'
+import type { ScenePoi } from './index'
+import { PinField } from './pins'
 
 const PIN_LEN_PX = 26
 const PIN_W_PX = 1.6
@@ -65,6 +67,7 @@ export class GlobeWorld {
   private readonly pinGroup = new Group()
   private readonly marks: Mark[] = []
   private readonly markGroup = new Group()
+  private readonly pois = new PinField()
   private readonly sunLight = new DirectionalLight(0xfff4e6, 3 * Math.PI)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
@@ -83,7 +86,7 @@ export class GlobeWorld {
     })
     this.moon = new Mesh(new SphereGeometry(MOON_RADIUS_KM, 256, 128), this.moonMat)
     this.moon.quaternion.copy(SPHERE_TO_BODY) // texture longitude 0 → +x MOON_ME, north → +z (T16)
-    this.scene.add(this.moon, this.pinGroup, this.markGroup, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+    this.scene.add(this.moon, this.pinGroup, this.markGroup, this.pois.group, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
   }
 
   /** 'checker' = T16 debug texture with labelled meridians, unlit so the terminator cannot hide it. */
@@ -131,6 +134,33 @@ export class GlobeWorld {
     }
   }
 
+  /** Points of interest: a pin each in its colour, the site-pin shape for landing records, a triangle otherwise. */
+  setPois(pois: ScenePoi[]) {
+    this.pois.set(
+      pois.map((p) => {
+        const base = v3(siteVector(p.lat, p.lon, 0))
+        return { kind: 'poi', id: p.id, name: p.name, shape: p.landing ? 'site' : 'poi', base, up: base.clone().normalize(), color: p.color }
+      }),
+    )
+  }
+
+  get poiCount() {
+    return this.pois.count
+  }
+
+  /** Head position (MOON_ME km) of a point of interest's pin. */
+  poiTop(id: string): Vector3 | null {
+    const i = this.pois.indexOf('poi', id)
+    return i < 0 ? null : this.pois.head(i, new Vector3())
+  }
+
+  /** The point of interest whose head is within 10 px of the pointer and not behind the Moon. */
+  poiAt(ndc: Vector2, cam: PerspectiveCamera, sizePx: Vector2): string | null {
+    if (!this.pinGroup.visible) return null
+    const i = this.pois.nearest('poi', ndc, cam, sizePx.x, sizePx.y, NAME_RADIUS_PX, (head) => this.occluded(cam.position, head))
+    return i < 0 ? null : this.pois.item(i)!.id
+  }
+
   setLights(sunDirMe: Vector3, earthDirMe: Vector3, earthFill: number) {
     this.sunLight.position.copy(sunDirMe).multiplyScalar(1e5)
     this.earthLight.position.copy(earthDirMe).multiplyScalar(1e5)
@@ -139,7 +169,8 @@ export class GlobeWorld {
 
   /** Constant on-screen pin size. */
   updatePins(cam: PerspectiveCamera, heightPx: number) {
-    this.pinGroup.visible = this.markGroup.visible = cam.position.length() < PIN_MAX_DIST_KM
+    this.pinGroup.visible = this.markGroup.visible = this.pois.group.visible = cam.position.length() < PIN_MAX_DIST_KM
+    if (this.pois.group.visible) this.pois.update(cam, heightPx)
     for (const k of this.marks) {
       const dist = cam.position.distanceTo(k.surface)
       const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)

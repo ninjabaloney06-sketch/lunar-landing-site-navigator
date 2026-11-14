@@ -32,7 +32,19 @@ export interface PinItem {
   base: Vector3
   up: Vector3
   color: string | number
+  /** Site scene only: the pin's terrain-grid offset from the site (ENU x, y in m). */
+  grid?: { x: number; y: number }
 }
+
+/**
+ * At site and eye level a point of interest, or another landing site, is drawn only within this ground distance
+ * of the current site, km. 60 km is the half-width of the mid terrain level (levels.ts: 400 m samples to ±60 km),
+ * the farthest the site camera orbits (index.ts SITE_DIST_KM.max) and the farthest a click walks: inside it a
+ * pin stands on relief the scene shows in detail and the camera can go to it. Beyond it there is only the far
+ * level (2 km samples, where a pin's foot could be a cell away from the feature it marks), and from the default
+ * camera most of it is past the horizon.
+ */
+export const POI_NEAR_KM = 60
 
 const STEM_W_PX = 1.6
 const SITE_LEN_PX = 26 // the globe's site pin (globe.ts)
