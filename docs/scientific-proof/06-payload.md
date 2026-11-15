@@ -137,7 +137,7 @@ Worked example, `payload.test.ts`: Apollo (Saturn V, CSM, LM), KSC LC-39B, Conne
 | Check by re-planning with 3,173 kg of cargo | the planner burns 8,088 kg in the descent against the chain's 8,008 kg (80 kg more, inside 1σ) |
 
 The same run for the halo-orbit designs:
-- Starship HLS: `extrapolated`, 1,154 t ± 115 t, limited by its 1,600 t tank; dominant term its assumed dry mass ±30 % (91 t). Far outside the checked range; the ICPS is short by 0.9 t even with no cargo, which limits the mission, not the cargo.
+- Starship HLS: `extrapolated`, 1,154 t ± 115 t, limited by its 1,600 t tank; dominant term its assumed dry mass ±30 % (91 t). Far outside the checked range. Until 15 Nov 2026 the ICPS was short by 0.9 t even with no cargo, because every plan injected from a 185 km circle; since then SLS Block 1 flies the Artemis I parking orbit (see 04-trajectory) and the ICPS has propellant left (default mission: 1,231 kg; not yet validated by the science lead). The figures in this line were recorded before that change and have not been re-run here.
 - Blue Moon Mark 2: `undetermined`, bound `lower`: even empty it would need 35,410 kg + 1,062 kg reserve against the 29,000 kg lower bound (raw figure −8,990 kg ± 4,422 kg; dominant term its dry mass ±10 %, 4,388 kg).
 
 What ε covers and what it does not:

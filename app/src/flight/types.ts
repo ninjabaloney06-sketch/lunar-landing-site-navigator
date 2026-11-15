@@ -281,6 +281,9 @@ export interface MissionPlan {
   /** Things the reader has to know: propellant shortfalls, an expensive return geometry, assumptions that bite. */
   notes: string[]
   sources: SourceRef[]
+  /** Parts of this plan built on physics the science lead has not validated (absent: none). The UI shows `text`
+   *  with the results they affect. */
+  unvalidated?: { validated: false; text: string; what: string }[]
 }
 
 /** Where a craft is at an instant. While the lander is docked it is where the capsule is. */

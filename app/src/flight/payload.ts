@@ -26,6 +26,7 @@
 // lead, statement of 15 Nov 2026 (docs/event/validation.md, "Validation status 15 Nov"); no per-check record.
 import { G0, MU_MOON, R_MOON } from './astro'
 import { simulateAscent } from './ascent'
+import type { AscentVehicle } from './ascent'
 import type { LaunchVehicleSpec, SpacecraftSpec, StageSpec } from './hardware'
 import type { Launchpad, MissionEvent, MissionPlan, SourceRef, Vec3 } from './types'
 import { DEG, cross } from './vec'
@@ -178,6 +179,7 @@ export function phaseOfEvent(e: Pick<MissionEvent, 'id' | 'craft'>, touchdownMs?
     case 'ascent':
       return 'launch'
     case 'tli':
+    case 'prm': // Perigee Raise Maneuver: the upper stage, before the injection (missionNrho.ts)
       return 'tli'
     case 'loi':
     case 'opf':
@@ -229,13 +231,16 @@ const sensitivityCache = new Map<string, number>()
 export function ascentSensitivity(inp: PayloadHardware & { pad: Launchpad; rendezvous: 'llo' | 'nrho'; parkingAltKm?: number }): number {
   const payloadKg = totalMass(inp.capsule) + (inp.rendezvous === 'llo' ? totalMass(inp.lander) : 0)
   const alt = inp.parkingAltKm ?? 185
-  const key = `${inp.launchVehicle.id}|${payloadKg.toFixed(0)}|${inp.pad.latDeg.toFixed(2)}|${alt}`
+  // missionNrho.ts flies a launch vehicle's own parking orbit when it has one (SLS Block 1: Artemis I's insertion orbit)
+  const ell = inp.rendezvous === 'nrho' ? (inp.launchVehicle as AscentVehicle).ascent?.parkingEllipse : undefined
+  const orbit = ell ? { perigeeKm: ell.insertionPerigeeKm, apogeeKm: ell.insertionApogeeKm } : { perigeeKm: alt, apogeeKm: alt }
+  const key = `${inp.launchVehicle.id}|${payloadKg.toFixed(0)}|${inp.pad.latDeg.toFixed(2)}|${ell ? `${orbit.perigeeKm}x${orbit.apogeeKm}` : alt}`
   const hit = sensitivityCache.get(key)
   if (hit !== undefined) return hit
   const lat = inp.pad.latDeg * DEG
   const padEci: Vec3 = [Math.cos(lat), 0, Math.sin(lat)]
   const fly = (kg: number) =>
-    simulateAscent({ vehicle: inp.launchVehicle, payloadKg: kg, padEci, pole: [0, 0, 1], target: { planeNormal: cross(padEci, [0, 1, 0]), perigeeKm: alt, apogeeKm: alt } })
+    simulateAscent({ vehicle: inp.launchVehicle, payloadKg: kg, padEci, pole: [0, 0, 1], target: { planeNormal: cross(padEci, [0, 1, 0]), ...orbit } })
   const STEP_KG = 1000
   const s = (fly(payloadKg).upperStagePropellantKg - fly(payloadKg + STEP_KG).upperStagePropellantKg) / STEP_KG
   sensitivityCache.set(key, s)
@@ -318,7 +323,7 @@ function buildChain(inp: PayloadInput): Chain {
     const base = { id: e.id, label: e.label, phase, dvKms: e.dvKms ?? 0, planPropellantKg: e.propellantKg ?? 0, ascent: false }
     if (e.id === 'ascent') {
       burns.push({ ...base, tank: upper.id, ascent: true, carried: [sm.id, ...(llo ? landerTanksDown : [])], payload: llo })
-    } else if (e.id === 'tli') {
+    } else if (e.id === 'tli' || e.id === 'prm') {
       burns.push({ ...base, tank: upper.id, carried: [upper.id, sm.id, ...(llo ? landerTanksDown : [])], payload: llo })
     } else if (e.craft === 'capsule') {
       const docked = llo && e.utcMs < undockMs
