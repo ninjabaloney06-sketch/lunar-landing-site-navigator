@@ -106,7 +106,7 @@ const DATASETS: Dataset[] = [
   },
   {
     title: 'Terrain detail: LOLA 5 m polar model',
-    about: <>Used for the site assessments of 7 sites (Details drawer, Site assessment).</>,
+    about: <>Used for the site assessments of 7 sites (Details drawer, Landing site assessment).</>,
     files: [
       {
         name: 'ldem_875s_5m.img',
@@ -503,14 +503,14 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
           <li>Site potential: sourced statements about the site, each with a category; evidence and source in full data.</li>
           <li>
-            Site assessment (collapsed; its data is fetched when first opened): slope over the 100 m landing disk and the
+            Landing site assessment (collapsed; its data is fetched when first opened): slope over the 100 m landing disk and the
             2 km exploration disk, roughness, the nearest permanent shadow and Diviner temperatures, labelled
             &quot;Accepted by the science lead at 6650ed1 (reported, no written sign-off)&quot;. The 5° and 20°
             thresholds are project criteria set by the team, not NASA or vehicle limits. A custom site shows &quot;Not
             computed for this place&quot;.
           </li>
           <li>
-            Power estimate: panel area, cell efficiency, constant load and battery (example values) and one sentence:
+            Power and battery estimate: panel area, cell efficiency, constant load and battery (example values) and one sentence:
             does the battery last through the longest dark window. Marked &quot;First estimate, not a power budget. Not
             validated by the science lead.&quot;
           </li>
@@ -796,7 +796,7 @@ export const DOC_SECTIONS: DocSection[] = [
           are named.
         </p>
         <p>
-          <strong>Power estimate.</strong> First estimate, not a power budget; not validated by the science lead. One
+          <strong>Power and battery estimate.</strong> First estimate, not a power budget; not validated by the science lead. One
           panel that always faces the Sun gives S × A × η × f × (AU / r)²: S = 1361 W/m² at 1 AU (
           <Ext href="https://doi.org/10.1029/2010GL045777">Kopp &amp; Lean 2011</Ext>), A the panel area, η the cell
           efficiency, f the visible share of the Sun&apos;s disc, r the distance to the Sun (AU from
