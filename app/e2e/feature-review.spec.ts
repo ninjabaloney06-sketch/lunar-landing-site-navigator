@@ -286,3 +286,4 @@ test.describe('375 px slope warning', () => {
     await expect(page.getByTestId('slope-source')).toBeVisible()
   })
 })
+

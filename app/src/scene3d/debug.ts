@@ -35,7 +35,9 @@ export interface DebugView {
   terrainInfo(): { levels: string[]; triangles: number }
   lights(): { sun: number; hidden: number; fill: number; earth: number }
   setFlat(on: boolean): void
-  renderInfo(): { calls: number; triangles: number }
+  /** The frame's ephemeris state and site as the scene got them (to compare the sky against the geometry module). */
+  frameInfo(): { state: unknown; site: { lat: number; lon: number; elev_m: number | null } | null } | null
+  renderInfo(): { calls: number; triangles: number; geometries: number; textures: number; programs: number }
   surfaceDist(): number
   terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
   goTo(v: Viewpoint): boolean
@@ -135,6 +137,7 @@ export function installDebug(v: DebugView) {
       await nextFrame()
     },
     renderInfo: () => v.renderInfo(),
+    frameInfo: () => v.frameInfo(),
     // Brief C4: distance from the camera to the nearest surface (m at site and eye level, km in space), and a
     // sky body's drawn radius over its drawn distance (must not change with the eye-level zoom).
     surfaceDist: () => v.surfaceDist(),

@@ -38,7 +38,7 @@ Device agent on ninja's Mac: after ninja signed in, the Space Apps dashboard lis
 - Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 12 Oct; the organisers will notify separately if Friday offers exist.
 - Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 12 Oct).
 - Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (12 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school**, named on 25 Oct (name kept out of the repo). Isaac decided 25 Oct that this scheme is accepted despite the NASA terms' "parent or legal guardian" wording; no question to the organiser.
-- Overnight at the venue allowed with the chaperone; no sleeping accommodation provided — we organise our own. Organisers offer to connect us with local students for the search, not guaranteed (12 Oct). **Decided 25 Oct:** Jugendherberge Heilbronn, 4-bed room Sat → Sun; the Betreuerin sleeps there, so the team sleeps there too. Day timeline: [docs/event/where-when.md](../event/where-when.md).
+- Overnight at the venue allowed with the chaperone; no sleeping accommodation provided — we organise our own. Organisers offer to connect us with local students for the search, not guaranteed (12 Oct). **Decided 25 Oct:** Jugendherberge Heilbronn, 4-bed room Sat → Sun; the Betreuerin sleeps there, so the team sleeps there too. Day timeline: docs/event/where-when.md.
 - Selection funnel (12 Oct): the local jury rates the submitted projects and the strongest eligible ones go in as Global Nominees — the number scales with the number of local submissions, no fixed quota for Germany or Europe. NASA and partner-agency experts then pick Global Finalists, then Global Winners. Local prizes are independent of the global funnel.
 - Heilbronn schedule ([local event page](https://www.spaceappschallenge.org/2026/local-events/heilbronn/?tab=schedule), read 10 Oct): Sat 14 Nov 08:30 registration and breakfast, 10:30 hacking begins, 22:30 day-1 wrap-up; Sun 15 Nov 07:30 doors open, **15:45 final submission deadline** (global deadline is 23:59, the local one counts for us), live pitches from 16:00, 18:00 awards. Breakfast, lunch and dinner are on the schedule.
 
@@ -201,7 +201,7 @@ Statement vs. plan (TASKS.md phases 3–6):
 
 ## Build order and bonus scope (11 Nov 2026)
 
-**DECIDED by ninja, 11 Nov:** the team builds strictly in order of importance and goes as far as time allows, aiming at as many optional items of the statement as possible. A step is done only when its known bugs are fixed and Leo/Otto signed it off (bug gate); no new features after the feature freeze. The seven-step order is in [event-plan.md](../event/event-plan.md#build-order-ninja-11-nov). This replaces "3D not planned" and "custom coordinates not planned" (10 Nov table above): both are now the last two steps (6 and 7), reached only if steps 1–5 pass. Reason: the team laptops (ThinkPad X1 Carbon Gen 13, Arc 140V, 16 GB) can run a light 3D view, and Leo and Otto review fast. No route or traverse planning: the challenge evaluates a site and a date, not how the lander gets there (statement read 10/11 Nov).
+**DECIDED by ninja, 11 Nov:** the team builds strictly in order of importance and goes as far as time allows, aiming at as many optional items of the statement as possible. A step is done only when its known bugs are fixed and Leo/Otto signed it off (bug gate); no new features after the feature freeze. The seven-step order is in event-plan.md. This replaces "3D not planned" and "custom coordinates not planned" (10 Nov table above): both are now the last two steps (6 and 7), reached only if steps 1–5 pass. Reason: the team laptops (ThinkPad X1 Carbon Gen 13, Arc 140V, 16 GB) can run a light 3D view, and Leo and Otto review fast. No route or traverse planning: the challenge evaluates a site and a date, not how the lander gets there (statement read 10/11 Nov).
 
 ## Build plan before the event (11 Nov 2026)
 
@@ -213,7 +213,7 @@ ninja asked for folders people browse to stay minimal. Layout since 11 Nov: code
 
 ## Plan review and fact check (13 Nov 2026)
 
-Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). Applied to build-plan.md, event-plan.md, team.md and TASKS.md the same day (ninja asked for the fact check and for as many challenge objectives as possible in the plan; plan text only, no code before Sat 09:00).
+Full review: docs/event/plan-review-13nov.md. Applied to build-plan.md, event-plan.md, team.md and TASKS.md the same day (ninja asked for the fact check and for as many challenge objectives as possible in the plan; plan text only, no code before Sat 09:00).
 
 - Curated sites follow NASA's **28 Oct 2024** nine-region set first; 2022-only regions labelled "dropped in 2024"; Connecting Ridge labelled as Blue Moon MK1 target.
 - Light-time effect corrected to ~0.006° (aberration), not 0.07°; LT+S stays to match Horizons.
@@ -228,7 +228,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 
 ## Agent driving and capacity (13 Nov 2026)
 
-- **Isaac drives every agent** (ninja, 13 Nov), through one orchestrator session that runs the briefs in [agent-briefs.md](../event/agent-briefs.md) as worktree-isolated subagents and merges after re-running each brief's checks. Otto, Bene and Leo review and sign; they do not drive agents.
+- **Isaac drives every agent** (ninja, 13 Nov), through one orchestrator session that runs the briefs in agent-briefs.md as worktree-isolated subagents and merges after re-running each brief's checks. Otto, Bene and Leo review and sign; they do not drive agents.
 - **Capacity (ninja, 13 Nov):** one Claude Max 20x and one Max 5x plan (supersedes "O has two Claude Max plans", 26 Oct). Haiku for mechanical work, Opus for physics, horizon, 3D and visual review; never Sonnet (model table in agent-briefs.md).
 - **Checked 13 Nov 12:40:** the Claude account logged in on ninja's Mac reports plan **Pro** (weekly 45 % used, reset 13 Nov 19:00). Before Saturday, log the Max 20x account into the laptop that runs the orchestrator.
 
@@ -257,7 +257,7 @@ Also: SI (AI) use must be marked in the project itself: code and data need an ac
 
 ## Mandatory site assessments — 14 Nov 2026
 
-**DECIDED — DO NOT REOPEN:** ninja requires terrain slope (**≤ 5° for landing**, strictly **< 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility. These are mandatory, not bonus features. Both thresholds come from ninja's project requirements, not claimed NASA/vehicle limits. Landing-site terrain steeper than 5° is unsuitable for landing; exactly 5° passes only the slope criterion, not overall landing safety. Missing slope data leaves landing suitability unknown. This supersedes earlier thermal/access exclusions and optional PSR scope only as needed for these assessments. Full automated route optimisation is not required. Methods, data and scientific validation remain open; see [spec.md](../event/spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and [TASKS.md](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026).
+**DECIDED — DO NOT REOPEN:** ninja requires terrain slope (**≤ 5° for landing**, strictly **< 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility. These are mandatory, not bonus features. Both thresholds come from ninja's project requirements, not claimed NASA/vehicle limits. Landing-site terrain steeper than 5° is unsuitable for landing; exactly 5° passes only the slope criterion, not overall landing safety. Missing slope data leaves landing suitability unknown. This supersedes earlier thermal/access exclusions and optional PSR scope only as needed for these assessments. Full automated route optimisation is not required. Methods, data and scientific validation remain open; see [spec.md](../event/spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and TASKS.md.
 
 ## Local jury answers and paper UI notes — photographed 14 Nov 2026, 13:15
 
@@ -283,7 +283,7 @@ Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the v
 - **Two formats:** the local pitch is a 3-minute walkthrough; the global submission demo stays ≤ 30 s video or ≤ 7 slides. Both are needed.
 - **Priority signal:** app over pitch, prototype over idea, content over UI polish. Validated numbers and the mandatory site assessments come before visual extras.
 
-**Paper UI notes (IMG_2339–2342):** a foreground wireframe, a "Missions" menu sketch and two pages "Anweisungen für UI erstellen" (author not written; "show Bene when finished, test for errors, fix"). Evaluated against spec.md and the earlier decisions in [TASKS.md](../../TASKS.md#paper-notes--photographed-14-nov-2026-1315). The top-right menu icon in the wireframe falls under "Right settings sidebar removed" above and is not reopened.
+**Paper UI notes (IMG_2339–2342):** a foreground wireframe, a "Missions" menu sketch and two pages "Anweisungen für UI erstellen" (author not written; "show Bene when finished, test for errors, fix"). Evaluated against spec.md and the earlier decisions in TASKS.md. The top-right menu icon in the wireframe falls under "Right settings sidebar removed" above and is not reopened.
 
 ## Science-first direction — 14 Nov 2026, afternoon
 
@@ -296,7 +296,7 @@ ninja's instruction: adjust the course of the tasks to be more innovative and to
 - The organisers want the work to continue after the weekend; the local prize is entry to a startup programme.
 - Jury answers (above): usefulness for researchers and astronauts, intuitive, innovative; prototype over idea; mainly the app; typical mistakes are a nice UI without content and superficial content.
 
-**Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: [agent-briefs.md, Step 2-UI](../event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1330); task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
+**Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: agent-briefs.md, Step 2-UI; task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
 
 **Limits kept:** no weighted score without Leo's approval (ranking is filter, then one rule per goal, then tie-breakers); "biology experiments" is offered only with a primary source; unknown evidence is shown as unknown; nothing is called optimal.
 
@@ -305,3 +305,10 @@ ninja's instruction: adjust the course of the tasks to be more innovative and to
 - **Decided by ninja (15 Nov 2026):** the four team members are named with their full names in the credits. This overrides the AGENTS.md line "no recognizable names of anyone under 18" for the credits file only.
 - **Where:** `docs/credits.md` and the `/docs` page built from it. Nowhere else: not in the demo video, screenshots, the app UI, other documents or logs.
 - **Source of the decision:** `ORCHESTRATOR-PROMPT.md`, "Traps" item 1 (written 15 Nov 2026 on ninja's request). Recorded here by the orchestrator agent when `docs/credits.md` was merged; not re-confirmed with ninja in this session.
+
+## Outdated planning files deleted — 15 Nov 2026
+
+- **Requested by Otto (15 Nov 2026, 23:00):** "delete everything like tasks.md that is outdated". Not confirmed with ninja in that session.
+- **Deleted (15 files):** TASKS.md, ORCHESTRATOR-PROMPT.md, VISUAL-SWEEP-TASK.md; docs/event/: agent-briefs.md, event-plan.md, team.md, where-when.md, betreuer-vollmacht.md, plan-review-13nov.md, submission-check-13nov.md, handoff/README.md, ai-use-log-template.md; docs/reference/: learning.md, past-winners.md, inspiration.md.
+- **Kept:** files the app, the README, the scripts or the documentation refer to (build-plan.md, spec.md, validation.md, decisions.md, sources, BUILD_LOG.md, ai-use-log.md, project page, pitch files, terms draft, setup.md, `docs/archive/`).
+- **Consequence:** older entries in this file, BUILD_LOG.md, build-plan.md and spec.md still name the deleted files; their text is in the git history up to commit `1b114ae`. TASKS.md had 102 unticked boxes when deleted, among them the pre-publication check and the cleaned-history copy before the repo goes public.
