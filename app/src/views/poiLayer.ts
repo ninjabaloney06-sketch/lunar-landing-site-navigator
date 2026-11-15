@@ -47,7 +47,7 @@ export const groupInfo = (g: PoiGroup) => POI_GROUPS.find((x) => x.id === g)!
 export const REGION_TEXT = `south of ${Math.abs(PIN_REGION_NORTH_LAT)}° S`
 
 /** A landing record that is one of the app's sites is drawn once, as that site's pin. */
-export const isSitePin = (p: Poi, siteIds: Set<string>) => p.group === 'landing' && p.siteId !== null && siteIds.has(p.siteId)
+const isSitePin = (p: Poi, siteIds: Set<string>) => p.group === 'landing' && p.siteId !== null && siteIds.has(p.siteId)
 
 /** The pins of the chosen groups, as the scene draws them. */
 export function scenePois(pois: Poi[], groups: PoiGroup[], sites: Site[]): ScenePoi[] {

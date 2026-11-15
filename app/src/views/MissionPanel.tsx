@@ -12,7 +12,7 @@ import { MAX_MISSIONS, missionKey } from '../missions'
 import type { MissionState } from '../missions'
 import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
-import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
+import { DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
 import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { EXAMPLE, eg } from './examples'
@@ -341,7 +341,9 @@ export function MissionPanel(p: Props) {
             {p.missions.map((m) => {
               const key = missionKey(m)
               const name = m.name ?? DEFAULT_MISSION_NAME
-              const where = sites.find((s) => s.id === m.site)?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : site.name)
+              // null = the default site, as in a link (App and the mission table resolve it the same way)
+              const where =
+                sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID))?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : 'unknown site')
               return (
                 <li key={key} className="ms-row" data-mission={key}>
                   <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>

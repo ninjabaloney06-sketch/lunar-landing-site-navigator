@@ -65,6 +65,7 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
 
   const scrubAt = (clientX: number) => {
     const r = body.current!.getBoundingClientRect()
+    if (r.width <= 0 || span <= 0) return // not laid out: the position would be NaN
     onScrub(startMs + ((clientX - r.left) / r.width) * span)
   }
 
