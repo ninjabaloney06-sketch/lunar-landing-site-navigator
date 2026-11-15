@@ -194,7 +194,7 @@ const ORBIT_STEP_S = 1800 // cap on the step along the orbit; also the spacing o
 /** Ballistic flight of the six-vector x (r, v) from t0Ms to t1Ms. */
 function coast(field: Field, x: Float64Array, t0Ms: number, t1Ms: number): Float64Array {
   const s0: SimState = { r: [x[0], x[1], x[2]], v: [x[3], x[4], x[5]], m: 1 }
-  const run = integrate(field, s0, t0Ms, { maxSeconds: (t1Ms - t0Ms) / 1000, maxStepS: ORBIT_STEP_S, tol: COAST_TOL })
+  const run = integrate(field, s0, t0Ms, { maxSeconds: (t1Ms - t0Ms) / 1000, maxStepS: ORBIT_STEP_S, tol: COAST_TOL, path: false })
   const e = run.end
   return Float64Array.of(e.r[0], e.r[1], e.r[2], e.v[0], e.v[1], e.v[2])
 }
@@ -633,6 +633,7 @@ class Flight {
       maxStepS: COAST_STEP_S,
       tol: SHOT_TOL,
       stop: stop ? (_tS, s, utcMs) => stop(s, utcMs) : this.earth ? null : crashStop,
+      path: this.keep, // a solver's trial flight keeps only where it ends
     })
     if (!stop && run.stopped) throw new RangeError('the path runs into the Moon')
     this.store(run, t0, false)
@@ -658,6 +659,7 @@ class Flight {
       tol: SHOT_TOL,
       engine: constantThrust(engine.thrustN, engine.ispS, (_tS, s) => dir(s)),
       stop: stop ? (_tS, s) => stop(s) : null,
+      path: this.keep,
     })
     this.store(run, t0, true)
     this.s = run.end
@@ -896,7 +898,7 @@ function apsisTransfer(field: Field, t0Ms: number, r0: Vec3, v0: Vec3, rTarget: 
     const dv: Vec3 = [dvMs[0] / 1000, dvMs[1] / 1000, dvMs[2] / 1000]
     let run: SimRun
     try {
-      run = integrate(field, { r: r0, v: add(v0, dv), m: 1 }, t0Ms, { ...TO_PERILUNE, stop: (_tS, s) => dot(s.r, s.v) })
+      run = integrate(field, { r: r0, v: add(v0, dv), m: 1 }, t0Ms, { ...TO_PERILUNE, stop: (_tS, s) => dot(s.r, s.v), path: false })
     } catch (err) {
       if (err instanceof RangeError) return null
       throw err
@@ -1488,6 +1490,7 @@ export function earthToNrho(input: ArrivalInput): FlybyTransfer {
             maxStepS: COAST_STEP_S,
             tol: SHOT_TOL,
             stop: crashStop,
+            path: false,
           })
           return run.stopped ? null : run.end
         } catch (err) {
@@ -1877,6 +1880,7 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
             maxStepS: COAST_STEP_S,
             tol: SHOT_TOL,
             stop: crashStop,
+            path: false,
           })
           return run.stopped ? null : run.end
         } catch (err) {

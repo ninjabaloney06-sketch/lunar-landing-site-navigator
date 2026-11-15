@@ -480,6 +480,7 @@ export function flyHomebound(inp: HomeboundInput): HomeboundResult {
         maxStepS: 7200,
         tol: 1e-9,
         stop: (_t, s) => (norm(s.r) < 150000 ? dot(s.r, s.v) : -1),
+        path: false, // only where it ends is read
       })
     } catch {
       return NaN // a trial that falls into the Moon or leaves the tabulated span is not a return

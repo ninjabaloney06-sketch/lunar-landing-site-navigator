@@ -52,6 +52,9 @@ export interface SimOptions {
   stop?: ((tS: number, s: SimState, utcMs: number) => number) | null
   /** Relative tolerance of the step control (default 1e-10; 1e-8 is plenty for an atmosphere flight). */
   tol?: number
+  /** false: do not store the accepted steps (t, r, v, m then hold the start only); for solver shots that read
+   *  only end, endS and stopped. The integration itself is the same, step for step. Default true. */
+  path?: boolean
 }
 
 export interface SimRun {
@@ -159,7 +162,9 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
   let y = Float64Array.of(s0.r[0], s0.r[1], s0.r[2], s0.v[0], s0.v[1], s0.v[2], s0.m)
   let yNew = new Float64Array(7)
   const run: SimRun = { t: [0], r: [[y[0], y[1], y[2]]], v: [[y[3], y[4], y[5]]], m: [y[6]], stopped: false, end: snap(y), endS: 0 }
+  const keepPath = opt.path !== false
   const push = (tS: number, yy: Float64Array) => {
+    if (!keepPath) return
     run.t.push(tS)
     run.r.push([yy[0], yy[1], yy[2]])
     run.v.push([yy[3], yy[4], yy[5]])
