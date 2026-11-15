@@ -98,6 +98,65 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
   })
 })
 
+test.describe('U3: Time periods show the current mission and the best computed periods for its site', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('the list is the finder ranking for the site over the mission year; picking one edits the mission dates', async ({ page }) => {
+    test.setTimeout(120_000)
+    await open(page, `site=${RIDGE}&period=${AUG}&name=Ridge%20ops`)
+    await page.getByTestId('date').click()
+    const best = page.getByTestId('best-periods')
+    await expect(best).toContainText('Best periods in 2027')
+    await expect(best).toContainText('Ridge ops at Connecting Ridge')
+    const rows = best.getByTestId('best-period')
+    await expect(rows.first()).toBeVisible({ timeout: 60_000 })
+    // Reference: the finder with its defaults and the mission's 14 days, landing times in 2027, all stations.
+    const ref = (await page.evaluate(`(async () => {
+      const g = await import('/src/geometry/index.ts')
+      const L = await import('/src/data/load.ts')
+      const [sites, stations] = await Promise.all([L.loadSites(), L.loadStations()])
+      const site = sites.find((s) => s.id === ${JSON.stringify(RIDGE)})
+      const h = await L.loadHorizon(site.horizon)
+      const from = Date.UTC(2027, 0, 1), to = Date.UTC(2028, 0, 1)
+      const months = await L.loadMonthsFor(from, to + 14 * 86400000)
+      const r = g.finder(months, { lat: site.lat, lon: site.lon, elev_m: site.elev_m }, h, stations, stations.map((x) => x.id), from, to, { ...g.FINDER_DEFAULTS, missionDays: 14 })
+      return r.windows.slice(0, 5).map((w) => w.best.landingMs)
+    })()`)) as number[]
+    expect(ref.length).toBeGreaterThan(0)
+    expect(await rows.evaluateAll((bs) => bs.map((b) => Number(b.getAttribute('data-start'))))).toEqual(ref)
+    await expect(rows.first()).toContainText(/sunlit \d+ % · coverage \d+ %/)
+
+    const pick = ref[ref.length > 1 ? 1 : 0]
+    await rows.nth(ref.length > 1 ? 1 : 0).click()
+    await expect(best).toHaveCount(0) // the menu closes
+    await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'custom')
+    const slider = page.getByRole('slider', { name: 'Time in the selected period' })
+    await expect(slider).toHaveAttribute('aria-valuemin', String(pick))
+    await expect(slider).toHaveAttribute('aria-valuemax', String(pick + 14 * 86_400_000))
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-period-id', 'custom', { timeout: 60_000 })
+    // Opened again: the chosen period is marked as the current one; the mission keeps its name.
+    await page.getByTestId('date').click()
+    await expect(best.locator('[aria-current="true"]')).toHaveAttribute('data-start', String(pick), { timeout: 60_000 })
+    await expect(page.getByTestId('mission')).toContainText('Ridge ops')
+  })
+})
+
+for (const vp of [
+  { width: 1280, height: 720 },
+  { width: 375, height: 812 },
+]) {
+  test(`Time periods menu: no horizontal scroll, screenshot at ${vp.width} px`, async ({ page }) => {
+    test.setTimeout(120_000)
+    await page.setViewportSize(vp)
+    await open(page, `site=${RIDGE}&period=${AUG}`)
+    await page.getByTestId('date').click()
+    await expect(page.getByTestId('best-period').first()).toBeVisible({ timeout: 60_000 })
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+    await page.screenshot({ path: `test-results/dates-time-periods-${vp.width}.png` })
+  })
+}
+
 for (const vp of [
   { width: 1280, height: 720 },
   { width: 375, height: 812 },

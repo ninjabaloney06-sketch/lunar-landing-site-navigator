@@ -164,6 +164,17 @@
   text-align: left;
 }
 
+/* Best periods: the span on one line, its sunlit and coverage values under it. */
+.best .opt {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.best-mission {
+  color: var(--fg);
+}
+
 .date-form {
   padding-bottom: var(--s-4);
 }

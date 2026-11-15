@@ -624,6 +624,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               }}
               onCustom={openCustom}
               onClose={closeMenuQuiet}
+              missionName={missionName}
+              site={site}
+              stations={stations}
+              ids={ids}
+              missionStartMs={period.startMs}
+              missionEndMs={period.endMs}
+              onBest={(startMs, days, landingMs) => {
+                setMenu(null)
+                patch({ period: 'custom', from: startMs, days, t: landingMs })
+                dateBtn.current?.focus()
+              }}
             />
           )}
           {inFlight && menu === null && (
