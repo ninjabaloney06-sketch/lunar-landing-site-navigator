@@ -60,6 +60,9 @@ const PLAY_NOTE = 'The landing site from the first to the last mission day. Spac
 // U17: the dates of the data's coverage in the panel's own date format (16 Aug 2027), not state.ts's long months.
 const RANGE_TEXT = `Dates from ${fmtDate(COVERAGE_START_MS)} to ${fmtDate(COVERAGE_END_MS - DAY_MS)} (UTC) are supported.`
 
+/** Start moved so close to the end of the supported dates that the mission had to be shortened. */
+const shortenedText = (n: number) => `Shortened to ${n} ${n === 1 ? 'day' : 'days'}: supported dates end on ${fmtDate(COVERAGE_END_MS - DAY_MS)}.`
+
 /** A duration as "8.4 h" below a day, else "3 days 4 h" (U17). */
 export function fmtDuration(hours: number): string {
   if (hours < 24) return `${hours.toFixed(1)} h`
@@ -300,9 +303,10 @@ export function MissionPanel(p: Props) {
     const a = parseDate(startDraft)
     if (a === null) return setDateError('Start: enter a date such as 16 Aug 2027.')
     if (!inCoverage(a)) return setDateError(RANGE_TEXT)
-    setDateError(null)
     setStartDraft(null)
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    // The length is kept unless the supported dates end first; then say so (feature review: it shrank silently).
+    setDateError(n < days ? shortenedText(n) : null)
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
   // The calendar fields under the typed ones (phone testers, 15 Nov: a date typed wrongly): the browser's own date
@@ -312,9 +316,10 @@ export function MissionPanel(p: Props) {
     const a = Date.parse(`${value}T00:00:00Z`)
     if (!Number.isFinite(a)) return
     if (!inCoverage(a)) return setDateError(RANGE_TEXT)
-    setDateError(null)
     setStartDraft(null)
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    // The length is kept unless the supported dates end first; then say so (feature review: it shrank silently).
+    setDateError(n < days ? shortenedText(n) : null)
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
   const pickEnd = (value: string) => {

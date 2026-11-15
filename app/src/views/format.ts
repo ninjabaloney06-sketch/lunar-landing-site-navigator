@@ -45,12 +45,14 @@ export function fmtShort(ms: number): string {
   return `${fmtDay(ms)} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
 }
 
-/** "16–29 Aug 2027" for [start, end) with end at 00:00 of the day after the last day. */
+/** "16–29 Aug 2027" for [start, end) with end at 00:00 of the day after the last day; one day is "31 Dec 2030"
+ *  (feature review: a one-day mission read "31–31 Dec 2030"). */
 export function fmtRange(startMs: number, endMs: number): string {
   const a = new Date(startMs)
   const b = new Date(endMs - 1)
   const y = (d: Date) => d.getUTCFullYear()
   const m = (d: Date) => MONTHS[d.getUTCMonth()].slice(0, 3)
+  if (y(a) === y(b) && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate()) return `${a.getUTCDate()} ${m(a)} ${y(a)}`
   if (y(a) === y(b) && a.getUTCMonth() === b.getUTCMonth()) return `${a.getUTCDate()}–${b.getUTCDate()} ${m(a)} ${y(a)}`
   if (y(a) === y(b)) return `${a.getUTCDate()} ${m(a)} – ${b.getUTCDate()} ${m(b)} ${y(a)}`
   return `${a.getUTCDate()} ${m(a)} ${y(a)} – ${b.getUTCDate()} ${m(b)} ${y(b)}`
