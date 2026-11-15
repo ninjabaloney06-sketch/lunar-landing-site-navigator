@@ -1,0 +1,17 @@
+/* "Open in NASA tools" section in the Details drawer (views/NasaTools.tsx). Text links, no buttons; tokens.css only. */
+.nt-list li {
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.nt-detail {
+  margin: var(--s-1) 0 0;
+}
+
+.nt-off {
+  color: var(--faint);
+}
+
+.nt-claim {
+  margin: var(--s-3) 0 0;
+}

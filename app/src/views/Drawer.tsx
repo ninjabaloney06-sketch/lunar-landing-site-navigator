@@ -11,6 +11,7 @@ import { TOP_VIEW } from '../scene3d'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
+import { NasaToolsSection } from './NasaToolsSection'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteTable } from './SiteTable'
 import { Terms } from './Terms'
@@ -347,6 +348,8 @@ export function Drawer(p: Props) {
           ))}
         </ul>
       </section>
+
+      <section className="drawer-sec" aria-labelledby="sec-nasa"><h3 id="sec-nasa">Open in NASA tools</h3><NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} /></section>
 
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
