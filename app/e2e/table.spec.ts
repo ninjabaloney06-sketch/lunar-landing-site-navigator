@@ -212,7 +212,7 @@ test.describe('comparison table for all sites', () => {
     await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
     await expect(drawer.getByRole('heading', { level: 2 })).toHaveText('Malapert Massif')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('drawer=finder')
-    // Note 7 is undecided: the header keeps its four controls, "Find better dates" among them.
+    // Note 7 is undecided: the header keeps its six controls (ui.spec D4), "Find better dates" among them.
     const header = page.locator('header.top')
     await expect(header.getByRole('button', { name: 'Find better dates' })).toBeVisible()
     await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(6)

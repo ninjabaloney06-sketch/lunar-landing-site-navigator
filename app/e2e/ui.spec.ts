@@ -3,7 +3,7 @@
 // screenshots. Run: PW_PORT=5182 npx playwright test e2e/ui.spec.ts
 //
 // Site, period and station facts are read from app/public/data at run time; period labels and the station
-// count are never hard-coded. test.fixme = can only pass after integration; the reason is on the same line.
+// count are never hard-coded. A test.skip carries its reason on the same line.
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
@@ -127,7 +127,7 @@ for (const vp of VIEWPORTS) {
 test('labels sit on the points project() returns and hide on null (scene stub patched in this test)', async ({ page }) => {
   // Serves the scene3d stub with a fixed projector instead of `() => null`; no repo file is changed.
   const stub = await (await page.request.get('/src/scene3d/index.ts')).text()
-  test.skip(!stub.includes('project: () => null'), "C1's scene is merged: the fixme label tests above cover the real projector")
+  test.skip(!stub.includes('project: () => null'), "C1's scene is merged: the label tests above cover the real projector")
   const points = { sun: { x: 454, y: 163, visible: true }, earth: { x: 980, y: 117, visible: true }, site: { x: 720, y: 336, visible: true } }
   await page.route('**/src/scene3d/index.ts*', async (route) => {
     const res = await route.fetch()
