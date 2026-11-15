@@ -35,7 +35,9 @@ test('Details opens at Site details; Dates and Compare are tabs of their own, ea
 
   await page.getByTestId('drawer-tab-dates').click()
   await expect(page.getByTestId('drawer-tab-dates')).toHaveAttribute('aria-selected', 'true')
-  expect(await headings(page)).toEqual(['Find better dates', 'Year timeline'])
+  // 15 Nov 2026: the Dates tab gained "If the mission slips" and "All prepared sites" (slip rows and year rows on main);
+  // they are date sections, so the tab still holds only its own.
+  expect(await headings(page)).toEqual(['Find better dates', 'If the mission slips', 'Year timeline', 'All prepared sites'])
   await expect.poll(() => drawerOf(page)).toBe('finder')
 
   await page.getByTestId('drawer-tab-compare').click()

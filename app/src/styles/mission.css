@@ -42,6 +42,15 @@
   overflow-wrap: anywhere;
 }
 
+/* The user's mission name is set in the mission font wherever it is shown; site names keep theirs. */
+.mission-name,
+.best-mission,
+.ms-load,
+.mp-sum-name,
+.flight-mission strong {
+  font-family: var(--font-mission);
+}
+
 /* "Edit mission": a plain boxed button like the action bar's, a step smaller so the title stays the title. */
 .edit-mission {
   padding: var(--s-1) var(--s-3);

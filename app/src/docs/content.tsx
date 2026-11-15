@@ -650,7 +650,9 @@ export const DOC_SECTIONS: DocSection[] = [
           <strong>Details drawer.</strong> Three tabs. Site details: what is true of the landing site (Horizon,
           Stations, Site potential, Landing site assessment, Power and battery estimate, Open in NASA tools, Export, How
           this is computed). Dates: Find better dates and the Year timeline; &quot;Find dates with your own
-          limits&quot; in the date menu opens it too. Compare: Compare and All sites, with the saved missions. The parts:
+          limits&quot; in the date menu opens it too. Compare: Compare and All sites, with the saved missions. Under the tabs,
+          one line says what the open tab is for; every section of Site details carries one sentence that says what it is
+          for, then its current value, and opens with &quot;Show&quot;. The parts:
         </p>
         <ul className="docs-list">
           <li>

@@ -919,6 +919,40 @@ button.yt-name {
   color: var(--muted);
 }
 
+/* What the row's value means, in one quiet line under it. */
+.site-summary-why {
+  display: block;
+  grid-column: 2;
+  margin-top: 2px;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* Stations: what each state in the table means. */
+.state-key {
+  display: grid;
+  gap: var(--s-1);
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+}
+
+.state-key dt {
+  display: inline;
+  color: var(--fg);
+}
+
+.state-key dt::after {
+  content: ': ';
+}
+
+.state-key dd {
+  display: inline;
+  margin: 0;
+}
+
 /* Folds: heading, then its one-line summary under it, the +/− at the right; one rule between folds. */
 .drawer-fold,
 .drawer-sec.assess {
@@ -930,29 +964,58 @@ button.yt-name {
   margin-top: var(--s-4);
 }
 
-.drawer-fold > .drawer-fold-sum {
+.drawer .drawer-fold-sum {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   column-gap: var(--s-3);
-  padding: var(--s-2) 0;
+  row-gap: 2px;
+  padding: var(--s-3) 0;
 }
 
-.drawer-fold > .drawer-fold-sum h3 {
+.drawer .drawer-fold-sum h3 {
   grid-column: 1;
   margin: 0;
 }
 
-.drawer-fold > .drawer-fold-sum::after {
+/* The control says what it does: "Show" / "Hide" in words, not + / −. */
+.drawer .drawer-fold-sum::after {
+  content: 'Show';
   grid-column: 2;
   grid-row: 1;
+  width: auto;
+  font: 400 var(--t-small) / 1.2 var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.drawer details[open] > .drawer-fold-sum::after {
+  content: 'Hide';
+}
+
+/* What the section is for (muted), then its current value (foreground): the answer stands out from the explanation. */
+.drawer-fold-hint {
+  grid-column: 1;
+  min-width: 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--muted);
+  text-wrap: pretty;
 }
 
 .drawer-fold-val {
   grid-column: 1;
   min-width: 0;
+  margin-top: 2px;
   font-size: var(--t-small);
-  color: var(--muted);
+  color: var(--fg);
+}
+
+.drawer-tab-about {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 
 .drawer-fold-body {

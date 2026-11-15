@@ -4,7 +4,7 @@ Every library, font, icon, texture and data source used in the app, with its lic
 
 ## Special thanks
 
-- Dagny Gocher and Elia Jonas — our supervisors and teachers
+- Dagny Locher and Elia Jonas — our supervisors and teachers
 - The Student Research Center in Bad Saulgau, Germany (SFZ) — https://sfz-bw.de
 - MEXG, our school — https://mexg.de
 - Sponsor: Prime Balance — https://prime-balance.de
@@ -24,13 +24,14 @@ Shipped in `app/package.json` under `dependencies`. Licence from the `license` f
 
 ## Fonts
 
-Shipped as web fonts through three `@fontsource` packages in `app/package.json`. Licence from each package's `LICENSE` file, which reproduces the SIL Open Font License 1.1 (OFL-1.1, as stated in `package.json`).
+Shipped as web fonts through four `@fontsource` packages in `app/package.json`. Licence from each package's `LICENSE` file, which reproduces the SIL Open Font License 1.1 (OFL-1.1, as stated in `package.json`).
 
 | Font | Package and version | Copyright line in LICENSE | Licence | Link |
 |---|---|---|---|---|
 | IBM Plex Sans | @fontsource/ibm-plex-sans 5.3.0 | Copyright 2019 IBM Corp. | SIL OFL 1.1 | https://fontsource.org/fonts/ibm-plex-sans |
 | IBM Plex Mono | @fontsource/ibm-plex-mono 5.3.0 | Copyright 2017 IBM Corp. | SIL OFL 1.1 | https://fontsource.org/fonts/ibm-plex-mono |
 | Newsreader | @fontsource/newsreader 5.3.0 | Copyright 2020 The Newsreader Project Authors | SIL OFL 1.1 | https://fontsource.org/fonts/newsreader |
+| Michroma (mission name) | @fontsource/michroma 5.3.0 | Copyright 2011 The Michroma Project Authors | SIL OFL 1.1 | https://fontsource.org/fonts/michroma |
 
 ## Icons
 

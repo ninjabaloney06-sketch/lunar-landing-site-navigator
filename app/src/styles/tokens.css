@@ -22,6 +22,7 @@
   --font-serif: 'Newsreader', Georgia, serif;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mission: 'Michroma', var(--font-sans); /* the mission's name only (ninja, 15 Nov) */
   --t-display: 32px;
   --t-display-sm: 24px;
   --t-ui: 14px;

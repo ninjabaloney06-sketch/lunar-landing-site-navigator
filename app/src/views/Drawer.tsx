@@ -63,9 +63,9 @@ interface Props {
 
 type Tab = 'site' | 'dates' | 'compare'
 const TABS: { id: Tab; label: string; section: DrawerSection; hint: string }[] = [
-  { id: 'site', label: 'Site details', section: 'details', hint: 'Horizon, stations, site potential, assessment, power, export and sources for this landing site' },
-  { id: 'dates', label: 'Dates', section: 'finder', hint: 'Find better dates for this site and see the whole year' },
-  { id: 'compare', label: 'Compare', section: 'compare', hint: 'This site against another site or period, all sites and your saved missions' },
+  { id: 'site', label: 'Site details', section: 'details', hint: 'What this landing site is like on your mission dates. Press a heading to open it. Full data (top right) adds the method, raw values and sources.' },
+  { id: 'dates', label: 'Dates', section: 'finder', hint: 'Search for dates when this site gets more sunlight or more contact with Earth, and see the whole year at a glance.' },
+  { id: 'compare', label: 'Compare', section: 'compare', hint: 'Put this site next to another site or other dates, and see all sites and your saved missions in one table.' },
 ]
 const tabOf = (s: DrawerSection): Tab => (s === 'finder' ? 'dates' : s === 'missions' || s === 'compare' ? 'compare' : 'site')
 
@@ -309,6 +309,10 @@ export function Drawer(p: Props) {
           </button>
         ))}
       </div>
+      {/* What the open tab is for, in view (not only in the hover text): the drawer explains itself. */}
+      <p className="quiet drawer-tab-about" data-testid="drawer-tab-about">
+        {TABS.find((t) => t.id === tab)?.hint}
+      </p>
 
       {tab === 'dates' && (<>
       <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
@@ -348,19 +352,23 @@ export function Drawer(p: Props) {
             <li data-testid="summary-sun">
               <span className="site-summary-k">Sunlit</span> {fmtPct(results.results.summary.litPct)} of the mission dates · longest darkness{' '}
               {fmtSpanH(results.results.summary.longestDarkH)}
+              <span className="site-summary-why">Sunlit: part of the Sun is above the terrain around the site. Solar panels need it.</span>
             </li>
             <li data-testid="summary-contact">
               <span className="site-summary-k">Station contact</span> {fmtPct(results.results.summary.coveragePct)} · longest gap{' '}
               {fmtSpanH(results.results.summary.longestGapH)}
+              <span className="site-summary-why">Share of the mission dates with a free line of sight to at least one selected antenna on Earth. Line of sight only, not a guaranteed radio link.</span>
             </li>
             <li data-testid="summary-slope">
               <span className="site-summary-k">Slope</span> <SlopeValue site={site} />
+              <span className="site-summary-why">How steep the ground is at the site's point, against the project's 5° landing criterion. Landing site assessment below checks the whole landing area and is stricter, so it can fail where this passes.</span>
             </li>
             <li data-testid="summary-science">
               <span className="site-summary-k">Science</span>{' '}
               {site.potential.length
                 ? `${[...new Set(site.potential.map((x) => CATEGORY[x.category]))].join(', ')} (sourced; see Site potential)`
                 : 'no sourced site potential yet'}
+              <span className="site-summary-why">What published sources say this place offers for research. Details under Site potential.</span>
             </li>
           </ul>
         ) : (
@@ -373,6 +381,7 @@ export function Drawer(p: Props) {
         id="sec-stations"
         title="Stations"
         testId="fold-stations"
+        hint="The antennas on Earth that can talk to the lander. Contact needs a free line of sight between the site and at least one of them."
         summary={ready && atCursor ? <span data-testid="stations-lead">{stationLead(p.ids.map((id) => atCursor.stations[id]))}</span> : null}
       >
         {full && (
@@ -419,6 +428,21 @@ export function Drawer(p: Props) {
               })}
           </tbody>
         </table>
+        {/* The three state strings stay as they are (pinned by e2e and quoted in the docs); this key explains them. */}
+        <dl className="quiet state-key" data-testid="stations-key">
+          <div>
+            <dt>line of sight</dt>
+            <dd>nothing stands between the site and this antenna.</dd>
+          </div>
+          <div>
+            <dt>blocked by terrain</dt>
+            <dd>seen from the site, lunar hills or crater walls hide the antenna.</dd>
+          </div>
+          <div>
+            <dt>Moon below station mask</dt>
+            <dd>the Moon is too low in this antenna&apos;s sky, below the lowest angle it is counted from.</dd>
+          </div>
+        </dl>
         <p className="quiet drawer-note">
           {p.ids.length} of {p.stations.length} stations selected.{' '}
           <button type="button" className="link" onClick={p.onChooseStations}>
@@ -470,7 +494,8 @@ export function Drawer(p: Props) {
         id="sec-potential"
         title="Site potential"
         testId="fold-potential"
-        summary={site.potential.length ? `${site.potential.length} sourced ${site.potential.length === 1 ? 'entry' : 'entries'}` : 'none yet'}
+        hint="Why this place is worth visiting: water ice, permanently cold ground, long sunlight or other science, each with its source."
+        summary={site.potential.length ? `${site.potential.length} ${site.potential.length === 1 ? 'statement' : 'statements'} from published sources` : 'none yet'}
       >
         {site.potential.length === 0 && <p className="quiet">No sourced site potential for this site yet.</p>}
         <ul className="plain potential">
@@ -503,11 +528,11 @@ export function Drawer(p: Props) {
       </Fold>
 
       <SiteAssessment key={site.id} site={site} />
-      <Fold id="sec-nasa" title="Open in NASA tools" testId="fold-nasa" summary="Moon Trek, QuickMap, JPL Horizons">
+      <Fold id="sec-nasa" title="Open in NASA tools" testId="fold-nasa" hint="Open this same place in NASA's own maps and tools to look around or check our numbers." summary="Moon Trek, QuickMap, JPL Horizons">
         <NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} />
       </Fold>
 
-      <Fold id="sec-export" title="Export" testId="fold-export" summary={<><abbr title={ABBR.CSV}>CSV</abbr> file or a link to this view</>}>
+      <Fold id="sec-export" title="Export" testId="fold-export" hint="Save these results as a file for a spreadsheet, or copy a link that opens exactly this view." summary={<><abbr title={ABBR.CSV}>CSV</abbr> file or a link to this view</>}>
         <p className="quiet sec-lead">
           <Marked text="CSV: every sunlit and contact window of this period, plus its summary values." />
         </p>
@@ -530,6 +555,7 @@ export function Drawer(p: Props) {
         id="sec-horizon"
         title="Horizon"
         testId="fold-horizon"
+        hint="The skyline around the landing site, with the Sun and Earth. Anything below the skyline is hidden behind hills or crater walls."
         summary={
           ready && atCursor ? (
             <span data-testid="horizon-lead">
