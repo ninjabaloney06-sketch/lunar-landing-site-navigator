@@ -256,7 +256,7 @@ export interface IdealEnergy {
   /** What the planned mission's engines put into their exhaust: Σ ½ · propellant · (g0 · Isp)² over every burn. */
   missionJetEnergyMj: number
   /** The same sum without the launch to Earth orbit: every burn from the Trans-Lunar Injection on, MJ. The launch
-   *  is the same for every landing point, so this is the part a landing point can change (energy multiplier). */
+   *  is the same for every landing point, so this is the part a landing point can change. */
   spaceJetEnergyMj: number
   /** The mass that makes the whole round trip: the capsule at Entry Interface, kg. */
   referenceMassKg: number

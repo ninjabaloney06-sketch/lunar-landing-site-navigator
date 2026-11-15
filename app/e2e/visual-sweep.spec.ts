@@ -172,7 +172,7 @@ function sweep(vp: (typeof VIEWPORTS)[number]) {
         await page.waitForTimeout(1500)
       })
       await shot(page, '32-flight-result', async () => {
-        await expect(page.getByTestId('flight-factor')).toHaveText(/\d/, { timeout: 90_000 })
+        await expect(page.getByTestId('flight-payload')).toHaveAttribute('data-state', 'ready', { timeout: 90_000 })
         await page.waitForTimeout(2000)
       })
       await shot(page, '33-flight-toggled', async () => {
