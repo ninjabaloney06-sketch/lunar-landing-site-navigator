@@ -49,6 +49,7 @@ import type { FlightScene, SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
 import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
+import { useClickOutside } from './views/useClickOutside'
 import { fmtCoords, fmtDateTime, fmtDeg } from './views/format'
 import { resolvePeriod } from './views/period'
 import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
@@ -288,6 +289,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     })
   }, [])
   const closeMenuQuiet = useCallback(() => closeMenu(false), [closeMenu])
+
+  // The drawer, the search and the docs close on a press outside them (U9), the 3D canvas included; as for a menu,
+  // that press is not also a click on the scene.
+  const drawerHost = useRef<HTMLDivElement>(null)
+  const closeDrawerOutside = useCallback(() => {
+    menuClosedAt.current = performance.now()
+    patch({ drawer: null })
+  }, [patch])
+  useClickOutside(drawerHost, closeDrawerOutside, hs.drawer !== null)
 
   // Simulate: the cursor follows the real clock (elapsed time × speed), on the 30-minute grid, until the
   // period's last step. A timer that reads the clock, so a throttled tab plays at the same pace, in fewer steps.
@@ -703,6 +713,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               hidden={inFlight}
               className="find"
               data-testid="search-open"
+              data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
               onClick={() => patch({ drawer: 'search' })}
@@ -716,6 +727,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               hidden={inFlight}
               className="find details-btn"
               data-testid="details"
+              data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
               onClick={() => patch({ drawer: 'details' })}
@@ -859,62 +871,65 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </footer>
       </div>
 
-      {hs.drawer === 'search' && (
-        <SearchPanel
-          sites={sites}
-          stations={stations}
-          ids={ids}
-          site={site}
-          period={period}
-          pois={poiData}
-          // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
-          onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
-          // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
-          onShowPoi={(poi, groups) => {
-            const id = customSiteId(poi.lat, poi.lon)
-            const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
-            patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
-          }}
-          onClose={() => patch({ drawer: null })}
-        />
-      )}
+      {/* display: contents, so the panels lay out as before; the host only tells inside from outside (U9). */}
+      <div ref={drawerHost} className="drawer-host">
+        {hs.drawer === 'search' && (
+          <SearchPanel
+            sites={sites}
+            stations={stations}
+            ids={ids}
+            site={site}
+            period={period}
+            pois={poiData}
+            // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
+            onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
+            // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
+            onShowPoi={(poi, groups) => {
+              const id = customSiteId(poi.lat, poi.lon)
+              const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
+              patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
+            }}
+            onClose={() => patch({ drawer: null })}
+          />
+        )}
 
-      {hs.drawer === 'docs' && (
-        <Suspense fallback={null}>
-          <DocsView onClose={() => patch({ drawer: null })} />
-        </Suspense>
-      )}
+        {hs.drawer === 'docs' && (
+          <Suspense fallback={null}>
+            <DocsView onClose={() => patch({ drawer: null })} />
+          </Suspense>
+        )}
 
-      {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
-        <Drawer
-          section={hs.drawer}
-          site={site}
-          customHorizon={customReady?.horizon ?? null}
-          period={period}
-          cursorMs={cursor}
-          sites={sites}
-          periods={periods}
-          stations={stations}
-          ids={ids}
-          results={results}
-          atCursor={atCursor}
-          onChooseStations={() => {
-            patch({ drawer: null })
-            setPanelAtStations(true)
-            setMenu('mission')
-          }}
-          onShowWindow={(startMs, days, landingMs) =>
-            // open exactly the interval the finder scored: [landing, landing + days), not the landing day's midnight
-            patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
-          }
-          onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
-          goal={hs.goal}
-          missions={missions.list}
-          onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
-          onCalculateFlight={calculateFlight}
-          onClose={() => patch({ drawer: null })}
-        />
-      )}
+        {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
+          <Drawer
+            section={hs.drawer}
+            site={site}
+            customHorizon={customReady?.horizon ?? null}
+            period={period}
+            cursorMs={cursor}
+            sites={sites}
+            periods={periods}
+            stations={stations}
+            ids={ids}
+            results={results}
+            atCursor={atCursor}
+            onChooseStations={() => {
+              patch({ drawer: null })
+              setPanelAtStations(true)
+              setMenu('mission')
+            }}
+            onShowWindow={(startMs, days, landingMs) =>
+              // open exactly the interval the finder scored: [landing, landing + days), not the landing day's midnight
+              patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
+            }
+            onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
+            goal={hs.goal}
+            missions={missions.list}
+            onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
+            onCalculateFlight={calculateFlight}
+            onClose={() => patch({ drawer: null })}
+          />
+        )}
+      </div>
     </div>
   )
 }

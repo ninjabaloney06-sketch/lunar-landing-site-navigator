@@ -2,6 +2,7 @@
 // (U9), the header at 375 px, a saved mission's transfer cap.
 // Run: PW_GPU=1 PW_PORT=5187 npx playwright test e2e/shell.spec.ts
 import { expect, test } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -55,4 +56,52 @@ test('U12: no Flight plan tab; the current mission reaches the flight view in tw
   await expect(page.getByTestId('flight-panel')).toBeVisible({ timeout: 30_000 })
   await page.locator('body').press('Escape')
   await expect.poll(() => viewOf(page)).toBeNull() // the landing-site view is the default, so not in the link
+})
+
+test.describe('U9: a press outside closes every open menu and panel; the 3D canvas counts as outside', () => {
+  test.use({ viewport: { width: 1280, height: 720 } })
+
+  test('drawer, search, mission panel, date menu and View menu each close on a press on the canvas; a press inside keeps them', async ({ page }) => {
+    test.setTimeout(120_000)
+    await open(page)
+    const canvas = page.locator('.stage canvas').first()
+    await expect(canvas).toBeVisible()
+    // a point of the scene that no panel covers: left of the drawer, below the header, above the timeline
+    const onCanvas = async () => {
+      const b = (await canvas.boundingBox())!
+      await page.mouse.click(b.x + b.width * 0.55, b.y + b.height * 0.45)
+    }
+    const cases: [string, () => Promise<void>, string | Locator][] = [
+      ['drawer', () => page.getByTestId('details').click(), 'drawer'],
+      ['search', () => page.getByTestId('search-open').click(), 'search'],
+      ['mission panel', () => page.getByTestId('mission').click(), 'mission-panel'],
+      ['date menu', () => page.getByTestId('date').click(), page.getByRole('dialog', { name: 'Time periods' })],
+      ['View menu', () => page.getByTestId('view').click(), 'view-menu'],
+    ]
+    for (const [what, openIt, id] of cases) {
+      await openIt()
+      const panel = typeof id === 'string' ? page.getByTestId(id) : id
+      await expect(panel, `${what} open`).toBeVisible()
+      // a press inside does not close it
+      const pb = (await panel.boundingBox())!
+      await page.mouse.click(pb.x + 4, pb.y + 4)
+      await expect(panel, `${what} after a press inside`).toBeVisible()
+      await onCanvas()
+      await expect(panel, `${what} after a press on the canvas`).toHaveCount(0)
+    }
+    // the press that closed a panel did not also change the selection (no walk, no site change)
+    await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
+  })
+
+  test('the drawer also closes on a press on the header or the timeline', async ({ page }) => {
+    await open(page)
+    await page.getByTestId('details').click()
+    await expect(page.getByTestId('drawer')).toBeVisible()
+    await page.getByTestId('coords').click()
+    await expect(page.getByTestId('drawer')).toHaveCount(0)
+    await page.getByTestId('details').click()
+    await expect(page.getByTestId('drawer')).toBeVisible()
+    await page.getByTestId('answer').click()
+    await expect(page.getByTestId('drawer')).toHaveCount(0)
+  })
 })

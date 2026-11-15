@@ -290,6 +290,11 @@ a:hover {
   border-color: var(--fg);
 }
 
+/* the drawer, search and docs panels' common parent: no box of its own (App.tsx, click outside closes) */
+.drawer-host {
+  display: contents;
+}
+
 /* ---------- bottom: answer, timeline, footer ---------- */
 
 .bottom {
