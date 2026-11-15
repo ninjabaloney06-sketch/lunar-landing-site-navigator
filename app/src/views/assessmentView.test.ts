@@ -3,7 +3,7 @@
 // on 15 Nov 2026 (they match the Results table in docs/event/validation.md, "Mandatory site assessments").
 import { describe, expect, it } from 'vitest'
 import raw from '../../public/data/assessments.json?raw'
-import { ASSESSMENT_STATUS, NOT_COMPUTED, NO_DATA, TERMS, clean, compass, firstClause, linkParts, mapAssessment, radius, termParts } from './assessmentView'
+import { ASSESSMENT_STATUS, STRICTER_THAN_LIST, NOT_COMPUTED, NO_DATA, TERMS, clean, compass, firstClause, linkParts, mapAssessment, radius, termParts } from './assessmentView'
 import type { AssessmentView, Block } from './assessmentView'
 
 const file = JSON.parse(raw) as { sites: Record<string, Record<string, unknown>> }
@@ -184,5 +184,18 @@ describe('helpers', () => {
       { text: '; ' },
       { text: 'https://pgda.gsfc.nasa.gov/products/90', href: 'https://pgda.gsfc.nasa.gov/products/90' },
     ])
+  })
+})
+
+describe('the landing rule is stricter than the site list slope (Connecting Ridge)', () => {
+  it('passes the 100 m point slope in sites.json, fails the per-pixel disk rule; the sentence says why both hold', async () => {
+    const sites = JSON.parse((await import('../../public/data/sites.json?raw')).default) as { id: string; slope_deg: number }[]
+    expect(sites.find((s) => s.id === 'connecting-ridge')!.slope_deg).toBeLessThanOrEqual(5)
+    const v = mapAssessment(file, 'connecting-ridge')
+    expect(ready(v).headline.verdict).toBe('Fails')
+    expect(block(v, 'slope').limitations.join(' ')).toContain('it is not the 100 m point slope in sites.json')
+    expect(STRICTER_THAN_LIST).toBe(
+      'This is stricter than the slope shown in the site list (the 100 m point slope at the site); a site can pass that and fail this.',
+    )
   })
 })
