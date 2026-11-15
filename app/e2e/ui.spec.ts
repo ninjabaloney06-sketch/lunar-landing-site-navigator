@@ -421,7 +421,7 @@ test('U7: the horizon chart draws each body\'s path over the mission, unbroken e
 // ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search; U4 (15 Nov): "Find better dates" goes, Details opens the drawer at the date search ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 5 controls, main screen 10, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 5 controls, main screen 11, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
@@ -429,8 +429,9 @@ for (const vp of VIEWPORTS) {
     await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(5)
     // 5 in the header (mission, date, Points of interest, Search, Details; U4 removed "Find better dates", U12 the
     // tabs) + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed", "Docs" and
-    // "Full documentation"; the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
+    // "Full documentation" + the footer's validation line with its one link to the record ("see record", add-on
+    // task 3 of 15 Nov); the answer line is text, not a control.
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(11)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
@@ -672,9 +673,9 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 5 controls (U4) and the main screen 10.
+  // The warning is text, not a control: the header still has 5 controls (U4) and the main screen 11.
   await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(5)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(11)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
