@@ -450,8 +450,8 @@ D2. **`docs/credits.md`**: every 3D model, artwork, texture, icon, font, library
     - The Student Research Center in Bad Saulgau, Germany (SFZ) — https://sfz-bw.de
     - MEXG, our school — https://mexg.de
     - Sponsor: Prime Balance — https://prime-balance.de
-    - Our team: Otto Erwerle — Code & Backend Lead · Leonhard Greiner — Science Lead · Isaac Brauer — AI Lead ·
-      Benedikt Schmidt — Design & Frontend Lead
+    - Our team: Otto Erwerle — Code Lead · Leonhard Greiner — Science Lead · Isaac Brauer — AI Lead ·
+      Benedikt Schmidt — Design & UI Lead
 D3. **`docs/scientific-proof/`**: one file per calculation (sunlight/horizon, Earth visibility/contact,
     ranking score, trajectory, descent, payload, dispersion, uncertainty), each with: equation, inputs with
     source, assumptions, ε and its propagation, test that checks it, validation status. As detailed as
