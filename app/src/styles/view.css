@@ -215,6 +215,19 @@
   margin: 0 0 var(--s-3);
 }
 
+/* The dates line with the Full data switch in the top-right corner, as on the POI card. */
+.st-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+
+.st-head .quiet {
+  margin: 0;
+}
+
 .st-controls {
   /* One control per line: the button never floats between two radio rows (defect 28). */
   display: grid;

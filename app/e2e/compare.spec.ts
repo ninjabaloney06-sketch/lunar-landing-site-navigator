@@ -82,6 +82,35 @@ test.describe('saved missions in the All sites table at 1280 × 720', () => {
   })
 })
 
+test.describe('Full data in the All sites table at 1280 × 720', () => {
+  test('summary shows the chosen columns only; Full data (top-right switch) adds the other values, slope, source and the method', async ({ page }) => {
+    await save(page, A)
+    const table = await openTable(page)
+    await expect(table.getByText('…', { exact: true })).toHaveCount(0, { timeout: 60_000 })
+    const sw = table.getByTestId('full-data-switch')
+    await expect(sw).toHaveText('Full data')
+    const tb = (await table.boundingBox())!
+    const sb = (await sw.boundingBox())!
+    expect(sb.x + sb.width).toBeGreaterThan(tb.x + tb.width - 4)
+    expect(sb.y).toBeLessThan(tb.y + 40)
+    await expect(table.getByTestId('st-full')).toHaveCount(0)
+    await expect(table.getByTestId('st-method')).toHaveCount(0)
+
+    await sw.click()
+    const ridge = table.locator('tr[data-site-id="connecting-ridge"]')
+    await expect(ridge.getByTestId('st-full')).toContainText(/Longest darkness \d+\.\d h/)
+    await expect(ridge.getByTestId('st-full')).toContainText(/Earth above horizon \d+\.\d %/)
+    await expect(ridge.getByTestId('st-full')).toContainText(/Slope \d+\.\d°/)
+    await expect(ridge.getByTestId('st-full').getByRole('link')).toHaveCount(1)
+    await expect(ridge.getByTestId('st-full')).not.toContainText('Sunlit') // already a column
+    await expect(table.getByTestId('mission-rows').getByTestId('st-full')).toContainText(/Longest coverage gap \d+\.\d h/, { timeout: 30_000 })
+    await expect(table.getByTestId('st-method')).toBeVisible()
+    await expect(page.locator('body')).not.toContainText('NaN')
+    await sw.click()
+    await expect(table.getByTestId('st-full')).toHaveCount(0)
+  })
+})
+
 test.describe('touch sizes at 375 × 812', () => {
   test.use({ viewport: { width: 375, height: 812 } })
 
