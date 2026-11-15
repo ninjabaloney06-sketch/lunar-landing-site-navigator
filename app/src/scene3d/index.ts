@@ -811,9 +811,33 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     resetZoom()
     setControls()
     siteCam.position.copy(enuDir(az + 180, el)).multiplyScalar(distKm * 1000)
+    // A pose set from outside (setView, a saved or linked camera) may lie under the terrain: raise the elevation on
+    // the same orbit until the camera clears the ground by the floor the mouse input keeps (siteRig.allowed).
+    if (!siteRig.allowed(siteCam.position)) {
+      let lo = el
+      let hi = 90
+      const at = (e: number) => enuDir(az + 180, e).multiplyScalar(distKm * 1000)
+      if (siteRig.allowed(at(hi - 0.01))) {
+        for (let i = 0; i < 30; i++) {
+          const mid = (lo + hi) / 2
+          if (siteRig.allowed(at(mid))) hi = mid
+          else lo = mid
+        }
+        siteCam.position.copy(at(hi))
+      } else siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
+    }
     siteControls.target.set(0, 0, 0)
     siteCam.lookAt(siteControls.target)
     siteControls.update()
+  }
+
+  /** The site camera at rest under ground that was just rebuilt (finer level arrived): back onto the floor. */
+  function settleSite(): boolean {
+    if (level !== 'site' || fly || siteRig.allowed(siteCam.position)) return false
+    siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
+    siteCam.updateMatrixWorld(true)
+    viewVersion++
+    return true
   }
 
   /**
@@ -1692,7 +1716,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     // to apply. Every placement of a camera calls update() itself.
     if (orbitBusy(ctl) && ctl.update()) markDirty()
     if (keepAboveGround()) markDirty()
-    if (settleEye()) markDirty()
+    if (settleEye() || settleSite()) markDirty()
   }
 
   let lastMs = performance.now()
