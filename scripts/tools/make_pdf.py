@@ -36,13 +36,13 @@ story = [
                            "Overnight: Jugendherberge Heilbronn (4-bed room, Sat → Sun)."),
         ("Team", "4, all under 18. Proposed: L = science lead (physics, validation), O = code checks (tests, security), B = frontend + design, "
                  "Isaac = product, data scripts via agents, pitch. "
-                 "Accompanied by Dagny Locher, a Betreuerin from Isaac's school, who also covers a second team."),
+                 "Accompanied by a Betreuerin from Isaac's school, who also covers a second team."),
         ("Agents", "Repo agents write scripts and docs. Device agents on Isaac's computers do downloads, data copying, "
                    "Isaac's accounts and forms; each such action only after Isaac approves it."),
         ("Confirmed", "Organiser (12 Oct) + official rules (16 Oct): project must arise during the event, no challenge work before it "
                       "(prep = physics reading, NASA data, tools like JPL Horizons; statements 28 Oct, submission + judging guides 13 Nov); "
                       "under 18 → accompaniment for the whole event incl. overnight + written authorisation per participant, "
-                      "accompanied by Dagny Locher (school Betreuerin; scheme accepted, self-registration kept — Isaac, 25 Oct); "
+                      "accompanied by a school Betreuerin (scheme accepted, self-registration kept — Isaac, 25 Oct); "
                       "Wi-Fi unrestricted; bring power strips; global nominations scale with local submissions (no country quota); "
                       "local prizes independent of the global funnel; submission: no minors' photos/voices/names, cite + license everything, describe AI-tool use."),
         ("Still open", "Submission format and 2026 award categories (guides, 13 Nov) · roles · "

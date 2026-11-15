@@ -2,7 +2,7 @@
 
 > **Update 12:10: ninja resumed the orchestration on his Mac. Do NOT start a second orchestrator from this file.** Pre-flight (§4) is done on main (commit "Step 1 pre-flight"). This file stays as the reference for the contracts, split and decisions, and as the fallback if the Mac session stops again.
 
-Written by the step-1 orchestrator session (Claude Code, Opus 5.5, ninja's Mac / Guest123), which ninja stopped at ~12:00 so that a session on another device continues. Read this file completely before acting. It pre-loads every fact, decision and design choice the stopped session had. Do not re-derive or re-ask anything stated here.
+Written by the step-1 orchestrator session (Claude Code, Opus 5.5, ninja's Mac), which ninja stopped at ~12:00 so that a session on another device continues. Read this file completely before acting. It pre-loads every fact, decision and design choice the stopped session had. Do not re-derive or re-ask anything stated here.
 
 ## 0. Paste this into the new session
 

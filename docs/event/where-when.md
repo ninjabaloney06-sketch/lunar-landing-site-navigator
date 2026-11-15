@@ -2,7 +2,7 @@
 
 > **Superseded 26 Oct:** the team sleeps at the venue, not in the Jugendherberge. Ignore the hostel rows below; see docs/reference/decisions.md.
 
-Where the team (Isaac, O, B, L) and the Betreuerin, **Dagny Locher**, have to be, hour by hour.
+Where the team (Isaac, O, B, L) and the Betreuerin have to be, hour by hour.
 What we build in those hours is in [docs/event/event-plan.md](event-plan.md).
 
 The Betreuerin must be with us for the whole event, including the night (organiser email, 12 Oct). So the
@@ -24,7 +24,7 @@ Walking times: OpenStreetMap foot routing (25 Oct). Venue times: the [local even
 |---|---|---|
 | by **08:05** | Heilbronn Hbf | Train from Stuttgart arrives. Pick the exact train in DB Navigator; check for construction notices a few days before. Bring the overnight bags; the hostel only checks in from 15:00. |
 | 08:05–08:25 | on foot | Hbf → venue, 18 min. |
-| **08:30** | Venue | Registration and breakfast. Hand in the signed parental authorisations (one per person, naming Dagny Locher). |
+| **08:30** | Venue | Registration and breakfast. Hand in the signed parental authorisations (one per person, naming the Betreuerin). |
 | 09:00 | Venue | Opening ceremony. 10:30 hacking begins. |
 | 13:00 | Venue | Lunch. |
 | 18:45 | Venue | Dinner. |
@@ -50,8 +50,8 @@ Walking times: OpenStreetMap foot routing (25 Oct). Venue times: the [local even
 
 | What | Who | By |
 |---|---|---|
-| Hostel 4-bed room, Sat → Sun, booked as a group with the second team | Dagny Locher (Isaac asked 25 Oct) | 7 Nov |
-| At booking: entry after 22:30 on Saturday, key return before 07:30 on Sunday, Wi-Fi in a common room, quiet hours | Dagny Locher | with the booking |
-| Signed parental authorisation naming Dagny Locher, one per person | each person's parents | 7 Nov |
+| Hostel 4-bed room, Sat → Sun, booked as a group with the second team | the Betreuerin (Isaac asked 25 Oct) | 7 Nov |
+| At booking: entry after 22:30 on Saturday, key return before 07:30 on Sunday, Wi-Fi in a common room, quiet hours | the Betreuerin | with the booking |
+| Signed parental authorisation naming the Betreuerin, one per person | each person's parents | 7 Nov |
 | Train Stuttgart → Heilbronn, arriving by 08:05 on Saturday; return Sunday evening | team + Betreuerin | 7 Nov |
-| Membership: the DJH requires it; one group card covers a group | Dagny Locher | with the booking |
+| Membership: the DJH requires it; one group card covers a group | the Betreuerin | with the booking |
