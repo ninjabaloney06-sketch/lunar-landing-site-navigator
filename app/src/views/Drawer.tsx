@@ -22,7 +22,7 @@ import { YearTimeline } from './Timeline'
 import type { YearRow } from './Timeline'
 import { resolvePeriod } from './period'
 import { yearOf } from './yearBars'
-import { capital, fmtDateTime, fmtDeg, fmtPct, fmtSpanH } from './format'
+import { capital, fmtDateTime, fmtDeg, fmtPct, fmtShort, fmtSpanH } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
@@ -286,8 +286,9 @@ export function Drawer(p: Props) {
           <h2 id="drawer-title" className="drawer-title">
             {site.name}
           </h2>
-          <p className="quiet">
-            <Marked text={`${period.label} · ${fmtDateTime(p.cursorMs)}`} />
+          {/* One date format in the header (F19): the period's "16–29 Aug 2027" and the cursor as "20 Aug 2027, 06:00 UTC". */}
+          <p className="quiet" data-testid="drawer-when">
+            <Marked text={`${period.label} · ${fmtShort(p.cursorMs)} UTC`} />
           </p>
         </div>
         <div className="drawer-tools">
