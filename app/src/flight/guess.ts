@@ -9,7 +9,7 @@
 // over the landing site when the lander comes down. The liftoff is searched for the smallest delta-v among the
 // instants whose touchdown falls within a day after the earliest one asked for: the launch geometry repeats
 // daily, so that is one full set of opportunities, and the stay in lunar orbit is never longer than it must be.
-import { MU_EARTH, MU_MOON, OMEGA_EARTH, R_EARTH_EQ, SOI_MOON, DAY_S, bisect, circularSpeed, eccentricToTrue, ellipse, goldenMin, hyperbola, hyperbolicTimeFromPeriapsis, perifocal, timeFromPeriapsis, trueAnomalyAtRadius, trueToEccentric, visViva } from './astro'
+import { MU_EARTH, MU_MOON, OMEGA_EARTH, R_EARTH_EQ, R_MOON, SOI_MOON, DAY_S, bisect, circularSpeed, eccentricToTrue, ellipse, goldenMin, hyperbola, hyperbolicTimeFromPeriapsis, perifocal, timeFromPeriapsis, trueAnomalyAtRadius, trueToEccentric, visViva } from './astro'
 import type { Ellipse } from './astro'
 import type { FlightEphemeris, Vec3 } from './types'
 import { FlightPlanError } from './types'
@@ -62,7 +62,7 @@ export interface Guess {
  *  https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm ); Artemis I
  *  "approximately one revolution in Earth orbit" before the injection (NASA, SLS update, ASCEND 2023,
  *  https://ntrs.nasa.gov/api/citations/20230013280/downloads/Final%20-%20ASCEND%202023%20-%20SLS%20Update.pdf ). */
-export const MIN_PARKING_COAST_RAD = TWO_PI
+const MIN_PARKING_COAST_RAD = TWO_PI
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
 const mod2pi = (x: number) => ((x % TWO_PI) + TWO_PI) % TWO_PI
@@ -88,7 +88,7 @@ function transferFor(rPark: number, d: number, maxDays: number | null) {
 function evaluate(g: GuessInput, tL: number): Guess | null {
   const { ephem } = g
   const rPark = R_EARTH_EQ + g.parkingAltKm
-  const rLlo = 1737.4 + g.lunarOrbitAltKm
+  const rLlo = R_MOON + g.lunarOrbitAltKm
   const vc = circularSpeed(MU_EARTH, rPark)
   const nPark = vc / rPark
   const qEarth = ephem.earthFixedToInertial(tL)

@@ -24,7 +24,7 @@
 //             https://ntrs.nasa.gov/citations/20230002566 : NRHO departure plus insertion into a 100 km circular
 //             low lunar orbit, nominal 704.5 m/s and 704.9 m/s (site Connecting Ridge), transfer 0.5 to 1.5 days.
 //   [REA]     Rea, McNamara, Kane, "Orion Artemis I Entry Performance" (NASA JSC), https://ntrs.nasa.gov/citations/20240000024 :
-//             the source named for Artemis I's flight-path angle at entry interface, âˆ’5.66Â° (the value was handed to
+//             the source named for Artemis I's flight-path angle at entry interface, −5.66° (the value was handed to
 //             this planner with that reference; the abstract page itself does not state it).
 import { describe, expect, it } from 'vitest'
 import aug2027 from '../../public/data/ephem/2027-08.json?raw'
