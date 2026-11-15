@@ -140,8 +140,9 @@ test('labels sit on the points project() returns and hide on null (scene stub pa
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await expect(page.getByTestId('label-sun')).toBeVisible()
-  await expect(page.getByTestId('label-sun')).toHaveText(/^Sun −?\d+\.\d°$/)
-  await expect(page.getByTestId('label-earth')).toHaveText(/^Earth −?\d+\.\d°$/)
+  // 15 Nov: a body behind the site's terrain horizon says so after its angle.
+  await expect(page.getByTestId('label-sun')).toHaveText(/^Sun −?\d+\.\d°( · behind terrain at the site)?$/)
+  await expect(page.getByTestId('label-earth')).toHaveText(/^Earth −?\d+\.\d°( · behind terrain at the site)?$/)
   await expect(page.getByTestId('label-site')).toHaveText('Landing site')
   await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: 'test-results/labels-1440.png', animations: 'disabled' })

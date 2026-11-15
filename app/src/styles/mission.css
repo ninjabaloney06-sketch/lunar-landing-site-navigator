@@ -521,3 +521,16 @@
   gap: var(--s-3);
   margin: var(--s-4) 0 0;
 }
+
+/* the calendar fields under the typed dates */
+.mp-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.mp-pick .field {
+  width: auto;
+  flex: 0 1 11.5em;
+}

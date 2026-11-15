@@ -543,6 +543,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             view={hs.view}
             sunEl={atCursor ? atCursor.sun.el : null}
             earthEl={atCursor ? atCursor.earth.el : null}
+            sunHidden={atCursor ? !atCursor.sun.lit : false}
+            earthHidden={atCursor ? !atCursor.earth.visible : false}
             flight={flightScene}
             onUnavailable={onUnavailable}
             onPick={onPick}

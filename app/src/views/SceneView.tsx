@@ -86,6 +86,11 @@ interface Props {
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
   pois: ScenePoi[] // points of interest to draw ([] = layer off)
   poiById: Map<string, Poi> | null // records for the info box; null until pois.json is loaded
+  /** The landing site's own answer at this time: the Sun, or Earth, is behind the site's terrain horizon. The camera at
+   *  site level is high above the site and still sees the body, so the label says it (15 Nov: "Sun drawn above the
+   *  terrain while the answer says dark"). */
+  sunHidden?: boolean
+  earthHidden?: boolean
   /** The text at the mast top: "Landing site", or the mission's own name with it once the user named the mission. */
   siteLabel?: string
   onGoToPoi?(poi: Poi): void // the info box's "Show as landing site" (App.tsx showPoi, as the search's "Show")
@@ -718,12 +723,14 @@ export function SceneView(props: Props) {
         <div ref={sun} className="obj" hidden>
           <div className="obj-box" data-testid="label-sun">
             <span className="obj-name obj-sun">Sun</span> <span className="obj-num">{sunEl === null ? '' : fmtDeg(sunEl)}</span>
+            {props.sunHidden && <span className="obj-note" data-testid="label-sun-hidden"> · behind terrain at the site</span>}
             <span className="obj-tick" />
           </div>
         </div>
         <div ref={earth} className="obj" hidden>
           <div className="obj-box" data-testid="label-earth">
             <span className="obj-name obj-earth">Earth</span> <span className="obj-num">{earthEl === null ? '' : fmtDeg(earthEl)}</span>
+            {props.earthHidden && <span className="obj-note" data-testid="label-earth-hidden"> · behind terrain at the site</span>}
             <span className="obj-tick" />
           </div>
         </div>

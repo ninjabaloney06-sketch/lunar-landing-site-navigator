@@ -289,6 +289,29 @@ export function MissionPanel(p: Props) {
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
+  // The calendar fields under the typed ones (phone testers, 15 Nov: a date typed wrongly): the browser's own date
+  // picker, same rules as the typed fields.
+  const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+  const pickStart = (value: string) => {
+    const a = Date.parse(`${value}T00:00:00Z`)
+    if (!Number.isFinite(a)) return
+    if (!inCoverage(a)) return setDateError(RANGE_TEXT)
+    setDateError(null)
+    setStartDraft(null)
+    const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    if (a !== period.startMs || n !== days) p.onDates(a, n)
+  }
+  const pickEnd = (value: string) => {
+    const b = Date.parse(`${value}T00:00:00Z`)
+    if (!Number.isFinite(b)) return
+    if (!inCoverage(b)) return setDateError(RANGE_TEXT)
+    if (b < period.startMs) return setDateError('End is before Start.')
+    const n = Math.round((b - period.startMs) / DAY_MS) + 1
+    if (n > MAX_DAYS) return setDateError(`A mission can last at most ${MAX_DAYS} days.`)
+    setDateError(null)
+    setEndDraft(null)
+    if (n !== days) p.onDates(period.startMs, n)
+  }
   const commitEnd = () => {
     if (endDraft === null) return
     const b = parseDate(endDraft)
@@ -388,6 +411,12 @@ export function MissionPanel(p: Props) {
             onKeyDown={onEnter(commitEnd)}
           />
         </div>
+        <p className="mp-note mp-pick quiet" data-testid="mp-date-pick">
+          <span>Or pick:</span>
+          <input className="field mono" type="date" aria-label="Pick the start date" data-testid="mp-pick-start" value={isoDay(period.startMs)} min={isoDay(COVERAGE_START_MS)} max={isoDay(COVERAGE_END_MS - DAY_MS)} onChange={(e) => pickStart(e.target.value)} />
+          <span>to</span>
+          <input className="field mono" type="date" aria-label="Pick the end date" data-testid="mp-pick-end" value={isoDay(lastDayMs)} min={isoDay(period.startMs)} max={isoDay(COVERAGE_END_MS - DAY_MS)} onChange={(e) => pickEnd(e.target.value)} />
+        </p>
         <p id="mp-dates-note" className="mp-note quiet" data-testid="mp-dates-note">
           {days} {days === 1 ? 'day' : 'days'}, {ab('UTC', 'Coordinated Universal Time')}, last day included. Changing Start keeps the length.
         </p>

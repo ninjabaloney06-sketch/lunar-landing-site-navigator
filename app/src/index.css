@@ -677,3 +677,8 @@ select {
     width: min(34ch, 80vw);
   }
 }
+
+/* "behind terrain at the site" after a body's angle */
+.obj-note {
+  color: var(--muted);
+}
