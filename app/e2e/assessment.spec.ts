@@ -28,7 +28,7 @@ async function openDrawer(page: Page, site: string) {
 }
 
 async function openSection(page: Page, sec: ReturnType<Page['getByTestId']>) {
-  await sec.getByText('Site assessment', { exact: true }).click()
+  await sec.getByText('Landing site assessment', { exact: true }).click()
 }
 
 test('a listed site: no request before the section opens; then the file values, the status and the verdict', async ({ page }) => {
@@ -43,7 +43,7 @@ test('a listed site: no request before the section opens; then the file values, 
   await openSection(page, sec)
   await expect(sec.getByTestId('assess-status')).toHaveText('Accepted by the science lead at 6650ed1 (reported, no written sign-off).')
   expect(urls).toHaveLength(1)
-  await expect(sec.getByTestId('assess-thresholds')).toContainText('not NASA or vehicle limits')
+  await expect(sec.getByTestId('assess-criteria')).toContainText('project criteria (set by the team), not NASA or vehicle limits')
 
   // Expected strings: the app's mapping of the same file (summary rows only; Full data is off by default).
   const want = (await page.evaluate(`(async () => {
@@ -64,8 +64,9 @@ test('a listed site: no request before the section opens; then the file values, 
   // Spot checks against validation.md's Results row for malapert-massif: 4.10 / 8.73, 69.2 %, RMS 1.43 m, shadow 6.53 km (rounded there).
   const slope = sec.getByTestId('assess-slope')
   await expect(slope.locator('tbody tr').first()).toContainText('4.10°')
-  await expect(slope.getByTestId('assess-verdict')).toContainText(`Landing rule: ${want[0].verdict!.label}.`)
-  await expect(slope.getByTestId('assess-verdict').locator('[data-tone]')).toHaveAttribute('data-tone', 'fail')
+  await expect(sec.getByTestId('assess-verdict')).toContainText(`${want[0].verdict!.label} the landing rule: every valid pixel slope`)
+  await expect(sec.getByTestId('assess-verdict').locator('[data-tone]')).toHaveAttribute('data-tone', 'fail')
+  await expect(sec.getByTestId('assess-decider')).toHaveText('Maximum slope in the landing disk: 8.73°.')
   await expect(sec.getByTestId('assess-roughness')).toContainText('1.43 m')
   await expect(sec.getByTestId('assess-roughness')).toContainText('Obstacles')
   await expect(sec.getByTestId('assess-psr')).toContainText('6.528 km') // the file's value (validation.md rounds it to 6.53)
@@ -78,7 +79,7 @@ test('a listed site: no request before the section opens; then the file values, 
   await expect(sec).not.toContainText(/NaN|undefined|Leo|Otto|ninja/)
 
   // Full data shows the extra rows.
-  await sec.getByTestId('full-data-switch').click()
+  await page.getByTestId('drawer').getByTestId('full-data-switch').first().click()
   await expect(slope).toContainText('Pixels in the disk')
   if (SHOTS) {
     await slope.scrollIntoViewIfNeeded()

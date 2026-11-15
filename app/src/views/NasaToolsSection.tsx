@@ -1,10 +1,13 @@
 // "Open in NASA tools" (add-on Task 3): the selected site in Moon Trek and LROC QuickMap, and JPL Horizons' Sun and
 // Earth tables for the site over the mission dates. URLs from nasaTools.ts; the claim line from validationClaim.ts.
-// A custom site works the same way: the links are only its coordinates.
+// A custom site works the same way: the links are only its coordinates. Text links, each opens in a new tab; one line
+// per link says what opens and where (U17, wave 3).
+import type { ReactNode } from 'react'
 import type { ResultsState } from '../data/results'
 import type { CapHorizon } from '../data/southcap'
 import type { Site } from '../data/types'
-import { fmtCoords, fmtDateTime, fmtDeg, fmtRange } from './format'
+import { fmtCoords, fmtDeg, fmtRange, fmtShort } from './format'
+import { Marked } from './SiteAssessment'
 import { nasaLinks, type Span, type ToolLink } from './nasaTools'
 import { OTHER_CHECKS, RECORD_HREF, RECORD_LABEL, V1_CLAIM } from './validationClaim'
 import '../styles/nasa-tools.css'
@@ -16,7 +19,7 @@ interface Props {
   results: ResultsState
 }
 
-function Out({ link, children, testId }: { link: ToolLink; children: string; testId: string }) {
+function Out({ link, children, testId }: { link: ToolLink; children: ReactNode; testId: string }) {
   if (!link.href) return <span className="nt-off">{children}</span>
   return (
     <a href={link.href} target="_blank" rel="noopener noreferrer" data-testid={testId}>
@@ -42,16 +45,16 @@ export function NasaToolsSection({ site, customHorizon, period, results }: Props
           <Out link={links.moonTrek} testId="nt-moontrek">
             NASA Moon Trek
           </Out>
-          <span className="quiet"> — {links.moonTrek.note ?? `${links.moonTrek.view}, centred on ${where}`}</span>
+          <span className="quiet"> — {links.moonTrek.note ?? `opens the map in its ${links.moonTrek.view}, centred on ${where}`}</span>
         </li>
         <li>
           <Out link={links.quickMap} testId="nt-quickmap">
-            LROC QuickMap
+            <Marked text="LROC QuickMap" />
           </Out>
-          <span className="quiet"> — {links.quickMap.note ?? `${links.quickMap.view}, centred on ${where}`}</span>
+          <span className="quiet"> — {links.quickMap.note ?? `opens the map in its ${links.quickMap.view}, centred on ${where}`}</span>
         </li>
         <li>
-          JPL Horizons:{' '}
+          <abbr title="Jet Propulsion Laboratory (NASA)">JPL</abbr> Horizons:{' '}
           <Out link={links.horizonsSun} testId="nt-horizons-sun">
             Sun table
           </Out>
@@ -61,17 +64,17 @@ export function NasaToolsSection({ site, customHorizon, period, results }: Props
           </Out>
           {links.horizonsSun.href && period ? (
             <p className="quiet nt-detail">
-              Apparent azimuth and elevation seen from this point, every 6 hours, {fmtRange(period.startMs, period.endMs)},
-              UTC; no refraction, no terrain.
+              Opens a text table of apparent azimuth / elevation seen from the site for the mission dates,{' '}
+              {fmtRange(period.startMs, period.endMs)} <Marked text="UTC" />, every 6 h; no refraction, no terrain.
               {custom && !customHorizon && ' The terrain height is not computed yet, so the point sits on the reference sphere.'}
               {firstOk && (
                 <>
                   {' '}
-                  First row, this app: Sun azimuth{' '}
+                  Its first row, in this app: Sun azimuth{' '}
                   <span className="mono" data-testid="nt-our-sun" data-az={firstOk.sun.az} data-el={firstOk.sun.el} data-utc={firstOk.utcMs}>
                     {fmtDeg(firstOk.sun.az, 2)}
                   </span>
-                  , elevation <span className="mono">{fmtDeg(firstOk.sun.el, 2)}</span> at {fmtDateTime(firstOk.utcMs)}.
+                  , elevation <span className="mono">{fmtDeg(firstOk.sun.el, 2)}</span> ({fmtShort(firstOk.utcMs)} <Marked text="UTC" />).
                 </>
               )}
             </p>
@@ -83,7 +86,7 @@ export function NasaToolsSection({ site, customHorizon, period, results }: Props
         </li>
       </ul>
       <p className="quiet nt-claim" data-testid="nt-claim">
-        {V1_CLAIM}; {OTHER_CHECKS}:{' '}
+        <Marked text={V1_CLAIM} />; {OTHER_CHECKS}:{' '}
         <a href={RECORD_HREF} target="_blank" rel="noopener noreferrer">
           {RECORD_LABEL}
         </a>

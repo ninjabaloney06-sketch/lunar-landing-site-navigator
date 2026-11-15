@@ -9,6 +9,13 @@
 // members' names replaced by their role (on screen the repository writes "the science lead").
 // A field that is missing, null or not a finite number shows as "unknown" (with the file's reason when it has one),
 // never NaN or undefined.
+//
+// Layout (U17, wave 3): the section opens with a headline a planner reads in three lines: the landing-rule verdict
+// with the rule beside it, the value that decides it (the landing disk's maximum slope; the rule is "every valid
+// pixel slope in the disk <= 5.0 deg", so the maximum decides), and the line that the thresholds are project
+// criteria. File names, pixel counts and status strings are Full data rows; source, method and limitations sit
+// behind each block's disclosure. A long file text is cut at its first "; " in summary mode only (Row.fullValues /
+// Note.fullText keep the whole text for Full data); nothing is reworded.
 
 export const ASSESSMENT_STATUS = 'Accepted by the science lead at 6650ed1 (reported, no written sign-off)'
 export const NOT_COMPUTED = 'Not computed for this place'
@@ -21,12 +28,14 @@ export interface Row {
   label: string
   values: string[] // one per column (slope: landing disk, exploration disk); a single value spans all columns
   full?: boolean // shown in Full data mode only
+  fullValues?: string[] // the whole text, shown instead of values in Full data mode
 }
 
 export interface Note {
   text: string
   links: string[]
   full?: boolean
+  fullText?: string // the whole text, shown instead of text in Full data mode
 }
 
 export interface Block {
@@ -43,8 +52,17 @@ export interface Block {
   extra: string[] // further statements of the file about the block (map projection note, data terms)
 }
 
+/** The three lines at the top of the section. */
+export interface Headline {
+  verdict: string // "Fails" / "Passes" / "unknown: <reason>"
+  tone: Tone
+  rule: string // "every pixel slope in the 100 m radius landing disk ≤ 5.0°", or the file's own rule text
+  decider: string | null // "Maximum slope in the landing disk: 8.73°"
+  criteria: string | null // "The 5° and 20° slope thresholds are project criteria …"
+}
+
 export type AssessmentView =
-  | { state: 'ready'; status: string; thresholds: string | null; blocks: Block[] }
+  | { state: 'ready'; status: string; thresholds: string | null; headline: Headline; blocks: Block[] }
   | { state: 'not-computed'; blocks: Block[] }
   | { state: 'no-data'; message: string }
 
@@ -88,6 +106,15 @@ const withUnit = (v: unknown, unit: string) => {
   const n = num(v)
   return n === null ? UNKNOWN : `${n}${unit}`
 }
+
+/** A file text up to its first "; " (the summary form of a long reason). */
+export const firstClause = (s: string) => {
+  const i = s.indexOf('; ')
+  return i > 0 ? s.slice(0, i) : s
+}
+
+/** A radius in metres as the planner reads it: "100 m", "2 km" (exact thousands only; nothing is rounded). */
+export const radius = (m: number) => (m >= 1000 && m % 1000 === 0 ? `${m / 1000} km` : `${m} m`)
 
 /** "unknown — <the file's reason>" or "unknown". */
 const unknownBecause = (reason: unknown) => {
@@ -141,7 +168,7 @@ function slopeBlock(rec: Obj | null, digits: number | null, statusValues: Obj | 
   const expl = obj(rec.exploration_area)
   const head = (a: Obj | null, name: string) => {
     const r = a ? num(a.radius_m) : null
-    return r === null ? name : `${name} (${r} m radius)`
+    return r === null ? name : `${name}, ${radius(r)} radius`
   }
   b.columns = [head(land, 'Landing disk'), head(expl, 'Exploration disk')]
   const cell = (a: Obj | null, f: (a: Obj) => string) => {
@@ -154,8 +181,8 @@ function slopeBlock(rec: Obj | null, digits: number | null, statusValues: Obj | 
   b.rows = [
     row('Median slope', (a) => deg(a.median_slope_deg)),
     row('Maximum slope', (a) => deg(a.max_slope_deg)),
-    row('Pixels ≤ 5°', (a) => withUnit(a.pct_le_5deg, ' %')),
-    row('Pixels < 20°', (a) => withUnit(a.pct_lt_20deg, ' %')),
+    row('Share of pixels ≤ 5°', (a) => withUnit(a.pct_le_5deg, ' %')),
+    row('Share of pixels < 20°', (a) => withUnit(a.pct_lt_20deg, ' %')),
     { label: 'Elevation model', values: [land, expl].map((a) => any(a, (x) => `${str(x.dem_file) ?? UNKNOWN}, ${withUnit(x.dem_pixel_m, ' m')} per pixel`)), full: true },
     { label: 'Slope baseline', values: [land, expl].map((a) => any(a, (x) => withUnit(x.slope_baseline_m, ' m'))), full: true },
     { label: 'Pixels in the disk', values: [land, expl].map((a) => any(a, (x) => withUnit(x.n_pixels, ''))), full: true },
@@ -180,7 +207,11 @@ function roughnessBlock(rec: Obj | null, statusValues: Obj | null): Block {
   const reason = cleanOrNull(rec.obstacles_reason)
   b.rows = [
     { label: 'RMS height', values: [computed ? withUnit(rec.rms_height_m, ' m') : unknownBecause(rec.reason)] },
-    { label: 'Obstacles', values: [reason ? `${obstacles}: ${reason}` : obstacles] },
+    {
+      label: 'Obstacles',
+      values: [reason ? `${obstacles}: ${firstClause(reason)}` : obstacles],
+      fullValues: [reason ? `${obstacles}: ${reason}` : obstacles],
+    },
     { label: 'Measure', values: [cleanOrNull(rec.measure) ?? UNKNOWN], full: true },
     { label: 'Area radius', values: [withUnit(rec.area_radius_m, ' m')], full: true },
     { label: 'Detection limit', values: [withUnit(rec.detection_limit_m, ' m')], full: true },
@@ -292,9 +323,34 @@ function thermalBlock(rec: Obj | null, statusValues: Obj | null): Block {
     const where = cleanOrNull(o.applies_to)
     const st = cleanOrNull(o.statement)
     if (!value && !st) return []
-    return [{ text: `Nearby sourced value: ${value ?? UNKNOWN}${where ? `, ${where}` : ''}.${st ? ` ${st}.` : ''}`, links: links(o.source_url) }]
+    const text = `Nearby sourced value: ${value ?? UNKNOWN}${where ? `, ${where}` : ''}.`
+    return [{ text, fullText: `${text}${st ? ` ${st}.` : ''}`, links: links(o.source_url) }]
   })
   return b
+}
+
+/** The verdict with its rule, the value that decides it, and that the thresholds are project criteria. */
+function headline(rec: Obj | null, slope: Block, th: Obj | null, digits: number | null): Headline {
+  const v = slope.verdict
+  const land = rec ? obj(rec.landing_area) : null
+  const r = land ? num(land.radius_m) : null
+  // "<= 5.0 passes" → "≤ 5.0°": the comparison and limit exactly as the file states them
+  const lr = th ? cleanOrNull(th.landing_rule) : null
+  const limit = lr ? /[≤<]\s*\d+(?:\.\d+)?/.exec(lr)?.[0] : undefined
+  const rule =
+    limit && r !== null ? `every valid pixel slope in the ${radius(r)} radius landing disk ${limit}°` : (v?.rule ?? UNKNOWN)
+  let decider: string | null = null
+  if (land) {
+    decider =
+      str(land.status) === 'computed'
+        ? `Maximum slope in the landing disk: ${slopeDeg(land.max_slope_deg, digits)}`
+        : `Maximum slope in the landing disk: ${unknownBecause(land.reason)}`
+  }
+  const lo = th ? num(th.landing_max_slope_deg) : null
+  const hi = th ? num(th.exploration_max_slope_deg) : null
+  const st = th ? cleanOrNull(th.status) : null
+  const criteria = lo !== null && hi !== null && st ? `The ${lo}° and ${hi}° slope thresholds are ${st}.` : null
+  return { verdict: v?.label ?? UNKNOWN, tone: v?.tone ?? null, rule, decider, criteria }
 }
 
 /** Every block says "Not computed for this place" (a custom site, or a site the file has no record for). */
@@ -323,17 +379,55 @@ export function mapAssessment(file: unknown, siteId: string): AssessmentView {
     const deg = (r: string) => r.replace(/(\d+(?:\.\d+)?) (passes|meets)/, '$1° $2')
     if (lr && er) thresholds = `Landing slope ${deg(lr)}; exploration slope ${deg(er)}${st ? `: ${st}` : ''}.`
   }
+  const slope = slopeBlock(obj(rec.slope), digits, statusValues)
   return {
     state: 'ready',
     status: ASSESSMENT_STATUS,
     thresholds,
+    headline: headline(obj(rec.slope), slope, th, digits),
     blocks: [
-      slopeBlock(obj(rec.slope), digits, statusValues),
+      slope,
       roughnessBlock(obj(rec.roughness), statusValues),
       psrBlock(obj(rec.psr), digits, statusValues),
       thermalBlock(obj(rec.thermal), statusValues),
     ],
   }
+}
+
+/** Abbreviations the three site sections (assessment, power, NASA tools) show, with their long form for <abbr>. */
+export const TERMS: Record<string, string> = {
+  RMS: 'root mean square',
+  DEM: 'digital elevation model: the terrain height map',
+  PSR: 'permanently shadowed region',
+  LOLA: 'Lunar Orbiter Laser Altimeter (LRO)',
+  LRO: 'Lunar Reconnaissance Orbiter',
+  LROC: 'Lunar Reconnaissance Orbiter Camera',
+  JPL: 'Jet Propulsion Laboratory (NASA)',
+  UTC: 'Coordinated Universal Time',
+  AU: 'astronomical unit, the mean Earth–Sun distance',
+  'IM-2': 'Intuitive Machines’ second lunar landing mission',
+  DE440: 'JPL planetary and lunar ephemeris DE440',
+}
+
+const TERM_RE = new RegExp(
+  `(?<![A-Za-z0-9-])(${Object.keys(TERMS)
+    .sort((a, b) => b.length - a.length)
+    .join('|')})(?![A-Za-z0-9])`,
+  'g',
+)
+
+/** A text split into plain parts and abbreviations (with their long form). */
+export function termParts(s: string): ({ text: string } | { text: string; title: string })[] {
+  const out: ({ text: string } | { text: string; title: string })[] = []
+  let last = 0
+  for (const m of s.matchAll(TERM_RE)) {
+    const i = m.index ?? 0
+    if (i > last) out.push({ text: s.slice(last, i) })
+    out.push({ text: m[0], title: TERMS[m[0]] })
+    last = i + m[0].length
+  }
+  if (last < s.length) out.push({ text: s.slice(last) })
+  return out
 }
 
 export type TextPart = { text: string } | { text: string; href: string }

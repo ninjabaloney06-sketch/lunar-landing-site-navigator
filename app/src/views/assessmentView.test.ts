@@ -3,7 +3,7 @@
 // on 15 Nov 2026 (they match the Results table in docs/event/validation.md, "Mandatory site assessments").
 import { describe, expect, it } from 'vitest'
 import raw from '../../public/data/assessments.json?raw'
-import { ASSESSMENT_STATUS, NOT_COMPUTED, NO_DATA, clean, compass, linkParts, mapAssessment } from './assessmentView'
+import { ASSESSMENT_STATUS, NOT_COMPUTED, NO_DATA, TERMS, clean, compass, firstClause, linkParts, mapAssessment, radius, termParts } from './assessmentView'
 import type { AssessmentView, Block } from './assessmentView'
 
 const file = JSON.parse(raw) as { sites: Record<string, Record<string, unknown>> }
@@ -26,14 +26,31 @@ describe('mapAssessment: Haworth from the shipped file', () => {
     )
   })
 
+  it('headline: the verdict with its rule, the value that decides it, and the project-criteria line', () => {
+    expect(ready(v).headline).toEqual({
+      verdict: 'Fails',
+      tone: 'fail',
+      rule: 'every valid pixel slope in the 100 m radius landing disk ≤ 5.0°',
+      decider: 'Maximum slope in the landing disk: 14.07°',
+      criteria: 'The 5° and 20° slope thresholds are project criteria (set by the team), not NASA or vehicle limits.',
+    })
+    // the deciding value is the landing disk's maximum-slope cell of the table, not a new number
+    expect(ready(v).headline.decider).toContain(row(block(v, 'slope'), 'Maximum slope')![0])
+  })
+
+  it('headline of the one site that passes (IM-2 intended point)', () => {
+    const h = ready(mapAssessment(file, 'im-2-intended')).headline
+    expect([h.verdict, h.tone, h.decider]).toEqual(['Passes', 'pass', 'Maximum slope in the landing disk: 3.60°'])
+  })
+
   it('slope: both disks, at the stated 0.01° precision, and the landing verdict', () => {
     const b = block(v, 'slope')
     expect(b.message).toBeNull()
-    expect(b.columns).toEqual(['Landing disk (100 m radius)', 'Exploration disk (2000 m radius)'])
+    expect(b.columns).toEqual(['Landing disk, 100 m radius', 'Exploration disk, 2 km radius'])
     expect(row(b, 'Median slope')).toEqual(['9.96°', '7.42°'])
     expect(row(b, 'Maximum slope')).toEqual(['14.07°', '21.11°'])
-    expect(row(b, 'Pixels ≤ 5°')).toEqual(['0 %', '24.79 %'])
-    expect(row(b, 'Pixels < 20°')).toEqual(['100 %', '99.99 %'])
+    expect(row(b, 'Share of pixels ≤ 5°')).toEqual(['0 %', '24.79 %'])
+    expect(row(b, 'Share of pixels < 20°')).toEqual(['100 %', '99.99 %'])
     expect(row(b, 'Elevation model')).toEqual(['LDEM_80S_20MPP_ADJ.TIF, 20 m per pixel', 'LDEM_80S_20MPP_ADJ.TIF, 20 m per pixel'])
     expect(row(b, 'Pixels in the disk')).toEqual(['79', '31465'])
     expect(b.verdict).toEqual({
@@ -49,7 +66,9 @@ describe('mapAssessment: Haworth from the shipped file', () => {
   it('roughness: RMS height and obstacles unknown with the stated reason', () => {
     const b = block(v, 'roughness')
     expect(row(b, 'RMS height')).toEqual(['1.02 m'])
-    expect(row(b, 'Obstacles')).toEqual([
+    // summary: the file's reason up to its first "; "; Full data: the whole reason
+    expect(row(b, 'Obstacles')).toEqual(['unknown: features smaller than about two DEM pixels (~40 m on the 20 m DEM), including all boulders, are not resolved'])
+    expect(b.rows.find((r) => r.label === 'Obstacles')?.fullValues).toEqual([
       'unknown: features smaller than about two DEM pixels (~40 m on the 20 m DEM), including all boulders, are not resolved; no rock-abundance or boulder map is used',
     ])
     expect(row(b, 'Detection limit')).toEqual(['40 m'])
@@ -124,6 +143,9 @@ describe('mapAssessment: other states', () => {
     expect(row(slope, 'Median slope')).toEqual(['unknown', 'unknown'])
     expect(slope.verdict?.label).toBe('unknown: nodata 40.0 % of the area (limit 20 %)')
     expect(slope.verdict?.tone).toBeNull()
+    expect(r.headline.verdict).toBe('unknown: nodata 40.0 % of the area (limit 20 %)')
+    expect(r.headline.decider).toBeNull()
+    expect(r.headline.criteria).toBeNull()
     expect(row(block(v, 'roughness'), 'RMS height')).toEqual(['unknown'])
     expect(block(v, 'psr').message).toBe('unknown: site outside every Sun-visibility map on disk')
     expect(row(block(v, 'thermal'), 'Annual mean (2 cm depth)')).toEqual(['unknown'])
@@ -138,6 +160,22 @@ describe('helpers', () => {
   it('role names and print notation', () => {
     expect(clean('Leo to confirm. AI proposals; Leo decides')).toBe('The science lead to confirm. AI proposals; the science lead decides')
     expect(clean('clusters >= 0.1 km2 kept, 5 deg')).toBe('clusters ≥ 0.1 km² kept, 5°')
+  })
+  it('first clause and radius', () => {
+    expect(firstClause('a, b; c; d')).toBe('a, b')
+    expect(firstClause('no clause')).toBe('no clause')
+    expect([100, 2000, 2500].map(radius)).toEqual(['100 m', '2 km', '2500 m'])
+  })
+  it('abbreviations are marked with their long form, not inside other words', () => {
+    expect(termParts('RMS height on the 20 m DEM; LROC and DEMO')).toEqual([
+      { text: 'RMS', title: TERMS.RMS },
+      { text: ' height on the 20 m ' },
+      { text: 'DEM', title: TERMS.DEM },
+      { text: '; ' },
+      { text: 'LROC', title: TERMS.LROC },
+      { text: ' and DEMO' },
+    ])
+    expect(termParts('where IM-2 came to rest')[1]).toEqual({ text: 'IM-2', title: TERMS['IM-2'] })
   })
   it('links in a source text', () => {
     expect(linkParts('Barker et al. 2023, doi:10.3847/PSJ/acf3e1; https://pgda.gsfc.nasa.gov/products/90')).toEqual([

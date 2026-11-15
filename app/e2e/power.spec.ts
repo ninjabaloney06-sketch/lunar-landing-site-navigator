@@ -20,7 +20,7 @@ const hashOf = async (page: Page) => new URLSearchParams(await page.evaluate(() 
 test('an input change changes the output; the inputs survive a reload through the link', async ({ page }) => {
   const sec = await openDrawer(page, DEMO)
   await expect(sec.getByTestId('power-answer')).toHaveText(/^The battery (survives|does not survive)/, { timeout: 60_000 })
-  await expect(sec.getByTestId('power-example')).toHaveText('Example values, change them: panel area, cell efficiency, constant load, battery.')
+  await expect(sec.getByTestId('power-example')).toHaveText('Example values, change them: panel area, cell efficiency, constant load, battery capacity.')
   await expect(sec).toContainText('First estimate, not a power budget. Not validated by the science lead.')
   await expect(sec).toContainText('Not modelled: temperature, panel degradation, dust, tilt, partial-panel shading.')
   const w1 = await watts(page)
@@ -70,7 +70,7 @@ test('nonsense inputs (empty, zero, negative, text) never show NaN and keep the 
 test('a junk link falls back to the example values', async ({ page }) => {
   const sec = await openDrawer(page, `${DEMO}&panel=-1&eff=500&load=NaN&batt=`)
   await expect(sec.getByTestId('power-answer')).toBeVisible({ timeout: 60_000 })
-  await expect(sec.getByTestId('power-example')).toHaveText('Example values, change them: panel area, cell efficiency, constant load, battery.')
+  await expect(sec.getByTestId('power-example')).toHaveText('Example values, change them: panel area, cell efficiency, constant load, battery capacity.')
   await expect(sec).not.toContainText('NaN')
 })
 
