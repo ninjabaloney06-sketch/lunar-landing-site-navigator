@@ -615,7 +615,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!sky || !frame || !globe) return
     // Site lights from the site's point of view (topocentric), globe lights from the Moon centre.
     sky.update(frame.state, siteKm, meToEnu)
-    site.setLights(sky.worldDir('sun'), sky.worldDir('earth'))
+    site.setLights(sky.worldDir('sun'), sky.worldDir('earth'), angRadiusDeg(SUN_RADIUS_KM, v3(frame.state.sun_km).distanceTo(siteKm)))
     // How much of each disc is above the terrain mask from the eye: geometry's own disc fraction, the number the
     // answer and the percentages are computed from (sunlit = fraction > 0), read here and never written. The
     // terrain light follows it, so a sunset dims for as long as the disc takes to cross the mask.
@@ -2075,6 +2075,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         const head = site.nearTop('poi', id)
         return head ? toScreen(head, siteCam) : null
       },
+      sunShareAt: (x, y) => site.sunShareAt(x, y, site.groundZ(x, y)),
       dataIds: () => ({
         frame: { site: frame?.site?.id ?? null, horizon: frame?.horizon?.site_id ?? null, terrain: frame?.terrain?.meta.site_id ?? null },
         built: { site: builtFor?.site?.id ?? null, horizon: builtFor?.horizon?.site_id ?? null, terrain: builtFor?.terrain?.meta.site_id ?? null },

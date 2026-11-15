@@ -23,10 +23,14 @@ Easing (scene track, 14 Nov): the orbit drag, the middle-drag, the wheel and the
 1 − e^(−dt/160 ms) of what is pending per frame (controls.ts RESPONSE_MS), so they ease alike at any frame rate and
 come to rest after the release. In test mode nothing eases and the animation clock stands still;
 __scene.setAnimated(true) turns the easing on and __scene.advance(ms) is one frame (e2e/scene-motion.spec.ts).
-Terrain light (S2): at site and eye level the sunlight is the share of the Sun's disc above the mask at the eye
-(geometry.discFraction, the app's own number, read only), from full down to 12 %, plus an even night fill that
-takes over as the disc goes; earthshine follows Earth's disc the same way. A change eases over 500 ms
-(index.ts LIGHT_EASE_MS); directions and computed numbers are never eased. The globe has no such switch.
+Terrain light (S2; per fragment since 15 Nov night, sunlight.ts): at the site the sunlight is the share of the Sun's
+disc above the mask at the eye (geometry.discFraction, the app's own number, read only), from full down to 12 %; the
+mask's crest at the Sun's azimuth shades a strip of ground around the site by the same formula seen from each
+point, and terrain off that strip gets the Sun without cast shadows (no shadow maps), so sunlit peaks are no longer
+dimmed when the site is in shadow. Ground the Sun does not light directly gets an even night fill. The cosine term
+is wrapped (LAMBERT_WRAP 0.25), so level ground under the grazing polar Sun reads as lit instead of black; slopes
+turned away stay dark. Earthshine follows Earth's disc at the site. A change eases over 500 ms (index.ts
+LIGHT_EASE_MS); directions and computed numbers are never eased. The globe has no such switch.
 Flights (S3): a fly owns its camera; OrbitControls.update() is not called while one runs (it used to pull the
 camera back onto its orbit every frame: the globe → site fly stopped 3000 km from the Moon's centre and cut, the
 walk jumped to its end). The fly between the globe and the site (index.ts startDescent, 2.4 s) goes around the

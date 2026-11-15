@@ -48,6 +48,8 @@ export interface DebugView {
   /** At site and eye level: the head of another landing site's pin on screen (visible: not behind terrain); null where it has none. */
   projectNearSite(id: string): ScreenPoint | null
   /** Which site the frame's site, horizon and terrain belong to, and those the terrain was last built from. */
+  /** The share of the Sun (0..1) the terrain shader gives the drawn ground at ENU (x, y) m (sunlight.ts). */
+  sunShareAt(x: number, y: number): number
   dataIds(): { frame: { site: string | null; horizon: string | null; terrain: string | null }; built: { site: string | null; horizon: string | null; terrain: string | null } }
   projectMe(p: number[]): ScreenPoint | null
   region(): { boundary: number[][]; cap: number[][] } | null
@@ -161,6 +163,7 @@ export function installDebug(v: DebugView) {
     projectPoi: (id: string) => v.projectPoi(id),
     projectNearSite: (id: string) => v.projectNearSite(id),
     dataIds: () => v.dataIds(),
+    sunShareAt: (x: number, y: number) => v.sunShareAt(x, y),
     projectMe: (p: number[]) => v.projectMe(p),
     // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.
     region: () => v.region(),
