@@ -139,6 +139,22 @@ const SAME_SPOT_PX = 24 // burn markers closer than this on screen share one lab
 const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0
 const grown = (b: Box): Box => ({ x0: b.x0 - PAD_PX, y0: b.y0 - PAD_PX, x1: b.x1 + PAD_PX, y1: b.y1 + PAD_PX })
 
+/**
+ * Boxes (in the stage's coordinates) of the page's own text and controls that lie over the scene: the header's
+ * parts (not its empty middle), the timeline footer, the POI key, the Mission panel and the flight panels. A label or
+ * an info box placed there could not be read, or would hide them.
+ */
+const OVERLAY_SELECTORS = ['.top > :not(.actions-col)', '.top .actions-col > *', '.bottom > *', '.foot', '.poi-key', '.mission-panel', '.flight-panel', '.flight-transport']
+function overlayBoxes(stage: HTMLElement): Box[] {
+  const o = stage.getBoundingClientRect()
+  const out: Box[] = []
+  for (const el of document.querySelectorAll(OVERLAY_SELECTORS.join(','))) {
+    const r = el.getBoundingClientRect()
+    if (r.width > 0 && r.height > 0) out.push({ x0: r.left - o.left, y0: r.top - o.top, x1: r.right - o.left, y1: r.bottom - o.top })
+  }
+  return out
+}
+
 /** Writes text into an element only when it changed: this runs on every animation frame. */
 function setText(el: HTMLElement | null, text: string) {
   if (el && el.textContent !== text) el.textContent = text
@@ -412,7 +428,9 @@ export function SceneView(props: Props) {
       ;(window as unknown as { __views?: ViewsTestHook }).__views = hook
     }
 
-    // The box sits above the pin (below it when there is no room), inside the stage.
+    // The info box (U8, visual sweep 9 and 10) sits beside its pin, never on it: right of the pin, flipped to the
+    // left at the stage's right edge, else above or below it. Of those, the first that covers none of the page's
+    // own text over the stage (header, timeline, POI key, open panels); when none is free, the one covering least.
     const placeBox = () => {
       const el = box.current
       const a = anchor.current
@@ -423,27 +441,66 @@ export function SceneView(props: Props) {
       const W = stage.clientWidth
       const H = stage.clientHeight
       const gap = 14
-      const x = Math.max(8, Math.min(a.x - w / 2, W - w - 8))
-      let y = a.y - ht - gap
-      if (y < 8) y = a.y + gap
-      y = Math.max(8, Math.min(y, H - ht - 8))
-      const t = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`
+      const m = 8
+      const clampX = (x: number) => Math.max(m, Math.min(x, W - w - m))
+      const clampY = (y: number) => Math.max(m, Math.min(y, H - ht - m))
+      // Beside: moved only along the pin's vertical, so it never slides over the pin; above / below: only sideways.
+      const sides: [string, Box][] = (
+        [
+          ['right', a.x + gap, clampY(a.y - ht / 2)],
+          ['left', a.x - gap - w, clampY(a.y - ht / 2)],
+          ['above', clampX(a.x - w / 2), a.y - gap - ht],
+          ['below', clampX(a.x - w / 2), a.y + gap],
+        ] as [string, number, number][]
+      )
+        .filter(([, x, y]) => x >= m - 0.5 && y >= m - 0.5 && x + w <= W - m + 0.5 && y + ht <= H - m + 0.5)
+        .map(([side, x, y]) => [side, { x0: x, y0: y, x1: x + w, y1: y + ht }])
+      const blocked = overlayBoxes(stage)
+      const cover = (b: Box) => blocked.reduce((s, o) => s + Math.max(0, Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0)) * Math.max(0, Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0)), 0)
+      let best: [string, Box] | null = null
+      let least = Infinity
+      for (const c of sides) {
+        const k = cover(c[1])
+        if (k < least) {
+          least = k
+          best = c
+        }
+        if (k === 0) break
+      }
+      // A stage too small for any side (a phone in landscape): inside the stage, below the pin if it fits.
+      const [side, b] = best ?? ['inside', { x0: clampX(a.x - w / 2), y0: clampY(a.y + gap), x1: 0, y1: 0 }]
+      const t = `translate(${b.x0.toFixed(0)}px, ${b.y0.toFixed(0)}px)`
       if (el.style.transform !== t) el.style.transform = t
+      if (el.dataset.side !== side) el.dataset.side = side
+    }
+
+    // Sun, Earth and Moon labels that would lie on the page's own text (the header over the sky, visual sweep 1 and
+    // 2) are not drawn: the body is behind that text too.
+    const clearOfText = (el: HTMLDivElement | null) => {
+      const b = el?.firstElementChild?.getBoundingClientRect()
+      if (!el || el.hidden || !b) return
+      const o = host.current!.getBoundingClientRect()
+      const me: Box = { x0: b.left - o.left, y0: b.top - o.top, x1: b.right - o.left, y1: b.bottom - o.top }
+      if (overlayBoxes(host.current!).some((x) => overlaps(me, x))) el.hidden = true
     }
 
     let raf = 0
     const tick = () => {
       h.setFlightTime(flightRef.current.clock.timeMs)
       place(sun.current, h.labelPoint('sun'), have.current.sun)
+      clearOfText(sun.current)
       const ep = h.labelPoint('earth')
       place(earth.current, ep, have.current.earth)
+      clearOfText(earth.current)
       const mp = h.labelPoint('moon')
       place(moon.current, mp, true)
       // From the Sun's side the Moon and Earth are a fraction of a degree apart: the Moon's label then hangs below
       // its point, so the two labels never cover each other.
       const near = !!(mp?.visible && ep?.visible && have.current.earth && Math.abs(ep.x - mp.x) < LABEL_NEAR_PX.x && Math.abs(ep.y - mp.y) < LABEL_NEAR_PX.y)
       moonBox.current?.classList.toggle('is-below', near)
+      clearOfText(moon.current)
       place(site.current, h.project('site'), true)
+      clearOfText(site.current)
       const n = namedNow()
       const named = n && n.visible ? poiOf(n) : null
       if (named !== dismissed.current) dismissed.current = null // the pointer has left the dismissed pin
