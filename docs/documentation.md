@@ -239,7 +239,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 **Camera, viewpoints and points.**
 
-- Left-drag orbits. Middle-drag looks around from where the camera is.
+- Left-drag orbits. In the Moon view the camera goes on over the poles (no stop there): sideways turns about the polar axis, up and down about the camera's own axis. Middle-drag looks around from where the camera is.
 - Wheel or pinch moves the camera and stops 1.75 m above the terrain; at eye level it narrows the lens (54° down to 4°).
 - The app has no eye-level view any more (removed 15 Nov 2026 on tester feedback: it was reached by accident and its value was unclear). A click on the terrain does nothing; a link with `view=eye` opens the landing-site view.
 - "View", beside the timeline, lists Landing site and Moon. A right-click on the scene lists Moon.
