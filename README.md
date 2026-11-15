@@ -23,6 +23,7 @@ What you can do on main today:
 - See the Sun and Earth over the real terrain horizon in a 3D view (globe, site) or, without WebGL, in a horizon strip.
 - Rank the 18 sites for the mission's dates, stations and science goal. Sites that pass the 5° slope limit are ranked; the others are listed separately.
 - Find better dates: landing times every 30 minutes within 60 days after the mission start that meet adjustable thresholds.
+- See what a slip does: the same mission 1, 7 and 30 days later and at the nearest other landing site, with the change in sunlit and station contact share (Details, Dates tab, "If the mission slips").
 - Compare the current view with another site or another named period.
 - Download the windows as CSV and copy a link that reproduces the view.
 - Set any place south of 80° S as a custom landing site (approximate numbers, marked so).

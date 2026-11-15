@@ -17,6 +17,7 @@ import { SlopeValue } from './SiteTable'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteAssessment } from './SiteAssessment'
 import { SiteTable } from './SiteTable'
+import { SlipRows } from './SlipRows'
 import { Terms } from './Terms'
 import { YearTimeline } from './Timeline'
 import type { YearRow } from './Timeline'
@@ -340,6 +341,16 @@ export function Drawer(p: Props) {
           onShow={p.onShowWindow}
         />
       </section>
+
+      <SlipRows
+        site={site}
+        sites={p.sites}
+        stations={p.stations}
+        ids={p.ids}
+        period={period}
+        onShow={p.onShowWindow}
+        onSite={p.onFindDates}
+      />
 
       <section className="drawer-sec" aria-labelledby="sec-year">
         <h3 id="sec-year">Year timeline</h3>

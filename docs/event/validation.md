@@ -816,3 +816,37 @@ for all of them.
 14. **V4** (5 min). "V4: differences acceptable as context; Earth offset (needs / does not need) a cause. 15 Nov 2026, initials."
 15. **P1 power** (10 min). "P1: formula, S and AU, 1/r², cases 1–8 and the survival rule checked; not-modelled list enough. 15 Nov 2026, initials."
 16. **Payload and cheapest route** (10 min). "Payload/route: method checked; 3 % reserve, 6 % loss term and 0.5 % tie accepted as assumptions. 15 Nov 2026, initials."
+
+## Horizons comparison, 15 Nov 2026 (AI-run)
+
+Run by an AI tool (Claude Code) on 15 Nov 2026, 21:45 CET (`date_run_utc` 2026-11-15T20:45:26Z); not a sign-off by the science lead. Nothing above this section is changed and no status is changed by it. Script `scripts/tools/horizons_check.py` (written in the same session; tests `scripts/tests/test_horizons_check.py`, no network), result `app/public/data/validation/horizons.json` (every pair, the Horizons header lines of each request, the summary).
+
+Reproduce from the repo root (network needed, Python standard library only; six requests, sent one after another):
+
+```text
+python3 scripts/tools/horizons_check.py
+```
+
+- **Ours**: the files the browser loads, `app/public/data/ephem/YYYY-MM.json` (Moon centre to Sun and Earth, MOON_ME, LT+S, every 30 min), with the app's maths rewritten in Python from `app/src/geometry/index.ts`: `interpolate` (vectors linear between samples), `siteVector` (1737.4 km + `elev_m` + 1.75 m along the site's lat/lon), `enuBasis` (up, east = z × up, north = up × east) and `azEl` (body − site in ENU, azimuth from north, clockwise).
+- **Horizons**: API version 1.2 (`signature.version`), ephemeris DE441 (header), observer table, `CENTER='coord@301'`, `COORD_TYPE='GEODETIC'`, `SITE_COORD='lonE,lat,alt_km'`, `COMMAND` 10 and 399, `QUANTITIES='4'`, `APPARENT='AIRLESS'`, `ANG_FORMAT='DEG'`, `EXTRA_PREC='YES'`, `TIME_TYPE='UT'`, `CSV_FORMAT='YES'`, one `TLIST` of 12 instants per site and body. The script stops unless every header says `Center pole/equ : MEAN_ME (high precision)` and the returned times equal the requested ones; every header also read `Center radii : 1737.4, 1737.4, 1737.4 km` and `Atmos refraction: NO (AIRLESS)`.
+- **Points**: Connecting Ridge (−89.46°, −136.68°), Shackleton Rim Site04 (−89.7668°, −171.87°, 0.23° from the pole, where an azimuth-convention error would show at once) and IM-1 Odysseus (−80.13°, 1.44°), 12 instants each from 2027 to 2030, Sun and Earth: 72 pairs. At each site 6 instants fall on a 30-min sample and 6 between samples (minutes 07, 15, 22, 38, 44 and 51). Δ = Horizons − ours; azimuth differences are multiplied by cos(elevation).
+
+Differences from the V1 method above:
+1. Observer height: terrain height from `sites.json` + 1.75 m on both sides, as the app uses; V1 used 1.75 m on the 1737.4 km sphere.
+2. "Ours" is the app's shipped 30-min files with the app's interpolation; in V1 it was direct SPICE output of `ephemeris.py`.
+3. Discrete instants (`TLIST`) across four years instead of 6-hour steps over two days; 36 site/time points instead of 10.
+4. Horizons' apparent az/el also corrects for the gravitational deflection of light (its own description); ours is LT+S. No effect was seen at the Sun (below).
+
+| Group | Pairs | Largest \|Δel\| | Median \|Δel\| | Largest \|Δaz·cos el\| | Median \|Δaz·cos el\| |
+|---|---|---|---|---|---|
+| All | 72 | 0.0000434° | 0.0000027° | 0.0000197° | 0.0000003° |
+| On a 30-min sample | 36 | 0.0000242° | 0.0000013° | 0.0000009° | 0.0000002° |
+| Between samples | 36 | 0.0000434° | 0.0000029° | 0.0000197° | 0.0000007° |
+| Sun | 36 | 0.0000037° | 0.0000002° | 0.0000007° | 0.0000002° |
+| Earth | 36 | 0.0000434° | 0.0000174° | 0.0000197° | 0.0000009° |
+
+Largest difference 0.000043°, about 1/1150 of the V1 tolerance of 0.05°.
+
+Where the Earth differences come from (AI diagnostic; the scratch script is not in the repo and the app's maths was not changed):
+- On sample times the Earth elevation differs by up to 0.000024°, the Sun by at most 0.0000002°. The ephemeris applies the stellar-aberration correction (LT+S) to the Moon-centre vector and the site vector is subtracted afterwards; Horizons applies it to the site-to-Earth direction. That shifts the Earth by at most (v/c) · R ≈ (30 km/s / c) · 1737 km ≈ 0.17 km at about 405,000 km, i.e. about 0.000025°, and is negligible for the Sun. Recomputing the on-sample Earth pairs with the aberration applied to the site-to-Earth vector brought every one of them below 0.000001° in elevation (azimuth stayed below 0.00001°; the recomputation estimates the Moon's velocity from the Sun vectors, so it is rough). This is probably also the "Earth elevation offset of about +0.00002°" for which the NASA-tools link check above looked for no cause.
+- Between samples the rest, up to 0.00002° in Earth elevation and azimuth after that recomputation, is consistent with the linear interpolation of the 30-min vectors; it was not compared with direct SPICE values here.

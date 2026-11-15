@@ -25,9 +25,12 @@
 // Every output here is new physics (Trap 2) and carries its validation status in `validation`: validated by the science
 // lead, statement of 15 Nov 2026 (docs/event/validation.md, "Validation status 15 Nov"); no per-check record.
 import { G0, MU_MOON, R_MOON } from './astro'
-import { simulateAscent } from './ascent'
+import { AscentError, simulateAscent } from './ascent'
 import type { AscentVehicle } from './ascent'
 import type { LaunchVehicleSpec, SpacecraftSpec, StageSpec } from './hardware'
+import { LunarOpsError } from './lunar'
+import { NrhoError } from './nrho'
+import { FlightPlanError } from './types'
 import type { Launchpad, MissionEvent, MissionPlan, SourceRef, Vec3 } from './types'
 import { DEG, cross } from './vec'
 
@@ -462,6 +465,12 @@ function solve(chain: Chain, f: number, s: number, p: Omit<Perturbation, 'payloa
   return { rawKg: Number.isFinite(best) ? best : null, limitedBy, shortAtZero }
 }
 
+/** Size of one uncertainty term: how far the cargo moves when one input is perturbed. null when the perturbed
+ *  problem has no solution (nothing limits the cargo), which is not the same as a change of 0 kg. */
+export function termKg(rawKg: number, perturbedKg: number | null): number | null {
+  return perturbedKg === null ? null : Math.abs(perturbedKg - rawKg)
+}
+
 /** Maximum cargo the lander sets down at the plan's landing point, its uncertainty and the propellant per burn. */
 export function maxPayload(inp: PayloadInput): PayloadResult {
   const f = inp.reserveFraction ?? PROPELLANT_RESERVE_FRACTION
@@ -487,7 +496,10 @@ export function maxPayload(inp: PayloadInput): PayloadResult {
   // the unclamped figure (also when it is negative: how far from carrying any cargo).
   const terms: UncertaintyTerm[] = []
   const finiteRaw = raw ?? 0
-  const rawOf = (p: Omit<Perturbation, 'payloadKg'>) => solve(chain, f, s, p).rawKg ?? finiteRaw
+  // A perturbation that leaves no solution (nothing limits the cargo any more) has no figure: that term is left
+  // out and named in a caveat, not counted as a cargo change of 0 kg.
+  const unevaluated: string[] = []
+  const rawOf = (p: Omit<Perturbation, 'payloadKg'>) => solve(chain, f, s, p).rawKg
   const modules: { m: StageSpec; owner: string }[] = [
     ...inp.capsule.modules.map((m) => ({ m, owner: inp.capsule.name })),
     ...inp.lander.modules.map((m) => ({ m, owner: inp.lander.name })),
@@ -496,13 +508,23 @@ export function maxPayload(inp: PayloadInput): PayloadResult {
     const g = gradeOf(m).dry
     const sigma = DRY_MASS_SIGMA[g] * m.dryKg
     if (!(sigma > 0)) continue
-    const kg = Math.abs(rawOf({ extraDryKg: { [m.id]: sigma } }) - finiteRaw)
+    const perturbed = rawOf({ extraDryKg: { [m.id]: sigma } })
+    if (perturbed === null) {
+      unevaluated.push(`dry mass of ${m.name}`)
+      continue
+    }
+    const kg = termKg(finiteRaw, perturbed)!
     terms.push({ id: `dry:${m.id}`, label: `Dry mass of ${m.name} ±${(DRY_MASS_SIGMA[g] * 100).toFixed(0)} % (${gradeText(g)})`, kg })
   }
   if (raw !== null) {
     for (const t of chain.tanks) {
       const g: Grade = t.fixedLoad ? 'agency' : gradeOf(t.module).isp
-      const kg = Math.abs(rawOf({ ispScale: { [t.id]: 1 - ISP_SIGMA[g] } }) - finiteRaw)
+      const perturbed = rawOf({ ispScale: { [t.id]: 1 - ISP_SIGMA[g] } })
+      if (perturbed === null) {
+        unevaluated.push(`specific impulse of the ${t.element} engine`)
+        continue
+      }
+      const kg = termKg(finiteRaw, perturbed)!
       terms.push({ id: `isp:${t.id}`, label: `Specific impulse of the ${t.element} engine ±${(ISP_SIGMA[g] * 100).toFixed(1)} % (${gradeText(g)})`, kg })
     }
     const lossKg = LOSS_MODEL_FRACTION * Math.abs(finiteRaw)
@@ -552,6 +574,9 @@ export function maxPayload(inp: PayloadInput): PayloadResult {
   const caveats: string[] = []
   if (inp.lander.modules.some((m) => gradeOf(m).dry === 'assumption')) {
     caveats.push(`${inp.lander.name}: its dry mass is an assumption of this app (no published figure), so the payload is an illustration, not a prediction.`)
+  }
+  if (unevaluated.length > 0) {
+    caveats.push(`The uncertainty is understated: no cargo limit remained when the ${unevaluated.join(' and the ')} was varied, so ${unevaluated.length === 1 ? 'that term is' : 'those terms are'} left out.`)
   }
   if (inp.lander.id === 'starship-hls') {
     caveats.push('SpaceX states that Starship can deliver "up to 100 tons directly to the lunar surface" with on-orbit refilling; a larger figure here is a limit of the tank and engines only, not of the structure, which is not modelled.')
@@ -789,7 +814,11 @@ export function planCheapestRoute<I extends { earliestTouchdownMs: number; maxTr
     try {
       candidates.push({ option, plan: plan({ ...base, earliestTouchdownMs: option.earliestTouchdownMs, maxTransferDays: option.maxTransferDays }, option) })
     } catch (e) {
-      candidates.push({ option, plan: null, error: e instanceof Error ? e.message : String(e) })
+      // the planners' own errors (and RangeError from the integrator) are a plan that cannot be flown; anything else,
+      // a TypeError say, is a bug and must not pass for an expected failure (planWorker.ts draws the same line)
+      const expected = e instanceof FlightPlanError || e instanceof AscentError || e instanceof LunarOpsError || e instanceof NrhoError || e instanceof RangeError
+      if (!expected) throw e
+      candidates.push({ option, plan: null, error: e.message })
     }
     onProgress?.(i + 1, options.length)
   })

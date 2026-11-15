@@ -3,7 +3,7 @@
 // seeded statistics, convergence), not that the σ values are right; those are assumptions.
 import { describe, expect, it } from 'vitest'
 import { MU_MOON, R_MOON } from './astro'
-import { DEFAULT_SIGMAS, NOT_VALIDATED, ZERO_SIGMAS, gaussian, landingSentence, runDispersion } from './dispersion'
+import { DEFAULT_SIGMAS, NOT_VALIDATED, ZERO_SIGMAS, gaussian, landingSentence, pathTangent, runDispersion } from './dispersion'
 import type { DispersionInput } from './dispersion'
 import { NO_PERTURBATION, planDescent, replayDescent } from './lunar'
 import type { DescentInput, OrbitState } from './lunar'
@@ -144,5 +144,21 @@ describe('runDispersion', () => {
     expect(Math.abs(a.propellant.sigmaKg / b.propellant.sigmaKg - 1)).toBeLessThan(0.3)
     // the mean propellant agrees within three standard errors of the N = 50 mean
     expect(Math.abs(a.propellant.meanKg - b.propellant.meanKg)).toBeLessThan((3 * b.propellant.sigmaKg) / Math.sqrt(50))
+  })
+})
+
+describe('pathTangent', () => {
+  const fb: Vec3 = [0, 0, 1]
+  it('is exactly unit(chord) where the chord is usable', () => {
+    const a: Vec3 = [1, 2, 3]
+    const b: Vec3 = [4, -1, 9]
+    expect(pathTangent([a, b], 0, 1, fb)).toEqual(unit([3, -3, 6]))
+  })
+  it('reuses the fallback instead of NaN for one centre, coincident centres or non-finite ones', () => {
+    const p: Vec3 = [5, 5, 5]
+    expect(pathTangent([p], 0, 0, fb)).toEqual(fb)
+    expect(pathTangent([p, [5, 5, 5]], 0, 1, fb)).toEqual(fb)
+    expect(pathTangent([p, [NaN, 0, 0]], 0, 1, fb)).toEqual(fb)
+    expect(pathTangent([p, [Infinity, 0, 0]], 0, 1, fb)).toEqual(fb)
   })
 })

@@ -77,6 +77,7 @@ Small text edits inside the repo (code, Markdown, JSON < 10 MB) and reading publ
 - Nothing of the project itself is built before Sat 14 Nov 2026, 09:00 (participant FAQ, Team Formation Guide, organiser reply of 12 Oct). Before then only general preparation: reading up, learning NASA datasets and existing tools, collecting sources, downloading raw public data, logistics. No project scripts, processed or precomputed project data, or project skeleton before the event. Exceptions decided by ninja: the written build plan `docs/event/build-plan.md` (11 Nov, no code); the pitch outline and backup deck `docs/event/pitch-outline.md` + `pitch-backup-slides.pdf` (13 Nov; app facts stay [Sunday] slots until built). Reasoning: `docs/reference/decisions.md`.
 - Submission constraints from the official terms that apply to anything agents produce: no photos, voices or recognizable names of anyone under 18 in the demo or submission; cite every source and document the license of every material (NASA can reject or strip awards for missing citations); the submission must describe how AI/SI tools were used. Original content is open source by default (Apache 2.0 if unspecified).
 - No secrets, API keys or personal data in the repo.
+- Claude Code subagents in this repo: Fable 5.2 (`model: "fable"`) where a task needs more than Haiku; not Opus (ninja, 15 Nov 2026).
 - Keep it simple: static JSON + static frontend. No database, no backend (see docs/reference/setup.md).
 
 ## Regenerating the PDF
