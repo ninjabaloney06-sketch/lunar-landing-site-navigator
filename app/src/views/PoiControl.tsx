@@ -52,11 +52,11 @@ export function PoiKey({ groups, data, counts, webgl, onChange }: Props & { grou
           </li>
         ))}
       </ul>
-      <p className="poi-key-note" data-testid="poi-key-note">
+      <p className="poi-key-note" data-testid="poi-key-note" data-state={data.status}>
         {data.status === 'error'
           ? `Could not load the points of interest. ${data.error}`
           : data.status === 'ready'
-            ? `${webgl ? 'Hover or tap a pin to read about it. ' : 'The 3D view is not available, so no pins are drawn. '}Only ${REGION_TEXT}. From research notes, not validated by the science lead.`
+            ? `${webgl ? 'Hover or tap a pin to read about it. ' : 'The 3D view is not available, so no pins are drawn. '}Only ${REGION_TEXT}.`
             : 'Loading the points of interest…'}
       </p>
     </div>
