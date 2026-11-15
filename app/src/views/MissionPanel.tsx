@@ -14,6 +14,7 @@ import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MA
 import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
+import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { SLOPE_BASELINE, slopeOf } from './slope'
 import { StationChecklist } from './Stations'
@@ -76,6 +77,7 @@ interface Props {
   missions: MissionState[] // saved in this browser
   missionSaved: boolean // the mission on screen is one of them
   onAddMission(): void
+  onCalculateFlight(m: MissionState): void
   onLoadMission(m: MissionState): void
   onRemoveMission(key: string): void
   onAddPoint(lat: number, lon: number): void
@@ -313,7 +315,7 @@ export function MissionPanel(p: Props) {
               ? 'Saved in this browser.'
               : p.missions.length >= MAX_MISSIONS
                 ? `At most ${MAX_MISSIONS} saved missions.`
-                : 'Keeps name, site, dates, stations and goal in this browser.'}
+                : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
           </span>
         </div>
       </div>
@@ -339,6 +341,10 @@ export function MissionPanel(p: Props) {
                   <span className="quiet ms-what">
                     {where} · {resolvePeriod(m, p.periods).label}
                   </span>
+                  <span className="quiet ms-what">{flightSummary(m)}</span>
+                  <button type="button" className="link ms-flight" data-testid="panel-calculate-flight" onClick={() => p.onCalculateFlight(m)}>
+                    Calculate flight
+                  </button>
                 </li>
               )
             })}

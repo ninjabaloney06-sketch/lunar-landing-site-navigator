@@ -15,10 +15,11 @@ import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary, Window } from '../geometry'
 import { missionKey } from '../missions'
 import type { MissionState } from '../missions'
-import { COVERAGE_END_MS, DAY_MS, DEFAULT_MISSION_NAME } from '../state'
+import { COVERAGE_END_MS, DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { GOALS } from './MissionPanel'
 import { capital, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
+import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
 import type { RowEntry } from './useSiteRows'
@@ -60,6 +61,7 @@ interface Props {
   missions: MissionState[]
   wholeYear: boolean // offered only when it was measured to be fast enough (see WHOLE_YEAR in Drawer.tsx)
   onFindDates(siteId: string): void
+  onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission: the Flight plan with its values
 }
 
 /** A whole year from the mission's first day; moved back when it would pass the last supported date. */
@@ -193,7 +195,15 @@ export function SiteTable(p: Props) {
               </th>
             </tr>
             {p.missions.map((m) => (
-              <MissionRow key={missionKey(m)} mission={m} sites={sites} periods={p.periods} stations={stations} values={values} />
+              <MissionRow
+                key={missionKey(m)}
+                mission={m}
+                sites={sites}
+                periods={p.periods}
+                stations={stations}
+                values={values}
+                onCalculateFlight={() => p.onCalculateFlight(m)}
+              />
             ))}
           </tbody>
         )}
@@ -208,9 +218,17 @@ export function SiteTable(p: Props) {
 }
 
 /** A saved mission as a row: summarize() for its own landing site, dates and stations. */
-function MissionRow(p: { mission: MissionState; sites: Site[]; periods: Period[]; stations: Station[]; values: (typeof VALUES)[Columns] }) {
+function MissionRow(p: {
+  mission: MissionState
+  sites: Site[]
+  periods: Period[]
+  stations: Station[]
+  values: (typeof VALUES)[Columns]
+  onCalculateFlight(): void
+}) {
   const { mission: m, sites, stations } = p
-  const site = sites.find((s) => s.id === m.site) ?? null
+  // null = the default site, as in a link (App resolves it the same way)
+  const site = sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID)) ?? null
   const period = resolvePeriod(m, p.periods)
   const known = stations.map((s) => s.id)
   const chosen = m.st ? known.filter((id) => m.st!.includes(id)) : known
@@ -241,6 +259,12 @@ function MissionRow(p: { mission: MissionState; sites: Site[]; periods: Period[]
         <span className="th-sub">
           {site ? site.name : 'unknown site'} · {period.label}
         </span>
+        <span className="th-sub" data-testid="mission-flight">
+          {flightSummary(m)}
+        </span>
+        <button type="button" className="btn st-flight" data-testid="calculate-flight" disabled={!site} onClick={p.onCalculateFlight}>
+          Calculate flight
+        </button>
       </th>
       {p.values.map((v) => (
         <td key={v.key} className="mono st-num" data-col={v.key}>

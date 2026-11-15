@@ -1,5 +1,5 @@
 // URL-hash state (build-plan §5.2): site, cursor time, period, selected stations, view, drawer, user
-// points, mission name, science goal and the flight plan's choices (launchpad, rocket, transfer time). A copied link reproduces the view. Parsing never throws and never
+// points, mission name, science goal and the flight plan's choices (launchpad, rocket, transfer time, surface stay). A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ScienceGoal } from './geometry'
@@ -36,6 +36,7 @@ export interface HashState {
   pad: string | null // flight plan: launchpad id; null = the default pad
   rocket: string | null // flight plan: vehicle id; null = the default vehicle
   tmax: number | null // flight plan: longest transfer in days; null = minimum energy
+  stay: number | null // flight plan: surface stay in days; null = the chosen design's default
 }
 
 // Supported coverage (spec.md "Dates"): [2026-11-01, 2031-01-01) UTC.
@@ -66,6 +67,9 @@ export const DEFAULT_MISSION_NAME = 'Mission 1'
 export const DEFAULT_GOAL: ScienceGoal = 'light'
 // Transfer-time caps the flight plan offers (days); anything else in a link falls back to minimum energy.
 export const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
+// Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the design's default.
+export const STAY_RANGE = { min: 0.5, max: 30 }
+export const validStay = (v: number) => Number.isFinite(v) && v >= STAY_RANGE.min && v <= STAY_RANGE.max
 
 export const EMPTY_STATE: HashState = {
   site: null,
@@ -82,6 +86,7 @@ export const EMPTY_STATE: HashState = {
   pad: null,
   rocket: null,
   tmax: null,
+  stay: null,
 }
 
 /** Mission name as plain text: control characters dropped, runs of white space collapsed, at most 40
@@ -217,6 +222,8 @@ export function parseHash(hash: string): HashState {
   if (rocket && ID_RE.test(rocket)) s.rocket = rocket
   const tmax = Number(p.get('tmax'))
   if (TRANSFER_CAPS.includes(tmax)) s.tmax = tmax
+  const stayRaw = p.get('stay')
+  if (stayRaw !== null && stayRaw !== '' && validStay(Number(stayRaw))) s.stay = Math.round(Number(stayRaw) * 100) / 100
   if (s.period === 'custom' && s.from === null) s.period = null
   return s
 }
@@ -239,6 +246,7 @@ export function serializeHash(s: HashState): string {
   if (s.pad) p.set('pad', s.pad)
   if (s.rocket) p.set('rocket', s.rocket)
   if (s.tmax !== null) p.set('tmax', String(s.tmax))
+  if (s.stay !== null) p.set('stay', String(s.stay))
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }

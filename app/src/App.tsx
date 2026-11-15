@@ -10,6 +10,7 @@ import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
 import { LAUNCH_VEHICLES } from './flight/launchVehicles'
 import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
+import { DEFAULT_ARCHITECTURE_ID } from './flight/designs'
 import { ARCHITECTURES, SPACECRAFT } from './flight/spacecraft'
 import type { LandingTarget, Launchpad } from './flight/types'
 import { DEFAULT_LAYERS, webglAvailable } from './scene3d'
@@ -47,7 +48,8 @@ import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
 import { fmtCoords, fmtDateTime, fmtDeg } from './views/format'
 import { resolvePeriod } from './views/period'
-import { missionKey, missionOf, useMissions } from './missions'
+import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
+import type { MissionState } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
@@ -94,8 +96,6 @@ const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
-// The mission design a fresh link opens with: the current NASA plan (SLS, Orion, a lander waiting in the halo orbit).
-const DEFAULT_ARCHITECTURE_ID = (ARCHITECTURES.find((a) => a.id === 'artemis-starship') ?? ARCHITECTURES[0]).id
 type LatLon = { latDeg: number; lonDeg: number }
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
@@ -143,7 +143,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
   // Saved missions (this browser only): listed in the Mission panel and as rows of the comparison table.
   const missions = useMissions()
-  const currentMission = missionKey(missionOf(hs))
+  // A launch point typed as coordinates lives only in this page; a saved mission keeps the default pad instead.
+  const missionNow = useMemo(() => {
+    const m = missionOf(hs)
+    return m.pad === 'custom' ? { ...m, pad: null } : m
+  }, [hs])
+  const currentMission = missionKey(missionNow)
+  const missionSaved = missions.list.some((m) => missionKey(m) === currentMission)
 
   const period: ViewPeriod = useMemo(
     () => resolvePeriod({ period: hs.period, from: hs.from, days: hs.days }, periods),
@@ -205,8 +211,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   )
   const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
   // The surface stay asked for belongs to a design: another design starts with its own default again.
-  const [stayChoice, setStayChoice] = useState<{ designId: string; days: number } | null>(null)
-  const stayDays = stayChoice && stayChoice.designId === architecture.id ? stayChoice.days : defaultSurfaceStayDays(architecture)
+  // It is part of the link and of a saved mission; choosing another design clears it (onArchitecture).
+  const stayDays = hs.stay ?? defaultSurfaceStayDays(architecture)
   const flight = useFlight({
     active: inFlight,
     pad,
@@ -384,6 +390,16 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     setPlaying(true)
   }
 
+  // "Calculate flight" on a saved mission: its site, dates, launchpad, rocket and stay, in the Flight plan tab.
+  const calculateFlight = (m: MissionState) => {
+    setMenu(null)
+    setPlaying(false)
+    setSiteMode('mission')
+    setPicking(null)
+    setPanelCollapsed(false)
+    patch({ ...m, t: null, view: 'flight', drawer: null })
+  }
+
   const playMission = () => {
     setMenu(null)
     patch({ view: 'eye', t: period.startMs })
@@ -506,9 +522,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               selectedPoint={selPoint}
               periods={periods}
               missions={missions.list}
-              missionSaved={missions.list.some((m) => missionKey(m) === currentMission)}
-              onAddMission={() => missions.add(missionOf(hs))}
+              missionSaved={missionSaved}
+              onAddMission={() => missions.add(missionNow)}
               onLoadMission={(m) => patch({ ...m, t: null })}
+              onCalculateFlight={calculateFlight}
               onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
               onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
@@ -552,7 +569,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <FlightPanel
               architectures={ARCHITECTURES.map((a) => ({ id: a.id, name: a.name, note: a.note, available: true, unavailableReason: null }))}
               architectureId={architecture.id}
-              onArchitecture={(id) => patch({ rocket: id === DEFAULT_ARCHITECTURE_ID ? null : id })}
+              onArchitecture={(id) => patch({ rocket: id === DEFAULT_ARCHITECTURE_ID ? null : id, stay: null })}
               rendezvous={architecture.rendezvous}
               pads={LAUNCHPADS}
               padId={pad.id}
@@ -571,7 +588,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onCustomSite={setCustomSite}
               earliestTouchdownMs={period.startMs}
               surfaceStayDays={stayDays}
-              onSurfaceStayDays={(days) => setStayChoice({ designId: architecture.id, days })}
+              onSurfaceStayDays={(days) => patch({ stay: days })}
               surfaceStay={architecture.surfaceStay}
               returnWindowDays={returnWindowDays}
               onReturnWindowDays={setReturnWindowDays}
@@ -589,6 +606,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onSeek={flight.seek}
               collapsed={panelCollapsed}
               onCollapsed={setPanelCollapsed}
+              missionName={missionName}
+              onSaveMission={() => missions.add(missionNow)}
+              missionSaved={missionSaved}
+              canSaveMission={missions.list.length < MAX_MISSIONS}
             />
           )}
         </div>
@@ -767,6 +788,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           goal={hs.goal}
           missions={missions.list}
           onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
+          onCalculateFlight={calculateFlight}
           speed={speed}
           onSpeed={setSpeed}
           onReset={() => {

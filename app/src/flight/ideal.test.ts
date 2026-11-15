@@ -35,7 +35,7 @@ const lunarLiftoffMs = touchdownMs + 3 * 86400_000
 describe('theoretical minimum energy', () => {
   const ideal = idealEnergy({
     ephem, pad, target: tranquillity, launchMs, touchdownMs, lunarLiftoffMs, entryAltKm: 121.92,
-    burns: [{ propellantKg: 1000, ispS: 300 }, { propellantKg: 500, ispS: 450 }], referenceMassKg: 100,
+    burns: [{ propellantKg: 1000, ispS: 300 }, { propellantKg: 500, ispS: 450 }], spaceBurns: [{ propellantKg: 500, ispS: 450 }], referenceMassKg: 100,
   })
 
   it('outbound: the hand calculation, about 59 MJ/kg', () => {
@@ -89,6 +89,7 @@ describe('theoretical minimum energy', () => {
     const jet = (0.5 * 1000 * (G0 * 300) ** 2 + 0.5 * 500 * (G0 * 450) ** 2) / 1e6
     expect(jetEnergyMj([{ propellantKg: 1000, ispS: 300 }, { propellantKg: 500, ispS: 450 }])).toBeCloseTo(jet, 9)
     expect(ideal.missionJetEnergyMj).toBeCloseTo(jet, 9)
+    expect(ideal.spaceJetEnergyMj).toBeCloseTo((0.5 * 500 * (G0 * 450) ** 2) / 1e6, 9) // without the launch's burn
     expect(ideal.missionMjPerKg).toBeCloseTo(jet / 100, 9)
     expect(ideal.ratio).toBeCloseTo(jet / 100 / (ideal.outboundMjPerKg + ideal.returnClimbMjPerKg), 9)
   })

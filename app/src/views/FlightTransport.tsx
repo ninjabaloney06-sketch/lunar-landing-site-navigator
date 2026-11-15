@@ -86,64 +86,37 @@ function textRows(ticks: { pct: number; text: string | null }[], trackPx: number
 // ---------- the layer menu ----------
 
 const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'trail'; label: string; hint: string }[] = [
-  { key: 'paths', label: 'Flight path lines', hint: 'the path of the capsule and of the lander' },
-  { key: 'burns', label: 'Engine burns', hint: 'a ring at each burn, a wide line while the engine fires, the glow of a firing craft' },
+  { key: 'paths', label: 'Flight path', hint: 'the path of the capsule and of the lander' },
+  { key: 'burns', label: 'Burns', hint: 'a ring at each burn, a wide line while the engine fires, the glow of a firing craft' },
   { key: 'burnNames', label: 'Burn names', hint: 'a name at each burn' },
   { key: 'stageNames', label: 'Stage names', hint: 'the stage or engine that fires, at each burn' },
-  { key: 'trail', label: 'Path only behind the craft', hint: 'nothing is drawn ahead; the path fades out behind' },
+  { key: 'trail', label: 'Trail only', hint: 'nothing is drawn ahead; the path fades out behind' },
 ]
 
+/** The layer toggles, always in view: one chip per layer; the trail length appears while the trail is on. */
 function LayersMenu({ layers, onLayers }: { layers: FlightLayers; onLayers(l: FlightLayers): void }) {
-  const ref = useRef<HTMLDetailsElement>(null)
   const trailId = useId()
-
-  // A menu: a click anywhere else closes it, so it never stays open over the view.
-  useEffect(() => {
-    const onDown = (e: PointerEvent) => {
-      const el = ref.current
-      if (el?.open && !el.contains(e.target as Node)) el.open = false
-    }
-    window.addEventListener('pointerdown', onDown)
-    return () => window.removeEventListener('pointerdown', onDown)
-  }, [])
-
-  const shown = LAYER_CHECKS.filter((c) => layers[c.key]).length
   return (
-    <details
-      ref={ref}
-      className="flight-layers"
-      data-testid="flight-layers"
-      onKeyDown={(e) => {
-        const el = ref.current
-        if (e.key !== 'Escape' || !el?.open) return
-        e.stopPropagation() // Escape closes the menu, not the tab
-        el.open = false
-        el.querySelector('summary')?.focus()
-      }}
-    >
-      <summary className="btn">
-        Layers <span className="mono flight-layers-count">{`${shown}/${LAYER_CHECKS.length}`}</span>
-      </summary>
-      <div className="flight-layers-menu" role="group" aria-label="What the 3D view shows">
-        {LAYER_CHECKS.map((c) => (
-          <label key={c.key} className="check" title={c.hint}>
-            <input
-              type="checkbox"
-              checked={layers[c.key]}
-              data-testid={`layer-${c.key}`}
-              onChange={(e) => onLayers({ ...layers, [c.key]: e.target.checked })}
-            />
-            <span>{c.label}</span>
-          </label>
-        ))}
-        <div className="flight-trail">
-          <label htmlFor={trailId} className="quiet">
+    <div className="flight-layers" role="group" aria-label="Show in the 3D view" data-testid="flight-layers">
+      {LAYER_CHECKS.map((c) => (
+        <label key={c.key} className={`flight-chip${layers[c.key] ? ' is-on' : ''}`} title={c.hint}>
+          <input
+            type="checkbox"
+            checked={layers[c.key]}
+            data-testid={`layer-${c.key}`}
+            onChange={(e) => onLayers({ ...layers, [c.key]: e.target.checked })}
+          />
+          <span>{c.label}</span>
+        </label>
+      ))}
+      {layers.trail && (
+        <span className="flight-trail">
+          <label htmlFor={trailId} className="sr-only">
             Trail length
           </label>
           <select
             id={trailId}
             className="field"
-            disabled={!layers.trail}
             value={layers.trailHours === null ? 'all' : String(layers.trailHours)}
             data-testid="layer-trail-length"
             onChange={(e) => onLayers({ ...layers, trailHours: e.target.value === 'all' ? null : Number(e.target.value) })}
@@ -154,9 +127,9 @@ function LayersMenu({ layers, onLayers }: { layers: FlightLayers; onLayers(l: Fl
               </option>
             ))}
           </select>
-        </div>
-      </div>
-    </details>
+        </span>
+      )}
+    </div>
   )
 }
 

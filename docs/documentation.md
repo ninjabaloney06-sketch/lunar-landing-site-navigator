@@ -132,7 +132,7 @@ Automated tests (run on 14 Nov 2026, see README): 206 Python tests, 76 unit test
 - The change of the horizon across the width of a disc. The horizon is taken at the disc centre's azimuth.
 - Scattered light, earthshine and heat from surrounding terrain as inputs to any result.
 - Arbitrary coordinates. Only the 18 listed sites can be analysed.
-- Launch, transfer, descent and any trajectory.
+- Launch, transfer and descent in the site analysis. The Rocket flight menu (Part 2) computes them separately; its result does not enter any site value or ranking. Its energy multiplier is for one reference mission per design (see `app/src/flight/energyBaseline.ts`) and does not include the Moon's uneven gravity, station keeping or abort constraints.
 - Uncertainty. No error bars are computed; errors of the terrain model are not propagated.
 
 **Resolution at which each result holds**
@@ -202,6 +202,16 @@ Added after this text was written: see [BUILD_LOG.md](../BUILD_LOG.md).
 - *How this is computed*: the site's source and frame, the terrain and ephemeris sources, the comms definition, and the Terms of use.
 
 Added after this text was written: see [BUILD_LOG.md](../BUILD_LOG.md).
+
+**Rocket flight (sub-feature, Flight plan tab).** Opened from a saved mission: "Calculate flight" on its row in *All sites* (or in the Mission panel's saved list) switches to the Flight plan tab with that mission's site, dates, launchpad, rocket and surface stay. A saved mission keeps those flight choices; "Save mission" in the menu saves the current ones. The menu shows, top to bottom:
+
+- *Energy multiplier*: the exhaust energy of every burn from the Trans-Lunar Injection on, divided by the same for the chosen design's ideal landing point, the cheapest point found when the reference mission (LC-39B, landing from 16 Aug 2027, the design's default stay) is planned to a grid over the whole Moon and to the 18 sites (`energyBaseline.json`, regenerated with `GEN_BASELINE=1 npx vitest run src/flight/energyBaseline.gen.test.ts`). Exhaust energy is ½ · propellant · (g0 · Isp)², what the engines really put out; no 100 % efficiency is assumed and no raw energy figure is shown. The launch to Earth orbit is left out because it is the same for every landing point. Other dates, another pad or a longer stay than the reference also change the multiplier; below 1.00× means these choices need less than the reference mission's best point.
+- Four bullets: what 1.00× stands for and the costliest point on the Moon, Δv after launch, launch, landing and mission length, and whether every stage has enough propellant.
+- *Rocket and lander*: Apollo (Saturn V, Command and Service Module, Lunar Module) or SLS (Orion with Starship HLS or Blue Moon Mark 2), each with three bullets.
+- Launchpad, earliest landing (the mission start) and surface stay; then "Save mission".
+- Collapsed sections: notes, events and burns, propellant, flight facts, more choices (other coordinates, departure window, transfer cap, true scale), legend, explanations, abbreviations, how it is computed.
+
+The layer toggles (flight path, burns, burn names, stage names, trail only) are chips in the playback bar, always in view.
 
 **States.** While data loads, the answer line says so and the tracks stay empty. A site or date without data gives a plain "no data" message. The previous selection's values are never shown under a new selection.
 
