@@ -133,3 +133,23 @@ describe('landing site in the link: a site id, or a custom site cap:<lat>,<lon>'
     expect(capSiteId(c.lat, c.lon)).toBe(id)
   })
 })
+
+describe('a malformed link never throws and never yields NaN', () => {
+  const junk = [
+    '#%', '#%E0%A4%A', '#site=%ZZ', '#=&&=&', '#site=&period=&t=&days=&pts=&poi=&stay=&tmax=',
+    '#period=custom&from=2030-12-31T23:45Z&days=60', '#period=custom&days=0', '#t=2026-13-45T25:61Z',
+    '#t=9999-01-01T00:00Z&from=0000-01-01T00:00Z', '#days=1e3&stay=Infinity&tmax=NaN', '#stay=-1&tmax=4.50000001',
+    '#pts=,;;,,;NaN,NaN;1e999,0;-91,0;0,361;0,0,x,%zz', '#view=__proto__&drawer=constructor&goal=toString',
+    '#site=cap:NaN,NaN&rocket=../x&pad=<script>', '#st=,,,&name=%00%01%7F', `#name=${'x'.repeat(5000)}`,
+  ]
+  it.each(junk)('%s', (h) => {
+    const s = parseHash(h)
+    const nums = [s.from, s.days, s.t, s.tmax, s.stay, ...s.pts.flatMap((p) => [p.lat, p.lon])]
+    for (const n of nums) if (n !== null) expect(Number.isFinite(n)).toBe(true)
+    expect(['globe', 'site', 'eye', 'flight']).toContain(s.view)
+    expect(s.drawer === null || ['details', 'finder', 'sources', 'search', 'docs'].includes(s.drawer)).toBe(true)
+    expect(s.name === null || s.name.length <= 40).toBe(true)
+    expect(() => parseHash(serializeHash(s))).not.toThrow()
+    expect(serializeHash(parseHash(serializeHash(s)))).toBe(serializeHash(s))
+  })
+})

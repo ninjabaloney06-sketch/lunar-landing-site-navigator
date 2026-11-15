@@ -2,7 +2,7 @@
 // points, mission name, science goal, the points-of-interest layer and the flight plan's choices (launchpad, rocket,
 // transfer time, surface stay). A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { parseCustomSiteId } from './data/customSite'
 import { POI_GROUPS } from './data/pois'
 import type { PoiGroup } from './data/pois'
@@ -49,7 +49,7 @@ export interface HashState {
 // Supported coverage (spec.md "Dates"): [2026-11-01, 2031-01-01) UTC.
 export const COVERAGE_START_MS = Date.UTC(2026, 10, 1)
 export const COVERAGE_END_MS = Date.UTC(2031, 0, 1)
-export const STEP_MIN = 30
+const STEP_MIN = 30
 export const STEP_MS = STEP_MIN * 60_000
 export const DAY_MS = 86_400_000
 export const DEFAULT_DAYS = 14
@@ -72,12 +72,12 @@ export const NAME_MAX = 40
 export const MAX_DAYS = 60
 // Defaults decided by ninja, 14 Nov: a neutral mission name, and the goal whose ranking uses our own numbers.
 export const DEFAULT_MISSION_NAME = 'Mission 1'
-export const DEFAULT_GOAL: ScienceGoal = 'light'
+const DEFAULT_GOAL: ScienceGoal = 'light'
 // Transfer-time caps the flight plan offers (days); anything else in a link falls back to minimum energy.
-export const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
+const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
 // Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the design's default.
-export const STAY_RANGE = { min: 0.5, max: 30 }
-export const validStay = (v: number) => Number.isFinite(v) && v >= STAY_RANGE.min && v <= STAY_RANGE.max
+const STAY_RANGE = { min: 0.5, max: 30 }
+const validStay = (v: number) => Number.isFinite(v) && v >= STAY_RANGE.min && v <= STAY_RANGE.max
 
 export const EMPTY_STATE: HashState = {
   site: null,
@@ -292,11 +292,10 @@ export function serializeHash(s: HashState): string {
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }
 
-/** Hash state with a throttled writer: scrubbing updates React at once and the URL at most twice a second
- *  (Safari throws after ~100 history calls in 30 s). */
+/** Hash state with a debounced writer: scrubbing updates React at once and the URL 400 ms after the last
+ *  change (Safari throws after ~100 history calls in 30 s). */
 export function useHashState(): [HashState, (patch: Partial<HashState>) => void] {
   const [state, setState] = useState<HashState>(() => parseHash(window.location.hash))
-  const timer = useRef<number | null>(null)
 
   useEffect(() => {
     const onHash = () => setState(parseHash(window.location.hash))
@@ -305,14 +304,13 @@ export function useHashState(): [HashState, (patch: Partial<HashState>) => void]
   }, [])
 
   useEffect(() => {
-    if (timer.current !== null) window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => {
-      timer.current = null
+    const timer = window.setTimeout(() => {
       const h = serializeHash(state)
       if (h !== window.location.hash.replace(/^#/, '')) {
         window.history.replaceState(null, '', h ? `#${h}` : window.location.pathname + window.location.search)
       }
     }, 400)
+    return () => window.clearTimeout(timer)
   }, [state])
 
   const patch = useCallback((p: Partial<HashState>) => setState((prev) => ({ ...prev, ...p })), [])
