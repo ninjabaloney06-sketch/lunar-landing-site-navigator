@@ -45,7 +45,7 @@ import type { EarthField, Field, SimRun, SimState } from './sim'
 import { apsides } from './transit'
 import type { MissionEvent, MissionLeg, MissionPlan, PropellantUse, SourceRef, Vec3 } from './types'
 import { FlightPlanError } from './types'
-import { DEG, TWO_PI, angleAbout, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
+import { DEG, TWO_PI, angleAbout, angleWrapUp, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
 
 const HOUR_MS = 3_600_000
 const MIN_MS = 60_000
@@ -273,7 +273,7 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
       const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
       // The burn straddles the injection point: half of it before, half after.
       coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
-      while (coastS < 0) coastS += TWO_PI / nPark
+      coastS = angleWrapUp(coastS, 0, TWO_PI / nPark)
       // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
       coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
     }
