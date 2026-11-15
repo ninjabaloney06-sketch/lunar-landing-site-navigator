@@ -377,7 +377,7 @@ Evidence tiers, best first: direct measurement, remote observation, modeled cond
 ### Brief C3 — paste into a fresh Claude Code session (Opus 5.5, L2; Bene drives, Isaac approves wording)
 
 ```text
-Repo: /Users/Guest123/Documents/clps-lunar-mission-browser (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md sections "Shared preamble", "Brief C2" and "Step 2-UI" (the plan above this prompt: tables, screen plan, science goals); docs/event/spec.md (UX-01–05, mandatory site assessments, conditional extras P2); docs/event/handoff/README.md §3 (D4, D5) and the two contracts in §4. Then Read the four paper pages private/notes-14nov/2339.jpg, 2340.jpg, 2341.jpg, 2342.jpg as images. They are intent, not layout to copy: where the paper and the plan differ, the plan wins.
+Repo: <repo> (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md sections "Shared preamble", "Brief C2" and "Step 2-UI" (the plan above this prompt: tables, screen plan, science goals); docs/event/spec.md (UX-01–05, mandatory site assessments, conditional extras P2); docs/event/handoff/README.md §3 (D4, D5) and the two contracts in §4. Then Read the four paper pages private/notes-14nov/2339.jpg, 2340.jpg, 2341.jpg, 2342.jpg as images. They are intent, not layout to copy: where the paper and the plan differ, the plan wins.
 
 TASK: add the Mission layer and science-goal site ranking to the existing app. Five parts, in this order, each committed separately on branch `track-c3` in your own worktree.
 
@@ -433,7 +433,7 @@ Requested by ninja on 14 Nov. Replaces the pasted prompt "Implement the interact
 ### Brief C4 — paste into a fresh Claude Code session (Opus 5.5, L3; Bene checks the look, ninja approves wording, Leo the scene checks)
 
 ```text
-Repo: /Users/Guest123/Documents/clps-lunar-mission-browser (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main, state when this brief was written: 2dc2ef1, 14 Nov 16:03). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md "Shared preamble", "Brief C1", "Brief C2" and this section; docs/event/spec.md (UX-01–05); docs/event/build-plan.md §5.4 (scene, T14–T17); app/src/scene3d/README.md; then the code you will change: app/src/scene3d/index.ts, debug.ts, globe.ts, sky.ts, app/src/state.ts, app/src/App.tsx, app/src/views/SceneView.tsx, MissionPanel.tsx, Timeline.tsx, Drawer.tsx. Run `git log --oneline -15` and `git status` and work from what is there, not from the SHA above.
+Repo: <repo> (GitHub ninjabaloney06-sketch/lunar-landing-site-navigator, branch main, state when this brief was written: 2dc2ef1, 14 Nov 16:03). Read first, in this order: AGENTS.md; docs/event/agent-briefs.md "Shared preamble", "Brief C1", "Brief C2" and this section; docs/event/spec.md (UX-01–05); docs/event/build-plan.md §5.4 (scene, T14–T17); app/src/scene3d/README.md; then the code you will change: app/src/scene3d/index.ts, debug.ts, globe.ts, sky.ts, app/src/state.ts, app/src/App.tsx, app/src/views/SceneView.tsx, MissionPanel.tsx, Timeline.tsx, Drawer.tsx. Run `git log --oneline -15` and `git status` and work from what is there, not from the SHA above.
 
 TASK: four additions to the existing app, in this order, each committed separately on branch `track-c4` in your own worktree (`git worktree add ../clps-wt/c4 -b track-c4 main`). Stop after any part if the next one cannot finish with green checks; a finished part 1 alone is a valid result.
 1. Camera controls (app/src/scene3d/).
@@ -485,7 +485,7 @@ TRAPS (read before coding):
 6. No trig, angle triples or hand-written matrices in scene3d/ (scene3d/README.md). Directions go through geometry/ and frames.ts.
 7. hs.pts is restored from a link before sites.json has loaded. A point must never be dropped or renamed by a reload.
 8. Visible strings are approved by ninja. Use exactly the strings quoted in this brief; list every other new string in the report.
-9. Reference images exist only on ninja's Mac, outside git: /Users/Guest123/Downloads/WhatsApp Image 2026-11-13 at 12.21.47.jpeg (full screen), /Users/Guest123/Downloads/lunar-site-navigator-mockup-v4.png (scene), /Users/Guest123/Downloads/lunar-site-navigator-mockup-v4-site-menu.png (menu). Open them if they exist; never add them to git. The numbers and terrain in them are invented.
+9. Reference images exist only on ninja's Mac, outside git: ~/Downloads/WhatsApp Image 2026-11-13 at 12.21.47.jpeg (full screen), ~/Downloads/lunar-site-navigator-mockup-v4.png (scene), ~/Downloads/lunar-site-navigator-mockup-v4-site-menu.png (menu). Open them if they exist; never add them to git. The numbers and terrain in them are invented.
 
 OUT OF SCOPE: other planets, spacecraft trajectories, rover routes, route optimisation; any change to app/src/geometry/, scripts/ or app/public/data/; new downloads or assets; restyling the existing screen; merging to main; `npm run deploy`.
 

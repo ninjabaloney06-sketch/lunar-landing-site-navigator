@@ -1,13 +1,13 @@
 # Orchestrator prompt: final build night (notebook pages 1–3 + Otto's list)
 
 Written 2026-11-15 03:30 by Claude Code on ninja's request. To run: open a fresh Claude Code session with
-**Fable 5.2** in `/Users/Guest123/Documents/clps-lunar-mission-browser` on ninja's Mac (Guest123) and say
+**Fable 5.2** in `<repo>` on ninja's Mac and say
 "Read ORCHESTRATOR-PROMPT.md and execute everything below its line."
 
 ---
 
 You are the orchestrator for the last build night of the NASA Space Apps 2026 project "Lunar Landing Site
-Navigator" (repo `/Users/Guest123/Documents/clps-lunar-mission-browser`, GitHub
+Navigator" (repo `<repo>`, GitHub
 `ninjabaloney06-sketch/lunar-landing-site-navigator`, preview https://nasa.digi-works.org). The operator is
 ninja (= Isaac / "I" in the repo docs). Read `AGENTS.md` first; its rules apply on top of this prompt
 (AI-use log row with the prompt for every task, one BUILD_LOG line per shipped unit with exact local time,
@@ -74,8 +74,8 @@ dumbing the app down.
 
 1. **Team names: decided by ninja (15 Nov 2026): full names in the credits.** This overrides the
    AGENTS.md "no recognizable names of minors" line for the credits file only; record the decision with date
-   in `docs/reference/decisions.md`. Spell them exactly: Leonhard Greiner, Otto Erwerle, Benedikt Schmidt,
-   Isaac Brauer. Full names only in `docs/credits.md` and the `/docs` page built from it, nowhere else
+   in `docs/reference/decisions.md`. Spell them exactly as the team gives them (full names are not repeated in this prompt).
+   Full names only in `docs/credits.md` and the `/docs` page built from it, nowhere else
    (no demo video, no screenshots, no app UI).
 2. **Validation markers.** Leo (S) declared the flight physics validated on 14 Nov 20:59; ninja set
    `VALIDATED = true`. Any NEW physics (payload optimiser, dispersion tube, J2/mascon term, energy
@@ -102,7 +102,7 @@ Workstream headers' branch names and cut-offs are superseded by the waves here.
   `integration` checked out there all night: agent worktrees branch from the main checkout's HEAD, so each
   wave starts from what is merged. Nobody else touches the main checkout except the Haiku text agents' `private/` folder.
 - Every coding agent: `Agent` with `run_in_background: true` and `isolation: "worktree"`. First commands in
-  its worktree: `ln -s /Users/Guest123/Documents/clps-lunar-mission-browser/app/node_modules app/node_modules`
+  its worktree: `ln -s <repo>/app/node_modules app/node_modules`
   (no `npm install`), then `export PW_PORT=<its port>` (ports 5181–5199, one per agent, listed below; the
   orchestrator uses 5180). Playwright already reads `PW_PORT` and never reuses another agent's server.
 - Disk: 24 GB free when this prompt was written; each worktree is ~0.5 GB (`app/public` is tracked). At most 12 worktrees at once;
@@ -130,7 +130,7 @@ watchdog with the `Monitor` tool at the start of each wave; it costs no tokens w
 you only on a problem. After handling it, start it again.
 
 ```bash
-REPO=/Users/Guest123/Documents/clps-lunar-mission-browser
+REPO=<repo>
 while true; do
   free=$(df -g ~ | awk 'NR==2{print $4}')
   [ "$free" -lt 5 ] && { echo "DISK LOW: ${free} GB free"; exit 0; }
@@ -450,8 +450,8 @@ D2. **`docs/credits.md`**: every 3D model, artwork, texture, icon, font, library
     - The Student Research Center in Bad Saulgau, Germany (SFZ) — https://sfz-bw.de
     - MEXG, our school — https://mexg.de
     - Sponsor: Prime Balance — https://prime-balance.de
-    - Our team: Otto Erwerle — Code Lead · Leonhard Greiner — Science Lead · Isaac Brauer — AI Lead ·
-      Benedikt Schmidt — Design & UI Lead
+    - Our team: the four full names with their roles (Code Lead, Science Lead, AI Lead,
+      Design & UI Lead), as written in `docs/credits.md`
 D3. **`docs/scientific-proof/`**: one file per calculation (sunlight/horizon, Earth visibility/contact,
     ranking score, trajectory, descent, payload, dispersion, uncertainty), each with: equation, inputs with
     source, assumptions, ε and its propagation, test that checks it, validation status. As detailed as
@@ -461,8 +461,8 @@ D4. **Why ours is better** (Otto): one section comparing against the tools in
 D5. Update `docs/documentation.md` and `content.tsx` (or retire `content.tsx` if D1 makes it redundant).
 
 Done = `/docs` loads directly and from in-app link in `vite preview`, every link in credits returns 200
-(check with curl, list failures), full team names appear only in credits (`grep -rn "Greiner\|Erwerle\|Brauer"`
-outside `docs/credits.md`, `docs/reference/decisions.md`, `ORCHESTRATOR-PROMPT.md` and the built docs page
+(check with curl, list failures), full team names appear only in credits (grep the repo for the surnames
+outside `docs/credits.md` and the built docs page
 returns nothing).
 
 ## Merge, push, deploy
