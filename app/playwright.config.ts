@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// One dev server per agent: orchestrator 5180, C1 5181, C2 5182 (PW_PORT).
+// One dev server per agent on its own port (PW_PORT, 5180–5199; 5180 when unset).
 // reuseExistingServer stays false so a test never hits another track's server.
 const PORT = Number(process.env.PW_PORT ?? 5180)
 
