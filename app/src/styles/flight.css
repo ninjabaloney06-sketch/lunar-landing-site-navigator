@@ -1,5 +1,5 @@
 /* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
-/* Flight plan tab: the docked panel (FlightPanel) and the playback bar (FlightTransport). Tokens: tokens.css. */
+/* Flight view: the docked panel (FlightPanel) and the playback bar (FlightTransport). Tokens: tokens.css. */
 
 /* Two colours that carry meaning in this tab only, the same ones the 3D flight scene draws with (flight.ts):
    an engine burn is warm orange, the lander is green. Everything else uses tokens.css. */

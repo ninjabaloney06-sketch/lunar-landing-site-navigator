@@ -21,6 +21,11 @@ export const ASSESSMENT_STATUS = 'Validated by the science lead (statement of 15
 export const NOT_COMPUTED = 'Not computed for this place'
 export const NO_DATA = 'No site assessment data in this build.'
 export const UNKNOWN = 'unknown'
+/** Under the verdict, in both modes: the site list's slope is one value at the site point over a 100 m baseline
+ *  (scripts/horizon.py, slope_deg in sites.json); this rule takes every valid pixel slope (2-pixel baseline) in the
+ *  landing disk, so the file's limitation "it is not the 100 m point slope in sites.json" applies. */
+export const STRICTER_THAN_LIST =
+  'This is stricter than the slope shown in the site list (the 100 m point slope at the site); a site can pass that and fail this.'
 
 export type Tone = 'pass' | 'fail' | null
 

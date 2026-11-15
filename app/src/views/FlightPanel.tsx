@@ -18,7 +18,7 @@ import { fmtDayTime, fmtDays, fmtDuration, fmtDv, fmtKm, fmtKms, fmtMetres, fmtT
 import { useFlightAnalysis } from './flightAnalysis'
 import { Abbr } from './flightGlossary'
 import { AnalysisActions, DispersionDetails, PayloadDetails, PayloadLine, RouteDetails, Unvalidated } from './flightResult'
-import { NOT_VALIDATED_TEXT, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus } from './flightResultText'
+import { NOT_VALIDATED_TEXT, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus, shortElementsOf } from './flightResultText'
 import { FullDataSwitch } from './FullDataSwitch'
 
 export type MissionStatus = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; plan: MissionPlan }
@@ -66,7 +66,7 @@ export interface FlightPanelProps {
   onSaveMission(): void
   missionSaved: boolean // the current mission is already in the saved list
   canSaveMission: boolean // false when the list is full
-  /** Back to the landing-site view (the menu's own way out once the Flight plan tab is gone). */
+  /** Back to the landing-site view (the menu's own way out of the flight view). */
   onClose?(): void
 }
 
@@ -600,7 +600,7 @@ function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number)
   const status = propellantStatus(plan.propellant, lb?.element ?? null)
   return (
     <section className="flight-result" aria-label="Result" data-testid="flight-result">
-      <PayloadLine />
+      <PayloadLine shortElements={shortElementsOf(plan.propellant, lb?.element ?? null)} />
       <ul className="flight-glance">
         <li data-testid="flight-glance-propellant" data-tone={status.tone}>
           <span className={status.tone === 'short' ? 'flight-glance-short' : undefined}>

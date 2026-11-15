@@ -481,7 +481,7 @@ export function MissionPanel(p: Props) {
           <ul className="quiet mp-rule mp-bullets" data-testid="mp-rule">
             <li>Best first, by {goalRow.rule}.</li>
             <li>Green meets its threshold; red misses it and names it.</li>
-            <li>Passing the {SLOPE_LIMIT} slope limit alone does not establish landing safety.</li>
+            <li>Passing the {SLOPE_LIMIT} slope limit alone does not establish landing safety; the landing site assessment in Details applies a stricter per-pixel rule.</li>
             {fullData && (
               <li>
                 Among the {sites.length} evaluated sites. Slope over {SLOPE_BASELINE} on the {ab('LOLA', 'Lunar Orbiter Laser Altimeter')} 20 m terrain.
@@ -601,7 +601,8 @@ export function MissionPanel(p: Props) {
           })}
         </ul>
         <button className="menu-add" type="button" disabled>
-          Add a point: type coordinates in Landing site, or right-click the Moon
+          {/* the right-click half only where there is a mouse: a phone cannot right-click (F8) */}
+          Add a point: type coordinates in Landing site<span className="mp-fine-only">, or right-click the Moon</span>
         </button>
       </section>
 

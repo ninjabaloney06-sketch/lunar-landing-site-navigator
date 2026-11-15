@@ -24,19 +24,22 @@ export function roundWithError(value: number, eps: number): { value: string; eps
 
 const tonnes = (kg: number) => `${(kg / 1000).toFixed(kg < 10_000 ? 1 : 0)} t`
 
-/** The one summary line for the maximum payload, for every verdict. */
-export function payloadSentence(p: PayloadResult): string {
+/** The one summary line for the maximum payload, for every verdict. `shortElements`: the elements of this flight's
+ *  plan that are short of propellant (the condition of propellantStatus, "… short by …"); when there are any, no
+ *  payload figure is stated next to them. */
+export function payloadSentence(p: PayloadResult, shortElements: string[] = []): string {
+  if ((p.verdict === 'payload' || p.verdict === 'extrapolated') && shortElements.length > 0) {
+    const names = shortElements.join(' and ')
+    return `Max payload: not estimated — ${names} ${shortElements.length > 1 ? 'are' : 'is'} short of propellant for this flight.`
+  }
   switch (p.verdict) {
     case 'payload': {
       const r = roundWithError(p.maxPayloadKg, p.epsilonKg)
       return `Max payload: ${p.bound === 'lower' ? 'at least ' : ''}${r.value} kg ± ${r.eps} kg (1σ).`
     }
-    case 'extrapolated': {
-      // far beyond the checked range: an order of magnitude at most
-      const t = p.maxPayloadKg / 1000
-      const mag = 10 ** Math.round(Math.log10(Math.max(t, 1)))
-      return `Max payload: of the order of ${grouped(mag)} t, beyond the range this method is checked for (cargo above 30 % of the lander's mass).`
-    }
+    case 'extrapolated':
+      // far beyond the checked range: no magnitude (the figure is an extrapolation of a linearised method)
+      return "Max payload: outside the range this method is checked for (cargo above 30 % of the lander's mass)."
     case 'undetermined':
       // the reason (the propellant figure is a lower bound) is the note under the result, not repeated here
       return 'Max payload: cannot be decided from published data.'
@@ -96,9 +99,17 @@ export function propellantStatus(
   return { tone: undecided ? 'undecided' : 'short', text: `Propellant: ${list}.` }
 }
 
-/** The route search's sentence as the menu shows it: NASA's symbol for delta-v. */
+/** The elements propellantStatus calls short, for the payload line; empty when none is short or when only the
+ *  lower-bound element is (Blue Moon: that case keeps its own sentence). */
+export function shortElementsOf(uses: { element: string; usedKg: number; capacityKg: number }[], lowerBoundElement: string | null): string[] {
+  if (propellantStatus(uses, lowerBoundElement).tone !== 'short') return []
+  return uses.filter((u) => u.usedKg > u.capacityKg && u.element !== lowerBoundElement).map((u) => u.element)
+}
+
+/** The route search's sentence as the menu shows it: NASA's symbol for delta-v, and m/s figures with a thousands
+ *  separator as everywhere else in the menu ("1945 m/s" → "1,945 m/s"; the number itself is unchanged). */
 export function routeText(sentence: string): string {
-  return sentence.replace(/delta-v/g, 'Δv')
+  return sentence.replace(/delta-v/g, 'Δv').replace(/\b(\d{4,}) m\/s/g, (_, d: string) => `${Number(d).toLocaleString('en-US')} m/s`)
 }
 
 // ---- errors: one plain sentence with what the user can do; the planner's own reason only in full data mode

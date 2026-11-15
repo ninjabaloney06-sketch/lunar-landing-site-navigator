@@ -96,7 +96,7 @@ test('the CSV export carries the power rows', async ({ page }) => {
 test('a custom site: the estimate is marked approximate; without data, "Not computed for this place"', async ({ page }) => {
   const sec = await openDrawer(page, CUSTOM)
   await expect(sec.getByTestId('power-answer')).toBeVisible({ timeout: 90_000 })
-  await expect(sec.getByTestId('power-approx')).toHaveText(/^Approximate: from .* terrain, not validated\.$/)
+  await expect(sec.getByTestId('power-approx')).toHaveText(/^Approximate: from .* terrain\.$/)
 
   // No ephemeris for the dates: no series, so nothing is estimated.
   await page.route('**/data/ephem/**', (route) => route.fulfill({ status: 404, body: '' }))

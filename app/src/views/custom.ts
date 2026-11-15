@@ -47,7 +47,7 @@ export function nearRes(c: Computed): string {
 }
 
 /** The one line beside a custom site's numbers. */
-export const approxText = (c: Computed) => `Approximate: from ${nearRes(c)} terrain, not validated`
+export const approxText = (c: Computed) => `Approximate: from ${nearRes(c)} terrain`
 
 /** The footer's terrain part for a custom site (a prepared site keeps its fixed "LOLA 20 m" text). */
 export const footTerrain = (c: Computed) => `Terrain LOLA ${nearRes(c)} (${c.far_res_m} m beyond ${c.rings.nearKm} km)`

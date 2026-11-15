@@ -57,7 +57,7 @@ import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
 import type { MissionState } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import { approxText, footTerrain, useCustomSite } from './views/custom'
-import { customSiteId } from './data/customSite'
+import { customSiteId, poiNameAt } from './data/customSite'
 import type { Poi, PoiGroup } from './data/pois'
 import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
@@ -112,7 +112,7 @@ function siteSubtitle(site: Site): string | null {
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
-// Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
+// Arrow keys in the flight view: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
 type LatLon = { latDeg: number; lonDeg: number }
@@ -144,7 +144,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
-  // Simulation mode: from the first play until the run reaches its last step, Esc or the Flight plan tab.
+  // Simulation mode: from the first play until the run reaches its last step, Esc or opening the flight view.
   // A pause stays in it, so the speed slider and "Reset to start" stay beside Simulate.
   const [simMode, setSimMode] = useState(false)
   const leftSite = hs.view === 'flight'
@@ -166,7 +166,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
   // A custom landing site (data/customSite.ts) lives in the link as its id; its height and slope arrive with capHorizon.
-  const custom = useCustomSite(hs.site, hs.name ?? DEFAULT_MISSION_NAME)
+  // A custom site opened from a point of interest is called by that point's name once the POI list is there (F10);
+  // the mission's name stays the header's title.
+  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
+  const poiSiteName = useMemo(() => poiNameAt(hs.site, poiData.status === 'ready' ? poiData.pois : null), [hs.site, poiData])
+  const custom = useCustomSite(hs.site, poiSiteName ?? hs.name ?? DEFAULT_MISSION_NAME)
   const site = custom?.site ?? sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const customReady = custom?.status === 'ready' ? custom : null
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
@@ -215,14 +219,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const answer = ready ? results.results.answerAt(cursor) : null
 
   // Points of interest: pois.json is fetched the first time the layer or the search is opened (layer off by default).
-  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
   const visiblePois = useMemo(
     () => (poiData.status === 'ready' && hs.poi ? scenePois(poiData.pois, hs.poi, sites) : []),
     [poiData, hs.poi, sites],
   )
   const poiCounts = useMemo(() => (poiData.status === 'ready' ? pinCounts(poiData.pois, sites) : null), [poiData, sites])
 
-  // ---------- Flight plan tab: launchpad → this mission's site, touching down at the mission start ----------
+  // ---------- Flight view: launchpad → this mission's site, touching down at the mission start ----------
   const inFlight = hs.view === 'flight'
   const [customPad, setCustomPad] = useState<LatLon | null>(null)
   const [customSite, setCustomSite] = useState<LatLon | null>(null)
@@ -437,7 +440,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [hs.pts, patch],
   )
   // "Set as landing site" (typed coordinates, a user point's row, the right-click menu on a user point): only
-  // inside the pin region, where customSiteId gives an id. On the Flight plan tab the tab stays, as for a site
+  // inside the pin region, where customSiteId gives an id. In the flight view the view stays, as for a site
   // chosen in the Mission panel.
   const setLandingSite = useCallback(
     (lat: number, lon: number) => {
@@ -460,7 +463,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const viewItems: ViewItem[] = [
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
     { id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
-    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
+    ...viewpointItems((v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
   // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
@@ -760,7 +763,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
-              title="Find a landing site or point of interest by name or coordinates"
+              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station coverage"
               onClick={() => patch({ drawer: 'search' })}
             >
               Search

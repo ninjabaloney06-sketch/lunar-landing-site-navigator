@@ -585,8 +585,10 @@ export const DOC_SECTIONS: DocSection[] = [
             and Slope (&quot;— too steep&quot; when it fails).
           </li>
           <li>
-            A site row offers &quot;Select&quot;. A point row offers &quot;Show&quot; only, which makes the point the
-            landing site and opens it at eye level with its group on.
+            Every row offers &quot;Show as landing site&quot;. On a site row it selects that site; on a point row it
+            makes the point the landing site (a custom landing site) and opens the landing-site view with its group on.
+            The point of interest card has the same action. A point outside the custom-site region offers &quot;Show
+            on the Moon&quot; instead, which opens the Moon view.
           </li>
           <li>
             Order: rows that pass the slope filter and have a value, places with a value of 0 last, then by groups
@@ -612,9 +614,9 @@ export const DOC_SECTIONS: DocSection[] = [
             base, a 1920 m outer raster): 720 directions, eye 1.75 m, rays to 300 km.
           </li>
           <li>
-            Results are marked as approximate and not validated. Against the 18 listed sites&apos; horizons (14 Nov
-            2026): 0.013° median difference over sites, up to 1.68° in single directions; that can move a sunrise or
-            sunset.
+            Results are marked &quot;Approximate: from 40 m / 80 m terrain&quot;. Against the 18 listed sites&apos;
+            horizons (14 Nov 2026): 0.013° median difference over sites, up to 1.68° in single directions; that can
+            move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record).
           </li>
           <li>A custom site is not a row in the site list, the all-sites table or the search.</li>
         </ul>

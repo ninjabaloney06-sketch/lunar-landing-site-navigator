@@ -38,6 +38,14 @@ export const CUSTOM_SITE_NAME = 'Custom site'
  *  there is none (blank or absent). The name never changes the id or anything computed for the site. */
 export const customSiteName = (missionName?: string | null): string => missionName?.trim() || CUSTOM_SITE_NAME
 
+/** F10: the name of the point of interest a custom site was opened from ("Show as landing site" makes a custom site
+ *  at the point's own coordinates, so its id is customSiteId of that point), or null. Only a lookup; the POI list is
+ *  loaded lazily, so a caller passes null until it is there and the site keeps the mission's name meanwhile. */
+export function poiNameAt(id: string | null, pois: readonly { name: string; lat: number; lon: number }[] | null): string | null {
+  if (!id || !pois || !parseCustomSiteId(id)) return null
+  return pois.find((p) => customSiteId(p.lat, p.lon) === id)?.name ?? null
+}
+
 /** The site as far as the id gives it: no height and no slope until capHorizon has run. */
 export function customSiteBase(id: string): Site | null {
   const c = parseCustomSiteId(id)

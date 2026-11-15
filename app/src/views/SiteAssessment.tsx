@@ -9,7 +9,7 @@ import { loadAssessments } from '../data/assessments'
 import { MissingDataError } from '../data/load'
 import type { Site } from '../data/types'
 import { useFullData } from './advanced'
-import { NO_DATA, linkParts, mapAssessment, notComputedView, termParts } from './assessmentView'
+import { NO_DATA, STRICTER_THAN_LIST, linkParts, mapAssessment, notComputedView, termParts } from './assessmentView'
 import type { AssessmentView, Block, Headline, Note } from './assessmentView'
 import '../styles/assessment.css'
 
@@ -194,6 +194,9 @@ function HeadlineView({ h, full }: { h: Headline; full: boolean }) {
           {h.decider}.
         </p>
       )}
+      <p className="quiet assess-stricter" data-testid="assess-stricter">
+        {STRICTER_THAN_LIST}
+      </p>
       {h.criteria && !full && (
         <p className="quiet assess-criteria" data-testid="assess-criteria">
           {h.criteria}

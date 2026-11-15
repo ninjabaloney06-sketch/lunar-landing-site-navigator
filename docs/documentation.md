@@ -321,7 +321,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - Defaults: groups Water and volatiles, Permanent shadow, Science features; within 20 km (1 to 200 km); "Must pass the 5° slope limit" on; rank by Both. The settings are not part of the link.
 - Records with the same place name within 5 km (1 km for illumination points) are one row.
 - Each row: rank, "Best" for up to the first 3 ranks, the nearby counts in words ("Within 20 km: 1 water 3 shadow 1 science"), Sunlit, Coverage and Slope ("— too steep" when it fails).
-- A site row offers "Select". A point row offers "Show", which makes the point the landing site (a custom landing site) and opens it at eye level with its group on.
+- Every row offers "Show as landing site". On a site row it selects that site; on a point row it makes the point the landing site (a custom landing site) and opens the landing-site view with its group on. The point of interest card has the same action. A point outside the custom-site region offers "Show on the Moon" instead, which opens the Moon view.
 - No group chosen, or nothing within the distance: one plain sentence.
 
 Order (`app/src/geometry/poiSearch.ts`, header comment):
@@ -342,8 +342,8 @@ Order (`app/src/geometry/poiSearch.ts`, header comment):
 A place south of 80° S can be the landing site: typed coordinates in the Mission menu, a user point ("Set as landing site", also in its right-click menu) and "Show" in the search. The link carries it as `site=cap:<lat>,<lon>` with five decimals (`app/src/state.ts`).
 
 - Terrain and horizon are computed in the browser from the south-cap rasters (`app/src/data/southcap.ts`, written by `scripts/south_cap.py` from `LDEM_80S_20MPP_ADJ.TIF` and `LDEM_60S_120MPP_ADJ.TIF`): 40 m and 80 m tiles on demand, a 400 m base, a 1920 m outer raster. Same conventions as `scripts/horizon.py` (720 directions, eye 1.75 m, rays to 300 km).
-- All results come from the same functions as for a listed site, marked "Approximate: from 40 m / 80 m terrain, not validated."
-- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record); the app still labels these results "approximate … not validated".
+- All results come from the same functions as for a listed site, marked "Approximate: from 40 m / 80 m terrain."
+- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record); the app labels these results "Approximate" because they come from coarser terrain.
 - A custom site is not a row in the site list, the all-sites table or the search. Site assessment is not computed for it.
 
 ### What is not covered

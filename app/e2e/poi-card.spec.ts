@@ -139,8 +139,7 @@ test.describe('POI card at 1440 × 900', () => {
     await expect(box).toHaveAttribute('data-mode', 'full')
   })
 
-  // Needs SceneView to pass the current site to PoiInfo (`from` prop; SceneView belongs to agent `cam`, the one-line
-  // diff is in the poi agent's report). Remove `.fixme` when it is applied.
+  // Needs SceneView to pass the current site to PoiInfo (`from` prop), which it does.
   test('the summary card ends with the distance from the current landing site, computed in the app', async ({ page }) => {
     const byId = await pois(page)
     const cabeus = byId.get(CABEUS)!
