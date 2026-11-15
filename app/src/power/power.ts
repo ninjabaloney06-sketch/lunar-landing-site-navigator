@@ -122,10 +122,21 @@ export function estimatePower(steps: readonly LightStep[], longestDarkH: number,
   }
 }
 
+/** The estimate for the app's results: the series samples (the summary's own) and the summary's longest dark
+ *  window. null without results. */
+export function estimateForResults(
+  r: { series: { samples: readonly { utcMs: number; sun: { frac: number; dist_km: number } }[]; endMs: number; stepMin: number }; summary: { longestDarkH: number } } | null,
+  inp: PowerInputs,
+): PowerEstimate | null {
+  if (!r) return null
+  return estimatePower(lightSteps(r.series.samples, r.series.endMs, r.series.stepMin), r.summary.longestDarkH, inp)
+}
+
 /** Rows for the drawer's CSV export (metric,value), inputs first. Without an estimate the outputs are empty. */
 export function powerCsvRows(inp: PowerInputs, est: PowerEstimate | null): string[] {
   const v = (x: number | undefined, d: number) => (x === undefined ? '' : x.toFixed(d))
   return [
+    'power_status,first estimate; not a power budget; not validated by the science lead',
     `power_panel_area_m2,${inp.panelM2}`,
     `power_cell_efficiency_pct,${inp.effPct}`,
     `power_load_w,${inp.loadW}`,

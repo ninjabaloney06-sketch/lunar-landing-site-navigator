@@ -22,6 +22,7 @@ import { capital, fmtDateTime, fmtDeg } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
+import { PowerSection, powerCsvLines, type PowerInputs } from './PowerSection'
 
 export interface ViewPeriod {
   id: string // period id or 'custom'
@@ -49,6 +50,8 @@ interface Props {
   missions: MissionState[] // saved missions, shown as rows of the table
   onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
   onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
+  power?: PowerInputs // power estimate inputs (link keys panel, eff, load, batt)
+  onPower?(next: PowerInputs): void
   onClose(): void
 }
 
@@ -72,7 +75,7 @@ function losText(l: StationLos | undefined): string {
   return 'blocked'
 }
 
-function csv(site: Site, period: ViewPeriod, r: ResultsState, approx: string | null): string {
+function csv(site: Site, period: ViewPeriod, r: ResultsState, approx: string | null, power?: PowerInputs): string {
   if (r.status !== 'ready') return ''
   const { sun, comms, summary } = r.results
   const src = (VALIDATED ? 'computed' : `computed, ${NOT_VALIDATED}`) + (approx ? `; ${approx}` : '')
@@ -89,6 +92,7 @@ function csv(site: Site, period: ViewPeriod, r: ResultsState, approx: string | n
     `earth_visible_pct,${summary.earthVisiblePct.toFixed(2)}`,
     `longest_darkness_h,${summary.longestDarkH.toFixed(2)}`,
     `longest_coverage_gap_h,${summary.longestGapH.toFixed(2)}`,
+    ...powerCsvLines(r.results, power),
   ]
   return lines.join('\n') + '\n'
 }
@@ -146,7 +150,7 @@ export function Drawer(p: Props) {
   }, [terms])
 
   const download = () => {
-    const blob = new Blob([csv(site, period, results, approx)], { type: 'text/csv' })
+    const blob = new Blob([csv(site, period, results, approx, p.power)], { type: 'text/csv' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     // a custom site id ("cap:-85.50000,12.25000") has characters a file name cannot hold
@@ -347,6 +351,8 @@ export function Drawer(p: Props) {
           ))}
         </ul>
       </section>
+
+      <PowerSection results={results} custom={custom} approx={approx} inputs={p.power} onChange={p.onPower} />
 
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
