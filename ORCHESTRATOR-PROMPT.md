@@ -446,7 +446,7 @@ D2. **`docs/credits.md`**: every 3D model, artwork, texture, icon, font, library
     (scan `app/public/`, `node_modules` licences of shipped deps, `scripts/textures.py`, `views/Icon.tsx`);
     every data source and scraped source (POI research `docs/POIs/*.json`, `docs/reference/data-sources.md`,
     `docs/reference/sources.md`). Special thanks, exactly:
-    - Dagny Gocher and Elia Jonas — our supervisors and teachers
+    - Dagny Locher and Elia Jonas — our supervisors and teachers
     - The Student Research Center in Bad Saulgau, Germany (SFZ) — https://sfz-bw.de
     - MEXG, our school — https://mexg.de
     - Sponsor: Prime Balance — https://prime-balance.de
