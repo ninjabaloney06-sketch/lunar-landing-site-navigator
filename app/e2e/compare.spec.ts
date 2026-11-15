@@ -99,11 +99,11 @@ test.describe('Full data in the All sites table at 1280 × 720', () => {
     await sw.click()
     const ridge = table.locator('tr[data-site-id="connecting-ridge"]')
     await expect(ridge.getByTestId('st-full')).toContainText(/Longest darkness (\d+\.\d h|\d+ days?( \d+ h)?)/)
-    await expect(ridge.getByTestId('st-full')).toContainText(/Earth above horizon \d+\.\d %/)
+    await expect(ridge.getByTestId('st-full')).toContainText(/Earth in view \d+\.\d %/)
     await expect(ridge.getByTestId('st-full')).toContainText(/Slope \d+\.\d°/)
     await expect(ridge.getByTestId('st-full').getByRole('link')).toHaveCount(1)
     await expect(ridge.getByTestId('st-full')).not.toContainText('Sunlit') // already a column
-    await expect(table.getByTestId('mission-rows').getByTestId('st-full')).toContainText(/Longest coverage gap (\d+\.\d h|\d+ days?( \d+ h)?)/, { timeout: 30_000 })
+    await expect(table.getByTestId('mission-rows').getByTestId('st-full')).toContainText(/Longest comms gap (\d+\.\d h|\d+ days?( \d+ h)?)/, { timeout: 30_000 })
     await expect(table.getByTestId('st-method')).toBeVisible()
     await expect(page.locator('body')).not.toContainText('NaN')
     await sw.click()

@@ -25,10 +25,10 @@ interface Props {
 // Row labels start with the value's name (the tests find rows by it); the unit follows.
 const ROWS: { label: string; get: (s: Summary) => string; v: (s: Summary) => number; higher: boolean; hint: string }[] = [
   { label: 'Sunlit, % of time', get: (s) => fmtPct(s.litPct), v: (s) => s.litPct, higher: true, hint: 'Share of the dates with the Sun above the terrain horizon.' },
-  { label: 'Station coverage, % of time', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct, higher: true, hint: 'Share of the dates with line of sight to at least one selected station.' },
-  { label: 'Unknown, % of time', get: (s) => fmtPct(s.unknownPct), v: (s) => s.unknownPct, higher: false, hint: 'Share of the dates where an input is missing.' },
+  { label: 'Station coverage (comms), % of time', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct, higher: true, hint: 'Line of sight to at least one selected ground station, not a guaranteed radio link.' },
+  { label: 'Comms unknown, % of time', get: (s) => fmtPct(s.unknownPct), v: (s) => s.unknownPct, higher: false, hint: 'Share of the dates where an input is missing.' },
   { label: 'Longest darkness', get: (s) => fmtSpanH(s.longestDarkH), v: (s) => s.longestDarkH, higher: false, hint: 'Longest stretch without sunlight in these dates.' },
-  { label: 'Longest coverage gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH, higher: false, hint: 'Longest stretch without any selected station in view.' },
+  { label: 'Longest comms gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH, higher: false, hint: 'Longest stretch without any selected station in view.' },
 ]
 
 function cell(st: ResultsState, get: (s: Summary) => string) {
@@ -135,7 +135,7 @@ export function Compare({ site, periodId, periodLabel, sites, periods, stations,
           ))}
         </tbody>
       </table>
-      <p className="quiet compare-note">Better: higher sunlit and coverage; lower unknown share, shorter darkness and gaps.</p>
+      <p className="quiet compare-note">Better: higher sunlit and comms; lower unknown share, shorter darkness and gaps.</p>
       <button className="btn" type="button" disabled={!op || what === 'same'} onClick={() => op && onSwitch(os.id, op.id)}>
         Switch to {os.name}, {otherRange}
       </button>

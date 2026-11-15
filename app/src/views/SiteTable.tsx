@@ -37,14 +37,16 @@ type Columns = 'both' | 'light' | 'comms'
 type Span = 'mission' | 'year'
 
 const COLUMNS: { id: Columns; label: string; hint: string }[] = [
-  { id: 'both', label: 'Both', hint: 'sunlit and station coverage' },
+  { id: 'both', label: 'Both', hint: 'sunlit and comms' },
   { id: 'light', label: 'Light', hint: 'sunlit and longest darkness' },
-  { id: 'comms', label: 'Comms', hint: 'station coverage and longest coverage gap' },
+  { id: 'comms', label: 'Comms', hint: 'comms and longest comms gap' },
 ]
 
 // Column heads carry the unit; durations carry theirs in the value ("3 days 4 h").
 const H_LIT = 'Sunlit, % of time'
-const H_COV = 'Station coverage, % of time'
+// Shared wording with the Mission menu (read-mission): "sunlit", "comms", "longest comms gap", "Earth in view".
+const H_COV = 'Comms, % of time'
+export const COMMS_HINT = 'Line of sight to at least one selected ground station, not a guaranteed radio link.'
 
 const VALUES: Record<Columns, { key: string; head: string; get: (s: Summary) => string }[]> = {
   both: [
@@ -57,7 +59,7 @@ const VALUES: Record<Columns, { key: string; head: string; get: (s: Summary) => 
   ],
   comms: [
     { key: 'comms', head: H_COV, get: (s) => fmtPct(s.coveragePct) },
-    { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtSpanH(s.longestGapH) },
+    { key: 'gap', head: 'Longest comms gap', get: (s) => fmtSpanH(s.longestGapH) },
   ],
 }
 
@@ -84,10 +86,10 @@ function yearSpan(startMs: number): { startMs: number; endMs: number } {
 // Full data mode (U8): every value summarize() gives, beside the decision values the chosen columns show.
 const ALL_VALUES: { key: string; head: string; get: (s: Summary) => string; v: (s: Summary) => number }[] = [
   { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct), v: (s) => s.litPct },
-  { key: 'comms', head: 'Station coverage', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
+  { key: 'comms', head: 'Comms', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
   { key: 'dark', head: 'Longest darkness', get: (s) => fmtSpanH(s.longestDarkH), v: (s) => s.longestDarkH },
-  { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH },
-  { key: 'earth', head: 'Earth above horizon', get: (s) => fmtPct(s.earthVisiblePct), v: (s) => s.earthVisiblePct },
+  { key: 'gap', head: 'Longest comms gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH },
+  { key: 'earth', head: 'Earth in view', get: (s) => fmtPct(s.earthVisiblePct), v: (s) => s.earthVisiblePct },
 ]
 
 /** A site's slope with its status against the 5° landing-slope criterion (spec.md "Terrain slope", applied by
@@ -235,7 +237,7 @@ export function SiteTable(p: Props) {
           <tr>
             <th scope="col">Site</th>
             {values.map((v) => (
-              <th key={v.key} scope="col" className="st-num">
+              <th key={v.key} scope="col" className="st-num" title={v.key === 'comms' || v.key === 'gap' ? COMMS_HINT : undefined}>
                 {v.head}
               </th>
             ))}
@@ -264,10 +266,11 @@ export function SiteTable(p: Props) {
                     <button
                       type="button"
                       className="link st-find"
+                      aria-label={`Find better dates for ${s.name}`}
                       title={`Makes ${s.name} the landing site and searches its dates`}
                       onClick={() => p.onFindDates(s.id)}
                     >
-                      Find better dates for {s.name}
+                      Find better dates
                     </button>
                   )}
                 </th>

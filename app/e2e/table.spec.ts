@@ -87,7 +87,7 @@ test.describe('comparison table for all sites', () => {
       await expect(cell(s.id, 'lit'), `${s.id} sunlit`).toHaveText(pct(ref.summaries[s.id].litPct))
       await expect(cell(s.id, 'comms'), `${s.id} station coverage`).toHaveText(pct(ref.summaries[s.id].coveragePct))
     }
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Station coverage, % of time', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Comms, % of time', 'Graph'])
     // Light only, then comms only.
     await table.getByRole('radio', { name: 'Light' }).check()
     await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Longest darkness', 'Graph'])
@@ -97,7 +97,7 @@ test.describe('comparison table for all sites', () => {
       await expect(cell(s.id, 'comms')).toHaveCount(0)
     }
     await table.getByRole('radio', { name: 'Comms' }).check()
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Station coverage, % of time', 'Longest coverage gap', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Comms, % of time', 'Longest comms gap', 'Graph'])
     for (const s of sites) {
       await expect(cell(s.id, 'comms')).toHaveText(pct(ref.summaries[s.id].coveragePct))
       await expect(cell(s.id, 'gap')).toHaveText(hours(ref.summaries[s.id].longestGapH))

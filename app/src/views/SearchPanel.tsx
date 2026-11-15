@@ -20,7 +20,7 @@ import { FullDataSwitch } from './FullDataSwitch'
 import type { PoiData } from './poiLayer'
 import { groupInfo, REGION_TEXT } from './poiLayer'
 import { useSiteRows } from './useSiteRows'
-import { SlopeValue } from './SiteTable'
+import { COMMS_HINT, SlopeValue } from './SiteTable'
 
 // UI defaults (not sourced values): the groups of scientific interest (hazards are something to avoid, sunlight is
 // measured by the app itself, landing records are other sites), and 20 km, the reach of the 20 m terrain model
@@ -43,9 +43,9 @@ const COUNT_NAME: Record<PoiGroup, string> = {
 const BY: { id: ShareBy; label: string; rule: string }[] = [
   { id: 'both', label: 'Both', rule: 'the most sunlight and station coverage together (the lower of the two percentages)' },
   { id: 'light', label: 'Sunlit', rule: 'the most sunlight' },
-  { id: 'comms', label: 'Station coverage', rule: 'the most station coverage' },
+  { id: 'comms', label: 'Comms', rule: 'the most comms time' },
 ]
-const BY_HINT = 'Both: the weaker of sunlit % and station coverage %.'
+const BY_HINT = 'Both: the weaker of sunlit % and comms %.'
 
 interface Props {
   sites: Site[]
@@ -148,7 +148,7 @@ export function SearchPanel(p: Props) {
             Search sites
           </h2>
           <p className="quiet" data-testid="search-dates">
-            Sunlit and coverage are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
+            Sunlit and comms are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
             {stations.length} stations.
           </p>
         </div>
@@ -267,6 +267,29 @@ export function SearchPanel(p: Props) {
                       )}
                     </span>
                   </p>
+                </div>
+                <p className="search-item-sub">{poi ? `${groupInfo(poi.group).label} point` : 'Listed landing site'}</p>
+                <p className="search-item-facts search-item-near">
+                  <span>Within {radiusKm} km:</span>{' '}
+                  {chosenGroups.map((g, i) => (
+                    <span key={g.id} className="search-count" data-group={g.id} title={`${g.label} within ${radiusKm} km`}>
+                      <span className="mono">{r.counts[g.id] ?? 0}</span> {COUNT_NAME[g.id]}
+                      {i < chosenGroups.length - 1 ? ' ' : ''}
+                    </span>
+                  ))}
+                </p>
+                <p className="search-item-facts">
+                  <span className="search-num" data-col="lit">
+                    Sunlit <span className="mono">{value(r.litPct)}</span>
+                  </span>
+                  <span className="search-num" data-col="comms">
+                    <span title={COMMS_HINT}>Comms</span> <span className="mono">{value(r.coveragePct)}</span>
+                  </span>
+                  <span className="search-num" data-col="slope">
+                    Slope <SlopeValue site={c.site} />
+                  </span>
+                </p>
+                <p className="search-item-act">
                   {poi ? (
                     <button
                       type="button"
@@ -286,27 +309,6 @@ export function SearchPanel(p: Props) {
                       Select as landing site
                     </button>
                   )}
-                </div>
-                <p className="search-item-sub">{poi ? `${groupInfo(poi.group).label} point` : 'Listed landing site'}</p>
-                <p className="search-item-facts search-item-near">
-                  <span>Within {radiusKm} km:</span>{' '}
-                  {chosenGroups.map((g, i) => (
-                    <span key={g.id} className="search-count" data-group={g.id} title={`${g.label} within ${radiusKm} km`}>
-                      <span className="mono">{r.counts[g.id] ?? 0}</span> {COUNT_NAME[g.id]}
-                      {i < chosenGroups.length - 1 ? ' ' : ''}
-                    </span>
-                  ))}
-                </p>
-                <p className="search-item-facts">
-                  <span className="search-num" data-col="lit">
-                    Sunlit <span className="mono">{value(r.litPct)}</span>
-                  </span>
-                  <span className="search-num" data-col="comms">
-                    Station coverage <span className="mono">{value(r.coveragePct)}</span>
-                  </span>
-                  <span className="search-num" data-col="slope">
-                    Slope <SlopeValue site={c.site} />
-                  </span>
                 </p>
                 {full && (
                   <div className="search-item-full" data-testid="search-item-full">
@@ -316,7 +318,7 @@ export function SearchPanel(p: Props) {
                       </span>
                       {sum && finite(sum.earthVisiblePct) && (
                         <span className="search-num" data-col="earth">
-                          Earth above horizon <span className="mono">{fmtPct(sum.earthVisiblePct)}</span>
+                          Earth in view <span className="mono">{fmtPct(sum.earthVisiblePct)}</span>
                         </span>
                       )}
                       {sum && finite(sum.longestDarkH) && (
@@ -326,7 +328,7 @@ export function SearchPanel(p: Props) {
                       )}
                       {sum && finite(sum.longestGapH) && (
                         <span className="search-num" data-col="gap">
-                          Longest coverage gap <span className="mono">{fmtSpanH(sum.longestGapH)}</span>
+                          Longest comms gap <span className="mono">{fmtSpanH(sum.longestGapH)}</span>
                         </span>
                       )}
                       <span className="search-num">

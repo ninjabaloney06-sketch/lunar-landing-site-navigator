@@ -92,6 +92,9 @@ export function fmtSpanH(v: number): string {
   return `${d} ${d === 1 ? 'day' : 'days'}${h ? ` ${h} h` : ''}`
 }
 
+/** The Mission menu's name for the same formatter (hours in; not flightFormat's fmtDuration, which takes seconds). */
+export const fmtDuration = fmtSpanH
+
 export type CoordParse = { kind: 'none' } | { kind: 'ok'; lat: number; lon: number } | { kind: 'error'; message: string }
 
 /** Typed coordinates in the site search: "-89.3, -130", "89.3 S 130 W", "89.30° S · 130.00° W".

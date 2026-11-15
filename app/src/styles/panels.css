@@ -342,6 +342,10 @@
   margin-top: var(--s-2);
 }
 
+.compare-tbl td.mono {
+  white-space: nowrap;
+}
+
 .compare-tbl .compare-better {
   color: var(--muted);
   overflow-wrap: anywhere;

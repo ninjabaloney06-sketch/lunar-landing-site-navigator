@@ -383,12 +383,30 @@
 
 .search-item > .search-item-facts,
 .search-item > .search-item-sub,
+.search-item > .search-item-act,
 .search-item-full {
   padding-left: calc(2.2ch + var(--s-2));
 }
 
 .search-num .mono {
   color: var(--fg);
+}
+
+/* "Select / Show as landing site": its own line under the values, a 44 px touch target, so a long place name keeps
+   the full width. */
+.search-item-act {
+  margin: 0;
+}
+
+.search-go {
+  padding: var(--s-1) 0;
+  font-size: var(--t-small);
+}
+
+@media (max-width: 640px) {
+  .search-go {
+    min-height: 44px;
+  }
 }
 
 /* ---------- small screens ---------- */

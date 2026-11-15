@@ -8,16 +8,18 @@ import { fmtDeg } from './format'
 
 /** What the network codes in stations.json stand for. */
 export const NETWORK_NAME: Record<Station['network'], string> = {
-  DSN: 'Deep Space Network (NASA)',
-  ESTRACK: 'European Space Tracking network (ESA)',
+  DSN: 'NASA Deep Space Network',
+  ESTRACK: 'ESA tracking station network',
   JAXA: 'Japan Aerospace Exploration Agency',
 }
 
-/** The abbreviations inside the antenna names ("DSS-24 (34 m BWG)"), expanded for the hover. */
+/** The abbreviations inside the antenna names ("DSS-24 (34 m BWG)"), expanded for the hover. BWG = "Beam
+ *  Waveguide" as written in DSN 810-005 module 301 (the source stations.json cites). That document uses DSS numbers
+ *  as station identifiers without spelling DSS out, so the hover says only what it is used for. */
 export function antennaTitle(name: string): string | undefined {
   const parts: string[] = []
-  if (/\bDSS\b/.test(name)) parts.push('DSS: Deep Space Station (antenna number)')
-  if (/\bBWG\b/.test(name)) parts.push('BWG: beam-waveguide antenna')
+  if (/\bDSS\b/.test(name)) parts.push("DSS number: the antenna's station number in the DSN documents")
+  if (/\bBWG\b/.test(name)) parts.push('BWG: beam waveguide antenna')
   return parts.length ? parts.join('; ') : undefined
 }
 
