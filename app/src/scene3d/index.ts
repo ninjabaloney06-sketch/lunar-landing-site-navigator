@@ -150,6 +150,9 @@ export interface SceneHandle {
   onLevel(cb: (level: SceneLevel) => void): () => void
   /** Asked before a click on the scene acts (select a pin, walk); false = ignore this click. */
   setClickGuard(guard: (() => boolean) | null): void
+  /** Whether a double-click on terrain walks the camera there (to eye level). The app switches it off: the eye-level
+   *  view was removed from the app on 15 Nov; the harness keeps it. */
+  setWalkEnabled(on: boolean): void
   /** Flies to a viewpoint; false when it is not available (nothing loaded yet, a fly running, the flight level). */
   goTo(v: Viewpoint): boolean
   /** Flies the space camera to above a point of the Moon (planetocentric degrees), from any level; ends at 'globe'. */
@@ -1713,6 +1716,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // the pin under it; at site and eye level it walks to the terrain point under it.
   let down: { x: number; y: number } | null = null
   let lastClick: { t: number; x: number; y: number } | null = null
+  let walkEnabled = true
   let fingers = 0
   const toNdc = (clientX: number, clientY: number) => {
     const r = canvas.getBoundingClientRect()
@@ -1758,7 +1762,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     // A click on a point of interest's pin belongs to the page (its info box): it is not a walk.
     if (nameAt(ndc)?.kind === 'poi') return
-    // Walk: a double-click (or double tap) on terrain within WALK_MAX_KM of the site.
+    // Walk: a double-click (or double tap) on terrain within WALK_MAX_KM of the site, where walking is on.
+    if (!walkEnabled) return
     const now = performance.now()
     const second = lastClick !== null && now - lastClick.t < DOUBLE_CLICK_MS && Math.hypot(e.clientX - lastClick.x, e.clientY - lastClick.y) < DOUBLE_CLICK_PX
     lastClick = second ? null : { t: now, x: e.clientX, y: e.clientY }
@@ -1855,6 +1860,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     onLevel(cb) {
       levelCbs.add(cb)
       return () => levelCbs.delete(cb)
+    },
+    setWalkEnabled(on) {
+      walkEnabled = on
     },
     setClickGuard(guard) {
       clickGuard = guard

@@ -234,15 +234,15 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 - Three levels: *Globe* (the Moon with one pin per site; click a pin to select it), *Site* (the terrain around the landing site from above) and *Eye* (standing at the site, 1.75 m above the ground).
 - Labels: "Sun" and "Earth" with their elevation in degrees, and "Landing site". A negative elevation means below the horizontal plane; whether terrain hides the body, the answer and the horizon strip tell.
-- Keys: `E` switches between site and eye level. `Esc` goes to the globe; during a simulation it stops it and returns to the landing-site view.
+- Keys: `Esc` goes to the globe; during a simulation it stops it and returns to the landing-site view.
 - Without WebGL the scene is replaced by the horizon strip.
 
 **Camera, viewpoints and points.**
 
 - Left-drag orbits. Middle-drag looks around from where the camera is.
 - Wheel or pinch moves the camera and stops 1.75 m above the terrain; at eye level it narrows the lens (54° down to 4°).
-- A double-click (or double tap) on the terrain within 20 km of the site stands the camera on that spot, at eye level; Esc goes back. A single click does nothing.
-- "View", beside the timeline, lists Landing site, Eye level and Moon. A right-click on the scene lists Moon.
+- The app has no eye-level view any more (removed 15 Nov 2026 on tester feedback: it was reached by accident and its value was unclear). A click on the terrain does nothing; a link with `view=eye` opens the landing-site view.
+- "View", beside the timeline, lists Landing site and Moon. A right-click on the scene lists Moon.
 - "Add point here" (right-click) or typed coordinates in the Mission menu add a user point with a name, kept in the link.
 - A user point has no horizon file: the app shows its marker and coordinates, never a value.
 - None of this changes the site, the dates or a number.
@@ -262,7 +262,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - The bracket marks the mission with its name and length.
 - Drag to move the cursor; click a date to jump to 12:00 UTC that day. Space plays and pauses; arrow keys step 30 minutes, with Shift one day.
 
-**Slope warning.** Shown above the timeline only when the site fails the 5° slope limit, with the slope and the 100 m baseline.
+**Slope warning.** Shown above the timeline when the site's slope over the 100 m baseline is above 8°: a caution from 8° (the contour NASA's Artemis III site maps use; what a lander can take depends on the vehicle) and "Landing not recommended" above 10° (NASA's "Key Artemis III Landing Requirements": surface slope for landing under 10° over 100 m, [NTRS 20250009323](https://ntrs.nasa.gov/api/citations/20250009323/downloads/ArtemisOverview2025IntSPAPPSChallenge.pdf)). The ranking and the search keep the team's own stricter 5° criterion.
 
 **Footer.**
 
@@ -271,7 +271,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 **Mission menu.** Top to bottom:
 
-- "Mission" with "Play mission" (eye level, first to last mission day).
+- "Mission" with "Play mission" (the landing site, first to last mission day).
 - Name; start and end date (changing the start keeps the length).
 - Science goal.
 - Landing site: the ranking of calculation 13 for the mission's dates, stations and goal, in three groups: "Passes the 5° slope limit" (ranked), "Too steep to land (slope above 5°)" and "Not enough data". Each row shows what it was ranked by. "Best" means best among the 18 evaluated sites for these inputs. Your points follow.

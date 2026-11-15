@@ -371,7 +371,7 @@ export const DOC_SECTIONS: DocSection[] = [
             answer and the horizon strip tell.
           </li>
           <li>
-            <Key>E</Key> switches between site and eye level. <Key>Esc</Key> goes to the globe; during a simulation it
+            <Key>Esc</Key> goes to the globe; during a simulation it
             stops it and returns to the landing-site view.
           </li>
           <li>Without WebGL the scene is replaced by the horizon strip.</li>
@@ -385,17 +385,14 @@ export const DOC_SECTIONS: DocSection[] = [
             The wheel or a two-finger pinch moves the camera and stops 1.75 m above the terrain. At eye level it narrows
             the lens instead (54° down to 4°).
           </li>
-          <li>
-            A double-click (or double tap) on the terrain within 20 km of the site stands the camera on that spot, at eye
-            level; Esc goes back. A single click does nothing.
-          </li>
+          <li>There is no eye-level view; a click on the terrain does nothing.</li>
           <li>Hovering or tapping a pin shows its name.</li>
         </ul>
         <p>
           <strong>Viewpoints and points.</strong>
         </p>
         <ul className="docs-list">
-          <li>&quot;View&quot;, beside the timeline, lists Landing site, Eye level and Moon. A right-click on the scene lists Moon.</li>
+          <li>&quot;View&quot;, beside the timeline, lists Landing site and Moon. A right-click on the scene lists Moon.</li>
           <li>
             &quot;Add point here&quot; in the right-click menu, or coordinates typed in the Mission menu, add a user
             point with a name. It is kept in the link.
@@ -437,8 +434,11 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
         </ul>
         <p>
-          <strong>Slope warning.</strong> Shown above the timeline only when the site fails the 5° slope limit, with
-          the measured slope and the 100 m baseline.
+          <strong>Slope warning.</strong> Shown above the timeline when the site&apos;s slope over the 100 m baseline is
+          above 8°: a caution from 8° (the contour NASA&apos;s Artemis III site maps use; what a lander can take depends on
+          the vehicle) and &quot;Landing not recommended&quot; above 10°, NASA&apos;s published Artemis III landing
+          requirement (surface slope for landing under 10° over 100 m), with a link to the source. The ranking and the
+          search keep the team&apos;s own stricter 5° criterion.
         </p>
         <p>
           <strong>Footer.</strong> The terrain and ephemeris sources, &quot;how this is computed&quot;, &quot;Docs&quot;
@@ -450,7 +450,7 @@ export const DOC_SECTIONS: DocSection[] = [
           <strong>Mission menu.</strong> Top to bottom:
         </p>
         <ul className="docs-list">
-          <li>&quot;Mission&quot; with &quot;Play mission&quot; (eye level, first to last mission day).</li>
+          <li>&quot;Mission&quot; with &quot;Play mission&quot; (the landing site, first to last mission day).</li>
           <li>Name; start and end date (changing the start keeps the length).</li>
           <li>Science goal.</li>
           <li>

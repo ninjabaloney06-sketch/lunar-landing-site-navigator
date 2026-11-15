@@ -117,9 +117,17 @@ const CONTEXT_DAYS = 3
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
 type LatLon = { latDeg: number; lonDeg: number }
-// Slope warning on the main screen (team values of 15 Nov, not sourced vehicle limits).
+// Slope warning on the main screen, from NASA's published Artemis III figures (science lead, 15 Nov: "based on the
+// actual NASA thing"). "Key Artemis III Landing Requirements": surface slope for landing under 10° over 100 m
+// (NASA, Artemis overview for the 2025 Space Apps Challenge, NTRS 20250009323; the same figures in NTRS 20230005904);
+// NASA's site maps also contour regions of continuous 8° slope. The app's slope is over a 100 m baseline too. The 5°
+// criterion of the ranking and the search is the team's own, stricter, and unchanged.
+// The eye-level view is not part of the app any more (team decision, 15 Nov): a link with view=eye opens the site
+// view. Only the scene's own regression tests (?test=1) still reach it, so the camera code stays covered.
+const ENGINE_TEST = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('test')
 const SLOPE_WARN_DEG = 8
-const SLOPE_SEVERE_DEG = 15
+const SLOPE_SEVERE_DEG = 10
+const SLOPE_SOURCE = 'https://ntrs.nasa.gov/api/citations/20250009323/downloads/ArtemisOverview2025IntSPAPPSChallenge.pdf'
 // The tabs of the Details drawer (Drawer.tsx): Site details, Dates, Compare.
 const DETAIL_SECTIONS: DrawerSection[] = ['details', 'sources', 'finder', 'compare', 'missions']
 
@@ -403,8 +411,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         e.preventDefault()
         const d = (e.shiftKey ? DAY_MS : STEP_MS) * (e.key === 'ArrowLeft' ? -1 : 1)
         patch({ t: snap(cursor + d) })
-      } else if (e.key === 'e' || e.key === 'E') {
-        patch({ view: hs.view === 'eye' ? 'site' : 'eye' })
       }
     }
     window.addEventListener('keydown', onKey)
@@ -484,7 +490,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const VIEW_HINTS: Record<string, string> = { moon: 'Whole Moon with the candidate site pins' }
   const viewItems: ViewItem[] = [
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
-    { id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
+    // Only for the scene's regression tests (?test=1): the app itself has no eye-level view.
+    ...(ENGINE_TEST ? [{ id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') }] : []),
     ...viewpointItems((v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
@@ -508,7 +515,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   const playMission = () => {
     setMenu(null)
-    patch({ view: 'eye', t: period.startMs })
+    patch({ view: 'site', t: period.startMs })
     setPlaying(true)
   }
 
@@ -540,7 +547,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             deps={deps}
             siteId={site.id}
             utcMs={cursor}
-            view={hs.view}
+            view={hs.view === 'eye' && !ENGINE_TEST ? 'site' : hs.view}
             sunEl={atCursor ? atCursor.sun.el : null}
             earthEl={atCursor ? atCursor.earth.el : null}
             sunHidden={atCursor ? !atCursor.sun.lit : false}
@@ -583,7 +590,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
       {hint && !inFlight && hs.drawer === null && (
         <p className="hint" data-testid="hint" role="note">
-          Drag to turn, scroll to zoom, double-click the ground to stand there. The date opens other mission dates; Simulate plays the
+          Drag to turn, scroll to zoom. The date opens other mission dates; Simulate plays the
           mission's Sun, Earth and station contact; Details compares sites and dates.
         </p>
       )}
@@ -862,8 +869,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <Icon name="warning" />
             <span>
               {slope.deg > SLOPE_SEVERE_DEG
-                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above ${SLOPE_SEVERE_DEG}°`
-                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above ${SLOPE_WARN_DEG}°. Whether a landing is possible depends on the lander.`}
+                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}. NASA's Artemis III landing requirement is under ${SLOPE_SEVERE_DEG}° over 100 m. `
+                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above the ${SLOPE_WARN_DEG}° contour of NASA's site maps (requirement: under ${SLOPE_SEVERE_DEG}°). Whether a landing is possible depends on the lander. `}
+              <a href={SLOPE_SOURCE} target="_blank" rel="noopener noreferrer" data-testid="slope-source">
+                Source
+              </a>
             </span>
           </p>
         )}
@@ -910,7 +920,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                     data-menu-trigger=""
                     aria-haspopup="menu"
                     aria-expanded={menu === 'view'}
-                    title="Camera: landing site from above, eye level at the site, or the whole Moon"
+                    title="Camera: the landing site from above, or the whole Moon"
                     onClick={() => setMenu(menu === 'view' ? null : 'view')}
                   >
                     View

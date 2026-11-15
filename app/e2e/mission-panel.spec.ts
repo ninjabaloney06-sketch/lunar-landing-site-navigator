@@ -83,8 +83,8 @@ test.describe('U2: the Mission menu folds what is not needed to decide', () => {
     await expect(panel.getByRole('checkbox')).toHaveCount(0)
     // Play mission is one button in the header, its explanation on hover and for screen readers.
     const play = panel.locator('.mp-head').getByRole('button', { name: 'Play mission' })
-    await expect(play).toHaveAttribute('title', /^Eye level at the landing site/)
-    await expect(play).toHaveAccessibleDescription(/^Eye level at the landing site/)
+    await expect(play).toHaveAttribute('title', /^The landing site from the first to the last mission day/) // 15 Nov: the eye-level view was removed from the app
+    await expect(play).toHaveAccessibleDescription(/^The landing site from the first to the last mission day/)
     // Add mission is the last control of the menu.
     const last = await panel.evaluate((el) => {
       const all = [...el.querySelectorAll('button, input, select')].filter((e) => (e as HTMLElement).offsetParent !== null)
