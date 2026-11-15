@@ -562,7 +562,8 @@ export function Drawer(p: Props) {
                   {horizonFile?.observer_height_m ?? 1.75} m above the ground. Where that reaches past the edge of the 20 m
                   model (a square about 608 km across, centred on the pole), the 120 m model of the same data set, which
                   reaches 60° S, continues it. The 3D scene draws the terrain at
-                  20 m within 2.5 km of the site, 80 m within 20 km, then 400 m and 2 km means out to 300 km.
+                  20 m within 2.5 km of the site, 80 m within 20 km, 160 m within 40 km, then 400 m and 2 km means out to
+                  300 km.
                   {truncated}
                 </li>
               )}

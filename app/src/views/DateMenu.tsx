@@ -155,7 +155,7 @@ export function DateMenu(p: Props) {
             Best periods in {year} · <span className="best-mission">{p.missionName ?? 'Mission'}</span> at {p.site.name}
           </div>
           <p className="menu-msg is-quiet" data-testid="best-defaults">
-            {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
+            {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
             coverage ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
           </p>
           {best.status === 'computing' && (

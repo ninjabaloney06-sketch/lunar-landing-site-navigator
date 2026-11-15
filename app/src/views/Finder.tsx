@@ -104,7 +104,8 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
     <div className="finder">
       <p className="quiet sec-lead" data-testid="finder-lead">
         Landing between {fmtDate(startMs)} and {fmtDate(latestMs)}, with {n} selected {n === 1 ? 'station' : 'stations'}.
-        Landing times tried every 30 minutes; best station coverage first.
+        Landing times tried every 30 minutes; best station coverage first. Defaults are proposals the science lead
+        reviews.
       </p>
       <form className="finder-form" onSubmit={submit} noValidate>
         {FIELDS.map((f) => (

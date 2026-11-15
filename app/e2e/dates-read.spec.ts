@@ -184,7 +184,7 @@ test.describe('U17: Details drawer, own sections', () => {
       await expect(page.getByTestId('best-period').first()).toBeVisible({ timeout: 60_000 })
       const defaults = (await page.evaluate(`import('/src/geometry/index.ts').then((g) => g.FINDER_DEFAULTS)`)) as Record<string, number>
       await expect(page.getByTestId('best-defaults')).toHaveText(
-        `14-day stays, finder defaults: sunlit ≥ ${defaults.minLitPct} %, coverage ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
+        `14-day stays, proposed finder defaults: sunlit ≥ ${defaults.minLitPct} %, coverage ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
       )
       const menu = page.locator('.date-menu')
       expect(await unmarked(menu, false)).toEqual([])
