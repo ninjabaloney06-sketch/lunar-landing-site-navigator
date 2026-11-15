@@ -86,5 +86,3 @@ export const VEHICLES: Vehicle[] = [
     sources: [NASA_SLS_BLOCK_TLI, NASA_RL10_PAGE, WIKI_EUS, WIKI_AJ10],
   },
 ]
-
-export const DEFAULT_VEHICLE_ID = 'sls-block-1'

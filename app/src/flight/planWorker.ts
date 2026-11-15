@@ -45,15 +45,25 @@ export function runPlan(req: PlanRequest): PlanReply {
     }
     return { id: req.id, ok: true, plan }
   } catch (e) {
-    const err = e as Error
     // FlightPlanError and the simulators' own error classes carry a message meant for the reader
     const expected = e instanceof FlightPlanError || e instanceof AscentError || e instanceof LunarOpsError || e instanceof NrhoError
-    return { id: req.id, ok: false, message: err.message, expected }
+    // something thrown that is not an Error (a string, undefined) still gives a message, never "undefined"
+    const message = e instanceof Error ? e.message : String(e)
+    return { id: req.id, ok: false, message: message || 'the plan could not be computed', expected }
   }
 }
 
 const inWorker = typeof window === 'undefined' && typeof self !== 'undefined'
 if (inWorker) {
-  const ctx = self as unknown as { onmessage: ((e: MessageEvent<PlanRequest>) => void) | null; postMessage(m: PlanReply): void }
+  const ctx = self as unknown as {
+    onmessage: ((e: MessageEvent<PlanRequest>) => void) | null
+    onmessageerror: ((e: MessageEvent) => void) | null
+    postMessage(m: PlanReply): void
+  }
   ctx.onmessage = (e) => ctx.postMessage(runPlan(e.data))
+  // A request that cannot be read carries no id to answer with. Throwing reaches the page as the worker's
+  // `error` event, which settles the waiting request there instead of leaving it pending for ever.
+  ctx.onmessageerror = () => {
+    throw new Error('the planning worker could not read the request')
+  }
 }

@@ -60,7 +60,7 @@ const JPL_HALO_A = { x: 1.01983025819651, z: -0.18054200495908329, vy: -0.098433
 const JPL_HALO_B = { x: 1.0196625817475922, z: -0.18041918731575562, vy: -0.098059824670690757, period: 1.4799795545729917 }
 
 // Mean synodic month, 29.530588853 days: https://eclipse.gsfc.nasa.gov/SEhelp/moonorbit.html
-export const SYNODIC_MONTH_S = 29.530588853 * 86400
+const SYNODIC_MONTH_S = 29.530588853 * 86400
 /** Period of the 9:2 resonant orbit: nine revolutions in two synodic months, 6.5624 days. */
 export const NRHO_PERIOD_S = (2 / 9) * SYNODIC_MONTH_S
 

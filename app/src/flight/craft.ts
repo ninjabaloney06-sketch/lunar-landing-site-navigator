@@ -1,5 +1,5 @@
 // Where the capsule and the lander are at an instant of a planned mission. Pure lookups in the plan's legs.
-import type { CraftId, CraftState, MissionEvent, MissionLeg, MissionPlan, Track, Vec3 } from './types'
+import type { CraftId, CraftState, MissionLeg, MissionPlan, Track, Vec3 } from './types'
 import { lerp } from './vec'
 
 /** Linear interpolation along a track at UTC ms; null outside [t[0], t[last]]. */
@@ -41,9 +41,4 @@ export function craftAt(plan: MissionPlan, craft: CraftId, utcMs: number): Craft
     return c && { ...c, docked: true }
   }
   return null
-}
-
-/** Where an event happens: the craft's position at its instant. */
-export function eventPlace(plan: MissionPlan, e: MissionEvent): CraftState | null {
-  return craftAt(plan, e.craft, e.utcMs)
 }
