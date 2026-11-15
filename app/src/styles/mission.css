@@ -534,3 +534,11 @@
   width: auto;
   flex: 0 1 11.5em;
 }
+
+/* Phones: View and Simulate reach 12 px above their row (44 px targets); the warning keeps clear of them. */
+@media (max-width: 640px) {
+  .slope-warning,
+  .custom-note {
+    margin-bottom: var(--s-6);
+  }
+}
