@@ -378,7 +378,9 @@ function renderBlocks(lines: string[], ctx: BlockCtx, tight = false): string {
       const rows: string[][] = []
       while (i < lines.length && !blank(lines[i]) && lines[i].includes('|')) rows.push(splitRow(lines[i++]))
       const cell = (tag: 'th' | 'td', text: string, col: number) => {
-        const cls = tag === 'td' && NUMERIC.test(inlineText(text)) ? ' class="num"' : ''
+        // A value cell (a number with its unit, "12.5 km", "0.0763°") is set in mono; a sentence that starts with a number is not.
+        const plain = inlineText(text)
+        const cls = tag === 'td' && NUMERIC.test(plain) && plain.length <= 20 ? ' class="num"' : ''
         const al = align[col] ? ` style="text-align:${align[col]}"` : ''
         return `<${tag}${cls}${al}>${renderInline(text, ctx.inline)}</${tag}>`
       }

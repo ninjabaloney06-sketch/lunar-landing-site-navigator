@@ -52,6 +52,10 @@ describe('markdown renderer: blocks', () => {
     )
   })
 
+  it('keeps a sentence that starts with a number out of mono', () => {
+    expect(html('| a |\n|---|\n| 1.75 m above the ground at the site |')).toContain('<td>1.75 m above')
+  })
+
   it('renders fenced code blocks verbatim and escaped', () => {
     expect(html('```ts\nconst a = <b>&c</b>\n  indented\n```')).toBe(
       '<pre><code class="language-ts">const a = &lt;b&gt;&amp;c&lt;/b&gt;\n  indented</code></pre>',
