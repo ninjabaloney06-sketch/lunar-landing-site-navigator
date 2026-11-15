@@ -266,21 +266,19 @@
 }
 
 /* ======================================================================================================
-   /docs page (D1): a full page, not the drawer above. Light reading surface (taste rule: light for reading,
-   dark for the space scene). The light values are defined here, scoped to the page; type, spacing, radius and
-   motion come from tokens.css. One column of about 70 characters, contents beside it from 1040 px, above it
+   /docs page (D1): a full page, not the drawer above. Dark like the app (ninja, 15 Nov 2026: "docs in dark
+   mode, like the rest of the site"); every colour, type, spacing, radius and motion value comes from tokens.css. One column of about 70 characters, contents beside it from 1040 px, above it
    (collapsed) below that.
    ====================================================================================================== */
 
 html.docpage-root {
-  color-scheme: light;
-  --doc-bg: oklch(98.6% 0.004 85);
-  --doc-surface: oklch(96.2% 0.005 85);
-  --doc-fg: oklch(23% 0.01 260);
-  --doc-muted: oklch(44% 0.01 260);
-  --doc-faint: oklch(58% 0.008 260);
-  --doc-line: oklch(89% 0.006 85);
-  --doc-link: oklch(45% 0.12 245); /* the comms blue, darkened to read on paper */
+  --doc-bg: var(--bg);
+  --doc-surface: var(--surface-2);
+  --doc-fg: var(--fg);
+  --doc-muted: var(--muted);
+  --doc-faint: var(--faint);
+  --doc-line: var(--line);
+  --doc-link: var(--comms);
   --doc-measure: 70ch;
   --doc-top: 56px;
 
@@ -616,7 +614,7 @@ html.docpage-root body {
     padding: var(--s-4) var(--s-6) var(--s-6);
     background: var(--doc-bg);
     border-bottom: 1px solid var(--doc-line);
-    box-shadow: 0 12px 24px oklch(23% 0.01 260 / 0.08);
+    box-shadow: 0 12px 24px oklch(0% 0 0 / 0.4);
     font-size: var(--t-ui);
     visibility: hidden;
     opacity: 0;

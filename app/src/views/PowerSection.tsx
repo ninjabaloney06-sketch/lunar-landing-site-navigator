@@ -153,7 +153,7 @@ export function PowerSection(props: Props) {
     )
 
   return (
-    <Fold id={`${uid}-h`} title="Power and battery estimate" className="power" testId="power-section" summary="First estimate for an example panel and battery">
+    <Fold id={`${uid}-h`} title="Power and battery estimate" className="power" testId="power-section" hint="How much electricity a solar panel would make here, and whether a battery lasts through the longest dark stretch. Change the numbers to match your lander." summary="First estimate for an example panel and battery">
       <p className="msg sample-note power-status">First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).</p>
       {examples.length > 0 && (
         <p className="quiet power-example" data-testid="power-example">
@@ -175,7 +175,7 @@ export function PowerSection(props: Props) {
       {body}
       <p className="quiet power-limits">{NOT_MODELLED}</p>
       <details className="power-model" data-testid="power-model">
-        <summary>Model</summary>
+        <summary>How this is calculated</summary>
         <p className="quiet">One panel that always faces the Sun:</p>
         <p className="power-formula mono">P(t) = S × A × η × f(t) × (1 AU / r(t))²</p>
         <dl className="power-symbols">

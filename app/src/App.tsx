@@ -1237,6 +1237,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
             goal={hs.goal}
             missions={missions.list}
+            points={hs.pts}
             onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
             onCalculateFlight={calculateFlight}
             power={hs.power}

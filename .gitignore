@@ -15,3 +15,5 @@ __pycache__/
 app/test-results/
 app/playwright-report/
 /.agent-done
+# one-page event summary: built locally by scripts/tools/make_pdf.py, not tracked (the committed copy named a third party)
+docs/event/NASA-Heilbronn-CLPS.pdf

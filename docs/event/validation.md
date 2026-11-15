@@ -120,7 +120,7 @@ S-can: Target body name: Moon (301)                      {source: DE441} | Cente
 - Station table: three DSN stations only (ESTRACK not sourced; state at 12:21 — since 13:24 stations.json also has JAXA Usuda and Uchinoura, which this table does not cover). Station positions use IAU_EARTH as an approximation of the terrestrial frame; `madrid_site` etc. = Moon-site elevation above the station's WGS 84 horizon, `_ctr` = Moon centre (what Horizons gives with the station as observer and target 301).
 
 ```text
-# V1/V2 tables from branch track-a (scripts/ephemeris.py), ninja Mac / Guest123, 2026-11-14 12:21 CET. UNTRACKED file, never committed.
+# V1/V2 tables from branch track-a (scripts/ephemeris.py), ninja Mac, 2026-11-14 12:21 CET. UNTRACKED file, never committed.
 # Table 2 reads stations from the A-h branch copy of scripts/stations.csv (3 DSN rows; no ESTRACK rows in it yet) because stations.csv is not on main yet.
 
 $ python3 scripts/ephemeris.py --site -89.46 -136.68 --start 2026-11-14T00:00 --end 2026-11-15T00:00 --step 60
@@ -729,7 +729,7 @@ Audit by agent `val-audit` (Claude Code, Opus 5.5, wave 4 of the build run, Wind
 on the add-on task "FINAL STEP: Validation audit". Nothing above this section is changed; no box is ticked and no line
 is signed for the science lead or for the code checker.
 
-**The statement this section records.** In chat with the orchestrator session (Windows laptop, user folder "Leonhard";
+**The statement this section records.** In chat with the orchestrator session (Windows laptop;
 the GitHub account of that session is the science lead's), the team member operating it, speaking as the science lead:
 
 - 15 Nov 2026, about 08:45, answering whether the finder defaults should be used as pass/fail colours: "do colorcode,

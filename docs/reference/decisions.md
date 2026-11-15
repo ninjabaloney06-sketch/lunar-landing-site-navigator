@@ -34,10 +34,10 @@ Device agent on ninja's Mac: after ninja signed in, the Space Apps dashboard lis
 - Official challenge page: https://www.spaceappschallenge.org/2026/challenges/clps-lunar-mission-browser/ — summary only on 7 Oct. Official challenge statements (full requirements and resources) release 28 Oct — confirmed by the participant FAQ 16 Oct, no longer hearsay.
 - The challenge pages render client-side; plain `curl` returns nothing useful — use a real browser (a device agent, or a human).
 - Space Apps team maximum: 6. Our team: 4 (Leo joined 22 Oct; registered in the team online, GitHub access).
-- **Betreuer (22 Oct):** one Betreuer covers our four and a second team. Settled — not an open question for Sarah.
+- **Betreuer (22 Oct):** one Betreuer covers our four and a second team. Settled — not an open question for the organiser.
 - Check-in Sat 14 Nov, 8:30. No separate Friday programme known as of 12 Oct; the organisers will notify separately if Friday offers exist.
 - Wi-Fi available, no restrictions on ports or number of devices. Sockets are scarce — bring power strips (both 12 Oct).
-- Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (12 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school**: **Dagny Locher** (named 25 Oct). Isaac decided 25 Oct that this scheme is accepted despite the NASA terms' "parent or legal guardian" wording; no question to Sarah.
+- Under 18: an accompanying person named by name must stay with the participants for the whole event including overnight. One adult can accompany all three; each participant needs a written parental authorisation naming that person (12 Oct). Decided 16 Oct (after Isaac discussed it further; an earlier idea was a Betreuer from the Jugendforschungszentrum BW): the accompanying person will be a **Betreuer provided by Isaac's school**, named on 25 Oct (name kept out of the repo). Isaac decided 25 Oct that this scheme is accepted despite the NASA terms' "parent or legal guardian" wording; no question to the organiser.
 - Overnight at the venue allowed with the chaperone; no sleeping accommodation provided — we organise our own. Organisers offer to connect us with local students for the search, not guaranteed (12 Oct). **Decided 25 Oct:** Jugendherberge Heilbronn, 4-bed room Sat → Sun; the Betreuerin sleeps there, so the team sleeps there too. Day timeline: [docs/event/where-when.md](../event/where-when.md).
 - Selection funnel (12 Oct): the local jury rates the submitted projects and the strongest eligible ones go in as Global Nominees — the number scales with the number of local submissions, no fixed quota for Germany or Europe. NASA and partner-agency experts then pick Global Finalists, then Global Winners. Local prizes are independent of the global funnel.
 - Heilbronn schedule ([local event page](https://www.spaceappschallenge.org/2026/local-events/heilbronn/?tab=schedule), read 10 Oct): Sat 14 Nov 08:30 registration and breakfast, 10:30 hacking begins, 22:30 day-1 wrap-up; Sun 15 Nov 07:30 doors open, **15:45 final submission deadline** (global deadline is 23:59, the local one counts for us), live pitches from 16:00, 18:00 awards. Breakfast, lunch and dinner are on the schedule.
@@ -53,7 +53,7 @@ Still open:
 
 ## Organiser reply — answers to the question list (12 Oct 2026)
 
-Sarah (OpenSpace Heilbronn) answered the emailed questions (sent 10 Oct) on 12 Oct. Facts are mirrored under Event facts above. Consequences for the plan:
+The organiser (OpenSpace Heilbronn) answered the emailed questions (sent 10 Oct) on 12 Oct. Facts are mirrored under Event facts above. Consequences for the plan:
 
 - **Prep rule confirmed.** Allowed before the event: physics reading, public information, NASA datasets, existing tools like JPL Horizons. The actual project must arise during the hackathon — a finished solution brought along and slightly adapted on site does not count. Plan consequence: see "Plan rewritten around the pre-event rule" below.
 - **New logistics tasks in TASKS.md phase 0:** written authorisation per participant naming the accompanying adult, sleeping plan (venue with bedding vs. off-site), travel planned around the 8:30 check-in. Authorisation and sleeping decision due 7 Nov, before travel booking. Updated 16 Oct: the accompanying adult will be a **Betreuer provided by Isaac's school**, not a parent — each set of parents authorises that person in writing.
@@ -63,8 +63,8 @@ Sarah (OpenSpace Heilbronn) answered the emailed questions (sent 10 Oct) on 12 O
 
 Sources: 2026 Participant Terms and Conditions (updated 7 Aug 2026), https://www.spaceappschallenge.org/legal/ · participant FAQ, https://www.spaceappschallenge.org/resources/participant-faqs/ . Read 16 Oct in a real browser.
 
-- **Prep rule is stricter than Sarah's email.** FAQ, verbatim: "Teams are not allowed to begin working on the challenges prior to the hackathon." And the full requirements only exist from 28 Oct (statements release) — until then we plan against the 17 Sep summary. **Our position (revised 17 Oct):** before the event only general preparation: physics reading, learning NASA datasets and tools, collecting sources, downloading raw public data, logistics. No project scripts, no processed or precomputed project data, no app designs, no skeleton. The earlier position ("validation scripts and design before, as validation artefacts") was dropped: the precomputed per-site JSON would be the data the judged app shows, which is exactly the "finished solution brought along" Sarah ruled out. The [Team Formation Guide](https://www.spaceappschallenge.org/resources/team-formation-guide/) is explicit too: "participants should NOT begin working on their project until the hackathon begins on November 14, 2026 (9:00 a.m. local time)".
-- **Under 18 (terms + FAQ):** registration by a parent or legal guardian required (our accounts were self-registered); accompanied by a parent or legal guardian at all times during the event; local events may add requirements (FAQ defers to the Local Lead — the school-Betreuer + authorisation scheme is Sarah's requirement). Isaac decided 25 Oct: self-registration stays, the scheme is accepted, no question to Sarah.
+- **Prep rule is stricter than the organiser's email.** FAQ, verbatim: "Teams are not allowed to begin working on the challenges prior to the hackathon." And the full requirements only exist from 28 Oct (statements release) — until then we plan against the 17 Sep summary. **Our position (revised 17 Oct):** before the event only general preparation: physics reading, learning NASA datasets and tools, collecting sources, downloading raw public data, logistics. No project scripts, no processed or precomputed project data, no app designs, no skeleton. The earlier position ("validation scripts and design before, as validation artefacts") was dropped: the precomputed per-site JSON would be the data the judged app shows, which is exactly the "finished solution brought along" the organiser ruled out. The [Team Formation Guide](https://www.spaceappschallenge.org/resources/team-formation-guide/) is explicit too: "participants should NOT begin working on their project until the hackathon begins on November 14, 2026 (9:00 a.m. local time)".
+- **Under 18 (terms + FAQ):** registration by a parent or legal guardian required (our accounts were self-registered); accompanied by a parent or legal guardian at all times during the event; local events may add requirements (FAQ defers to the Local Lead — the school-Betreuer + authorisation scheme is the organiser's requirement). Isaac decided 25 Oct: self-registration stays, the scheme is accepted, no question to the organiser.
 - **Minors in the submission:** no participant photos on avatars or the team page; no photo, video, voices or likeness of anyone under 18 in the project demo or submission; no recognizable names of under-18s in submissions. Consequence: demo video = screen-only with captions or TTS, no voiceover, no faces.
 - **License and citation requirements are hard:** original content is open source (OSI) — unspecified license means NASA redistributes under Apache 2.0; third-party Solution Materials must be open/free; every material's license stated in the submission documentation; **every source cited, even open source; missing citations can remove the Solution or strip nominations and awards.** Consequence: licenses column in `docs/reference/data-sources.md`, license manifest in the project page text, LICENSE file in the submitted repo.
 - **AI use is allowed and its disclosure mandatory.** The FAQ (following a Sep 2026 U.S. EO) calls AI "Super Intelligence (SI)"; SI tools may be used; the submission must include a description of how they were used. Consequence: keep an SI-use log during the event.
@@ -94,7 +94,7 @@ Teammates by initial (B, O, L); no contact data in the repo.
 
 - **Before:** phases 1–6 built scripts, horizon masks, precomputed JSON, wireframes and a skeleton before the event.
 - **Now:** phases 1–2 are allowed preparation only (primer, source list, data guide, tool tests, learning, raw data downloads, laptops, logistics). Phases 3–6 are the build at the event, Sat 10:30 → Sun 15:45, with checkpoints Sat 16:00 (ephemeris validated), 20:00 (sky plot with real data), 22:00 (horizon go / no-go), Sun 12:00 (freeze), 15:00 (submitted, 45 min before the local deadline).
-- **Judgement call:** downloading raw kernels and LOLA tiles before the event counts as getting to know NASA datasets (allowed by Sarah); processing them for our sites does not.
+- **Judgement call:** downloading raw kernels and LOLA tiles before the event counts as getting to know NASA datasets (allowed by the organiser); processing them for our sites does not.
 - **Consequence:** the riskiest part (horizon masks) now happens on Saturday afternoon. The 22:00 go / no-go protects the demo: fewer sites with validated numbers beat many sites with wrong ones.
 - **Workflow ideas kept from a hackathon video Isaac found:** start the spec from the winning demo and work backwards; split the spec into independent tasks for parallel agents; point agents at good examples (inspiration list); live demo with a recorded backup. Rejected: skipping sleep (minors with a Betreuer; tired people ship wrong numbers), stalling judges, databases and payment services.
 
@@ -113,11 +113,11 @@ Source: challenge page read 25 Oct 2026, 03:07 CET, on Isaac's laptop (device ag
 - **Roles (Isaac as team lead, 26 Oct; confirmed by the team in the WhatsApp group the same day):** Isaac = team lead and **BOA** (big orchestrator of agents): runs the agents on Otto's two Claude Max 20x plans during the event and teaches the others how to use them properly. **L = S, science lead** (primer and sources sign-off, physics, go / no-go). **O = Q** (reads the code line by line, tests, security). **B = D** (frontend and design; B's taste decides how it looks). **Everyone presents the pitch and the product** — no single presenter.
 - **Weekly sync:** in the WhatsApp group instead of a call. Proposed: every Sunday by 20:00 each member posts done / next / blocked.
 - **Sleeping: the whole team stays overnight at the venue** (OpenSpace Heilbronn; overnight allowed with the chaperone, organiser reply 12 Oct). This **replaces the Jugendherberge decision of 25 Oct**: no hostel booking, no DJH card, no late-entry or key arrangements. The venue provides no sleeping accommodation, so everyone brings sleeping bag and mat. The hostel rows in docs/event/where-when.md are superseded.
-- **Still needed:** each participant's written parental authorisation naming Dagny Locher, due 7 Nov (Isaac's: calendar slot 29 Oct).
+- **Still needed:** each participant's written parental authorisation naming the Betreuerin, due 7 Nov (Isaac's: calendar slot 29 Oct).
 
 ## Challenge release-day check and data review (28 Oct 2026)
 
-Device agent: Codex on ninja's Mac (`Guest123`), approximately 14:04 CET. Read the [current challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) in a real browser, including both Details and Resources.
+Device agent: Codex on ninja's Mac, approximately 14:04 CET. Read the [current challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) in a real browser, including both Details and Resources.
 
 **Release status:** Details still contains the summary and metadata only; Resources says "Resources coming soon." No full objectives, considerations, required deliverables or challenge resource list were visible. The expected release date does not establish that publication has happened. The full statement comparison remains open; no full-statement rescope or judging requirements can be claimed from this check.
 
@@ -138,16 +138,16 @@ Summary-to-plan comparison (not a substitute for the missing full statement):
 
 ## Completed source comparison and product gaps (28 Oct 2026, ninja clarification)
 
-**DECIDED — DO NOT REOPEN without new source material:** ninja specified the [current challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) and Sarah's email as the sources for this slot. Codex re-read the page in a real browser and the actual email in Apple Mail: Sarah, 12 Oct 2026, 10:29, subject "Re: NASA Space Apps 2026 Heilbronn – Fragen vor dem Event (CLPS Lunar Mission Browser)". The earlier release-day entry accurately records what was visible, but its conclusion that another publication was needed to close the review is superseded. The comparison is complete against the supplied sources. Resources not yet supplied are not a blocker; actual submission-field instructions are checked separately before submission. Prior terms/FAQ notes above remain historical records and do not imply additional missing challenge deliverables.
+**DECIDED — DO NOT REOPEN without new source material:** ninja specified the [current challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) and the organiser's email as the sources for this slot. Codex re-read the page in a real browser and the actual email in Apple Mail: The organiser, 12 Oct 2026, 10:29, subject "Re: NASA Space Apps 2026 Heilbronn – Fragen vor dem Event (CLPS Lunar Mission Browser)". The earlier release-day entry accurately records what was visible, but its conclusion that another publication was needed to close the review is superseded. The comparison is complete against the supplied sources. Resources not yet supplied are not a blocker; actual submission-field instructions are checked separately before submission. Prior terms/FAQ notes above remain historical records and do not imply additional missing challenge deliverables.
 
 The summary-to-plan matrix above covers every functional request on the challenge page. One concrete gap needed a plan change: comparing sites and dates cannot disappear when the side-by-side view is cut. Phases 3 and 5 now require comparison across at least two validated sites and two supported date ranges, even with simple selectors. Score, extra layout and map remain optional. Illumination is a power-potential proxy and geometric visibility a DTE proxy; neither is presented as a full electrical/radio engineering result.
 
-Sarah's email-to-plan check:
+The organiser's email-to-plan check:
 
 | Email point | Plan consequence / status |
 |---|---|
 | Saturday 08:30 check-in; Friday updates separately | Phase 0 travel and phase 3 check-in already match; check latest organiser messages before travel |
-| Written parental authorisation per participant naming the accompanying adult; adult stays throughout, including overnight | Phase 0 authorisation/packing and the venue sleep plan retain this. Sarah's email refers to the then-three-person team; the four-person school-Betreuer arrangement is ninja's later recorded decision, not a new claim made by this email |
+| Written parental authorisation per participant naming the accompanying adult; adult stays throughout, including overnight | Phase 0 authorisation/packing and the venue sleep plan retain this. The organiser's email refers to the then-three-person team; the four-person school-Betreuer arrangement is ninja's later recorded decision, not a new claim made by this email |
 | Venue overnight allowed with accompaniment; no sleeping accommodation provided | Keep 26 Oct venue decision, sleeping bag + mat; remove the stale hostel dependency in event-plan.md. No human work is required overnight to make the build schedule succeed |
 | WLAN available, no port/device-count restriction | Existing offline laptop/data preparation stays as a reliability measure, not a response to an imposed port limit |
 | Bring a power strip; socket per device not guaranteed | Existing packing task already matches |
@@ -162,7 +162,7 @@ Sarah's email-to-plan check:
 
 ## Full challenge statement published (10 Nov 2026)
 
-Device agent: Claude Code on ninja's Mac (`Guest123`), real browser, 10 Nov 2026. Read the [challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/), Details and Resources tabs, and the [Resources / Participant Guides page](https://www.spaceappschallenge.org/resources/). This is new source material, so it reopens the 28 Oct comparison for the points below only.
+Device agent: Claude Code on ninja's Mac, real browser, 10 Nov 2026. Read the [challenge page](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/), Details and Resources tabs, and the [Resources / Participant Guides page](https://www.spaceappschallenge.org/resources/). This is new source material, so it reopens the 28 Oct comparison for the points below only.
 
 **What changed on the page:** Details now carries Background, Objectives and Potential Considerations in addition to the summary (summary text unchanged from 25 Oct). The Resources tab reads "Resources will be available on Friday, November 13." The Participant Guides page lists only the FAQ, Team Formation Guide and Space Apps Connect Guide — no Submission or Judging guide yet.
 
@@ -205,7 +205,7 @@ Statement vs. plan (TASKS.md phases 3–6):
 
 ## Build plan before the event (11 Nov 2026)
 
-**DECIDED by ninja, 11 Nov:** a detailed written build plan is made before the event: [docs/event/build-plan.md](../event/build-plan.md). It contains no code. Reason (ninja): a precise plan is worth more than any hour of the hackathon; without knowing what you want you cannot judge what to improve. The agent pointed out the FAQ wording ("Teams are not allowed to begin working on the challenges prior to the hackathon") and offered to ask Sarah; ninja declined. Unchanged: no scripts, processed data, app skeleton or other code before Sat 14 Nov 09:00. The plan supersedes "spec written at the 10:30 interview" (the kickoff now confirms the plan and its open decisions) and changes the horizon azimuth step from 1° to 0.5°.
+**DECIDED by ninja, 11 Nov:** a detailed written build plan is made before the event: [docs/event/build-plan.md](../event/build-plan.md). It contains no code. Reason (ninja): a precise plan is worth more than any hour of the hackathon; without knowing what you want you cannot judge what to improve. The agent pointed out the FAQ wording ("Teams are not allowed to begin working on the challenges prior to the hackathon") and offered to ask the organiser; ninja declined. Unchanged: no scripts, processed data, app skeleton or other code before Sat 14 Nov 09:00. The plan supersedes "spec written at the 10:30 interview" (the kickoff now confirms the plan and its open decisions) and changes the horizon azimuth step from 1° to 0.5°.
 
 ## Repo layout (11 Nov 2026)
 
@@ -234,7 +234,7 @@ Full review: [docs/event/plan-review-13nov.md](../event/plan-review-13nov.md). A
 
 ## Sleep in two shifts (13 Nov 2026)
 
-**DECIDED by ninja, 13 Nov:** Leo + Isaac sleep 22:00–01:00, Otto + Bene 01:00–04:00. Reason (ninja): Isaac's and Leo's concentration drops after 22:00, Otto and Bene work well late; three hours is accepted, catch-up after the event. Replaces the six-hour baseline of 26 Oct. Plan changes: horizon go/no-go and T14 stop rule 22:00 → 21:30, pitch rehearsal 1 → 21:15, handover 21:40–22:00, Otto + Bene take the official 22:30 wrap-up, Sunday steps start 01:00. Open: Dagny Locher confirms (she stays with the team all night).
+**DECIDED by ninja, 13 Nov:** Leo + Isaac sleep 22:00–01:00, Otto + Bene 01:00–04:00. Reason (ninja): Isaac's and Leo's concentration drops after 22:00, Otto and Bene work well late; three hours is accepted, catch-up after the event. Replaces the six-hour baseline of 26 Oct. Plan changes: horizon go/no-go and T14 stop rule 22:00 → 21:30, pitch rehearsal 1 → 21:15, handover 21:40–22:00, Otto + Bene take the official 22:30 wrap-up, Sunday steps start 01:00. Open: the Betreuerin confirms (she stays with the team all night).
 
 
 ## Pitch deck drafted before the event (13 Nov 2026)
@@ -261,7 +261,7 @@ Also: SI (AI) use must be marked in the project itself: code and data need an ac
 
 ## Local jury answers and paper UI notes — photographed 14 Nov 2026, 13:15
 
-Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the venue; downscaled copies in git-ignored `private/notes-14nov/`). Transcribed by Claude Code from the photos; German handwriting, so single words may be misread. The jury answers were given by Sarah (ninja, 14 Nov). Nothing here is a team decision unless marked.
+Source: seven phone photos of handwritten notes (IMG_2339–2345, taken at the venue; downscaled copies in git-ignored `private/notes-14nov/`). Transcribed by Claude Code from the photos; German handwriting, so single words may be misread. The jury answers were given by the organiser (ninja, 14 Nov). Nothing here is a team decision unless marked.
 
 **Jury answers (IMG_2343, 2344; the question list is IMG_2345):**
 

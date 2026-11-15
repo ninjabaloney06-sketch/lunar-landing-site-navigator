@@ -789,7 +789,7 @@ export function MissionPanel(p: Props) {
       <section className="mp-sec mp-bottom" aria-labelledby="mp-this" data-testid="mission-actions">
         <div className="ms-row mp-this">
           <h3 id="mp-this" className="mp-h ms-load">
-            This mission <span className="mp-sum-val">{missionName}</span>
+            This mission <span className="mp-sum-val mp-sum-name">{missionName}</span>
           </h3>
           <button type="button" className="link mp-act" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
             Calculate flight

@@ -1,6 +1,6 @@
 # Project page — draft text
 
-Draft for the team's project page on spaceappschallenge.org, written 14 Nov 2026 for the app as it is on `main`. Everything below the line is page text. Notes for the person who pastes it:
+Draft for the team's project page on spaceappschallenge.org, written 14 Nov 2026 and brought up to the app on `main` on 15 Nov 2026, 22:50. Everything below the line is page text. Notes for the person who pastes it:
 
 - The team lead cuts this text; the science lead approves "How we checked the numbers" before it goes on the page.
 - Links to files in this repository are relative here. On the project page, replace them with the public repository URL once the repository is public.
@@ -19,9 +19,11 @@ Live app: <https://nasa.digi-works.org> · Documentation: [docs/documentation.md
 
 A mission to the Moon's south pole needs sunlight for power and a line to Earth for contact. Both come and go with the terrain: near the pole the Sun and Earth stay low over the horizon ([primer](../reference/primer.md)), so a ridge decides. When a launch date slips, the planner needs the answer again for new dates or a nearby site.
 
-Lunar Landing Site Navigator answers that in one screen. Choose a mission period, a science goal and the Earth stations to count. The app ranks 18 sourced south-pole sites for that mission and, for the site you pick, shows when it is sunlit and when at least one selected station is geometrically visible: as two sentences, a timeline and a 3D view with the Sun and Earth over the real terrain horizon. "Find better dates" searches the following 60 days for landing times that meet your thresholds.
+Lunar Landing Site Navigator answers that in one screen. Choose a mission period, a science goal and the Earth stations to count. The app ranks 18 sourced south-pole sites for that mission and, for the site you pick, shows when it is sunlit and when at least one selected station is geometrically visible: as two sentences, a timeline and a 3D view with the Sun and Earth over the real terrain horizon. "Find better dates" searches the following 60 days for landing times that meet your thresholds, and "If the mission slips" shows the same mission 1, 7 and 30 days later and at the nearest other landing site, with the change in sunlit and station contact share.
 
-The numbers were recomputed with separate code and compared against JPL Horizons, the raw terrain models and the SPICE kernels (SI check, 14 Nov); no check carries a written sign-off by the science lead. See "How we checked the numbers".
+Around that answer: a table of all sites for the mission dates or a whole year, a year view that stacks the saved missions and your own points, a site assessment (slope, roughness, nearest permanent shadow, temperature), a first power estimate, points of interest from the cited research, any point south of 80° S as a custom site (approximate, marked so), a CSV of the windows, a link that reproduces the view, and a flight plan for a saved mission (launch, transfer, descent, payload, landing dispersion).
+
+On 15 Nov 2026 the app's Sun and Earth directions were compared with JPL Horizons at 72 body-site-time pairs: the largest elevation difference is 0.000043°, against a tolerance of 0.05° (run by an SI tool). The science lead stated on 15 Nov 2026 that he validated every check; no check has a per-check written sign-off. See "How we checked the numbers".
 
 ### The gap in existing tools
 
@@ -45,9 +47,9 @@ Used by the app or its data pipeline. Sizes, checksums and licence notes per fil
 | NAIF SPICE kernels: [de440s.bsp](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp), [naif0012.tls](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls), [pck00011.tpc](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc), [moon_pa_de440_200625.bpc](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/moon_pa_de440_200625.bpc), [moon_de440_250416.tf](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/fk/satellites/moon_de440_250416.tf) | DE440; naif0012; pck00011; Moon FK Apr 2025 | Sun and Earth vectors and the Moon's and Earth's orientation every 30 min, Nov 2026 to Dec 2030 | No licence file; credit NASA/JPL/Caltech |
 | LOLA south-pole elevation model [LDEM_80S_20MPP_ADJ.TIF](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF) | Barker et al. 2023, 20 m/px, 80° S to 90° S | Terrain horizon, height and slope of each site; 3D terrain; slope and roughness statistics | Cite Barker et al. 2023, [doi:10.3847/PSJ/acf3e1](https://doi.org/10.3847/PSJ/acf3e1); data [doi:10.60903/gsfcpgda-lola-spole](https://doi.org/10.60903/gsfcpgda-lola-spole) |
 | LOLA south-pole elevation model [LDEM_60S_120MPP_ADJ.TIF](https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_120MPP_ADJ.TIF) | Barker et al. 2023, 120 m/px, 60° S to 90° S | Terrain horizon beyond the edge of the 20 m model | Cite Barker et al. 2023, [doi:10.3847/PSJ/acf3e1](https://doi.org/10.3847/PSJ/acf3e1); data [doi:10.60903/gsfcpgda-lola-spole](https://doi.org/10.60903/gsfcpgda-lola-spole) |
-| LOLA polar elevation model [ldem_875s_5m.img](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img) | PDS LOLA GDR V2.0, 5 m/px, 87.5° S to 90° S | Slope and roughness statistics for the 7 sites it covers (in the data, not yet on screen) | PDS: free use; credit NASA/LOLA team and PDS Geosciences Node |
-| LOLA average Sun-visibility maps: [60 m](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_85s_060m_201608.img), [120 m](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.IMG), [240 m](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608.img) | 2016 release | Areas of zero average Sun visibility near each site, with distance and a straight-line slope check (in the data, not yet on screen) | Cite Mazarico et al. 2011, Icarus 211, 1066–1081, [doi:10.1016/j.icarus.2010.10.030](https://doi.org/10.1016/j.icarus.2010.10.030) |
-| LRO Diviner Polar Resource Product [dlre_prp_south.tab](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab) | LRO-L-DLRE-5-PRP-V2.0 | Annual mean and annual maximum temperature at each site (in the data, not yet on screen) | Public NASA PDS data, NASA SMD policy [SPD-41a](https://science.nasa.gov/researchers/science-data/science-information-policy/); cite "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018" |
+| LOLA polar elevation model [ldem_875s_5m.img](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_875s_5m.img) | PDS LOLA GDR V2.0, 5 m/px, 87.5° S to 90° S | Slope and roughness statistics for the 7 sites it covers | PDS: free use; credit NASA/LOLA team and PDS Geosciences Node |
+| LOLA average Sun-visibility maps: [60 m](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_85s_060m_201608.img), [120 m](http://imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/AVGVISIB_75S_120M_201608.IMG), [240 m](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/extras/illumination/release_2016/img/avgvisib_65s_240m_201608.img) | 2016 release | Areas of zero average Sun visibility near each site, with distance and a straight-line slope check | Cite Mazarico et al. 2011, Icarus 211, 1066–1081, [doi:10.1016/j.icarus.2010.10.030](https://doi.org/10.1016/j.icarus.2010.10.030) |
+| LRO Diviner Polar Resource Product [dlre_prp_south.tab](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab) | LRO-L-DLRE-5-PRP-V2.0 | Annual mean and annual maximum temperature at each site | Public NASA PDS data, NASA SMD policy [SPD-41a](https://science.nasa.gov/researchers/science-data/science-information-policy/); cite "Paige et al., LRO DLRE LEVEL 5 PRP V2.0, NASA Planetary Data System, LRO-L-DLRE-5-PRP-V2.0, 2018" |
 | NASA SVS CGI Moon Kit: [lroc_color_poles_4k.tif](https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_4k.tif), [ldem_16_uint.tif](https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/ldem_16_uint.tif), [ldem_4.tif](https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/ldem_4.tif) | SVS 4720 | Moon colour and relief shading in the 3D view; far terrain outside the polar model (viewing only) | Credit NASA's Scientific Visualization Studio; LRO/LROC/LOLA teams |
 | NASA SVS Deep Star Maps [starmap_2020_4k.exr](https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/starmap_2020_4k.exr) | SVS 4851, 2020 | Star background (viewing only) | Credit NASA/Goddard Space Flight Center Scientific Visualization Studio |
 | Blue Marble Next Generation [world.200411.3x5400x2700.jpg](https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-base/november/world.200411.3x5400x2700.jpg) | November 2004 | Earth texture (viewing only) | Credit NASA Earth Observatory (Stöckli et al.) |
@@ -67,33 +69,32 @@ Our own code and text are open source under the Apache License 2.0.
 
 ### How we checked the numbers
 
-Status on 14 Nov 2026, from [validation.md](validation.md):
+Status on 15 Nov 2026, from [validation.md](validation.md). The science lead stated on 15 Nov 2026 that he validated every check, including what was built that day; the record holds that statement and no per-check sign-off written by him. The comparisons below were run by SI tools and are recorded with their numbers.
 
-| Check | Status |
-|---|---|
-| V1: Sun and Earth direction at two sites against JPL Horizons, tolerance 0.05° | passed, as reported by a team member on 14 Nov 2026; no written sign-off by the science lead yet. Recorded comparison: 20 rows, largest difference 0.0001° |
-| V2: one row by hand from the sub-solar point | passed, reported the same way; no written sign-off. Recorded arithmetic: 1.4376° by hand, 1.4369° from the pipeline |
-| Station check: Moon elevation at two DSN stations against JPL Horizons | open. Recorded comparison: largest difference 0.0763° in 10 values; tolerance not decided |
-| V3: synthetic horizons | open |
-| V4: real horizons against PGDA averages (context) | open |
-| V5–V9: window edges, coarse terrain, values on screen, finder, panel types | open |
+| Check | Points | Largest difference | Tolerance |
+|---|---|---|---|
+| Sun and Earth direction from the app's own files and interpolation against JPL Horizons, three sites, 2027–2030 (15 Nov, [every pair](../../app/public/data/validation/horizons.json), script `scripts/tools/horizons_check.py`) | 72, half between the 30-minute samples | elevation 0.000043°, azimuth × cos(elevation) 0.000020° | 0.05° |
+| V1: Sun and Earth direction at two sites against JPL Horizons | 20 values | 0.0001° | 0.05° |
+| V2: one row by hand from the sub-solar point | 1, and 4 more on 15 Nov | 0.0007° | sign and size agree |
+| Station check: Moon elevation at the Earth stations against JPL Horizons | 25 values, five stations | 0.0782° | not set |
+| V3: synthetic horizons against exact sphere geometry | 720 directions | 0.00004° | 0.01° |
+| V4: sunlit and Earth-visible share over 2027–2030 against the published average-illumination maps, 18 sites (context only: different periods and definitions) | 18 sites | Sun 9.0 percentage points (mean +2.1), Earth 8.4 | same ballpark; investigate above 15 |
+| V5: window edges against a 1-minute brute force from Horizons | 12 edges | every edge inside the 1-minute bracket | 1 min |
 
-The comparisons were filled in by an SI tool from Horizons output and are inputs for the science lead, not sign-offs. On 14 Nov the team removed the app's "sample values — not validated" marker after an independent recomputation by an SI tool agreed with the app (docs/event/validation.md, "Independent recomputation by AI"); the unsigned checks are listed there as open.
+The full list, with who ran each check and its status wording, is in the app's documentation under "What was checked" and in validation.md. Not checked: the terrain horizon against photographs or a second terrain model; the coordinates of the points of interest.
 
-Separately, automated tests pin the code: 206 Python tests, 76 unit tests and 63 end-to-end tests (one skipped by design) ran on 14 Nov 2026, including 200 cases in which the browser code must reproduce the Python reference to 0.000001°. Tests show the code does what it was written to do; they are not scientific validation.
+Separately, automated tests pin the code. On 15 Nov 2026: 645 unit tests passed on the build machine (10 more pin flight results bit for bit and pass only on the laptop they were recorded on); the last full runs logged that day had 456 Python tests and 124 end-to-end tests (one skipped by design). They include 200 cases in which the browser code must reproduce the Python reference to 0.000001°. Tests show the code does what it was written to do; they are not scientific validation.
 
-### Not done yet
+### Limits
 
-- A written sign-off for any validation check; the station check and V3 to V9.
-- A radio-link model. The app reports geometric visibility of the selected stations only.
-- ESA ESTRACK stations (no sourced minimum elevation found) and per-antenna horizon masks.
-- The site assessments on screen: slope statistics, roughness, shadow access and temperature are computed for all 18 sites but not shown.
-- Sites outside the list of 18.
-- Solar-panel types and power; a score formula; a glossary; landers outside the south pole; a second language.
-- Temperature during the mission period; boulders and obstacles; routes.
-- Launch, transfer and energy estimates: kept outside this submission.
+- Station contact is geometric visibility of the selected stations, not a radio link: schedules, equipment, weather and link budget are not modelled. Station minimum elevations are generic values; per-antenna horizon masks are not included. No ESA ESTRACK stations (no sourced minimum elevation found).
+- South polar region only: 18 prepared sites plus custom sites south of 80° S, whose horizon is computed in the browser on coarser terrain and marked approximate.
+- Dates from 1 Nov 2026 to 31 Dec 2030; everything is precomputed, nothing is fetched live.
+- Power is a first estimate (one Sun-facing panel, constant load), not a power budget. Temperature is the annual mean and maximum, not the mission period. No boulders, obstacles or routes.
+- The flight plan is a planning estimate from the documented models; see the documentation for each assumption.
+- No per-check written sign-off by the science lead; no second language.
 
-Added after this text was written: see [BUILD_LOG.md](../../BUILD_LOG.md).
+Build history: [BUILD_LOG.md](../../BUILD_LOG.md).
 
 ### AI/SI use
 
@@ -105,4 +106,4 @@ We used SI (AI) tools throughout and logged each session with its task, its erro
 - **How SI output was checked:** automated tests, a cross-check of the browser code against a Python reference, the comparison with JPL Horizons, and separate review sessions before merges. Errors found this way are in the log's notes column.
 - **Marking:** the app's Terms of use, the README and the documentation state the SI use. The app contains no SI-generated images, video or audio.
 
-> SI marking: this page text was drafted by an SI tool (Claude Code) on 14 Nov 2026; the team edits it before submission.
+> SI marking: this page text was drafted by an SI tool (Claude Code) on 14 Nov 2026 and updated by it on 15 Nov 2026; the team edits it before submission.

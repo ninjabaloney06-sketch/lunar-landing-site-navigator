@@ -1,4 +1,7 @@
-"""Build docs/event/pitch-backup-slides.pdf from the slide section of docs/event/pitch-outline.md."""
+"""Build docs/event/pitch-backup-slides.pdf from the slide section of docs/event/pitch-outline.md.
+
+A bullet of the form `- ![alt](file.png)` (path relative to docs/event/) draws that picture in the rest of the slide.
+"""
 import re
 from pathlib import Path
 from reportlab.lib.colors import HexColor
@@ -59,6 +62,20 @@ def draw(c, n, total, title, bullets):
     y -= 34
     width = W - 2 * MARGIN - 22
     for b in bullets:
+        img = re.fullmatch(r"!\[[^\]]*\]\(([^)]+)\)", b)
+        if img:
+            # A picture takes the rest of the slide: scaled to fit, left-aligned, thin rule around it.
+            from reportlab.lib.utils import ImageReader
+            ir = ImageReader(str(SRC.parent / img.group(1)))
+            iw, ih = ir.getSize()
+            top = y + 16
+            k = min((W - 2 * MARGIN) / iw, (top - 62) / ih)
+            c.drawImage(ir, MARGIN, top - ih * k, iw * k, ih * k)
+            c.setStrokeColor(RULE)
+            c.setLineWidth(0.6)
+            c.rect(MARGIN, top - ih * k, iw * k, ih * k, stroke=1, fill=0)
+            y = top - ih * k - 6
+            continue
         placeholder = b.startswith("[") and b.endswith("]")
         font, size = ("Helvetica-Oblique", 17) if placeholder else ("Helvetica", 19 if first else 18)
         lines = wrap(c, clean(b.strip("[]") if placeholder else b), font, size, width)
@@ -87,7 +104,7 @@ def draw(c, n, total, title, bullets):
     c.line(MARGIN, 40, W - MARGIN, 40)
     c.setFillColor(MUTED)
     c.setFont("Helvetica", 10)
-    c.drawString(MARGIN, 24, "Lunar Landing Site Navigator · NASA Space Apps 2026 Heilbronn")
+    c.drawString(MARGIN, 24, "Lunar Landing Site Navigator · NASA Space Apps 2026 Heilbronn · slides drafted with an SI tool (Claude Code)")
     c.drawRightString(W - MARGIN, 24, f"{n} / {total}")
     if y < 52:
         raise SystemExit(f"slide {n} overflows: shorten its bullets")

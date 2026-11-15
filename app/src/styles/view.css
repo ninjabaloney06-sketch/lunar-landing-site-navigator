@@ -45,27 +45,46 @@
   letter-spacing: -0.15em;
 }
 
-/* View and Simulate: buttons with the same 1 px box as the header controls (team request, 15 Nov). */
+/* View and Play: boxed buttons (team request, 15 Nov) in the header bar's quiet style: faint border, muted label,
+   and the open menu or the running playback is the inverted one. On desktop the two sit joined as one bar. */
 .tool {
-  color: var(--fg);
+  color: var(--muted);
   padding: var(--s-1) var(--s-3);
-  border: 1px solid var(--faint);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-veil);
   transition:
+    color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
 
-.tool:hover,
+.tool:hover {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
 .tool[aria-expanded='true'],
 .tool[aria-pressed='true'] {
+  color: var(--bg);
   border-color: var(--fg);
-  background: var(--surface-2);
+  background: var(--fg);
 }
 
 .tool:active {
   color: var(--muted);
+}
+
+@media (min-width: 641px) {
+  .tool-wrap:has(+ .play-btn) > .tool {
+    border-radius: var(--radius) 0 0 var(--radius);
+  }
+
+  /* pulled over the row's gap so the two share one hairline */
+  .tool-wrap + .play-btn {
+    margin-left: calc(-1 * var(--s-5) - 1px);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
 }
 
 /* ---------- viewpoint menu ---------- */
