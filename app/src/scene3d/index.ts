@@ -342,6 +342,11 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     c.touches = { ONE: TOUCH.ROTATE, TWO: null }
   }
   globeControls.rotateSpeed = 0.5
+  // The Moon view is turned by turnGlobe below, not by OrbitControls: OrbitControls orbits around the camera's up
+  // axis (MOON_ME north) and stops when the camera is over a pole, which is where this app's sites are (tester
+  // feedback, 15 Nov: "at a certain point you cannot go on and have to turn another way").
+  globeControls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: null }
+  globeControls.touches = { ONE: null, TWO: null }
   // Set once the wheel ('dist') or a look-around ('look') has taken a camera off its orbit around the site or
   // the Moon's centre; cleared whenever a camera is placed (level change, site change, viewpoint).
   const free = { site: { dist: false, look: false }, globe: { dist: false, look: false } }
@@ -894,6 +899,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const d = distKm ?? GLOBE_DIST_KM.default
     globeCam.position.copy(v3(siteVector(la, lo, d - MOON_RADIUS_KM)))
     globeControls.target.set(0, 0, 0)
+    globeCam.up.set(0, 0, 1) // a placed view is upright (north up) again, whatever a drag over a pole left
     globeCam.lookAt(globeControls.target)
     globeControls.update()
     markDirty()
@@ -1796,7 +1802,59 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const m: SceneMenu = { x: e.clientX - r.left, y: e.clientY - r.top, hit: surfaceAt(toNdc(e.clientX, e.clientY)) }
     for (const cb of menuCbs) cb(m)
   }
+  // ---------- input: turning the Moon view, with no stop at the poles ----------
+  // A left drag (or one finger) turns the camera around the Moon's centre: sideways about the polar axis, up and
+  // down about the camera's right axis without a limit, so the camera passes over a pole like over any other place.
+  // The camera's up vector follows the turn; setGlobeView puts north up again.
+  let turning: { id: number; x: number; y: number } | null = null
+  const turnAxis = new Vector3()
+  const turnUp = new Vector3()
+  const turnPole = new Vector3()
+  const turnQ = new Quaternion()
+  const turnQ2 = new Quaternion()
+  function turnGlobe(yaw: number, pitch: number) {
+    const t = globeControls.target
+    turnUp.set(0, 1, 0).applyQuaternion(globeCam.quaternion)
+    turnAxis.set(1, 0, 0).applyQuaternion(globeCam.quaternion)
+    // Sideways: about the Moon's polar axis, as before, so north stays up and no roll builds up; seen upside down
+    // (after a pass over a pole) the sense is reversed, so the surface still follows the pointer. Up and down: about
+    // the camera's right axis, with no limit.
+    turnPole.set(0, 0, turnUp.z >= 0 ? 1 : -1)
+    turnQ.setFromAxisAngle(turnPole, yaw).multiply(turnQ2.setFromAxisAngle(turnAxis, pitch))
+    globeCam.position.sub(t).applyQuaternion(turnQ).add(t)
+    globeCam.up.copy(turnUp.applyQuaternion(turnQ)).normalize()
+    globeCam.lookAt(t)
+    globeCam.updateMatrixWorld(true)
+    viewVersion++
+    markDirty()
+    notifyCamera()
+  }
+  const onTurnDown = (e: PointerEvent) => {
+    turning = level === 'globe' && !fly && globeControls.enabled && e.button === 0 && fingers <= 1 ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null
+  }
+  const onTurnMove = (e: PointerEvent) => {
+    if (!turning || e.pointerId !== turning.id) return
+    if (level !== 'globe' || fly || fingers > 1 || (e.pointerType === 'mouse' && (e.buttons & 1) === 0)) {
+      turning = null
+      return
+    }
+    const dx = e.clientX - turning.x
+    const dy = e.clientY - turning.y
+    if (dx === 0 && dy === 0) return
+    turning.x = e.clientX
+    turning.y = e.clientY
+    // The angle per pixel OrbitControls used: a drag over the canvas height is one turn, times rotateSpeed.
+    const k = ((2 * Math.PI) / Math.max(canvas.clientHeight, 1)) * globeControls.rotateSpeed
+    turnGlobe(-dx * k, -dy * k)
+  }
+  const onTurnEnd = () => {
+    turning = null
+  }
   canvas.addEventListener('pointerdown', onDown)
+  canvas.addEventListener('pointerdown', onTurnDown)
+  canvas.addEventListener('pointermove', onTurnMove)
+  canvas.addEventListener('pointerup', onTurnEnd)
+  canvas.addEventListener('pointercancel', onTurnEnd)
   canvas.addEventListener('pointerup', onUp)
   canvas.addEventListener('pointercancel', onCancel)
   canvas.addEventListener('pointermove', onHoverMove)
@@ -1889,6 +1947,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       cancelAnimationFrame(raf)
       ro.disconnect()
       canvas.removeEventListener('pointerdown', onDown)
+      canvas.removeEventListener('pointerdown', onTurnDown)
+      canvas.removeEventListener('pointermove', onTurnMove)
+      canvas.removeEventListener('pointerup', onTurnEnd)
+      canvas.removeEventListener('pointercancel', onTurnEnd)
       canvas.removeEventListener('pointerup', onUp)
       canvas.removeEventListener('pointercancel', onCancel)
       canvas.removeEventListener('pointermove', onHoverMove)
