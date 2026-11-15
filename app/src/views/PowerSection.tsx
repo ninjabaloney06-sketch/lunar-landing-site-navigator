@@ -1,7 +1,7 @@
 // P1 power estimate section of the details drawer: four inputs (kept in the link), one answer sentence (does the
 // battery survive the longest dark window, by how much) and the period's numbers. Arithmetic: power/power.ts, on the
 // same series and sun windows the summary uses. First estimate, not a power budget; not validated by the science lead.
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import type { Results, ResultsState } from '../data/results'
 import {
   AU_SOURCE,
@@ -51,6 +51,8 @@ function Field({ id, f, value, onValue, onBad }: { id: string; f: (typeof FIELDS
     if (parsePowerText(f.key, draft) !== value) setDraft(String(value))
   }
   const bad = parsePowerText(f.key, draft) === null
+  // the parent hides the estimate while any field is invalid; it follows the draft, also after an outside change
+  useEffect(() => onBad(bad), [bad])
   return (
     <div className="power-field">
       <label htmlFor={id}>{f.label}</label>
@@ -67,7 +69,6 @@ function Field({ id, f, value, onValue, onBad }: { id: string; f: (typeof FIELDS
             const t = e.target.value
             setDraft(t)
             const v = parsePowerText(f.key, t)
-            onBad(v === null)
             if (v !== null && v !== value) onValue(v)
           }}
         />
