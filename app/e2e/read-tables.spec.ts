@@ -105,7 +105,7 @@ for (const vp of [
       await shot(page, box, `compare-${vp.width}`)
     })
 
-    test('search: values say what they are of, Best and Rank by explained, Show and Select say they change the landing site', async ({ page }) => {
+    test('search: values say what they are of, Best and Rank by explained, both actions read "Show as landing site"', async ({ page }) => {
       test.setTimeout(180_000)
       await page.goto(DEMO)
       await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
@@ -117,11 +117,11 @@ for (const vp of [
       await expect(panel.getByTestId('search-by-hint')).toHaveText('Both: the weaker of sunlit % and comms %.')
       await expect(panel.getByRole('radio')).toHaveCount(3)
       const site = panel.locator('li[data-site-id="malapert-massif"]')
-      await expect(site.getByRole('button')).toHaveText('Select as landing site')
+      await expect(site.getByTestId('search-select')).toHaveText('Show as landing site')
       await expect(site.locator('.search-item-sub').first()).toHaveText('Listed landing site')
       await expect(site.locator('.search-item-near')).toContainText(/Within 20 km: \d+ water\s+\d+ shadow\s+\d+ science/)
       const point = panel.locator('li[data-site-id^="poi-"]').first()
-      if (await point.count()) await expect(point.getByRole('button')).toHaveText('Show as landing site, eye level')
+      if (await point.count()) await expect(point.getByTestId('search-show')).toHaveText('Show as landing site')
       if (vp.width === 375) expect((await site.getByRole('button').boundingBox())!.height).toBeGreaterThanOrEqual(44)
       await noInternals(panel)
       await abbrsExpanded(panel)

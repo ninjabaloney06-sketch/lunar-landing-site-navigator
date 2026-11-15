@@ -93,8 +93,8 @@ const ALL_VALUES: { key: string; head: string; get: (s: Summary) => string; v: (
 ]
 
 /** A site's slope with its status against the 5° landing-slope criterion (spec.md "Terrain slope", applied by
- *  geometry/rankSites: ≤ 5° passes; ninja's project criterion, not a sourced safety limit). The word stands beside
- *  the colour. Missing or not finite → "no data", no colour. */
+ *  geometry/rankSites: ≤ 5° passes; ninja's project criterion, not a sourced safety limit). In words, no colour
+ *  (science lead, 15 Nov). Missing or not finite → "no data". */
 export function SlopeValue({ site }: { site: Site | null }) {
   const r = site ? rankSites([{ site, summary: null }], 'any') : null
   const x = r ? [...r.ranked, ...r.failed, ...r.unknown][0] : null

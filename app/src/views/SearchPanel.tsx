@@ -20,6 +20,7 @@ import { FullDataSwitch } from './FullDataSwitch'
 import type { PoiData } from './poiLayer'
 import { groupInfo, REGION_TEXT } from './poiLayer'
 import { useSiteRows } from './useSiteRows'
+import { customSiteId } from '../data/customSite'
 import { COMMS_HINT, SlopeValue } from './SiteTable'
 
 // UI defaults (not sourced values): the groups of scientific interest (hazards are something to avoid, sunlight is
@@ -291,22 +292,37 @@ export function SearchPanel(p: Props) {
                 </p>
                 <p className="search-item-act">
                   {poi ? (
-                    <button
-                      type="button"
-                      className="link search-go"
-                      title="Makes this point the mission's landing site and opens it at eye level"
-                      onClick={() => p.onShowPoi(poi, groups)}
-                    >
-                      Show as landing site, eye level
-                    </button>
+                    // A point outside the custom-site region cannot be a landing site: App shows it on the Moon instead.
+                    customSiteId(poi.lat, poi.lon) ? (
+                      <button
+                        type="button"
+                        className="link search-go"
+                        data-testid="search-show"
+                        title="Makes this point the mission's landing site and opens the landing-site view"
+                        onClick={() => p.onShowPoi(poi, groups)}
+                      >
+                        Show as landing site
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="link search-go"
+                        data-testid="search-show"
+                        title={`Only places ${REGION_TEXT} can be a landing site; this one opens in the Moon view`}
+                        onClick={() => p.onShowPoi(poi, groups)}
+                      >
+                        Show on the Moon
+                      </button>
+                    )
                   ) : (
                     <button
                       type="button"
                       className="link search-go"
-                      title="Makes this site the mission's landing site"
+                      data-testid="search-select"
+                      title="Makes this site the mission's landing site and opens the landing-site view"
                       onClick={() => p.onSelectSite(r.siteId, groups)}
                     >
-                      Select as landing site
+                      Show as landing site
                     </button>
                   )}
                 </p>

@@ -25,7 +25,9 @@ async function openApp(page: Page, h: string) {
   await scene(page, (s) => s.ready)
 }
 
-test('U16: search → "Show" lands at that point at eye level, 1.75 m above the drawn terrain, as a landing site opens', async ({ page }) => {
+// Team decision of 15 Nov (science lead): "Show" picks the point as the landing site and opens the landing-site view,
+// as "Select" does. This replaces U16's eye-level landing; eye level is one step away in the View menu.
+test('search → "Show" makes the point the landing site and opens the landing-site view, camera above the drawn terrain (replaces U16 eye level, team decision 15 Nov)', async ({ page }) => {
   test.fixme(APP_DIFF_U16, 'needs the U16 App.tsx diff from the cam report')
   test.setTimeout(180_000)
   await openApp(page, `site=${RIDGE}&period=${AUG}`)
@@ -33,13 +35,14 @@ test('U16: search → "Show" lands at that point at eye level, 1.75 m above the 
   const panel = page.getByTestId('search')
   await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 120_000 })
   const row = panel.getByTestId('search-results').locator('li[data-site-id="poi-science-feat-shackleton"]')
-  await row.getByRole('button', { name: 'Show' }).click()
-  await expect.poll(async () => (await page.evaluate(() => location.hash)).includes('view=eye'), { timeout: 15_000 }).toBe(true)
+  await expect(row.getByTestId('search-show')).toHaveText('Show as landing site')
+  await row.getByTestId('search-show').click()
+  await expect.poll(async () => (await page.evaluate(() => location.hash)).includes('view=site'), { timeout: 15_000 }).toBe(true)
   const site = (await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('site')))!
   expect(site).toMatch(/^cap:/)
   await page.waitForFunction((id) => (window as unknown as { __scene: Scene }).__scene.siteId() === id, site, { timeout: 60_000 })
-  await expect.poll(() => scene(page, (s) => s.eyeClearance().level), { timeout: 15_000 }).toBe('eye')
-  expect((await scene(page, (s) => s.eyeClearance())).clearance!).toBeGreaterThanOrEqual(1.75 - 0.02)
+  await expect.poll(() => scene(page, (s) => s.eyeClearance().level), { timeout: 15_000 }).toBe('site')
+  expect((await scene(page, (s) => s.eyeClearance())).clearance!).toBeGreaterThan(0)
 })
 
 test('U6: Esc while the simulation plays returns to the landing site, not to the Moon; Esc otherwise still goes to the Moon', async ({ page }) => {
