@@ -15,7 +15,7 @@ test('Calculate flight on a saved mission opens the Rocket flight menu pre-fille
   await page.goto('/#drawer=details')
   const row = page.locator(`tr[data-mission="${MISSION}"]`)
   await expect(row).toBeVisible()
-  await expect(row.getByTestId('mission-flight')).toHaveText('ELA-4 · Apollo · 2 d on the surface')
+  await expect(row.getByTestId('mission-flight')).toHaveText('Stay 2 days · Launchpad ELA-4 · Rocket Apollo')
   await row.getByTestId('calculate-flight').click()
 
   // the mission's values, in the link and in the menu
