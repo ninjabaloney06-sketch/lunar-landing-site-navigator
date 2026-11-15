@@ -934,6 +934,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             missions={missions.list}
             onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
             onCalculateFlight={calculateFlight}
+            power={hs.power}
+            onPower={(power) => patch({ power })}
             onClose={() => patch({ drawer: null })}
           />
         )}

@@ -561,3 +561,99 @@ Why the two numbers are not the same quantity:
 Projection: with the 60 m map read as its label says (lon_0 = 180) the correlation with ours over its 15 sites is r = 0.010; with lon_0 = 0 it is 0.970 over all 18. This supports the lon_0 = 0 reading from an independent side.
 
 For Leo: decide whether these differences are acceptable as context for V4, and whether the Earth offset of about 1.5 points needs a cause before Earth percentages are shown as validated.
+
+## P1 power estimate (AI, 15 Nov; not validated, nothing signed)
+
+Status: **open, needs the science lead.** On screen the section says "First estimate, not a power budget. Not
+validated by the science lead." Code: `app/src/power/power.ts` (arithmetic), `app/src/views/PowerSection.tsx`
+(details drawer, after "Site potential"), tests `app/src/power/power.test.ts`, `app/e2e/power.spec.ts`.
+
+### Formula
+
+P(t) = S × A × η × f(t) × (AU / r(t))²
+
+| Symbol | Meaning | Unit | Where it comes from |
+|---|---|---|---|
+| P(t) | output of one panel that always faces the Sun | W | computed |
+| S | total solar irradiance at 1 AU | W/m² | 1361, [Kopp & Lean 2011, GRL 38, L01706, doi:10.1029/2010GL045777](https://doi.org/10.1029/2010GL045777) |
+| A | panel area | m² | input (link key `panel`) |
+| η | cell efficiency | 1 (input in %, link key `eff`) | input |
+| f(t) | visible share of the solar disc above the terrain horizon, 0..1 | 1 | `sun.frac` of each series sample = `discFraction` in `app/src/geometry/index.ts`, the same 30-min samples (`computeSeries`) the summary uses; no new geometry |
+| r(t) | site → Sun distance | km | `sun.dist_km` of each sample (JPL DE440 via the shipped ephemeris, MOON_ME, LT+S) |
+| AU | astronomical unit | km | 149 597 870.7 ([JPL SSD, Astrodynamic Parameters](https://ssd.jpl.nasa.gov/astro_par.html): au = 149 597 870 700 m) |
+
+Over the mission period [start, end), with sample k covering Δt_k = min(t_k + 30 min, end) − t_k (hours):
+
+- energy E = Σ P(t_k) × Δt_k (Wh; shown in kWh)
+- period length T = Σ Δt_k (h); mean power = E / T (W)
+- load energy = L × T, with L the constant load (W, link key `load`); balance = E − L × T (shown in kWh)
+- longest dark window D (h) = `summary.longestDarkH`, the app's existing sun windows (±10 s edges), clipped to the
+  period; no new search
+- energy needed in it = L × D (Wh); margin = C − L × D (Wh), with C the battery capacity (Wh, link key `batt`)
+- **survives ⇔ C ≥ L × D.** A battery exactly at the need survives (margin 0 Wh). The battery is taken as full when
+  the window starts; f = 0 during it, so the panel adds nothing.
+
+Inputs accepted: above 0; panel ≤ 1000 m², efficiency ≤ 100 %, load ≤ 1 000 000 W, battery ≤ 10 000 000 Wh.
+Anything else (zero, negative, empty, text) in the link falls back to the example value; in the field it is marked
+and no estimate is shown. Example values (marked "Example values, change them" on screen, no spacecraft attached):
+1 m², 30 %, 100 W, 1000 Wh.
+
+### Source check of S (agent, 15 Nov ~07:00)
+
+`curl -sIL https://doi.org/10.1029/2010GL045777`: `302 Found` → `http://doi.wiley.com/10.1029/2010GL045777` →
+`403 Forbidden`. The DOI resolves; the publisher refuses the automated request. Crossref metadata for the DOI:
+"A new, lower value of total solar irradiance: Evidence and climate significance", Geophysical Research Letters 38,
+Kopp and Lean, 2011. **Value as cited in the task; DOI resolves; paper text not checked.** (The paper's abstract is
+often quoted as 1360.8 ± 0.5 W/m²; that was not read here either. If so, 1361 is that value rounded.)
+
+### Sun distance: included
+
+The 1/r² factor is included, from the distance the series already holds. Its size, from the shipped ephemeris
+(`app/public/data/ephem/*.json`, Moon centre → Sun, 30-min steps): (AU/r)² = 0.962 (2028-07-06) to 1.040
+(2027-01-07) over 2026-11 to 2030-12. Per named period: Connecting Ridge 16–29 Aug 2027 0.970–0.985; 12–26 Sep 2027
+0.983–0.998; Malapert 21–27 Dec 2026 1.029–1.031; 9–15 Jan 2028 1.029–1.030; 14–28 Nov 2026 1.000–1.025. Ignoring it
+would overstate the August 2027 energy by 1.5 to 3 %.
+
+### Hand-computed test cases (`app/src/power/power.test.ts`)
+
+S × A × η with A = 1 m², η = 30 %: 1361 × 1 × 0.30 = 408.3 W at f = 1, r = 1 AU.
+
+1. f = 1, r = 1 AU: P = 408.3 W. Ten 1-h steps: E = 408.3 × 10 = 4083 Wh = 4.083 kWh; load 100 W × 10 h =
+   1000 Wh; balance 4083 − 1000 = 3083 Wh = 3.083 kWh; mean 408.3 W.
+2. f = 0: P = 1361 × 1 × 0.30 × 0 = 0 W; E = 0; balance 0 − 1000 = −1000 Wh = −1.000 kWh.
+3. f = 0.5: P = 408.3 × 0.5 = 204.15 W; ten 1-h steps: E = 2041.5 Wh = 2.0415 kWh.
+4. r = 2 AU, f = 1: P = 408.3 × (1/2)² = 408.3 / 4 = 102.075 W.
+5. Constant f = 0.25 over 48 steps of 0.5 h = 24 h, A = 2 m², η = 20 %, load 50 W: P = 1361 × 2 × 0.20 × 0.25 =
+   1361 × 0.1 = 136.1 W; E = 136.1 × 24 = 3266.4 Wh = 3.2664 kWh; load 50 × 24 = 1200 Wh; balance 3266.4 − 1200 =
+   2066.4 Wh; mean 136.1 W.
+6. Battery exactly at the threshold: L = 100 W, D = 10 h, need 100 × 10 = 1000 Wh. C = 1000 Wh → margin 0 Wh,
+   survives. C = 999 Wh → margin −1 Wh, does not survive. C = 1001 Wh → margin +1 Wh, survives.
+7. D = 52.5 h, L = 100 W: need 5250 Wh; C = 1000 Wh → margin 1000 − 5250 = −4250 Wh, does not survive.
+8. Partial last step: samples at 0, 30, 60 min with f = 1, 0.5, 0 and the period ending at 75 min → Δt = 0.5, 0.5,
+   0.25 h; E = 408.3 × 0.5 + 204.15 × 0.5 + 0 × 0.25 = 204.15 + 102.075 = 306.225 Wh; mean 306.225 / 1.25 =
+   244.98 W.
+
+### App run (wiring check, not validation)
+
+Connecting Ridge, 16–29 Aug 2027 (T = 336 h), example values, this branch in Chromium on 15 Nov: mean 355.9 W,
+energy 119.60 kWh, balance +86.00 kWh (119.60 − 100 W × 336 h = 119.60 − 33.60), longest dark window 29.2 h,
+needed 2915 Wh, "does not survive … 1915 Wh short" (1000 − 2915). Rough plausibility: 355.9 / (408.3 × 0.970 to
+0.985) = mean disc share 0.885 to 0.899, which should sit a little below the period's sunlit share (lit counts any
+part of the disc).
+
+### Limits (also on screen)
+
+Not modelled: temperature, panel degradation, dust, tilt (the panel always faces the Sun; no fixed mounting), partial-
+panel shading (the disc share f stands for the whole panel). Energy is a 30-min rectangle sum on the samples; the dark
+window comes from the refined windows. Battery charge state before the window, charging losses and depth-of-discharge
+limits are not modelled. A custom site (site=cap:…) uses the app's approximate custom horizon and carries the same
+"Approximate: … not validated" line; with no series there the section says "Not computed for this place".
+
+### For the science lead to check
+
+- [ ] The formula and the use of `sun.frac` (disc share above the horizon) as f(t) for a sun-tracking panel.
+- [ ] S = 1361 W/m² against the paper (doi:10.1029/2010GL045777), and the AU value against the JPL page.
+- [ ] Including (AU/r)² with r = site → Sun distance (the size is stated above).
+- [ ] Test cases 1–8: the arithmetic as written.
+- [ ] The survival rule C ≥ L × D (equal counts as survives) and "battery full at the start of the window".
+- [ ] Whether the not-modelled list is complete enough for a first estimate.

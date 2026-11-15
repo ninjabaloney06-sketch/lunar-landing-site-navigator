@@ -1,0 +1,87 @@
+/* P1 power estimate section of the details drawer (views/PowerSection.tsx). Tokens from tokens.css; shared .field,
+   .tbl, .msg and .quiet from panels.css. */
+
+.power-status {
+  margin: 0 0 var(--s-3);
+}
+
+.power-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-2) var(--s-3);
+}
+
+@media (max-width: 480px) {
+  .power-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.power-field label {
+  display: block;
+  margin-bottom: var(--s-1);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.power-input {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.power-input .field {
+  padding: var(--s-1) var(--s-2);
+}
+
+.power-input span {
+  flex: none;
+  font-size: var(--t-small);
+  color: var(--faint);
+}
+
+.power-input .field[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.power-example {
+  margin: var(--s-2) 0 0;
+}
+
+.power-answer {
+  margin: var(--s-4) 0 var(--s-3);
+  font: 400 16px / 1.45 var(--font-serif);
+  color: var(--fg);
+}
+
+.power-answer.is-short {
+  color: var(--error);
+}
+
+.power-out th {
+  color: var(--muted);
+}
+
+.power-out td {
+  text-align: right;
+  white-space: nowrap;
+  padding-right: 0;
+}
+
+.power-limits {
+  margin: var(--s-3) 0 0;
+}
+
+.power-model {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+}
+
+.power-model summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.power-model p {
+  margin: var(--s-2) 0 0;
+}
