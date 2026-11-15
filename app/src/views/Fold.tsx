@@ -9,13 +9,14 @@ interface Props {
   summary?: ReactNode // one short line beside the heading
   testId?: string
   className?: string
+  onOpen?(open: boolean): void // the fold was opened or closed
   children: ReactNode
 }
 
-export function Fold({ id, title, summary, testId, className, children }: Props) {
+export function Fold({ id, title, summary, testId, className, onOpen, children }: Props) {
   const [full] = useFullData()
   return (
-    <details className={`drawer-sec drawer-fold${className ? ` ${className}` : ''}`} open={full || undefined} data-testid={testId} aria-labelledby={id}>
+    <details className={`drawer-sec drawer-fold${className ? ` ${className}` : ''}`} open={full || undefined} data-testid={testId} aria-labelledby={id} onToggle={onOpen && ((e) => onOpen(e.currentTarget.open))}>
       <summary className="assess-summary drawer-fold-sum">
         <h3 id={id}>{title}</h3>
         {summary && <span className="drawer-fold-val">{summary}</span>}
