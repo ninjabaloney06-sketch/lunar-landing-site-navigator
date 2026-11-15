@@ -513,3 +513,9 @@ Rehearsal 1 can run while the submission artifacts are being prepared; rehearsal
 - [ ] `[AI]` `L1·Haiku` — Archive the submitted revision and evidence; add non-personal screenshots and reconcile README/licenses with what shipped. Security and license checks already belong before release, not only in this cleanup. The repo is public by then (decided 14 Nov).
 - [ ] `[H]` **I** — Decide whether the project continues (portfolio, outreach to educators, nothing).
 - [ ] `[AI+H]` `L2·Opus` **I + S** — Only if the continuation decision supports further work: decide whether to pursue the [conditional extras](docs/event/spec.md#conditional-extras--reviewed-14-nov-2026): the Earth-to-Moon schematic route and Leo's ideal-energy, calculation-detail and route/burn comparison, using the phase-6 assessment if completed. Any implementation needs sourced inputs, explicit assumptions and limitations, and S's validation; it is not part of the event submission.
+
+## Added on 15 Nov by the orchestrator run (team add-on "site data")
+
+- [ ] [AI+H] P1 power estimate (first estimate, not validated by the science lead): `app/src/power/power.ts`, `app/src/views/PowerSection.tsx`, `docs/event/validation.md` "P1 power estimate" → needs S: check formula and test cases
+- [ ] [AI+H] Site assessment section (add-on Task 1): shows `assessments.json` as computed; status quoted from `docs/event/validation.md` → needs S: confirm the label wording and that the landing rule and thresholds shown match the decision
+- [ ] [AI+H] NASA-tools links and link check (add-on Task 3; `docs/event/validation.md` "NASA-tools link check") → needs S: accept the AI link check; decide the eye height in the Horizons links (terrain + 1.75 m vs V1's 1.75 m)
