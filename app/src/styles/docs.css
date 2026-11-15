@@ -264,3 +264,413 @@
     animation: none;
   }
 }
+
+/* ======================================================================================================
+   /docs page (D1): a full page, not the drawer above. Light reading surface (taste rule: light for reading,
+   dark for the space scene). The light values are defined here, scoped to the page; type, spacing, radius and
+   motion come from tokens.css. One column of about 70 characters, contents beside it from 1040 px, above it
+   (collapsed) below that.
+   ====================================================================================================== */
+
+html.docpage-root {
+  color-scheme: light;
+  --doc-bg: oklch(98.6% 0.004 85);
+  --doc-surface: oklch(96.2% 0.005 85);
+  --doc-fg: oklch(23% 0.01 260);
+  --doc-muted: oklch(44% 0.01 260);
+  --doc-faint: oklch(58% 0.008 260);
+  --doc-line: oklch(89% 0.006 85);
+  --doc-link: oklch(45% 0.12 245); /* the comms blue, darkened to read on paper */
+  --doc-measure: 70ch;
+  --doc-top: 56px;
+
+  scroll-padding-top: calc(var(--doc-top) + var(--s-4));
+}
+
+html.docpage-root,
+html.docpage-root body,
+html.docpage-root #root {
+  height: auto;
+  min-height: 100%;
+  background: var(--doc-bg);
+  color: var(--doc-fg);
+}
+
+html.docpage-root body {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.docpage-root {
+    scroll-behavior: smooth;
+  }
+}
+
+.docpage {
+  font: 400 16px / 1.6 var(--font-sans);
+}
+
+/* ---------- top bar: back to the app; Contents toggle on narrow screens ---------- */
+
+.docpage-top {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: var(--doc-top);
+  padding: 0 var(--s-8);
+  background: var(--doc-bg);
+  border-bottom: 1px solid var(--doc-line);
+}
+
+.docpage-home {
+  font: 400 var(--t-ui) / 1.2 var(--font-sans);
+  color: var(--doc-muted);
+  text-decoration: none;
+}
+
+.docpage-home:hover {
+  color: var(--doc-fg);
+  text-decoration: underline;
+}
+
+.docpage-toc-toggle {
+  display: none;
+  min-height: 44px;
+  padding: 0 var(--s-2);
+  font: 500 var(--t-ui) / 1 var(--font-sans);
+  color: var(--doc-fg);
+  border-radius: var(--radius);
+}
+
+.docpage-toc-toggle::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: var(--s-2);
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.docpage-toc-toggle[aria-expanded="true"]::after {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+/* ---------- layout ---------- */
+
+.docpage-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, var(--doc-measure));
+  justify-content: center;
+  gap: var(--s-16);
+  padding: var(--s-12) var(--s-8) var(--s-24);
+}
+
+.docpage-toc {
+  position: sticky;
+  top: calc(var(--doc-top) + var(--s-12));
+  align-self: start;
+  max-height: calc(100vh - var(--doc-top) - var(--s-16));
+  overflow-y: auto;
+  font-size: var(--t-small);
+  line-height: 1.4;
+}
+
+.docpage-toc-label {
+  margin: 0 0 var(--s-3);
+  color: var(--doc-faint);
+}
+
+.docpage-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docpage-toc > ol > li {
+  margin-bottom: var(--s-3);
+}
+
+.docpage-toc > ol > li > a {
+  font-weight: 500;
+  color: var(--doc-fg);
+}
+
+.docpage-toc ol ol {
+  margin-top: var(--s-1);
+  padding-left: var(--s-3);
+  border-left: 1px solid var(--doc-line);
+}
+
+.docpage-toc a {
+  display: block;
+  padding: 3px 0;
+  color: var(--doc-muted);
+  text-decoration: none;
+}
+
+.docpage-toc a:hover {
+  color: var(--doc-fg);
+  text-decoration: underline;
+}
+
+.docpage-main {
+  min-width: 0;
+}
+
+.docpage-section + .docpage-section {
+  margin-top: var(--s-16);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--doc-line);
+}
+
+/* ---------- rendered Markdown ---------- */
+
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  color: var(--doc-fg);
+  text-wrap: balance;
+}
+
+.md h1 {
+  margin: 0 0 var(--s-6);
+  font: 400 var(--t-display) / 1.2 var(--font-serif);
+}
+
+.md h2 {
+  margin: var(--s-12) 0 var(--s-4);
+  font: 400 var(--t-display-sm) / 1.25 var(--font-serif);
+}
+
+.md h3 {
+  margin: var(--s-10) 0 var(--s-3);
+  font: 500 18px / 1.35 var(--font-sans);
+}
+
+.md h4,
+.md h5,
+.md h6 {
+  margin: var(--s-6) 0 var(--s-2);
+  font: 500 16px / 1.4 var(--font-sans);
+}
+
+.md p,
+.md ul,
+.md ol,
+.md blockquote,
+.md pre,
+.md .md-table {
+  margin: 0 0 var(--s-4);
+}
+
+.md ul,
+.md ol {
+  padding-left: var(--s-6);
+}
+
+.md li + li {
+  margin-top: var(--s-1);
+}
+
+.md li > ul,
+.md li > ol {
+  margin: var(--s-1) 0 0;
+}
+
+.md li::marker {
+  color: var(--doc-faint);
+}
+
+.md strong {
+  font-weight: 500;
+}
+
+.md a {
+  color: var(--doc-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.md a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 1px 4px;
+  background: var(--doc-surface);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.md pre {
+  overflow-x: auto;
+  padding: var(--s-3) var(--s-4);
+  background: var(--doc-surface);
+  border-radius: var(--radius);
+  line-height: 1.5;
+}
+
+.md pre code {
+  padding: 0;
+  background: none;
+  font-size: 13px;
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+.md blockquote {
+  padding: 0 0 0 var(--s-4);
+  border-left: 2px solid var(--doc-line);
+  color: var(--doc-muted);
+}
+
+.md blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.md hr {
+  margin: var(--s-10) 0;
+  border: 0;
+  border-top: 1px solid var(--doc-line);
+}
+
+/* Tables scroll inside themselves; the page never scrolls sideways. Dense where data lives. */
+.md .md-table {
+  overflow-x: auto;
+  border-top: 1px solid var(--doc-line);
+}
+
+.md .md-table:focus-visible {
+  outline: 2px solid var(--doc-link);
+  outline-offset: 2px;
+}
+
+.md table {
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.md th,
+.md td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--doc-line);
+}
+
+.md th {
+  font-weight: 500;
+  color: var(--doc-muted);
+  white-space: nowrap;
+}
+
+.md td {
+  min-width: 8ch;
+}
+
+.md td.num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* ---------- narrower screens: contents collapsed under the top bar ---------- */
+
+@media (max-width: 1039px) {
+  .docpage-layout {
+    grid-template-columns: minmax(0, var(--doc-measure));
+    gap: 0;
+    padding: var(--s-8) var(--s-6) var(--s-16);
+  }
+
+  .docpage-toc-toggle {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* The list drops down under the top bar; the text keeps its place. */
+  .docpage-toc {
+    position: fixed;
+    z-index: 2;
+    top: var(--doc-top);
+    right: 0;
+    left: 0;
+    max-height: calc(100vh - var(--doc-top));
+    box-sizing: border-box;
+    padding: var(--s-4) var(--s-6) var(--s-6);
+    background: var(--doc-bg);
+    border-bottom: 1px solid var(--doc-line);
+    box-shadow: 0 12px 24px oklch(23% 0.01 260 / 0.08);
+    font-size: var(--t-ui);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--dur-panel) var(--ease-out),
+      transform var(--dur-panel) var(--ease-out),
+      visibility 0s linear var(--dur-panel);
+  }
+
+  .docpage-toc[data-open="true"] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-panel) var(--ease-out),
+      transform var(--dur-panel) var(--ease-out);
+  }
+
+  .docpage-toc a {
+    padding: var(--s-2) 0;
+  }
+
+  .docpage-toc-label {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .docpage {
+    font-size: 15px;
+  }
+
+  .docpage-top {
+    padding: 0 var(--s-4);
+  }
+
+  .docpage-layout {
+    padding: var(--s-6) var(--s-4) var(--s-16);
+  }
+
+  .docpage-toc {
+    padding: var(--s-3) var(--s-4) var(--s-5);
+  }
+
+  .md h1 {
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docpage-toc,
+  .docpage-toc[data-open="true"],
+  .docpage-toc-toggle::after {
+    transition: none;
+  }
+}
