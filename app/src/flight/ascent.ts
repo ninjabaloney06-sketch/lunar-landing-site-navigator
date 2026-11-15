@@ -1626,7 +1626,32 @@ function lowestInsertionAnomaly(c: Ctx): number {
   return hi
 }
 
+// An ascent is a pure function of its input (makeContext starts every search afresh; the predictor's scratch
+// arrays are overwritten before they are read), and it is the dearest single piece of a plan (0.5 to 2.5 s).
+// The same ascent is asked for again across plans: the trial flight due east that times the first guess
+// depends only on the rocket, the payload, the pad's latitude and the parking orbit, so every plan for another
+// site or date with the same hardware repeats it (and ascentSensitivity flies it too). The last few results
+// are kept, keyed on the whole input (every field, numbers bit for bit), and handed out as copies.
+const ASCENT_CACHE_MAX = 8
+const ascentCache = new Map<string, AscentResult>()
+const exactJson = (x: unknown): string =>
+  JSON.stringify(x, (_k, v) => (typeof v === 'number' && (Object.is(v, -0) || !Number.isFinite(v)) ? `#${Object.is(v, -0) ? '-0' : String(v)}` : v))
+
 export function simulateAscent(input: AscentInput): AscentResult {
+  const key = exactJson(input)
+  const hit = ascentCache.get(key)
+  if (hit) {
+    ascentCache.delete(key) // most recently used last
+    ascentCache.set(key, hit)
+    return structuredClone(hit)
+  }
+  const result = flyAscent(input)
+  if (ascentCache.size >= ASCENT_CACHE_MAX) ascentCache.delete(ascentCache.keys().next().value!)
+  ascentCache.set(key, structuredClone(result))
+  return result
+}
+
+function flyAscent(input: AscentInput): AscentResult {
   const c = makeContext(input)
   const elliptical = c.ecc > ECC_CIRCULAR
   const nuMin = elliptical ? lowestInsertionAnomaly(c) : 0
