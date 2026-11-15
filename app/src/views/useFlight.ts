@@ -272,6 +272,9 @@ setFlightActions({
   },
 })
 
+/** For the tests (useFlight.test.ts): the worker plumbing without React. */
+export const workerPlumbing = { compute, disperse, cancelDispersion: cancelDispersionJob }
+
 export interface FlightInput {
   active: boolean // the tab is open: nothing is loaded or computed before
   pad: Launchpad
