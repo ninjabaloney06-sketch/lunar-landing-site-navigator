@@ -76,7 +76,7 @@ describe('mapAssessment: Haworth from the shipped file', () => {
 
   it('nearest permanent shadow: distance, bearing with compass point, straight-line slope check', () => {
     const b = block(v, 'psr')
-    expect(row(b, 'Distance')).toEqual(['1.87 km']) // km with two decimals everywhere (values audit)
+    expect(row(b, 'Distance')).toEqual(['1.866 km']) // km as recorded: the validation record compares it with the file
     expect(row(b, 'Bearing')).toEqual(['ENE, 63.9°'])
     expect(row(b, 'Cluster area')).toEqual(['3.8 km²']) // areas with one decimal (values audit)
     expect(row(b, 'Straight line: maximum slope')).toEqual(['14.13°'])

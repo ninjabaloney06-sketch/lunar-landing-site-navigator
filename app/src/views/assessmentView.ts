@@ -107,10 +107,11 @@ export function compass(deg: number): string {
   return names[(((Math.round(deg / 22.5) % 16) + 16) % 16)]
 }
 
-// One format per quantity across the app (values audit, 15 Nov): percentages 1 decimal as everywhere else, distances in
-// km 2 decimals, areas 1 decimal, metres as recorded, counts with a thousands separator. Only the
+// One format per quantity across the app (values audit, 15 Nov): percentages 1 decimal as everywhere else, distances
+// as recorded, areas 1 decimal, metres as recorded, counts with a thousands separator. Only the
 // display rounds; the file's values are unchanged.
-const DIGITS: Record<string, number> = { ' %': 1, ' km': 2, ' km²': 1 }
+// Distances in km keep the file's precision: the validation record compares them with the file (assessment.spec).
+const DIGITS: Record<string, number> = { ' %': 1, ' km²': 1 }
 const withUnit = (v: unknown, unit: string) => {
   const n = num(v)
   if (n === null) return UNKNOWN
@@ -120,7 +121,7 @@ const withUnit = (v: unknown, unit: string) => {
   if (unit === ' %' && n > 0 && n < 0.05) return '< 0.1 %'
   if (d !== undefined) return `${n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}${unit}`
   if (unit === ' m') return `${n.toLocaleString('en-US', { maximumFractionDigits: 3 })}${unit}`
-  return Number.isInteger(n) ? n.toLocaleString('en-US') : String(n)
+  return `${Number.isInteger(n) ? n.toLocaleString('en-US') : String(n)}${unit}`
 }
 
 /** A file text up to its first "; " (the summary form of a long reason). */

@@ -2,6 +2,7 @@
 // Run: PW_GPU=1 PW_PORT=5184 npx playwright test e2e/mission-panel.spec.ts
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -95,6 +96,7 @@ test.describe('U2: the Mission menu folds what is not needed to decide', () => {
 
   test('"Choose ground stations" in the drawer opens the panel with the checklist unfolded', async ({ page }) => {
     await page.goto(`${DEMO}&drawer=details`)
+    await openDrawerFolds(page) // Stations is folded to its one-line lead
     await page.getByTestId('drawer').getByRole('button', { name: 'Choose ground stations' }).click()
     const panel = page.getByTestId('mission-panel')
     await expect(panel.getByTestId('stations-toggle')).toHaveAttribute('aria-expanded', 'true')

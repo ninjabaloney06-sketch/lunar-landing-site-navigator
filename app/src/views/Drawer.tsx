@@ -515,7 +515,7 @@ export function Drawer(p: Props) {
         <NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} />
       </Fold>
 
-      <Fold id="sec-export" title="Export" testId="fold-export" summary="CSV file or a link to this view">
+      <Fold id="sec-export" title="Export" testId="fold-export" summary={<><abbr title={ABBR.CSV}>CSV</abbr> file or a link to this view</>}>
         <p className="quiet sec-lead">
           <Marked text="CSV: every sunlit and contact window of this period, plus its summary values." />
         </p>
