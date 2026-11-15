@@ -2,6 +2,7 @@
 // notes 2, 7, 13, 15). Expected values are computed in the page straight from geometry + the data files, never
 // typed in. Run: PW_PORT=5184 npx playwright test e2e/table.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { openFold } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -282,8 +283,9 @@ test.describe('saved missions', () => {
     await expect(page.getByTestId('mission-name')).toHaveText('Massif survey')
     await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
     await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'shackleton-2027-09')
+    await openFold(page.getByTestId('mission-panel'), 'goal-toggle')
     await expect(page.getByTestId('mission-panel').getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
-    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "n of m stations" (U2)
+    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "Ground stations: n of m" (U2)
     await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount(2)
     await expect(page.getByTestId('mission-panel').getByTestId('add-mission')).toBeDisabled() // it is the saved one
     // Remove one: gone from the panel, and after a reload from the table too.

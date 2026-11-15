@@ -2,7 +2,7 @@
 // Camera tests run on the scene harness, the rest on the app. Run: PW_PORT=5184 npx playwright test e2e/c4.spec.ts
 import { expect, test, type Page } from '@playwright/test'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
-import { headerAction } from './header'
+import { headerAction, openFold } from './header'
 
 interface Cam {
   level: string
@@ -442,6 +442,7 @@ async function openPanel(page: Page) {
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
   await expect(panel).toBeVisible()
+  await openFold(panel, 'points-toggle') // folded to "Your points: n" (science lead, 15 Nov)
   await panel.getByTestId('points').scrollIntoViewIfNeeded()
   return panel
 }

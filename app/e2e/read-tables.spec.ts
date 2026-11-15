@@ -115,6 +115,7 @@ for (const vp of [
       await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 150_000 })
       await expect(panel.getByTestId('search-dates')).toContainText('Sunlit and station contact are % of the mission dates, 16–29 Aug 2027')
       await expect(panel.getByTestId('search-rule')).toHaveText('Best: top 3 with a chosen point within 20 km and a value above 0 %.')
+      await panel.getByTestId('search-filters').click() // folded behind one summary line (results first)
       await expect(panel.getByTestId('search-by-hint')).toHaveText('Both: the weaker of sunlit % and station contact %.')
       await expect(panel.getByRole('radio')).toHaveCount(3)
       const site = panel.locator('li[data-site-id="malapert-massif"]')

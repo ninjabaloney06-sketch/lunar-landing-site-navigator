@@ -222,6 +222,7 @@ function sweep(vp: (typeof VIEWPORTS)[number]) {
       await shot(page, '43-search-no-results', async () => {
         // No text query exists: a 1 km radius and no point groups is the emptiest search a user can make.
         const panel = page.getByTestId('search')
+        await panel.getByTestId('search-filters').click() // folded behind one summary line (results first)
         await panel.locator('input[type="number"]').first().fill('1')
         const boxes = panel.locator('input[type="checkbox"]:checked')
         for (let n = await boxes.count(); n > 0; n--) await boxes.first().uncheck()

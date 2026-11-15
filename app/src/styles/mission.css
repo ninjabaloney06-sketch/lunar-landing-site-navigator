@@ -326,6 +326,34 @@
   color: var(--muted);
 }
 
+/* Folded sections of the mission menu: one summary line ("Science goal: Any"), a chevron drawn by CSS so the line's
+   text stays its label and value. */
+.mp-fold-sec {
+  padding-top: var(--s-2);
+}
+
+.mp-fold {
+  gap: 0 var(--s-1);
+}
+
+.mp-fold::before {
+  content: '\25B8' / '';
+  display: inline-block;
+  width: 1em;
+  color: var(--faint);
+}
+
+.mp-fold[aria-expanded='true']::before {
+  content: '\25BE' / '';
+}
+
+.mp-fold-body {
+  margin: 0;
+  padding: 0 0 var(--s-2);
+  border: 0;
+  min-width: 0;
+}
+
 /* One-line hints under a heading or legend (U17). */
 .mp-hint {
   margin: 0 0 var(--s-2);

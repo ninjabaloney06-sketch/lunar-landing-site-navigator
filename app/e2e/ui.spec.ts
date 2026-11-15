@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
 import { EXAMPLE } from '../src/views/examples'
-import { headerAction } from './header'
+import { headerAction, openFold } from './header'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -243,6 +243,7 @@ test('UX-03: invalid coordinates are rejected with a message, never NaN', async 
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
+  await openFold(page.getByTestId('mission-panel'), 'points-toggle') // its "Add a point" line is checked below
   const search = page.getByRole('combobox', { name: 'Search a site or type coordinates' })
   const cases: [string, RegExp][] = [
     ['95 S, 10 E', /Latitude must be between 90° S and 90° N/],
@@ -547,6 +548,8 @@ test('(e) mission: the name defaults to "Mission 1" and the goal to Consistent l
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
   await expect(panel.getByLabel('Name', { exact: true })).toHaveValue('Ice survey 1')
+  await expect(panel.getByTestId('goal-toggle')).toHaveText('Science goal: Cold traps (permanent shadow)')
+  await openFold(panel, 'goal-toggle')
   await expect(panel.getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
   // Editing the name in the panel changes the header and the link at once.
   await panel.getByLabel('Name', { exact: true }).fill('Rim survey')
@@ -603,6 +606,7 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   await panel.getByLabel('End', { exact: true }).press('Enter')
   await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', SEP)
   await expectAnswer(page, RIDGE, SEP)
+  await openFold(panel, 'goal-toggle')
   await panel.getByRole('radio', { name: 'Consistent light' }).check()
   await panel.getByTestId('site-ranking').click()
   await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station contact')

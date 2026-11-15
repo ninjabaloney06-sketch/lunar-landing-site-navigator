@@ -4,6 +4,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { FULL_DATA_KEY } from '../src/views/advanced'
+import { openFold } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -48,7 +49,7 @@ test('at 1280×720 the landing-site field is in the menu\'s first view, above th
   const pb = (await panel.boundingBox())!
   expect(await panel.evaluate((el) => el.scrollTop)).toBe(0)
   expect(box.y + box.height).toBeLessThanOrEqual(pb.y + pb.height)
-  const goal = (await panel.getByRole('radio', { name: 'Any' }).boundingBox())!
+  const goal = (await panel.getByTestId('goal-toggle').boundingBox())! // the goal is folded to one line below the site
   expect(goal.y).toBeGreaterThan(box.y)
 })
 
@@ -94,6 +95,7 @@ test('typed search results carry the same values; dates errors use 16 Aug 2027 s
 test('ground stations name the networks in stations.json; saved missions: custom site by mission name, transfer cap, one action set', async ({ page }) => {
   const stations = (await (await page.request.get('/data/stations.json')).json()) as { network: string }[]
   const panel = await openPanel(page, `/#site=${encodeURIComponent(CUSTOM)}&period=${AUG}&name=Rim%20camp&tmax=3.5`)
+  await openFold(panel, 'stations-toggle') // the networks line is inside the folded Ground stations section
   const hint = panel.getByTestId('stations-hint')
   for (const n of new Set(stations.map((s) => s.network))) await expect(hint.locator('abbr', { hasText: n })).toHaveAttribute('title', /.+/)
   await expect(hint).toContainText('antennas for line-of-sight contact')
