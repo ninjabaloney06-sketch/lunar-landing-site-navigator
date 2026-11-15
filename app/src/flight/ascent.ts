@@ -1702,7 +1702,7 @@ export function simulateAscent(input: AscentInput): AscentResult {
   nelderMead((u) => -score(decode(u)), u0, du, 70, 3)
   const top = found.best
 
-  // 4. The guidance aims at a radius and a flight-path angle and arrives a little off (its gravity model is a
+  // 3. The guidance aims at a radius and a flight-path angle and arrives a little off (its gravity model is a
   //    two-body average, the real field has J2, the steering is frozen for the last seconds). Shift the aim
   //    by the miss until perigee and apogee are right.
   const xf: Steering = { ...top.x }

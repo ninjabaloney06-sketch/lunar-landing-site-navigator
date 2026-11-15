@@ -9,7 +9,7 @@ import { MU_SUN, makeBodyTable, tableState } from './nbody'
 import type { BodyTable } from './nbody'
 import type { FlightEphemeris, Vec3 } from './types'
 
-/** Earth's second zonal harmonic (EGM96 / WGS 84 value): the pull of the equatorial bulge. */
+/** Earth's second zonal harmonic (EGM96 value): the pull of the equatorial bulge. */
 export const J2_EARTH = 1.08262668e-3
 
 /** Gravitational acceleration (km/s²) at position r relative to the field's centre, at instant utcMs. */
