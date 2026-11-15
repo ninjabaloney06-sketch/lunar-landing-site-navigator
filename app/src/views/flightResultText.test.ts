@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SIGMAS } from '../flight/dispersion'
 import type { PayloadResult } from '../flight/payload'
 import { SPACECRAFT } from '../flight/spacecraft'
-import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText } from './flightResultText'
+import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText, shortElementsOf } from './flightResultText'
 
 const base: PayloadResult = {
   validation: { validated: false, text: 'validated by the science lead (statement of 15 Nov 2026; see record)' },
@@ -35,10 +35,20 @@ describe('payloadSentence', () => {
   it('a lower bound says "at least"', () => {
     expect(payloadSentence({ ...base, bound: 'lower' })).toMatch(/^Max payload: at least 3,170 kg/)
   })
-  it('extrapolated: only an order of magnitude, with the reason', () => {
+  it('extrapolated: no magnitude, only the reason', () => {
     const s = payloadSentence({ ...base, verdict: 'extrapolated', maxPayloadKg: 1_154_000, withinCheckedRange: false })
-    expect(s).toContain('of the order of 1,000 t')
-    expect(s).toContain('beyond the range this method is checked for')
+    expect(s).toBe("Max payload: outside the range this method is checked for (cargo above 30 % of the lander's mass).")
+    expect(s).not.toMatch(/\d+ t\b|kg/)
+  })
+  it('an element of the flight short of propellant: no payload figure, the element named', () => {
+    const ext = { ...base, verdict: 'extrapolated' as const, maxPayloadKg: 1_154_000, withinCheckedRange: false }
+    expect(payloadSentence(ext, ['ICPS'])).toBe('Max payload: not estimated — ICPS is short of propellant for this flight.')
+    expect(payloadSentence(base, ['ICPS', 'Descent Stage'])).toBe('Max payload: not estimated — ICPS and Descent Stage are short of propellant for this flight.')
+    // the plan's condition ("… short by …"); the Blue Moon lower-bound-only case keeps its own sentence
+    const use = (element: string, usedKg: number, capacityKg: number) => ({ element, usedKg, capacityKg })
+    expect(shortElementsOf([use('ICPS', 30_500, 29_000), use('Descent Stage', 8_000, 8_248)], null)).toEqual(['ICPS'])
+    expect(shortElementsOf([use('Blue Moon Mark 2', 36_500, 29_000)], 'Blue Moon Mark 2')).toEqual([])
+    expect(shortElementsOf([use('Descent Stage', 8_000, 8_248)], null)).toEqual([])
   })
   it('undetermined (Blue Moon): cannot be decided from published data, no number', () => {
     const s = payloadSentence({ ...base, verdict: 'undetermined', maxPayloadKg: 0, bound: 'lower' })

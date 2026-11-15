@@ -47,8 +47,9 @@ function ErrorLine({ what, message }: { what: 'payload' | 'route' | 'dispersion'
   )
 }
 
-/** The payload's summary line: the answer, then the marker. */
-export function PayloadLine() {
+/** The payload's summary line: the answer, then the marker. shortElements: the plan's elements short of propellant
+ *  (shortElementsOf); with any, the line states no payload figure. */
+export function PayloadLine({ shortElements = [] }: { shortElements?: string[] }) {
   const { payload } = useFlightAnalysis()
   if (payload.state === 'idle') return null
   return (
@@ -57,7 +58,7 @@ export function PayloadLine() {
       {payload.state === 'error' && <ErrorLine what="payload" message={payload.message} />}
       {payload.state === 'ready' && (
         <>
-          <Abbr>{payloadSentence(payload.result)}</Abbr> <Unvalidated />
+          <Abbr>{payloadSentence(payload.result, shortElements)}</Abbr> <Unvalidated />
         </>
       )}
     </p>
