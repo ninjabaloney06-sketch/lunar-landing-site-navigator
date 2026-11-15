@@ -6,7 +6,7 @@ import type { Site } from '../data/types'
 import type { Summary } from './index'
 import { MOON_RADIUS_KM } from './index'
 import type { SearchSite } from '../data/pois'
-import { BEST_COUNT, type SearchOptions, distanceKm, poisNear, searchCandidates, searchSites } from './poiSearch'
+import { BEST_COUNT, SAME_PLACE_KM, type SearchOptions, distanceKm, placeName, poisNear, searchCandidates, searchSites } from './poiSearch'
 
 function site(id: string, lon: number, slope_deg: number | null = 2, lat = -80): Site {
   return {
@@ -163,10 +163,11 @@ describe('searchSites: share', () => {
   const shareBy = (by: SearchOptions['by'], summary: Summary | null) =>
     searchSites([{ site: a, summary }], [], { ...OPTS, by })[0]
 
-  it("'light' = litPct, 'comms' = coveragePct, 'both' = their sum", () => {
+  it("'light' = litPct, 'comms' = coveragePct, 'both' = the smaller of the two", () => {
     expect(shareBy('light', sum(61.5, 22.25)).share).toBe(61.5)
     expect(shareBy('comms', sum(61.5, 22.25)).share).toBe(22.25)
-    expect(shareBy('both', sum(61.5, 22.25)).share).toBe(83.75)
+    expect(shareBy('both', sum(61.5, 22.25)).share).toBe(22.25)
+    expect(shareBy('both', sum(10, 80)).share).toBe(10)
     expect(shareBy('both', sum(61.5, 22.25))).toMatchObject({ litPct: 61.5, coveragePct: 22.25 })
   })
 
@@ -180,7 +181,7 @@ describe('searchSites: share', () => {
 })
 
 describe('searchSites: order and rank', () => {
-  it('groupsCovered before nearTotal before share', () => {
+  it('groupsCovered before share before nearTotal', () => {
     const A = site('A', 0)
     const B = site('B', 30)
     const C = site('C', 60)
@@ -196,31 +197,32 @@ describe('searchSites: order and rank', () => {
       [
         { site: D, summary: sum(99, 99) },
         { site: B, summary: sum(50, 40) },
-        { site: A, summary: sum(10, 0) },
+        { site: A, summary: sum(10, 20) },
         { site: C, summary: sum(50, 45) },
       ],
       pois,
       OPTS,
     )
-    expect(ids(out)).toEqual(['A', 'C', 'B', 'D'])
+    expect(ids(out)).toEqual(['A', 'D', 'C', 'B'])
     expect(out.map((r) => r.rank)).toEqual([1, 2, 3, 4])
     expect(out.map((r) => r.best)).toEqual([true, true, true, false])
     expect(out.map((r) => [r.groupsCovered, r.nearTotal, r.share])).toEqual([
       [2, 2, 10],
-      [1, 5, 95],
-      [1, 5, 90],
-      [1, 3, 198],
+      [1, 3, 99],
+      [1, 5, 45],
+      [1, 5, 40],
     ])
   })
 
   it('equal keys share a rank, are listed by siteId, and are both best', () => {
+    const [a, b, c] = [site('a', 30), site('b', 0), site('c', 60)]
     const out = searchSites(
       [
-        { site: site('b', 0), summary: sum(50, 30) },
-        { site: site('a', 30), summary: sum(30, 50) }, // same sum for 'both'
-        { site: site('c', 60), summary: sum(10, 10) },
+        { site: b, summary: sum(50, 30) },
+        { site: a, summary: sum(30, 50) }, // same smaller value for 'both'
+        { site: c, summary: sum(10, 10) },
       ],
-      [],
+      [a, b, c].flatMap((s) => near(s, 'hazard', 1)),
       OPTS,
     )
     expect(ids(out)).toEqual(['a', 'b', 'c'])
@@ -229,10 +231,12 @@ describe('searchSites: order and rank', () => {
   })
 
   it(`only ranks 1..${BEST_COUNT} are best; a tie at the cut-off keeps every tied row`, () => {
-    const rows = (sums: number[]) => sums.map((s, i) => ({ site: site(`s${i}`, i * 30), summary: sum(s, 0) }))
-    const distinct = searchSites(rows([90, 80, 70, 60, 50]), [], OPTS)
+    const all = Array.from({ length: 5 }, (_, i) => site(`s${i}`, i * 30))
+    const rows = (sums: number[]) => sums.map((s, i) => ({ site: all[i], summary: sum(s, s) }))
+    const pois = all.flatMap((s) => near(s, 'hazard', 1))
+    const distinct = searchSites(rows([90, 80, 70, 60, 50]), pois, OPTS)
     expect(distinct.map((r) => r.best)).toEqual([true, true, true, false, false])
-    const tied = searchSites(rows([90, 80, 70, 70, 50]), [], OPTS)
+    const tied = searchSites(rows([90, 80, 70, 70, 50]), pois, OPTS)
     expect(tied.map((r) => r.rank)).toEqual([1, 2, 3, 3, 5])
     expect(tied.map((r) => r.best)).toEqual([true, true, true, true, false])
   })
@@ -242,7 +246,7 @@ describe('searchSites: order and rank', () => {
     const Y = site('y', 30)
     const Z = site('z', 60)
     const W = site('w', 90)
-    const pois = [...near(X, 'hazard', 1), ...near(X, 'water', 1), ...near(X, 'light', 1), ...near(Z, 'hazard', 1)]
+    const pois = [...near(X, 'hazard', 1), ...near(X, 'water', 1), ...near(X, 'light', 1), ...near(Z, 'hazard', 1), ...near(W, 'light', 1)]
     const out = searchSites(
       [
         { site: Y, summary: null },
@@ -279,7 +283,7 @@ describe('searchSites: slope filter', () => {
     const out = searchSites(rows, pois, OPTS)
     expect(ids(out)).toEqual(['ok', 'edge', 'nodata', 'steep', 'unknown'])
     const by = Object.fromEntries(out.map((r) => [r.siteId, r]))
-    expect(by.steep).toMatchObject({ slope: 'fail', slopeDeg: 8, passes: false, rank: null, best: false, share: 198 })
+    expect(by.steep).toMatchObject({ slope: 'fail', slopeDeg: 8, passes: false, rank: null, best: false, share: 99 })
     expect(by.unknown).toMatchObject({ slope: 'unknown', slopeDeg: null, passes: false, rank: null, best: false })
     expect(by.edge).toMatchObject({ slope: 'pass', slopeDeg: 5, passes: true, rank: 2 })
   })
@@ -302,6 +306,118 @@ describe('searchSites: slope filter', () => {
     expect(out.every((r) => r.passes)).toBe(true)
     expect(out.map((r) => r.rank)).toEqual([1, 2, 3, 4, null])
     expect(out.find((r) => r.siteId === 'steep')?.slope).toBe('fail')
+  })
+})
+
+describe("searchSites: what 'Best' means (defect 5: top picks had Sunlit 0.0 % under 'Both')", () => {
+  it("under 'both' a place never lit ranks below a lit one with the same groups nearby, and is never best", () => {
+    const dark = site('dark', 0, 1) // a permanently shadowed floor: 0 % sunlit, good coverage
+    const lit = site('lit', 30, 3)
+    const out = searchSites(
+      [
+        { site: dark, summary: sum(0, 37) },
+        { site: lit, summary: sum(30, 5) },
+      ],
+      [...near(dark, 'water', 2), ...near(lit, 'water', 1)],
+      OPTS,
+    )
+    expect(ids(out)).toEqual(['lit', 'dark'])
+    expect(out.find((r) => r.siteId === 'dark')).toMatchObject({ share: 0, rank: 2, best: false })
+    expect(out.find((r) => r.siteId === 'lit')).toMatchObject({ share: 5, rank: 1, best: true })
+  })
+
+  it('a place with a share of 0 ranks after every place above 0, even with more chosen groups nearby', () => {
+    const dark = site('dark', 0, 1)
+    const lit = site('lit', 30, 3)
+    const out = searchSites(
+      [
+        { site: dark, summary: sum(0, 90) },
+        { site: lit, summary: sum(20, 20) },
+      ],
+      [...near(dark, 'water', 1), ...near(dark, 'hazard', 1), ...near(dark, 'light', 1), ...near(lit, 'water', 1)],
+      OPTS,
+    )
+    expect(ids(out)).toEqual(['lit', 'dark'])
+    expect(out.map((r) => [r.groupsCovered, r.rank, r.best])).toEqual([
+      [1, 1, true],
+      [3, 2, false],
+    ])
+  })
+
+  it("a share of 0 is never best under 'light' or 'comms' either", () => {
+    const a = site('a', 0)
+    for (const by of ['light', 'comms'] as const) {
+      const [r] = searchSites([{ site: a, summary: sum(0, 0) }], near(a, 'water', 1), { ...OPTS, by })
+      expect(r).toMatchObject({ rank: 1, best: false })
+    }
+  })
+
+  it('a place with none of the chosen points nearby is ranked but never best', () => {
+    const a = site('a', 0)
+    const [r] = searchSites([{ site: a, summary: sum(90, 90) }], [], OPTS)
+    expect(r).toMatchObject({ groupsCovered: 0, rank: 1, best: false })
+  })
+
+  it('equal shares are ordered by the flatter slope, then by more points nearby (defect 6: everything ranked 1)', () => {
+    const steeper = site('a', 0, 4)
+    const flatter = site('b', 30, 1.5)
+    const flatMore = site('c', 60, 1.5)
+    const out = searchSites(
+      [steeper, flatter, flatMore].map((s) => ({ site: s, summary: sum(100, 100) })),
+      [...near(steeper, 'water', 3), ...near(flatter, 'water', 1), ...near(flatMore, 'water', 2)],
+      OPTS,
+    )
+    expect(ids(out)).toEqual(['c', 'b', 'a'])
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3])
+  })
+})
+
+describe('placeName and one row per place (defect 5: "Shoemaker" listed 4-5 times)', () => {
+  it('drops "(…)" notes, a trailing "crater", case and extra spaces', () => {
+    expect(placeName('Shoemaker (Tye et al. 2015)')).toBe('shoemaker')
+    expect(placeName('Shoemaker crater')).toBe('shoemaker')
+    expect(placeName('  Shoemaker ')).toBe('shoemaker')
+    expect(placeName('Shoemaker / Nobile')).toBe('shoemaker / nobile')
+    expect(placeName('Shoemaker scarp')).toBe('shoemaker scarp')
+  })
+
+  // Synthetic records shaped like several catalogues of one crater: positions a few km apart, different categories.
+  const ex = (id: string, name: string, lat: number, lon: number): SearchSite => ({ ...site(id, lon, 2, lat), name, poi_id: id })
+  const P = (id: string, category: string, lat: number, lon: number): Poi => ({ ...poi(id, 'cold-trap', lat, lon), category })
+  const recs = [
+    { e: ex('atlas', 'Crater X', -88.026, 45.279), p: P('atlas', 'psr_atlas', -88.026, 45.279) },
+    { e: ex('host', 'Crater X', -88.14, 45.91), p: P('host', 'host_crater', -88.14, 45.91) },
+    { e: ex('age', 'Crater X (age study)', -88.1, 44.9), p: P('age', 'crater_age', -88.1, 44.9) },
+    { e: ex('feat', 'Crater X crater', -88.1, 44.9), p: P('feat', 'science_feature', -88.1, 44.9) },
+    { e: ex('rim', 'Crater X rim A', -88.08, 11.9), p: P('rim', 'study_site', -88.08, 11.9) }, // another name
+    { e: ex('far', 'Crater X', -87.0, 45.3), p: P('far', 'psr_atlas', -87.0, 45.3) }, // same name, ~31 km away
+  ]
+  const c = searchCandidates([], recs.map((r) => r.e), recs.map((r) => r.p))
+
+  it('several records of one place within SAME_PLACE_KM are one candidate; the feature record stands for it', () => {
+    expect(distanceKm(-88.026, 45.279, -88.14, 45.91)).toBeLessThan(SAME_PLACE_KM)
+    expect(c.map((x) => x.site.id)).toEqual(['feat', 'rim', 'far'])
+    expect(c[0].selfPoiId).toBe('feat')
+    expect(c[0].records.map((r) => r.id).sort()).toEqual(['age', 'atlas', 'host'])
+    expect(c[1].records).toEqual([])
+    expect(c[2].records).toEqual([])
+  })
+
+  it('illumination points merge only within 1 km', () => {
+    const I = (id: string, name: string, lat: number) => ({ e: ex(id, name, lat, 0), p: P(id, 'illumination_point', lat, 0) })
+    const pts = [I('s1', 'Rim S (max illumination point)', -89.0), I('s2', 'Rim S (max visibility point)', -89.1), I('s3', 'Rim S (= Site 4)', -89.101)]
+    const out = searchCandidates([], pts.map((x) => x.e), pts.map((x) => x.p))
+    expect(distanceKm(-89.0, 0, -89.1, 0)).toBeGreaterThan(1)
+    expect(out.map((x) => [x.site.id, x.records.map((r) => r.id)])).toEqual([
+      ['s1', []],
+      ['s3', ['s2']], // the shorter name stands for the place
+    ])
+  })
+
+  it('an app site is never merged with a point', () => {
+    const s = { ...site('crater-x', 45.279, 2, -88.026), name: 'Crater X' }
+    const out = searchCandidates([s], [recs[0].e], [recs[0].p])
+    expect(out.map((x) => x.site.id)).toEqual(['crater-x', 'atlas'])
   })
 })
 

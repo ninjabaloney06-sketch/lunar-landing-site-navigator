@@ -160,7 +160,7 @@ test.describe('search at 1440 × 900', () => {
 test.describe('search on the real search-sites.json at 1440 × 900', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('every site and every point listed once, a point row equals summarize() for its own horizon file, and the time is measured', async ({ page }) => {
+  test('every site and every point listed once (several records of one place as one row), a point row equals summarize() for its own horizon file, and the time is measured', async ({ page }) => {
     test.setTimeout(300_000)
     const [pois, sites, extra] = await Promise.all([
       data<Poi[]>(page, 'pois.json'),
@@ -185,8 +185,16 @@ test.describe('search on the real search-sites.json at 1440 × 900', () => {
     test.info().annotations.push({ type: 'search time (real file)', description: note })
     console.log(`search on the real file: ${note}`)
     const items = panel.getByTestId('search-results').locator('li')
-    await expect(items).toHaveCount(expected)
-    expect((await items.evaluateAll((li) => li.map((x) => x.getAttribute('data-site-id')))).sort()).toEqual([...sites.map((s) => s.id), ...kept].sort())
+    // Every place once: the listed rows plus the records folded into them (data-records) are exactly the candidates.
+    const listed = await items.evaluateAll((li) => li.map((x) => [x.getAttribute('data-site-id')!, x.getAttribute('data-records') ?? ''] as const))
+    const all = listed.flatMap(([id, recs]) => [id, ...recs.split(' ').filter(Boolean)])
+    expect(all.sort()).toEqual([...sites.map((s) => s.id), ...kept].sort())
+    expect(listed.length).toBeLessThan(expected)
+    // Defect 5: "Shoemaker" was listed 4 times plus "Shoemaker crater"; its records are one row now.
+    const nameOf = new Map(extra.map((x) => [x.id, x.name]))
+    const shoemaker = listed.filter(([id]) => /^shoemaker( crater)?( \(.*\))?$/i.test(nameOf.get(id) ?? ''))
+    expect(shoemaker).toHaveLength(1)
+    expect(shoemaker[0][1].split(' ').filter(Boolean).length).toBeGreaterThanOrEqual(3)
 
     // A named point: its Sunlit and Coverage are summarize() on its own horizon file; it offers "Show" only.
     const id = kept.includes('poi-science-feat-shackleton') ? 'poi-science-feat-shackleton' : kept[0]
@@ -198,6 +206,67 @@ test.describe('search on the real search-sites.json at 1440 × 900', () => {
     await expect(r.locator('[data-col=lit] .mono')).toHaveText(`${ref.litPct.toFixed(1)} %`)
     await expect(r.locator('[data-col=comms] .mono')).toHaveText(`${ref.coveragePct.toFixed(1)} %`)
     await expect(r.getByRole('button')).toHaveText(['Show'])
+  })
+})
+
+test.describe('search defects 5, 6, 24 and the Full data switch at 1440 × 900', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('no Best pick is never lit; ranks sit beside their names; counts carry a label; no group chosen = an empty state', async ({ page }) => {
+    test.setTimeout(300_000)
+    const { panel } = await openSearch(page)
+    const items = panel.getByTestId('search-results').locator('li')
+    // Defect 5: under "Both" every Best row is sunlit for part of the mission dates.
+    await expect(panel.getByRole('radio', { name: 'Both' })).toBeChecked()
+    const bestLit = await items.evaluateAll((li) =>
+      li.filter((x) => x.getAttribute('data-best') === 'true').map((x) => x.querySelector('[data-col=lit] .mono')!.textContent!),
+    )
+    expect(bestLit.length).toBeGreaterThanOrEqual(1)
+    await expect(items.first()).toHaveAttribute('data-best', 'true') // rank 1 is a Best pick, not a dark crater floor
+    for (const t of bestLit) expect(Number.parseFloat(t)).toBeGreaterThan(0)
+
+    // Defect 24: the rank number and the name start on the same line, also for the longest name.
+    const tops = await items.evaluateAll((li) =>
+      li.slice(0, 30).map((x) => {
+        const rank = x.querySelector('.search-rank')!.getBoundingClientRect()
+        const title = x.querySelector('.search-item-title')!.getBoundingClientRect()
+        return { dTop: Math.abs(rank.top - title.top), rankH: rank.height }
+      }),
+    )
+    for (const t of tops) expect(t.dTop).toBeLessThan(Math.max(8, t.rankH))
+    // The counts are words, not unlabeled dots.
+    await expect(items.first().locator('.search-item-near')).toContainText(/Within 20 km: \d+ water\s+\d+ shadow\s+\d+ science/)
+
+    // Defect 6: no group chosen → no list, one line saying what to do; ranks never all "1".
+    for (const label of ['Water and volatiles', 'Permanent shadow', 'Science features']) await panel.getByLabel(label).uncheck()
+    await expect(panel.getByTestId('search-results')).toHaveCount(0)
+    await expect(panel.getByTestId('search-empty')).toHaveText('Choose at least one kind of point of interest above.')
+    await panel.getByLabel('Landing candidates').check()
+    await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 120_000 })
+    const ranks = await panel.getByTestId('search-results').locator('li').evaluateAll((li) => li.map((x) => x.getAttribute('data-rank')).filter((r) => r))
+    expect(new Set(ranks).size).toBeGreaterThan(3)
+  })
+
+  test('the Full data switch sits in the panel head; summary rows show decision values, full data adds the raw values and sources', async ({ page }) => {
+    const { panel } = await openSearch(page)
+    const sw = panel.getByTestId('full-data-switch')
+    await expect(sw).toHaveText('Full data')
+    await expect(sw).toHaveAttribute('aria-checked', 'false')
+    // Top-right corner, beside Close.
+    const box = (await sw.boundingBox())!
+    const pbox = (await panel.boundingBox())!
+    expect(box.x + box.width).toBeGreaterThan(pbox.x + pbox.width * 0.6)
+    expect(box.y).toBeLessThan(pbox.y + 80)
+    const first = panel.getByTestId('search-results').locator('li').first()
+    await expect(first.locator('[data-col=lit]')).toBeVisible()
+    await expect(first.getByTestId('search-item-full')).toHaveCount(0)
+    await sw.click()
+    await expect(sw).toHaveAttribute('aria-checked', 'true')
+    await expect(first.getByTestId('search-item-full')).toContainText('Position')
+    await expect(first.getByTestId('search-item-full')).toContainText(/Longest dark \d+\.\d h/)
+    await expect(first.getByTestId('search-item-full').getByRole('link')).toHaveCount(1)
+    await sw.click()
+    await expect(first.getByTestId('search-item-full')).toHaveCount(0)
   })
 })
 
