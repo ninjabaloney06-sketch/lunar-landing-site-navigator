@@ -238,8 +238,30 @@ a:hover {
   white-space: nowrap; /* "104.47° W" never leaves the W alone on a line (visual sweep 29) */
 }
 
+/* Site · date on one line; coordinates and the site's caveat on one small line under it (read-header). */
+.place > .site-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0;
+}
+
+/* a flex item drops its own leading and trailing spaces: the dot gets its room from padding */
+.place > .site-line > .site-line-sep {
+  padding: 0 0.4em;
+}
+
+.site-meta {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.site-meta .coords {
+  margin: 0;
+}
+
 .date {
-  margin-top: var(--s-1);
   color: var(--muted);
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -273,22 +295,49 @@ a:hover {
   flex: none;
 }
 
+/* Header controls are text links, not bordered pills (taste rules: "text links over pill buttons"). The underline
+   darkens on hover and while the control's panel is open or its layer is on. */
 .find {
   flex: none;
   font-weight: 500;
-  padding: var(--s-2) var(--s-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--bg-veil);
-  transition: border-color var(--dur-fast) var(--ease-out);
+  padding: var(--s-2) var(--s-3);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  text-decoration-color: var(--line);
+  text-shadow: 0 0 6px var(--bg);
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
 }
 
-.find:hover {
-  border-color: var(--muted);
+.find:hover,
+.find[aria-expanded='true'] {
+  text-decoration-color: var(--fg);
+}
+
+.find[aria-pressed='true'] {
+  text-decoration-color: var(--fg);
+  text-decoration-thickness: 2px;
 }
 
 .find:active {
-  border-color: var(--fg);
+  color: var(--muted);
+}
+
+/* the info icon carries no underline of its own */
+.details-btn {
+  text-decoration: none;
+}
+
+.details-btn > span {
+  text-decoration: underline;
+  text-decoration-thickness: inherit;
+  text-underline-offset: 5px;
+  text-decoration-color: var(--line);
+}
+
+.details-btn:hover > span,
+.details-btn[aria-expanded='true'] > span {
+  text-decoration-color: var(--fg);
 }
 
 /* While the drawer or the search is open (desktop), the header ends where the panel starts, so the panel never cuts
@@ -490,6 +539,20 @@ a:hover {
   .foot-claim {
     display: none;
   }
+
+  /* One footer line on a phone: the data line goes ("how this is computed" names the same sources). */
+  .foot-data {
+    display: none;
+  }
+
+  /* 44 px touch targets that keep the footer one text line tall: the box reaches above and below the text. */
+  .foot .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: -14px;
+    vertical-align: middle;
+  }
 }
 
 /* ---------- WebGL fallback: the horizon strip becomes the view ---------- */
@@ -508,10 +571,12 @@ a:hover {
 /* ---------- small screens ---------- */
 
 @media (max-width: 640px) {
+  /* Phone header (read-header): three rows — mission; site · date; the controls — plus one small line of
+     coordinates. Each control is a 44 px target; the scene keeps more than half the screen at 375 × 812. */
   .top {
     flex-direction: column;
-    gap: var(--s-3);
-    padding: var(--s-5) var(--s-4) 0;
+    gap: 0;
+    padding: var(--s-2) var(--s-4) 0;
   }
 
   .place {
@@ -522,10 +587,28 @@ a:hover {
     font-size: 28px;
   }
 
-  /* Header controls on one row under the title, each a 44 px target (visual sweep 8). */
+  .place .mission {
+    min-height: 44px;
+  }
+
+  .place > .site-line {
+    align-items: center;
+    margin: 0;
+  }
+
+  .site-meta {
+    margin: 0;
+  }
+
+  /* Header controls on one row under the title, each a 44 px target (visual sweep 8); the first one's text lines
+     up with the title. */
+  .actions {
+    margin-left: calc(-1 * var(--s-2));
+  }
+
   .find {
     min-height: 44px;
-    padding: var(--s-1) var(--s-3);
+    padding: 0 var(--s-2);
   }
 
   .date {
@@ -536,12 +619,12 @@ a:hover {
   }
 
   .bottom {
-    padding: var(--s-16) var(--s-4) var(--s-3);
+    padding: var(--s-10) var(--s-4) var(--s-4);
   }
 
   .timeline {
     grid-template-columns: var(--s-12) minmax(0, 1fr);
-    margin-top: var(--s-8);
+    margin-top: 0;
   }
 
   .fallback {
