@@ -57,7 +57,7 @@ import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
 import type { MissionState } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import { approxText, footTerrain, useCustomSite } from './views/custom'
-import { customSiteId } from './data/customSite'
+import { customSiteId, poiNameAt } from './data/customSite'
 import type { Poi, PoiGroup } from './data/pois'
 import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
@@ -166,7 +166,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
   // A custom landing site (data/customSite.ts) lives in the link as its id; its height and slope arrive with capHorizon.
-  const custom = useCustomSite(hs.site, hs.name ?? DEFAULT_MISSION_NAME)
+  // A custom site opened from a point of interest is called by that point's name once the POI list is there (F10);
+  // the mission's name stays the header's title.
+  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
+  const poiSiteName = useMemo(() => poiNameAt(hs.site, poiData.status === 'ready' ? poiData.pois : null), [hs.site, poiData])
+  const custom = useCustomSite(hs.site, poiSiteName ?? hs.name ?? DEFAULT_MISSION_NAME)
   const site = custom?.site ?? sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const customReady = custom?.status === 'ready' ? custom : null
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
@@ -215,7 +219,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const answer = ready ? results.results.answerAt(cursor) : null
 
   // Points of interest: pois.json is fetched the first time the layer or the search is opened (layer off by default).
-  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
   const visiblePois = useMemo(
     () => (poiData.status === 'ready' && hs.poi ? scenePois(poiData.pois, hs.poi, sites) : []),
     [poiData, hs.poi, sites],

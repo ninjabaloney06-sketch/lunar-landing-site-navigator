@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { EMPTY_STATE, MAX_POINTS, addPoint, parseHash, pointName, removePoint, renamePoint, serializeHash } from './state'
 import type { UserPoint } from './state'
-import { CUSTOM_SITE_NAME, customSiteBase, customSiteId, customSiteName, parseCustomSiteId } from './data/customSite'
+import { CUSTOM_SITE_NAME, customSiteBase, customSiteId, customSiteName, parseCustomSiteId, poiNameAt } from './data/customSite'
 import { capSiteId } from './data/southcap'
 import { POWER_DEFAULTS } from './power/power'
 
@@ -198,5 +198,19 @@ describe('power estimate inputs in the link', () => {
   })
   it('one bad key does not touch the others', () => {
     expect(parseHash('#panel=3&eff=x&load=55.5&batt=0').power).toEqual({ ...POWER_DEFAULTS, panelM2: 3, loadW: 55.5 })
+  })
+})
+
+describe('a custom site opened from a point of interest carries the point name (F10)', () => {
+  const pois = [
+    { name: 'Cabeus crater', lat: -84.9, lon: -35.5 },
+    { name: 'Other', lat: -88.1, lon: 12.3 },
+  ]
+  it('finds the point whose own coordinates give the id; null for a user point, a listed site or no list yet', () => {
+    expect(poiNameAt(customSiteId(-84.9, -35.5), pois)).toBe('Cabeus crater')
+    expect(poiNameAt(customSiteId(-84.9, -35.6), pois)).toBeNull()
+    expect(poiNameAt(customSiteId(-84.9, -35.5), null)).toBeNull()
+    expect(poiNameAt('haworth', pois)).toBeNull()
+    expect(poiNameAt(null, pois)).toBeNull()
   })
 })
