@@ -2,7 +2,7 @@
 // points, mission name, science goal, the points-of-interest layer and the flight plan's choices (launchpad, rocket,
 // transfer time, surface stay). A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { parseCustomSiteId } from './data/customSite'
 import { POI_GROUPS } from './data/pois'
 import type { PoiGroup } from './data/pois'
@@ -304,27 +304,45 @@ export function serializeHash(s: HashState): string {
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }
 
-/** Hash state with a debounced writer: scrubbing updates React at once and the URL 400 ms after the last
- *  change (Safari throws after ~100 history calls in 30 s). */
-export function useHashState(): [HashState, (patch: Partial<HashState>) => void] {
+/** Hash state with a throttled writer: React updates at once, the URL at most every 400 ms (Safari throws after ~100
+ *  history calls in 30 s). The first change of a burst schedules the write and later changes ride on it, so the
+ *  link also follows while Play changes the cursor every 40 ms (a debounce wrote nothing until Play stopped); the last
+ *  change of a burst is written at most 400 ms after it. flush() writes the state now (App calls it when Play pauses,
+ *  so the link holds the resting cursor as soon as Pause shows). */
+export const HASH_WRITE_MS = 400
+
+export function useHashState(): [HashState, (patch: Partial<HashState>) => void, () => void] {
   const [state, setState] = useState<HashState>(() => parseHash(window.location.hash))
+  const latest = useRef(state)
+  latest.current = state
+  const timer = useRef<number | null>(null)
+
+  const write = useCallback(() => {
+    if (timer.current !== null) {
+      window.clearTimeout(timer.current)
+      timer.current = null
+    }
+    const h = serializeHash(latest.current)
+    if (h !== window.location.hash.replace(/^#/, '')) {
+      window.history.replaceState(null, '', h ? `#${h}` : window.location.pathname + window.location.search)
+    }
+  }, [])
 
   useEffect(() => {
     const onHash = () => setState(parseHash(window.location.hash))
     window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    return () => {
+      window.removeEventListener('hashchange', onHash)
+      // (StrictMode runs this cleanup once on mount: the timer must be forgotten too, or nothing is scheduled again)
+      if (timer.current !== null) window.clearTimeout(timer.current)
+      timer.current = null
+    }
   }, [])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const h = serializeHash(state)
-      if (h !== window.location.hash.replace(/^#/, '')) {
-        window.history.replaceState(null, '', h ? `#${h}` : window.location.pathname + window.location.search)
-      }
-    }, 400)
-    return () => window.clearTimeout(timer)
-  }, [state])
+    if (timer.current === null) timer.current = window.setTimeout(write, HASH_WRITE_MS)
+  }, [state, write])
 
   const patch = useCallback((p: Partial<HashState>) => setState((prev) => ({ ...prev, ...p })), [])
-  return [state, patch]
+  return [state, patch, write]
 }

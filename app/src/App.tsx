@@ -3,7 +3,7 @@
 // The flight view shares the stage: the Earth-to-Moon trajectory for a mission's site and start date, with its own
 // panel and playback bar. It has no tab: "Calculate flight" on a mission opens it (U12); "Back to landing site" or
 // Esc leaves it.
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
@@ -172,7 +172,7 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 }
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
-  const [hs, patch] = useHashState()
+  const [hs, patch, flushHash] = useHashState()
   const [menu, setMenu] = useState<null | 'mission' | 'site' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -185,6 +185,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (leftSite) setSimMode(false)
     else if (playing) setSimMode(true)
   }, [playing, leftSite])
+  // When Play stops (Pause, Esc, the last step) the link is written in the same commit as the Play label, so a link
+  // read right after it holds the resting cursor; while playing it follows every 400 ms (state.ts).
+  const wasPlaying = useRef(playing)
+  useLayoutEffect(() => {
+    if (wasPlaying.current && !playing) flushHash()
+    wasPlaying.current = playing
+  }, [playing, flushHash])
   const [webgl, setWebgl] = useState(() => webglAvailable())
   // "How to use" card (feedback of 15 Nov: "not clear what the user can do"; science lead: "make the UI more
   // intuitive"): three numbered steps, shown until "Got it" and reopened from Help. Only the dismissal is kept, in

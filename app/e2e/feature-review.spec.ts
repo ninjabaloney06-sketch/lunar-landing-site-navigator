@@ -197,3 +197,26 @@ test('F07b: on a wide screen the camera, layer and speed row is always shown and
   await expect(page.getByTestId('flight-focus')).toBeVisible()
   await expect(page.getByTestId('flight-speed')).toBeVisible()
 })
+
+test('the link follows the cursor while Play runs (at most every 400 ms), and holds the resting cursor once paused', async ({ page }) => {
+  await open(page, `${DEMO}&t=2027-08-17T00:00Z`)
+  const linkT = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('t'))
+  await page.getByTestId('simulate').click()
+  await expect(page.getByTestId('simulate')).toHaveText('Pause')
+  // Still playing: the link has moved on from the start (a debounce wrote nothing until Play stopped).
+  await expect.poll(linkT, { timeout: 5000 }).not.toBe('2027-08-17T00:00Z')
+  await expect(page.getByTestId('simulate')).toHaveText('Pause')
+  const seen = new Set<string>()
+  for (let i = 0; i < 6; i++) {
+    seen.add((await linkT())!)
+    await page.waitForTimeout(450)
+  }
+  expect(seen.size).toBeGreaterThan(2)
+  await page.getByTestId('simulate').click()
+  await expect(page.getByTestId('simulate')).toHaveText('Play')
+  // Paused: the link is the cursor on screen at once.
+  const shown = await page.getByTestId('cursor-time').textContent()
+  const t = (await linkT())!
+  const [d, hm] = [Number(t.slice(8, 10)), t.slice(11, 16)]
+  expect(shown).toBe(`${d} August 2027, ${hm} UTC`)
+})
