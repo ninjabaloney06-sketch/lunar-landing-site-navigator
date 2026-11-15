@@ -484,6 +484,14 @@ a:hover {
   color: var(--muted);
 }
 
+/* The validation line (worded from docs/event/validation.md) is not shown on phones: it would take a row from the
+   scene. The Details drawer shows the same line. */
+@media (max-width: 640px) {
+  .foot-claim {
+    display: none;
+  }
+}
+
 /* ---------- WebGL fallback: the horizon strip becomes the view ---------- */
 
 .fallback {

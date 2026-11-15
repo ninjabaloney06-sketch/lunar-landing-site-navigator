@@ -877,7 +877,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               {NOT_VALIDATED}
             </p>
           )}
-          <p className="foot-sample" data-testid="validation-claim">
+          <p className="foot-sample foot-claim" data-testid="validation-claim">
             {V1_CLAIM}; {OTHER_CHECKS}:{' '}
             <a href={RECORD_HREF} target="_blank" rel="noopener noreferrer">
               {RECORD_LABEL}

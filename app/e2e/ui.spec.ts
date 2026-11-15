@@ -431,7 +431,10 @@ for (const vp of VIEWPORTS) {
     // tabs) + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed", "Docs" and
     // "Full documentation" + the footer's validation line with its one link to the record ("see record", add-on
     // task 3 of 15 Nov); the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(11)
+    // On a phone the footer's validation line is not shown (it would take a row from the scene; the same line is in
+    // the Details drawer), so its link is not on the main screen there.
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(vp.width <= 640 ? 10 : 11)
+    await expect(page.getByTestId('validation-claim')).toBeVisible({ visible: vp.width > 640 })
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
