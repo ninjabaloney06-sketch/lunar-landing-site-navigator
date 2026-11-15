@@ -585,8 +585,10 @@ export const DOC_SECTIONS: DocSection[] = [
             and Slope (&quot;— too steep&quot; when it fails).
           </li>
           <li>
-            A site row offers &quot;Select&quot;. A point row offers &quot;Show&quot; only, which makes the point the
-            landing site and opens it at eye level with its group on.
+            Every row offers &quot;Show as landing site&quot;. On a site row it selects that site; on a point row it
+            makes the point the landing site (a custom landing site) and opens the landing-site view with its group on.
+            The point of interest card has the same action. A point outside the custom-site region offers &quot;Show
+            on the Moon&quot; instead, which opens the Moon view.
           </li>
           <li>
             Order: rows that pass the slope filter and have a value, places with a value of 0 last, then by groups
