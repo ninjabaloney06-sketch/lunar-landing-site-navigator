@@ -50,7 +50,7 @@ reviews — S signs every number that reaches the UI.
 
 **Decided 26 Oct:** the whole team stays at the venue with Dagny Locher; everyone brings a sleeping bag and mat. This replaces the hostel plan. Sarah requires the accompanying adult to stay with the participants throughout, including overnight; she does not require two teammates to keep working.
 
-**DECIDED by ninja, 13 Nov: sleep in two batches.** Leo + Isaac sleep **22:00–01:00**, Otto + Bene sleep **01:00–04:00** (Isaac and Leo concentrate badly after 22:00; Otto and Bene work well late). This replaces the 26 Oct six-hour baseline; ninja accepts the shorter sleep and plans to catch up after the event. Consequences in the timeline below: go/no-go moved to 21:30, handover 21:40–21:30, Otto and Bene take the official 22:30 wrap-up, Sunday work starts at 01:00. The Betreuerin (Dagny Locher) must confirm, since she stays with the team all night.
+**DECIDED by ninja, 13 Nov: sleep in two batches.** Leo + Isaac sleep **22:00–01:00**, Otto + Bene sleep **01:00–04:00** (Isaac and Leo concentrate badly after 22:00; Otto and Bene work well late). This replaces the 26 Oct six-hour baseline; ninja accepts the shorter sleep and plans to catch up after the event. Consequences in the timeline below: go/no-go moved to 21:30, handover 21:40–22:00, Otto and Bene take the official 22:30 wrap-up, Sunday work starts at 01:00. The Betreuerin (Dagny Locher) must confirm, since she stays with the team all night.
 
 ## Food and breaks
 
