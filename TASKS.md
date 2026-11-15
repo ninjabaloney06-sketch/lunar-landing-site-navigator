@@ -330,6 +330,14 @@ New follow-through missing from the existing checklist:
 
 Fact labels of the info box: `KEY_LABELS` in `scripts/pois.py`. Docs view text: `app/src/docs/content.tsx`.
 
+#### State (2026-11-15 01:20, merge `c3aa420`, not pushed, not deployed)
+
+- [ ] `[AI+H]` **I (ninja)** — everything on the page and both bug lists is built and merged (see BUILD_LOG 2026-11-15 01:20). → needs ninja: go for push and deploy; wording of the wave 3 strings above; look and feel of pins, region ring, sunset, fly, cap and near level; whether the search's order should put light and comms before nearby points (today the first rows are permanently dark crater-floor points).
+- [ ] `[AI+H]` **S (Leo)** — not validated: POI coordinates, the 180 POI horizon files, the 43 researched points in `docs/POIs/additional-sites.json`, the browser horizon for custom sites (0.013° median, up to 1.68° in single directions against the 18 pipeline horizons).
+- [ ] `[AI]` `L3·Opus` — terrace stripes on the prepared sites' 80 m tiles under a low Sun: write them with `height_scale_m` 0.25 in `scripts/terrain_tiles.py` and regenerate (not done).
+- [ ] `[AI]` `L2·Opus` — a globe pin and name for a custom landing site; a Moon marker that is visible more often at the Earth and Sun viewpoints (today only when the Moon is in the picture).
+- Decided, no change: the top view stays not to scale.
+
 #### Decisions (ninja, 14 Nov 2026 evening)
 
 - Pin region and terrain model: the cap south of 80° S ("80 degrees S but super detailed").
