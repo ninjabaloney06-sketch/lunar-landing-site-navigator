@@ -238,16 +238,8 @@ a:hover {
   white-space: nowrap; /* "104.47° W" never leaves the W alone on a line (visual sweep 29) */
 }
 
-/* Site · date on one line; coordinates and the site's caveat on one small line under it (read-header). */
-.place > .site-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0;
-}
-
 /* a flex item drops its own leading and trailing spaces: the dot gets its room from padding */
-.place > .site-line > .site-line-sep {
+.site-meta > .site-line-sep {
   padding: 0 0.4em;
 }
 
@@ -261,37 +253,11 @@ a:hover {
   margin: 0;
 }
 
-/* The date opens a menu: a boxed control with a caret (team request, 15 Nov: controls must look like controls). */
-.date {
-  color: var(--fg);
-  padding: 1px var(--s-2);
-  border: 1px solid var(--faint);
-  border-radius: var(--radius);
-  background: var(--bg-veil);
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
-}
-
-.date::after {
-  content: '';
-  display: inline-block;
-  margin-left: var(--s-2);
-  border: 4px solid transparent;
-  border-top-color: currentColor;
-  border-bottom: 0;
-  vertical-align: middle;
-}
-
-.date:hover,
-.date[aria-expanded='true'] {
-  border-color: var(--fg);
-  background: var(--surface-2);
-}
-
+/* The action bar wraps onto a second row (right-aligned) when the header is narrow, e.g. beside an open drawer. */
 .actions {
-  flex: none;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: stretch;
   gap: var(--s-2);
 }
@@ -587,15 +553,6 @@ a:hover {
     font-size: 28px;
   }
 
-  .place .mission {
-    min-height: 44px;
-  }
-
-  .place > .site-line {
-    align-items: center;
-    margin: 0;
-  }
-
   .site-meta {
     margin: 0;
   }
@@ -609,13 +566,6 @@ a:hover {
   .find {
     min-height: 44px;
     padding: 0 var(--s-2);
-  }
-
-  .date {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    margin-top: 0;
   }
 
   .bottom {
@@ -635,8 +585,7 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .find,
-  .date {
+  .find {
     transition: none;
   }
 }
@@ -650,38 +599,133 @@ select {
 }
 
 
-/* First-use hint: one quiet line between the title and the header buttons; gone at the first press or key. Wide
-   screens only: on a phone the header fills that row. */
-.hint {
+/* "How to use" card (App.tsx): three numbered steps under the header on the left, until "Got it"; Help reopens it. */
+.help-card {
   position: absolute;
-  z-index: 5;
-  top: var(--s-5);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(46ch, 34vw);
-  margin: 0;
-  padding: var(--s-2) var(--s-3);
+  z-index: 30;
+  top: 152px;
+  left: var(--s-10);
+  box-sizing: border-box;
+  width: min(330px, calc(100vw - var(--s-8)));
+  padding: var(--s-3) var(--s-4);
   font-size: var(--t-small);
-  color: var(--muted);
-  text-align: center;
-  background: var(--bg-veil);
-  border: 1px solid var(--line);
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--muted);
   border-radius: var(--radius);
-  pointer-events: none;
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.5);
+  animation: pop-in var(--dur-panel) var(--ease-out);
 }
 
-/* Narrower screens: the header fills the top row, so the hint sits in the middle of the scene. */
-@media (max-width: 1100px) {
-  .hint {
-    top: 24%;
-    width: min(34ch, 80vw);
+.help-title {
+  margin: 0 0 var(--s-2);
+  font: 500 var(--t-ui) / 1.3 var(--font-sans);
+  color: var(--fg);
+}
+
+.help-steps {
+  margin: 0;
+  padding-left: var(--s-5);
+  display: grid;
+  gap: var(--s-1);
+  line-height: 1.45;
+}
+
+.help-steps b {
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.help-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: var(--s-3) 0 0;
+}
+
+.help-foot .btn {
+  flex: none;
+}
+
+/* Help sits at the end of the action bar as a quieter, text-only control. */
+.help-btn {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+/* Phones: the action bar folds behind one Menu button on the title's row; open, it drops down as a list. */
+.nav-toggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .nav-toggle {
+    display: block;
+    position: absolute;
+    top: var(--s-2);
+    right: var(--s-4);
+    min-height: 44px;
+  }
+
+  .nav-toggle::after {
+    content: '';
+    display: inline-block;
+    margin-left: var(--s-2);
+    border: 4px solid transparent;
+    border-top-color: currentColor;
+    border-bottom: 0;
+    vertical-align: middle;
+  }
+
+  .nav-toggle[aria-expanded='true']::after {
+    border-top-color: transparent;
+    border-bottom: 4px solid currentColor;
+    border-top: 0;
+  }
+
+  .actions-col:not(.is-open):not(.in-flight) > .actions {
+    display: none;
+  }
+
+  /* The flight view has one header button (Back to landing site): shown as it is, no Menu. */
+  .actions-col.in-flight > .nav-toggle {
+    display: none;
+  }
+
+  .actions-col.is-open > .actions {
+    position: absolute;
+    z-index: 30;
+    top: calc(var(--s-2) + 44px + var(--s-1));
+    right: var(--s-4);
+    flex-direction: column;
+    align-items: stretch;
+    width: min(240px, calc(100vw - var(--s-8)));
+    margin: 0;
+    padding: var(--s-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .actions-col.is-open > .actions > .find {
+    text-align: left;
+  }
+
+  .help-card {
+    top: 150px;
+    left: var(--s-4);
+    width: calc(100vw - var(--s-8));
+  }
+
+  .help-foot .btn {
+    min-height: 44px;
   }
 }
 
-/* Phones: under the header rows and above the landing-site marker (the marker sits at about 40 % of the height). */
-@media (max-width: 640px) {
-  .hint {
-    top: 22%;
+@media (prefers-reduced-motion: reduce) {
+  .help-card {
+    animation: none;
   }
 }
 

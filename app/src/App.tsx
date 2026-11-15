@@ -111,6 +111,22 @@ function siteSubtitle(site: Site): string | null {
   return site.label && !/^dropped in \d{4}$/i.test(site.label.trim()) ? site.label : null
 }
 
+const HELP_KEY = 'lls-help-dismissed'
+function readHelpDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(HELP_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+function storeHelpDismissed() {
+  try {
+    window.localStorage.setItem(HELP_KEY, '1')
+  } catch {
+    // storage blocked: the card shows again on the next visit
+  }
+}
+
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
 // Arrow keys in the flight view: ten minutes, or six hours with Shift.
@@ -129,6 +145,8 @@ const SLOPE_WARN_DEG = 8
 const SLOPE_SEVERE_DEG = 10
 const SLOPE_SOURCE = 'https://ntrs.nasa.gov/api/citations/20250009323/downloads/ArtemisOverview2025IntSPAPPSChallenge.pdf'
 // The tabs of the Details drawer (Drawer.tsx): Site details, Dates, Compare.
+// The View button names the camera it shows (science lead, 15 Nov: "View" alone did not say what it is).
+const VIEW_NAMES: Partial<Record<string, string>> = { site: 'Landing site', globe: 'Moon', eye: 'Eye level' }
 const DETAIL_SECTIONS: DrawerSection[] = ['details', 'sources', 'finder', 'compare', 'missions']
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
@@ -154,7 +172,7 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
   const [hs, patch] = useHashState()
-  const [menu, setMenu] = useState<null | 'mission' | 'date' | 'view'>(null)
+  const [menu, setMenu] = useState<null | 'mission' | 'site' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
@@ -167,20 +185,21 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     else if (playing) setSimMode(true)
   }, [playing, leftSite])
   const [webgl, setWebgl] = useState(() => webglAvailable())
-  // First-use hint (feedback of 15 Nov: "not clear what the user can do"): one line of what the main controls do,
-  // shown until the first press or key. Text only, nothing is stored.
-  const [hint, setHint] = useState(true)
-  useEffect(() => {
-    if (!hint) return
-    const off = () => setHint(false)
-    window.addEventListener('pointerdown', off, { once: true })
-    window.addEventListener('keydown', off, { once: true })
-    return () => {
-      window.removeEventListener('pointerdown', off)
-      window.removeEventListener('keydown', off)
-    }
-  }, [hint])
+  // "How to use" card (feedback of 15 Nov: "not clear what the user can do"; science lead: "make the UI more
+  // intuitive"): three numbered steps, shown until "Got it" and reopened from Help. Only the dismissal is kept, in
+  // this browser's local storage (Terms.tsx says so); without storage the card simply shows again next time.
+  const [help, setHelp] = useState(() => !readHelpDismissed())
+  const setHelpShown = (on: boolean) => {
+    setHelp(on)
+    if (!on) storeHelpDismissed()
+  }
+  // Phones: the action bar folded behind one Menu button (CSS shows the button at 640 px and below only).
+  const [navOpen, setNavOpen] = useState(false)
+  const navHost = useRef<HTMLDivElement>(null)
+  const closeNav = useCallback(() => setNavOpen(false), [])
+  useClickOutside(navHost, closeNav, navOpen)
   const missionBtn = useRef<HTMLButtonElement>(null)
+  const siteBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
   const viewBtn = useRef<HTMLButtonElement>(null)
   const scene = useRef<SceneApi | null>(null)
@@ -323,7 +342,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const closeMenu = useCallback((focus = false) => {
     menuClosedAt.current = performance.now()
     setMenu((m) => {
-      if (focus) (m === 'date' ? dateBtn : m === 'view' ? viewBtn : missionBtn).current?.focus()
+      if (focus) (m === 'date' ? dateBtn : m === 'view' ? viewBtn : m === 'site' ? siteBtn : missionBtn).current?.focus()
       return null
     })
   }, [])
@@ -588,59 +607,104 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         )}
       </div>
 
-      {hint && !inFlight && hs.drawer === null && (
-        <p className="hint" data-testid="hint" role="note">
-          Drag to turn, scroll to zoom. The date opens other mission dates; Simulate plays the
-          mission's Sun, Earth and station contact; Details compares sites and dates.
-        </p>
+      {help && !inFlight && hs.drawer === null && menu === null && (
+        <section id="help-card" className="help-card" data-testid="help-card" aria-labelledby="help-title">
+          <h2 id="help-title" className="help-title">
+            How to use
+          </h2>
+          <ol className="help-steps">
+            <li>
+              <b>Pick a landing site</b> with Landing site at the top, or let Find the best site rank them for you.
+            </li>
+            <li>
+              <b>Pick the mission dates</b> with Dates.
+            </li>
+            <li>
+              <b>Read the timeline:</b> yellow is sunlight, blue is station contact. Press Play to run the mission.
+            </li>
+          </ol>
+          <p className="help-foot">
+            <span className="quiet">Drag to turn the view, scroll to zoom.</span>
+            <button type="button" className="btn" data-testid="help-dismiss" onClick={() => setHelpShown(false)}>
+              Got it
+            </button>
+          </p>
+        </section>
       )}
 
       <header className="top">
         <div className="place">
-          <h1 className="mission-h">
+          {/* The header reads left to right like a sentence (science lead, 15 Nov: "make the UI more intuitive"): the
+              mission's name with its own Edit button, then the two choices that define the answer, each a labelled
+              control: Landing site and Dates. */}
+          <div className="title-row">
+            <h1 className="mission-h">
+              <Icon name="rocket" />
+              <span className="mission-name" data-testid="mission-name">
+                {missionName}
+              </span>
+            </h1>
             <button
               ref={missionBtn}
               type="button"
-              className="mission"
+              className="find edit-mission"
               data-testid="mission"
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={menu === 'mission'}
+              title="Name, dates, landing site, science goal, your points, ground stations and saved missions"
               onClick={() => {
                 setPanelAtStations(false)
                 setMenu(menu === 'mission' ? null : 'mission')
               }}
             >
-              <Icon name="rocket" />
-              <span className="mission-name">{missionName}</span>
+              Edit mission
             </button>
-          </h1>
-          {/* read-header (wave 3): one line for site · date, then one small line for the secondary facts
-              (coordinates and the site's caveat), so the header takes three short rows on a phone, not five. */}
+          </div>
           <div className="site-line">
-            <span className="site-line-name" data-testid="site-name" data-site-id={site.id}>
-              {site.name}
+            <span className="ctl">
+              <span className="ctl-label" id="ctl-site-label">
+                Landing site
+              </span>
+              <button
+                ref={siteBtn}
+                type="button"
+                className="ctl-btn"
+                data-testid="site-open"
+                data-menu-trigger=""
+                aria-haspopup="dialog"
+                aria-expanded={menu === 'site'}
+                aria-labelledby="ctl-site-label ctl-site-value"
+                title="Choose the landing site: all sites ranked for this mission, or type coordinates"
+                onClick={() => setMenu(menu === 'site' ? null : 'site')}
+              >
+                <span id="ctl-site-value" className="site-line-name" data-testid="site-name" data-site-id={site.id}>
+                  {site.name}
+                </span>
+              </button>
             </span>
             {!inFlight && (
-              <span className="site-line-sep" aria-hidden="true">
-                {' · '}
+              <span className="ctl">
+                <span className="ctl-label" id="ctl-date-label">
+                  Dates
+                </span>
+                <button
+                  ref={dateBtn}
+                  type="button"
+                  className="ctl-btn date"
+                  data-testid="date"
+                  data-period-id={period.id}
+                  data-menu-trigger=""
+                  aria-haspopup="dialog"
+                  aria-expanded={menu === 'date'}
+                  aria-labelledby="ctl-date-label ctl-date-value"
+                  title="Mission dates (UTC): choose another mission period"
+                  onClick={() => setMenu(menu === 'date' ? null : 'date')}
+                >
+                  <span id="ctl-date-value">{period.label}</span>
+                </button>
               </span>
             )}
-            <button
-              ref={dateBtn}
-              type="button"
-              hidden={inFlight}
-              className="date"
-              data-testid="date"
-              data-period-id={period.id}
-              data-menu-trigger=""
-              aria-haspopup="dialog"
-              aria-expanded={menu === 'date'}
-              title="Time shown in the scene and timeline (UTC); choose another mission period"
-              onClick={() => setMenu(menu === 'date' ? null : 'date')}
-            >
-              {fmtDateTime(cursor)}
-            </button>
           </div>
           <p className="site-meta">
             <span className="coords mono" data-testid="coords" title="Latitude and longitude of the site point">
@@ -657,6 +721,52 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               </>
             )}
           </p>
+          {menu === 'site' && (
+            <MissionPanel
+              mode="site"
+              onCompareMissions={() => patch({ drawer: 'missions' })}
+              sites={sites}
+              stations={stations}
+              ids={ids}
+              site={site}
+              period={period}
+              name={hs.name}
+              goal={hs.goal}
+              points={hs.pts}
+              selectedPoint={selPoint}
+              periods={periods}
+              missions={missions.list}
+              missionSaved={missionSaved}
+              onAddMission={() => missions.add(missionNow)}
+              onLoadMission={(m) => patch({ ...m, t: null })}
+              onCalculateFlight={calculateFlight}
+              onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
+              onRemoveMission={missions.remove}
+              onAddPoint={addUserPoint}
+              onSetSite={(lat, lon) => {
+                setLandingSite(lat, lon)
+                siteBtn.current?.focus()
+              }}
+              onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
+              onPointSelect={setSelPoint}
+              onPointDelete={(i) => {
+                patch({ pts: removePoint(hs.pts, i) })
+                setSelPoint(null)
+              }}
+              focusStations={false}
+              onName={(v) => patch({ name: cleanName(v) })}
+              onDates={setMissionDates}
+              onGoal={(goal) => patch({ goal })}
+              onSelect={(id) => {
+                setMenu(null)
+                patch(inFlight ? { site: id } : { site: id, view: 'site' })
+                siteBtn.current?.focus()
+              }}
+              onToggleStation={toggleStation}
+              onPlay={playMission}
+              onClose={closeMenuQuiet}
+            />
+          )}
           {menu === 'mission' && (
             <MissionPanel
               onCompareMissions={() => patch({ drawer: 'missions' })}
@@ -768,10 +878,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onTrueScale={setTrueScale}
               picking={picking}
               onPicking={setPicking}
-              onChangeSite={() => {
-                setPanelAtStations(false)
-                setMenu('mission')
-              }}
+              onChangeSite={() => setMenu('site')}
               onSeek={flight.seek}
               collapsed={panelCollapsed}
               onCollapsed={setPanelCollapsed}
@@ -782,10 +889,20 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
         </div>
-        <div className="actions-col">
-          <div className="actions">
-            {/* The flight view has no tab (U12): it opens from "Calculate flight" on a mission, and this link (or Esc)
-                goes back to the landing site. */}
+        <div ref={navHost} className={`actions-col${navOpen && !inFlight ? ' is-open' : ''}${inFlight ? ' in-flight' : ''}`}>
+          {/* Phones: the action bar folds into one labelled Menu button, so the header keeps to two rows. */}
+          <button
+            type="button"
+            className="find nav-toggle"
+            data-testid="menu-open"
+            aria-expanded={navOpen}
+            aria-controls="header-actions"
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            Menu
+          </button>
+          <div className="actions" id="header-actions" onClick={(e) => (e.target as Element).closest('button') && setNavOpen(false)}>
+            {/* The flight view opens from Flight plan; this button (or Esc) goes back to the landing site. */}
             {inFlight && (
               <button
                 type="button"
@@ -797,8 +914,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                 Back to landing site
               </button>
             )}
-            {/* The points-of-interest layer, the search and Details belong to the landing-site view. */}
-            {!inFlight && <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />}
+            {/* One action bar in plain words (science lead, 15 Nov): what each button does, in the order a newcomer
+                needs them. The search, Details, the points of interest and the flight plan keep their old panels. */}
             <button
               type="button"
               hidden={inFlight}
@@ -810,10 +927,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station contact"
               onClick={() => patch({ drawer: 'search' })}
             >
-              Search
+              Find the best site
             </button>
-            {/* One entry point to the drawer, which starts with the date search (U4: "Find better dates" and the cog
-                were two ways to the same drawer). */}
             <button
               type="button"
               hidden={inFlight}
@@ -822,11 +937,34 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={DETAIL_SECTIONS.includes(hs.drawer as DrawerSection)}
-              title="Site details, better dates and comparison: three tabs"
+              title="This site's details, better dates and comparison with other sites"
               onClick={() => patch({ drawer: 'details' })}
             >
               <Icon name="info" />
-              <span>Details</span>
+              <span>Site details</span>
+            </button>
+            {!inFlight && <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />}
+            <button
+              type="button"
+              hidden={inFlight}
+              className="find"
+              data-testid="flight-open"
+              title="The Earth-to-Moon flight for this mission's site and dates: launch, transfer, landing and return"
+              onClick={() => calculateFlight(missionOf(hs))}
+            >
+              Flight plan
+            </button>
+            <button
+              type="button"
+              hidden={inFlight}
+              className="find help-btn"
+              data-testid="help-open"
+              aria-expanded={help}
+              aria-controls={help ? 'help-card' : undefined}
+              title="How to use this tool, in three steps"
+              onClick={() => setHelpShown(!help)}
+            >
+              Help
             </button>
           </div>
           {hs.poi && !inFlight && <PoiKey groups={hs.poi} data={poiData} counts={poiCounts} webgl={webgl} onChange={(poi) => patch({ poi })} />}
@@ -910,6 +1048,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           valueText={valueText}
           tools={
             <>
+              <span className="tl-now mono" data-testid="cursor-time" title="Time shown in the scene and at the timeline cursor (UTC)">
+                {fmtDateTime(cursor)}
+              </span>
               {webgl && (
                 <span className="tool-wrap">
                   <button
@@ -923,20 +1064,20 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                     title="Camera: the landing site from above, or the whole Moon"
                     onClick={() => setMenu(menu === 'view' ? null : 'view')}
                   >
-                    View
+                    View: {VIEW_NAMES[hs.view] ?? 'Landing site'}
                   </button>
                   {menu === 'view' && <ViewMenu label="View" testId="view-menu" className="is-anchored" items={viewItems} onClose={closeMenu} />}
                 </span>
               )}
               <button
                 type="button"
-                className="tool"
+                className="tool play-btn"
                 data-testid="simulate"
                 aria-pressed={playing}
                 title="Play the mission dates: Sun, Earth and the timeline cursor move (Space)"
                 onClick={toggleSimulate}
               >
-                {playing ? 'Pause' : 'Simulate'}
+                {playing ? 'Pause' : 'Play'}
               </button>
             </>
           }

@@ -52,6 +52,7 @@ import { POI_AT_SITE_KM, POI_NEAR_KM, type PinItem } from './pins'
 import { SiteWorld } from './site'
 import { inPinRegion } from './region'
 import { Sky } from './sky'
+import { eyeVisibility } from './visibility'
 
 export { POI_AT_SITE_KM, POI_NEAR_KM } from './pins'
 
@@ -78,6 +79,8 @@ export interface ScreenPoint {
   x: number // CSS px relative to the container
   y: number
   visible: boolean // false when behind the camera, off screen or behind terrain
+  /** Sun and Earth only: the site's computed horizon mask hides the body from the site (drawn hollow); false or absent otherwise. */
+  belowHorizon?: boolean
 }
 
 /** What project() and labelPoint() place a label for. */
@@ -562,6 +565,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (sky && level === 'flight') {
       const st = flightSkyState()
       if (st) sky.update(st, ORIGIN, quat(st.q_me_to_j2000))
+      sky.setBelowHorizon({ sun: false, earth: false })
       sky.syncCamera(flightCam)
       return
     }
@@ -569,6 +573,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     sky.showBodies(true)
     if (which === 'space') sky.update(frame.state, globeCam.position, NO_TURN)
     else sky.update(frame.state, siteKm, meToEnu)
+    // At site and eye level a body the computed mask hides from the site is drawn hollow, wherever the camera
+    // stands (the orbit camera looks over ridges the eye cannot). In space the Sun and Earth are just where they are.
+    if (which === 'site' && frame.site) {
+      const v = eyeVisibility(frame.state, frame.site, frame.horizon)
+      sky.setBelowHorizon({ sun: v.sun.fraction <= 0, earth: v.earth.fraction <= 0 })
+    } else sky.setBelowHorizon({ sun: false, earth: false })
     sky.syncCamera(which === 'space' ? globeCam : siteCam)
   }
 
@@ -611,16 +621,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     let sunFrac = 1
     let earthFrac = 0
     if (frame.site) {
-      const { lat, lon, elev_m } = frame.site
-      const eyeKm = siteVector(lat, lon, ((elev_m ?? 0) + OBSERVER_HEIGHT_M) / 1000)
-      const enu = enuBasis(lat, lon)
-      const horizon = frame.horizon
-      const above = (bodyKm: BodyState['sun_km'], radiusKm: number) => {
-        const a = azEl(bodyKm, eyeKm, enu)
-        return discFraction(a.el, maskAt(horizon, a.az), angRadiusDeg(radiusKm, a.dist_km))
-      }
-      sunFrac = above(frame.state.sun_km, SUN_RADIUS_KM)
-      earthFrac = above(frame.state.earth_km, EARTH_RADIUS_KM)
+      const v = eyeVisibility(frame.state, frame.site, frame.horizon)
+      sunFrac = v.sun.fraction
+      earthFrac = v.earth.fraction
     }
     setLightLevels(sunFrac, EARTHSHINE * sky.earthPhase * earthFrac, snap)
     const sunM = v3(frame.state.sun_km).normalize()
@@ -1449,7 +1452,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const blocked = inSpace()
       ? covered(b, globeCam.position, true)
       : site.occluded(siteCam.position, sky.worldDir(b)) || covered(b, sitePoseInMe().p, false)
-    return { ...sp, visible: !blocked }
+    const below = !inSpace() && !!frame.site && eyeVisibility(frame.state, frame.site, frame.horizon)[b].fraction <= 0
+    return { ...sp, visible: !blocked, belowHorizon: below }
   }
 
   // C2 calls project() for three labels on every animation frame; the raycasts run once per view version.

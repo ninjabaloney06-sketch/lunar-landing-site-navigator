@@ -32,7 +32,7 @@ On 27 Oct 2026 a first-time user asked three NASA tools for the Sun and Earth el
 1. **Positions.** Sun and Earth positions relative to the Moon come from NASA/JPL SPICE kernels (DE440), every 30 minutes from November 2026 to December 2030, in the Moon's mean-Earth frame.
 2. **Terrain horizon.** For each site, the highest terrain angle in 720 directions is computed from NASA's LOLA elevation model, out to 300 km, for an observer 1.75 m above the ground.
 3. **In the browser.** The app combines the two: a moment is "sunlit" when any part of the Sun's disc is above the terrain. A station counts when it is above the terrain as seen from the site and the Moon is above the station's minimum elevation as seen from the station. This is geometric visibility of the selected stations. It is not a radio link: schedules, equipment, weather and link budget are not modelled.
-4. **Ranking.** Sites that pass the 5° slope limit (the team's project criterion, measured over a 100 m baseline) are ordered by the rule of the chosen science goal, then by station coverage, then by sunlight. No weighted score: every row shows the values it was ranked by.
+4. **Ranking.** Sites that pass the 5° slope limit (the team's project criterion, measured over a 100 m baseline) are ordered by the rule of the chosen science goal, then by station contact, then by sunlight. No weighted score: every row shows the values it was ranked by.
 
 The app is static files: no backend, no account, no cookies. Calculations, frames and units in detail: [documentation](../documentation.md).
 

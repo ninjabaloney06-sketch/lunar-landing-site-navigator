@@ -13,6 +13,9 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: `http://localhost:${PORT}`,
     viewport: { width: 1280, height: 720 },
+    // The "How to use" card (App.tsx) shows on a first visit until "Got it"; every test starts with it closed, as for a
+    // returning user, so it never covers a point a test clicks. help.spec.ts clears this to test the card itself.
+    storageState: { cookies: [], origins: [{ origin: `http://localhost:${PORT}`, localStorage: [{ name: 'lls-help-dismissed', value: '1' }] }] },
     // Default: SwiftShader (software WebGL), the same picture on every machine. PW_GPU=1 renders on the machine's
     // own GPU instead (Direct3D 11 on Windows), for laptops where software WebGL is too slow for the 3D tests
     // (S3 fly picture: about 45 s on a Radeon 860M against a 400 s timeout with SwiftShader).

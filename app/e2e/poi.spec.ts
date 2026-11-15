@@ -8,6 +8,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { POI_GROUPS, type Poi } from '../src/data/pois'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
+import { headerAction } from './header'
 
 const DEMO = 'site=connecting-ridge&period=shackleton-2027-08'
 const SCARP = 'hazard:scarp_de_gerlache' // a hazard record with facts and two sources
@@ -304,7 +305,7 @@ test.describe('POI layer at 375 × 812, touch only', () => {
     const pois = await data<Poi[]>(page, 'pois.json')
     const scarp = pois.find((p) => p.id === SCARP)!
     await openApp(page, DEMO)
-    await page.getByTestId('poi-toggle').tap()
+    await (await headerAction(page, 'poi-toggle')).tap()
     const key = page.getByTestId('poi-key')
     await expect(key).toBeVisible()
     await key.locator('.poi-key-item').filter({ hasText: 'Hazards' }).getByRole('checkbox').tap()

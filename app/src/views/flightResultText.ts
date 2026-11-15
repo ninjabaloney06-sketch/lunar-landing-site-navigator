@@ -116,6 +116,13 @@ export function routeText(sentence: string): string {
 
 const TRY_INPUTS = 'Try another landing date, launchpad, transfer or rocket.'
 
+/** Beside a propellant shortfall (science lead, 15 Nov: the default design opened on "ICPS short by 1,500 kg" with no
+ *  explanation): what it means for the mission, in the words of the plan's own note (flight/mission.ts: "The flight is
+ *  shown as if it had it; … so the real shortfall is larger") and of the error sentences' advice. No new numbers. */
+export const SHORT_MEANING =
+  'What this means: as planned, this design does not carry enough propellant for this mission. The flight is drawn as if ' +
+  `it did, so the real shortfall is larger. ${TRY_INPUTS}`
+
 /** An error of the mission plan, the payload or an analysis, as the menu shows it. */
 export function errorText(what: 'mission' | 'payload' | 'route' | 'dispersion', message: string): { sentence: string; detail: string | null } {
   const m = message.trim()

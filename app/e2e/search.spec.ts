@@ -5,6 +5,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { Poi } from '../src/data/pois'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
+import { headerAction } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -20,11 +21,15 @@ async function openSearch(page: Page, hash = DEMO) {
   await page.goto(`/#${hash}`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const t0 = Date.now()
-  await page.getByTestId('search-open').click()
+  await (await headerAction(page, 'search-open')).click()
   const panel = page.getByTestId('search')
   await expect(panel).toBeVisible()
   await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 120_000 })
-  return { panel, ms: Date.now() - t0 }
+  const ms = Date.now() - t0
+  // The filters are folded behind one summary line (results first); these tests set them, so they open the fold.
+  await panel.getByTestId('search-filters').click()
+  await expect(panel.getByTestId('search-filters')).toHaveAttribute('aria-expanded', 'true')
+  return { panel, ms }
 }
 
 const row = (page: Page, id: string) => page.getByTestId('search-results').locator(`li[data-site-id="${id}"]`)
@@ -246,7 +251,7 @@ test.describe('search defects 5, 6, 24 and the Full data switch at 1440 × 900',
     // Defect 6: no group chosen → no list, one line saying what to do; ranks never all "1".
     for (const label of ['Water and volatiles', 'Permanent shadow', 'Science features']) await panel.getByLabel(label).uncheck()
     await expect(panel.getByTestId('search-results')).toHaveCount(0)
-    await expect(panel.getByTestId('search-empty')).toHaveText('Choose at least one kind of point of interest above.')
+    await expect(panel.getByTestId('search-empty')).toHaveText('Choose at least one kind of point of interest in Filters above.')
     await panel.getByLabel('Landing candidates').check()
     await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 120_000 })
     const ranks = await panel.getByTestId('search-results').locator('li').evaluateAll((li) => li.map((x) => x.getAttribute('data-rank')).filter((r) => r))

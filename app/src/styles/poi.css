@@ -503,6 +503,17 @@
   }
 }
 
+/* The search's folded Filters: one line under the drawer's heading, the active filters after the label. */
+.search-filters {
+  display: block;
+  width: 100%;
+  margin: var(--s-3) 0 var(--s-2);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+
 /* ---------- small screens ---------- */
 
 @media (max-width: 640px) {

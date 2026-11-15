@@ -64,10 +64,13 @@ for (const vp of [
     // The map pins the POI specs tap on a phone lie at about (190, 560): that point must be the scene, not a control.
     const at = await page.evaluate(() => document.elementFromPoint(190, 560)?.tagName)
     expect(at).toBe('CANVAS')
-    // Header in three rows: mission; site · date; the three controls on one row.
+    // Header in two rows of controls: Edit mission and Menu on the title's row; Landing site and Dates under it (the
+    // action bar is folded behind Menu on a phone).
     const row = async (id: string) => Math.round((await page.getByTestId(id).boundingBox())!.y)
     expect(await row('date')).toBeGreaterThan(await row('mission'))
-    expect(new Set([await row('poi-toggle'), await row('search-open'), await row('details')]).size).toBe(1)
+    expect(await row('site-open')).toBe(await row('date'))
+    expect(Math.abs((await row('menu-open')) - (await row('mission')))).toBeLessThanOrEqual(4)
+    await expect(page.getByTestId('search-open')).toBeHidden()
     // The coordinates and the site's caveat stay visible on one small line.
     await expect(page.getByTestId('coords')).toBeVisible()
     await expect(page.locator('.site-label')).toBeVisible()

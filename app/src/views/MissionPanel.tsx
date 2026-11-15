@@ -102,6 +102,9 @@ const GROUP_TEXT: Record<Site['group'], string> = {
 }
 
 interface Props {
+  /** 'site': only the landing-site choice (the header's Landing site control), its ranking open; 'mission': the whole
+   *  mission (Edit mission). */
+  mode?: 'mission' | 'site'
   sites: Site[]
   stations: Station[]
   ids: string[]
@@ -143,6 +146,8 @@ interface Row {
 
 export function MissionPanel(p: Props) {
   const { sites, site, period, goal } = p
+  const siteOnly = p.mode === 'site'
+  const searchRef = useRef<HTMLInputElement>(null)
   const root = useRef<HTMLDivElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
   const stationsRef = useRef<HTMLElement>(null)
@@ -152,8 +157,16 @@ export function MissionPanel(p: Props) {
   const [dateError, setDateError] = useState<string | null>(null)
   // null = not editing: the field shows the current site's name and no list (U1). Typing shows the matching sites.
   const [query, setQuery] = useState<string | null>(null)
-  const [rankingOpen, setRankingOpen] = useState(false) // the full ranked list, opened on purpose
-  const [stationsOpen, setStationsOpen] = useState(p.focusStations) // folded to "n of m stations" (U2)
+  const [rankingOpen, setRankingOpen] = useState(siteOnly) // the full ranked list: open in the site picker, opened on purpose in the mission menu
+  const [stationsOpen, setStationsOpen] = useState(p.focusStations) // folded to "Ground stations: n of m" (U2)
+  const [goalOpen, setGoalOpen] = useState(false) // folded to "Science goal: <goal>"
+  // Folded to "Your points: n"; open when a point is selected on the scene, and whenever a point is added.
+  const [pointsOpen, setPointsOpen] = useState(p.selectedPoint !== null)
+  const pointCount = useRef(p.points.length)
+  useEffect(() => {
+    if (p.points.length > pointCount.current) setPointsOpen(true)
+    pointCount.current = p.points.length
+  }, [p.points.length])
   const [pointDraft, setPointDraft] = useState<{ i: number; text: string } | null>(null) // the name being typed
   const [activeId, setActiveId] = useState<string | null>(site.id) // keyboard row; null = first row (after typing)
 
@@ -161,7 +174,8 @@ export function MissionPanel(p: Props) {
     if (p.focusStations && stationsRef.current) {
       stationsRef.current.scrollIntoView({ block: 'start' })
       stationsRef.current.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true })
-    } else closeBtn.current?.focus({ preventScroll: true })
+    } else if (siteOnly) searchRef.current?.focus({ preventScroll: true })
+    else closeBtn.current?.focus({ preventScroll: true })
     // on open only
   }, [])
 
@@ -339,10 +353,10 @@ export function MissionPanel(p: Props) {
   return (
     <div
       ref={root}
-      className="popover menu mission-panel"
+      className={`popover menu mission-panel${siteOnly ? ' site-picker' : ''}`}
       role="dialog"
       aria-labelledby="mission-title"
-      data-testid="mission-panel"
+      data-testid={siteOnly ? 'site-picker' : 'mission-panel'}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation()
@@ -355,17 +369,22 @@ export function MissionPanel(p: Props) {
           ×
         </button>
         <h2 id="mission-title" className="mp-title">
-          Mission
+          {siteOnly ? 'Landing site' : 'Mission'}
         </h2>
-        <button type="button" className="btn mp-play" aria-describedby="mp-play-note" title={PLAY_NOTE} onClick={p.onPlay}>
-          Play mission
-        </button>
-        <span id="mp-play-note" className="sr-only">
-          {PLAY_NOTE}
-        </span>
+        {!siteOnly && (
+          <>
+            <button type="button" className="btn mp-play" aria-describedby="mp-play-note" title={PLAY_NOTE} onClick={p.onPlay}>
+              Play mission
+            </button>
+            <span id="mp-play-note" className="sr-only">
+              {PLAY_NOTE}
+            </span>
+          </>
+        )}
         <FullDataSwitch className="mp-full" />
       </div>
 
+      {!siteOnly && (
       <div className="mp-fields">
         <label className="mp-field">
           <span className="mp-label">Name</span>
@@ -426,14 +445,16 @@ export function MissionPanel(p: Props) {
           </p>
         )}
       </div>
+      )}
 
       {/* U17: the landing site is the first decision, so it comes before the goal that orders its ranking. */}
       <section className="mp-sec" aria-labelledby="mp-sites" data-testid="mp-site-section">
-        <h3 id="mp-sites" className="mp-h">
+        <h3 id="mp-sites" className={siteOnly ? 'sr-only' : 'mp-h'}>
           Landing site
         </h3>
         <div className="menu-search">
           <input
+            ref={searchRef}
             className="field"
             type="text"
             role="combobox"
@@ -552,125 +573,156 @@ export function MissionPanel(p: Props) {
         </div>
       </section>
 
-      <fieldset className="mp-sec mp-goals">
-        <legend className="mp-h">Science goal</legend>
-        <p className="quiet mp-hint">Orders the landing-site ranking above.</p>
-        <div className="mp-goal-grid">
-          {GOALS.map((g) => (
-            <label key={g.id} className="check mp-radio" title={`Ranks by ${g.rule}.`}>
-              <input type="radio" name="mission-goal" value={g.id} checked={goal === g.id} onChange={() => p.onGoal(g.id)} />
-              <span>{g.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {!siteOnly && (
+        <>
+          {/* Folded to one summary line each (science lead, 15 Nov: "make the UI more intuitive"): the goal, the user's
+              points and the ground stations change the ranking or add places, but are not needed to plan a first mission. */}
+          <section className="mp-sec mp-fold-sec mp-goals" aria-labelledby="mp-goal-h" data-testid="goal-section">
+            <h3 id="mp-goal-h" className="mp-h">
+              <button
+                type="button"
+                className="link mp-disclose mp-sum mp-fold"
+                aria-expanded={goalOpen}
+                aria-controls="mp-goal-list"
+                data-testid="goal-toggle"
+                onClick={() => setGoalOpen((v) => !v)}
+              >
+                Science goal:{' '}
+                <span className="mp-sum-val">{goalRow.label}</span>
+              </button>
+            </h3>
+            {goalOpen && (
+              <fieldset id="mp-goal-list" className="mp-fold-body">
+                <legend className="sr-only">Science goal</legend>
+                <p className="quiet mp-hint">Orders the landing-site ranking above.</p>
+                <div className="mp-goal-grid">
+                  {GOALS.map((g) => (
+                    <label key={g.id} className="check mp-radio" title={`Ranks by ${g.rule}.`}>
+                      <input type="radio" name="mission-goal" value={g.id} checked={goal === g.id} onChange={() => p.onGoal(g.id)} />
+                      <span>{g.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+          </section>
 
-      <section className="mp-sec" aria-labelledby="mp-points" data-testid="points">
-        <h3 id="mp-points" className="mp-h">
-          Your points
-        </h3>
-        {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
-        <ul className="plain">
-          {p.points.map((pt, i) => {
-            const name = pointName(pt, i)
-            const selected = p.selectedPoint === i
-            return (
-              <li key={pointKeys[i]} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point">
-                <input
-                  className="field pt-name"
-                  type="text"
-                  aria-label={`Name of ${name}`}
-                  maxLength={NAME_MAX}
-                  placeholder={eg(EXAMPLE.point)}
-                  value={pointDraft?.i === i ? pointDraft.text : name}
-                  onChange={(e) => {
-                    setPointDraft({ i, text: e.target.value })
-                    p.onPointName(i, e.target.value)
-                  }}
-                  onBlur={() => setPointDraft(null)}
-                />
-                <button
-                  type="button"
-                  className="mp-close pt-del"
-                  aria-label={`Delete ${name}`}
-                  onClick={() => {
-                    setPointDraft(null)
-                    p.onPointDelete(i)
-                  }}
-                >
-                  ×
-                </button>
-                <button
-                  type="button"
-                  className="pt-select mono"
-                  aria-pressed={selected}
-                  aria-label={`Select ${name}, ${fmtCoords(pt.lat, pt.lon)}`}
-                  onClick={() => p.onPointSelect(selected ? null : i)}
-                >
-                  {fmtCoords(pt.lat, pt.lon)}
-                </button>
-                <span className="pt-none" data-fact="none">
-                  No terrain data for this point
-                </span>
-                {inPinRegion(pt.lat) ? (
+          <section className="mp-sec mp-fold-sec" aria-labelledby="mp-points" data-testid="points">
+            <h3 id="mp-points" className="mp-h">
+              <button
+                type="button"
+                className="link mp-disclose mp-sum mp-fold"
+                aria-expanded={pointsOpen}
+                aria-controls="mp-point-list"
+                data-testid="points-toggle"
+                onClick={() => setPointsOpen((v) => !v)}
+              >
+                Your points:{' '}
+                <span className="mp-sum-val">{p.points.length === 0 ? 'none' : p.points.length}</span>
+              </button>
+            </h3>
+            {pointsOpen && (
+              <div id="mp-point-list" className="mp-fold-body">
+                {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
+          <ul className="plain">
+            {p.points.map((pt, i) => {
+              const name = pointName(pt, i)
+              const selected = p.selectedPoint === i
+              return (
+                <li key={pointKeys[i]} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point">
+                  <input
+                    className="field pt-name"
+                    type="text"
+                    aria-label={`Name of ${name}`}
+                    maxLength={NAME_MAX}
+                    placeholder={eg(EXAMPLE.point)}
+                    value={pointDraft?.i === i ? pointDraft.text : name}
+                    onChange={(e) => {
+                      setPointDraft({ i, text: e.target.value })
+                      p.onPointName(i, e.target.value)
+                    }}
+                    onBlur={() => setPointDraft(null)}
+                  />
                   <button
                     type="button"
-                    className="link pt-land"
-                    data-testid="point-set-site"
-                    aria-label={`Set as landing site: ${name}`}
-                    onClick={() => p.onSetSite(pt.lat, pt.lon)}
+                    className="mp-close pt-del"
+                    aria-label={`Delete ${name}`}
+                    onClick={() => {
+                      setPointDraft(null)
+                      p.onPointDelete(i)
+                    }}
                   >
-                    Set as landing site
+                    ×
                   </button>
-                ) : (
-                  <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-        <button className="menu-add" type="button" disabled>
-          {/* the right-click half only where there is a mouse: a phone cannot right-click (F8) */}
-          Add a point: type coordinates in Landing site<span className="mp-fine-only">, or right-click the Moon</span>
-        </button>
-      </section>
+                  <button
+                    type="button"
+                    className="pt-select mono"
+                    aria-pressed={selected}
+                    aria-label={`Select ${name}, ${fmtCoords(pt.lat, pt.lon)}`}
+                    onClick={() => p.onPointSelect(selected ? null : i)}
+                  >
+                    {fmtCoords(pt.lat, pt.lon)}
+                  </button>
+                  <span className="pt-none" data-fact="none">
+                    No terrain data for this point
+                  </span>
+                  {inPinRegion(pt.lat) ? (
+                    <button
+                      type="button"
+                      className="link pt-land"
+                      data-testid="point-set-site"
+                      aria-label={`Set as landing site: ${name}`}
+                      onClick={() => p.onSetSite(pt.lat, pt.lon)}
+                    >
+                      Set as landing site
+                    </button>
+                  ) : (
+                    <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+                <button className="menu-add" type="button" disabled>
+                  {/* the right-click half only where there is a mouse: a phone cannot right-click (F8) */}
+                  Add a point: type coordinates in Landing site<span className="mp-fine-only">, or right-click the Moon</span>
+                </button>
+              </div>
+            )}
+          </section>
 
-      <section ref={stationsRef} className="mp-sec" aria-labelledby="mp-stations">
-        <h3 id="mp-stations" className="mp-h">
-          <button
-            type="button"
-            className="link mp-disclose mp-sum"
-            aria-expanded={stationsOpen}
-            aria-controls="mp-station-list"
-            aria-describedby="mp-stations-hint"
-            data-testid="stations-toggle"
-            onClick={() => setStationsOpen((v) => !v)}
-          >
-            <span className="mp-chev" aria-hidden="true">
-              {stationsOpen ? '▾' : '▸'}
-            </span>
-            Ground stations
-            <span className="mp-sum-val">
-              {p.ids.length} of {p.stations.length} stations
-            </span>
-          </button>
-        </h3>
-        <p id="mp-stations-hint" className="quiet mp-hint" data-testid="stations-hint">
-          {networks.map((n, i) => (
-            <span key={n}>
-              {i > 0 && (i === networks.length - 1 ? ' and ' : ', ')}
-              {NETWORK_NAME[n] ? ab(n, NETWORK_NAME[n]) : n}
-            </span>
-          ))}{' '}
-          antennas for line-of-sight contact
-        </p>
-        {stationsOpen && (
-          <div id="mp-station-list">
-            <p className="quiet mp-rule">Station contact means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
-            <StationChecklist stations={p.stations} ids={p.ids} onToggle={p.onToggleStation} />
-          </div>
-        )}
-      </section>
+          <section ref={stationsRef} className="mp-sec mp-fold-sec" aria-labelledby="mp-stations">
+            <h3 id="mp-stations" className="mp-h">
+              <button
+                type="button"
+                className="link mp-disclose mp-sum mp-fold"
+                aria-expanded={stationsOpen}
+                aria-controls="mp-station-list"
+                data-testid="stations-toggle"
+                onClick={() => setStationsOpen((v) => !v)}
+              >
+                Ground stations:{' '}
+                <span className="mp-sum-val">
+                  {p.ids.length} of {p.stations.length}
+                </span>
+              </button>
+            </h3>
+            {stationsOpen && (
+              <div id="mp-station-list" className="mp-fold-body">
+                <p id="mp-stations-hint" className="quiet mp-hint" data-testid="stations-hint">
+                  {networks.map((n, i) => (
+                    <span key={n}>
+                      {i > 0 && (i === networks.length - 1 ? ' and ' : ', ')}
+                      {NETWORK_NAME[n] ? ab(n, NETWORK_NAME[n]) : n}
+                    </span>
+                  ))}{' '}
+                  antennas for line-of-sight contact
+                </p>
+                <p className="quiet mp-rule">Station contact means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
+                <StationChecklist stations={p.stations} ids={p.ids} onToggle={p.onToggleStation} />
+              </div>
+            )}
+          </section>
 
       {/* U17: one set of mission actions. Every mission, saved or on screen, has "Calculate flight" in the same
           place at the right of its row; Compare sits in the saved list's heading. */}
@@ -743,6 +795,8 @@ export function MissionPanel(p: Props) {
               : 'Keeps name, site, dates, stations, goal, launchpad, rocket, surface stay and transfer cap in this browser.'}
         </p>
       </section>
+        </>
+      )}
     </div>
   )
 }

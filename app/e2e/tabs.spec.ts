@@ -3,6 +3,7 @@
 // and comms, and the mission's name on the landing-site label in the scene.
 // Run: PW_GPU=1 PW_PORT=5193 npx playwright test e2e/tabs.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { openFold } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -98,6 +99,7 @@ test('search: "at least" minimums say how much sunlight and station contact a pl
   const max = Math.max(...known)
   expect(max).toBeGreaterThan(min)
   const ask = Math.min(100, Math.floor(min) + 1)
+  await openFold(panel, 'search-filters') // the minimums are in the folded Filters
   await panel.getByTestId('search-min-lit').fill(String(ask))
   await expect(panel.getByTestId('search-below')).toBeVisible()
   const litNow = await pct('lit')
@@ -127,6 +129,6 @@ test('the landing-site label in the scene carries the mission name once the miss
   await open(page, `${DEMO}&view=site`)
   await expect(page.getByTestId('label-site')).toHaveText('Landing site')
   await open(page, `${DEMO}&view=site&name=Aurora`)
-  await expect(page.getByTestId('mission')).toContainText('Aurora')
+  await expect(page.getByTestId('mission-name')).toContainText('Aurora')
   await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
 })

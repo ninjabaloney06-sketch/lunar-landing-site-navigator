@@ -171,7 +171,7 @@ test.describe('U3: Time periods show the current mission and the best computed p
     // Opened again: the chosen period is marked as the current one; the mission keeps its name.
     await page.getByTestId('date').click()
     await expect(best.locator('[aria-current="true"]')).toHaveAttribute('data-start', String(pick), { timeout: 60_000 })
-    await expect(page.getByTestId('mission')).toContainText('Ridge ops')
+    await expect(page.getByTestId('mission-name')).toContainText('Ridge ops')
   })
 })
 

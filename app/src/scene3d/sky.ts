@@ -8,12 +8,14 @@ import {
   BackSide,
   Color,
   DirectionalLight,
+  DoubleSide,
   FrontSide,
   Group,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
+  RingGeometry,
   Quaternion,
   Scene,
   ShaderMaterial,
@@ -32,6 +34,7 @@ import { EARTH_RADIUS_KM, SPHERE_TO_BODY, SUN_RADIUS_KM, displayRadius, quat, v3
 const D_NEAR = 1000
 const D_FAR = 1500
 const D_STARS = 5000
+const RING_NORMAL = new Vector3(0, 0, 1)
 
 // stars_4k.jpg (NASA SVS 4851): RA 0h at the image centre, RA growing to the left, as seen from inside. Checked
 // on the image itself (C1, 14 Nov): the brightest region sits at RA 266°/Dec −29° (galactic centre) and the
@@ -77,6 +80,10 @@ export class Sky {
   private readonly atmo: Mesh
   private readonly atmoMat: ShaderMaterial
   private readonly stars: Mesh | null = null
+  // Outline drawn instead of a disc the computed horizon mask hides from the site (setBelowHorizon).
+  private readonly sunRing: Mesh
+  private readonly earthRing: Mesh
+  private below = { sun: false, earth: false }
   private readonly sunLight = new DirectionalLight(0xffffff, 2.5 * Math.PI)
   private readonly dirMe = { sun: new Vector3(1, 0, 0), earth: new Vector3(1, 0, 0) }
   earthPhase = 0 // illuminated fraction of Earth's disc seen by the observer (0..1), vector algebra only
@@ -123,7 +130,19 @@ export class Sky {
     this.atmo = new Mesh(new SphereGeometry(1, 64, 32), this.atmoMat)
     this.atmo.renderOrder = 1
 
-    this.root.add(this.sun, this.glow, this.earth, this.atmo, this.sunLight, this.sunLight.target)
+    const ring = (hex: number) => {
+      const m = new Mesh(
+        new RingGeometry(0.7, 1, 64),
+        new MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.8, side: DoubleSide, depthWrite: false }),
+      )
+      m.renderOrder = 2
+      m.visible = false
+      return m
+    }
+    this.sunRing = ring(0x9a8f7c)
+    this.earthRing = ring(0x6f86a8)
+
+    this.root.add(this.sun, this.glow, this.earth, this.atmo, this.sunRing, this.earthRing, this.sunLight, this.sunLight.target)
   }
 
   /**
@@ -158,6 +177,11 @@ export class Sky {
     this.earth.quaternion.copy(quat(s.q_earth_to_me)).multiply(SPHERE_TO_BODY)
     this.atmo.position.copy(this.earth.position)
     this.atmo.scale.setScalar(re * 1.035)
+    for (const [ring, body, r] of [[this.sunRing, this.sun, rs], [this.earthRing, this.earth, re]] as const) {
+      ring.position.copy(body.position)
+      ring.scale.setScalar(r)
+      ring.quaternion.setFromUnitVectors(RING_NORMAL, body.position.clone().negate().normalize()) // faces the observer
+    }
 
     if (this.stars) this.stars.quaternion.copy(quat(s.q_me_to_j2000)).invert().multiply(SPHERE_TO_BODY)
 
@@ -180,6 +204,19 @@ export class Sky {
   /** Position of the body in sky-world units (for projection with this.camera). */
   worldPos(b: SkyBody): Vector3 {
     return (b === 'sun' ? this.sun : this.earth).getWorldPosition(new Vector3())
+  }
+
+  /**
+   * The bodies the site's computed horizon mask hides from the site: each is drawn as a dim outline instead of a
+   * bright disc (the sky layer cannot know the terrain; the caller passes the mask's answer).
+   */
+  setBelowHorizon(b: { sun: boolean; earth: boolean }) {
+    this.below = { ...b }
+  }
+
+  /** True when the body is currently drawn as an outline, not a disc. */
+  isHollow(b: SkyBody): boolean {
+    return this.below[b]
   }
 
   setEarthVisible(v: boolean) {
@@ -221,8 +258,12 @@ export class Sky {
   render(renderer: WebGLRenderer, part: 'back' | 'front' = 'back') {
     const front = part === 'front'
     if (this.stars) this.stars.visible = !front
-    this.sun.visible = this.glow.visible = this.bodiesOn && this.front.sun === front
-    this.earth.visible = this.atmo.visible = this.bodiesOn && this.earthOn && this.front.earth === front
+    const sunOn = this.bodiesOn && this.front.sun === front
+    const earthOn = this.bodiesOn && this.earthOn && this.front.earth === front
+    this.sun.visible = this.glow.visible = sunOn && !this.below.sun
+    this.sunRing.visible = sunOn && this.below.sun
+    this.earth.visible = this.atmo.visible = earthOn && !this.below.earth
+    this.earthRing.visible = earthOn && this.below.earth
     renderer.render(this.scene, this.camera)
   }
 }

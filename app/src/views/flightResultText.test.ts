@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SIGMAS } from '../flight/dispersion'
 import type { PayloadResult } from '../flight/payload'
 import { SPACECRAFT } from '../flight/spacecraft'
-import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText, shortElementsOf } from './flightResultText'
+import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText, SHORT_MEANING, shortElementsOf } from './flightResultText'
 
 const base: PayloadResult = {
   validation: { validated: false, text: 'validated by the science lead (statement of 15 Nov 2026; see record)' },
@@ -132,5 +132,14 @@ describe('routeText', () => {
     expect(routeText('Least propellant: 16 Aug 2027. The largest saving is in TLI: 1945 m/s less delta-v.')).toBe(
       'Least propellant: 16 Aug 2027. The largest saving is in TLI: 1,945 m/s less Δv.',
     )
+  })
+})
+
+describe('SHORT_MEANING (beside a propellant shortfall)', () => {
+  it('says what the shortfall means in words, with no figure of its own, and what to try', () => {
+    expect(SHORT_MEANING).toMatch(/^What this means: /)
+    expect(SHORT_MEANING).not.toMatch(/\d/)
+    expect(SHORT_MEANING).toContain('the real shortfall is larger')
+    expect(SHORT_MEANING).toContain('Try another landing date, launchpad, transfer or rocket.')
   })
 })
