@@ -2,43 +2,60 @@
 // Diviner temperature of the selected site, as public/data/assessments.json has them (scripts/assessments.py).
 // Collapsed at first; the file is fetched the first time the section is opened (data/assessments.loadAssessments),
 // never when the drawer opens. A custom site (site=cap:…) has no record: every block says "Not computed for this
-// place", and nothing is fetched. Strings come from views/assessmentView.ts.
+// place", and nothing is fetched. Strings come from views/assessmentView.ts. The drawer's one "Full data" switch
+// (top right of the drawer) adds file names, pixel counts, status strings and the file's full texts.
 import { useEffect, useRef, useState } from 'react'
 import { loadAssessments } from '../data/assessments'
 import { MissingDataError } from '../data/load'
 import type { Site } from '../data/types'
 import { useFullData } from './advanced'
-import { FullDataSwitch } from './FullDataSwitch'
-import { NO_DATA, linkParts, mapAssessment, notComputedView } from './assessmentView'
-import type { AssessmentView, Block, Note } from './assessmentView'
+import { NO_DATA, linkParts, mapAssessment, notComputedView, termParts } from './assessmentView'
+import type { AssessmentView, Block, Headline, Note } from './assessmentView'
 import '../styles/assessment.css'
 
 type Load = { status: 'idle' | 'loading' } | { status: 'ready'; file: unknown } | { status: 'error'; missing: boolean }
 
-function Linked({ text }: { text: string }) {
+/** Text with every abbreviation of assessmentView.TERMS marked <abbr title="long form">. Used by all three sections. */
+export function Marked({ text }: { text: string }) {
   return (
     <>
-      {linkParts(text).map((p, i) =>
-        'href' in p ? (
-          <a key={i} href={p.href} target="_blank" rel="noreferrer">
+      {termParts(text).map((p, i) =>
+        'title' in p ? (
+          <abbr key={i} title={p.title}>
             {p.text}
-          </a>
+          </abbr>
         ) : (
-          <span key={i}>{p.text}</span>
+          p.text
         ),
       )}
     </>
   )
 }
 
-function NoteLine({ n }: { n: Note }) {
+function Linked({ text }: { text: string }) {
+  return (
+    <>
+      {linkParts(text).map((p, i) =>
+        'href' in p ? (
+          <a key={i} href={p.href} target="_blank" rel="noopener noreferrer">
+            {p.text}
+          </a>
+        ) : (
+          <Marked key={i} text={p.text} />
+        ),
+      )}
+    </>
+  )
+}
+
+function NoteLine({ n, full }: { n: Note; full: boolean }) {
   return (
     <li>
-      {n.text}
+      <Marked text={full && n.fullText ? n.fullText : n.text} />
       {n.links.map((u, i) => (
         <span key={u}>
           {' '}
-          <a href={u} target="_blank" rel="noreferrer">
+          <a href={u} target="_blank" rel="noopener noreferrer">
             Source{n.links.length > 1 ? ` ${i + 1}` : ''}
           </a>
         </span>
@@ -53,59 +70,66 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
   const described = b.source || b.method || b.limitations.length > 0 || b.extra.length > 0
   return (
     <div className="assess-block" data-testid={`assess-${b.id}`}>
-      <h4>{b.title}</h4>
+      <h4>
+        <Marked text={b.title} />
+      </h4>
       {b.message !== null && (
         <p className="assess-msg" data-testid="assess-message">
           {b.message}
         </p>
       )}
       {rows.length > 0 && (
-        <table className="tbl assess-tbl">
-          {b.columns && (
-            <thead>
-              <tr>
-                <th scope="col">
-                  <span className="sr-only">Value</span>
-                </th>
-                {b.columns.map((c) => (
-                  <th key={c} scope="col">
-                    {c}
+        <div className="assess-scroll">
+          <table className="tbl assess-tbl">
+            {b.columns && (
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <span className="sr-only">Value</span>
                   </th>
-                ))}
-              </tr>
-            </thead>
-          )}
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.label}>
-                <th scope="row">{r.label}</th>
-                {b.columns && r.values.length === 1 ? (
-                  <td colSpan={b.columns.length}>{r.values[0]}</td>
-                ) : (
-                  r.values.map((v, i) => (
-                    <td key={i} className={b.columns ? 'mono' : undefined}>
-                      {v}
-                    </td>
-                  ))
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {b.columns.map((c) => (
+                    <th key={c} scope="col">
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {rows.map((r) => {
+                const values = full && r.fullValues ? r.fullValues : r.values
+                return (
+                  <tr key={r.label}>
+                    <th scope="row">
+                      <Marked text={r.label} />
+                    </th>
+                    {b.columns && values.length === 1 ? (
+                      <td colSpan={b.columns.length}>
+                        <Marked text={values[0]} />
+                      </td>
+                    ) : (
+                      values.map((v, i) => (
+                        <td key={i} className={b.columns || /^[\d−-]/.test(v) ? 'mono' : undefined}>
+                          <Marked text={v} />
+                        </td>
+                      ))
+                    )}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-      {b.verdict && (
-        <p className="assess-verdict" data-testid="assess-verdict">
-          Landing rule:{' '}
-          <strong className={b.verdict.tone ? `is-${b.verdict.tone}` : undefined} data-tone={b.verdict.tone ?? 'unknown'}>
-            {b.verdict.label}
-          </strong>
-          . <span className="quiet">Rule: {b.verdict.rule}.</span>
+      {b.verdict && full && (
+        <p className="assess-rule" data-testid="assess-rule-file">
+          Landing rule as recorded: <Marked text={b.verdict.rule} />.
         </p>
       )}
       {notes.length > 0 && (
         <ul className="plain assess-notes">
           {notes.map((n, i) => (
-            <NoteLine key={i} n={n} />
+            <NoteLine key={i} n={n} full={full} />
           ))}
         </ul>
       )}
@@ -117,11 +141,17 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
               Source: <Linked text={b.source} />
             </p>
           )}
-          {b.method && <p>Method: {b.method}</p>}
+          {b.method && (
+            <p>
+              Method: <Marked text={b.method} />
+            </p>
+          )}
           {b.limitations.length > 0 && (
             <ul>
               {b.limitations.map((l, i) => (
-                <li key={i}>{l}</li>
+                <li key={i}>
+                  <Marked text={l} />
+                </li>
               ))}
             </ul>
           )}
@@ -131,6 +161,38 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
             </p>
           ))}
         </details>
+      )}
+    </div>
+  )
+}
+
+/** Can a lander set down here: the verdict with its rule, the value that decides it, the project-criteria line. */
+function HeadlineView({ h }: { h: Headline }) {
+  return (
+    <div className="assess-head" data-testid="assess-headline">
+      <p className="assess-verdict" data-testid="assess-verdict">
+        {h.tone ? (
+          <>
+            <strong className={`is-${h.tone}`} data-tone={h.tone}>
+              {h.verdict}
+            </strong>{' '}
+            the landing rule: {h.rule}.
+          </>
+        ) : (
+          <>
+            Landing rule: <strong data-tone="unknown">{h.verdict}</strong>. Rule: {h.rule}.
+          </>
+        )}
+      </p>
+      {h.decider && (
+        <p className="assess-decider" data-testid="assess-decider">
+          {h.decider}.
+        </p>
+      )}
+      {h.criteria && (
+        <p className="quiet assess-criteria" data-testid="assess-criteria">
+          {h.criteria}
+        </p>
       )}
     </div>
   )
@@ -167,16 +229,10 @@ export function SiteAssessment({ site }: { site: Site }) {
     <section className="drawer-sec assess" aria-labelledby="sec-assess" data-testid="site-assessment">
       <details open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
         <summary className="assess-summary">
-          <h3 id="sec-assess">Site assessment</h3>
+          <h3 id="sec-assess">Landing site assessment</h3>
         </summary>
         {open && (
           <div className="assess-body" data-state={view ? view.state : 'loading'}>
-            {view?.state === 'ready' && (
-              // only where it changes something: a custom place or a missing file has no extra rows
-              <div className="assess-tools">
-                <FullDataSwitch />
-              </div>
-            )}
             {!view && (
               <p className="quiet" role="status">
                 Loading the site assessment…
@@ -189,11 +245,12 @@ export function SiteAssessment({ site }: { site: Site }) {
             )}
             {view?.state === 'ready' && (
               <>
-                <p className="assess-status" data-testid="assess-status">
+                <HeadlineView h={view.headline} />
+                <p className="quiet assess-status" data-testid="assess-status">
                   {view.status}.
                 </p>
-                {view.thresholds && (
-                  <p className="quiet" data-testid="assess-thresholds">
+                {full && view.thresholds && (
+                  <p className="quiet assess-thresholds" data-testid="assess-thresholds">
                     {view.thresholds}
                   </p>
                 )}

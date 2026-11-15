@@ -10,7 +10,8 @@
 
 .assess-summary {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  min-height: 44px; /* touch target at 375 px */
   gap: var(--s-3);
   list-style: none;
   cursor: pointer;
@@ -51,14 +52,40 @@ details[open] > .assess-summary::after {
   margin-top: var(--s-3);
 }
 
-.assess-tools {
-  display: flex;
-  justify-content: flex-end;
+/* The three lines a planner reads first: verdict with its rule, the deciding value, the project-criteria line. */
+.assess-head {
+  margin: 0 0 var(--s-2);
+}
+
+.assess-head p {
+  margin: 0 0 var(--s-1);
+}
+
+.assess-head .assess-verdict {
+  margin: 0 0 var(--s-1);
+  font: 400 16px / 1.45 var(--font-serif);
+  color: var(--fg);
+}
+
+.assess-decider {
+  font-size: var(--t-small);
 }
 
 .assess-status {
-  margin: var(--s-2) 0 var(--s-1);
+  margin: 0 0 var(--s-1);
   font-size: var(--t-small);
+}
+
+/* A table wider than the drawer scrolls inside itself, never the page. */
+.assess-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.assess-rule {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-small);
+  color: var(--muted);
 }
 
 .assess-body > .quiet {
@@ -103,11 +130,6 @@ details[open] > .assess-summary::after {
   white-space: nowrap;
 }
 
-.assess-verdict {
-  margin: var(--s-2) 0 0;
-  font-size: var(--t-small);
-}
-
 .assess-verdict strong {
   font-weight: 500;
 }
@@ -138,6 +160,7 @@ details[open] > .assess-summary::after {
 
 .assess-src > summary {
   cursor: pointer;
+  padding: var(--s-2) 0;
   color: var(--muted);
 }
 
