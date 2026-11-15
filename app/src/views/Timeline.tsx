@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Window } from '../geometry'
-import { DAY_MS } from '../state'
+import { DAY_MS, SPEEDS_H_PER_S } from '../state'
 import { fmtDateTime, fmtDay } from './format'
 
 interface Props {
@@ -23,7 +23,45 @@ interface Props {
   valueText: string
   answer: ReactNode // the answer line or its loading / empty / error state
   tools?: ReactNode // quiet text controls at the right end above the answer (View, Simulate)
+  sim?: SimControls | null // while a simulation runs or is paused: its speed slider and "Reset to start"
   onScrub(ms: number): void
+}
+
+export interface SimControls {
+  speed: number // hours of mission time per second, one of SPEEDS_H_PER_S
+  onSpeed(hoursPerSecond: number): void
+  onReset(): void // cursor back to the first mission step, simulation paused
+}
+
+export const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
+const speedShort = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'}/s` : `${h} h/s`)
+
+/** Simulation speed: a slider over the steps of SPEEDS_H_PER_S (like the Flight plan's), beside Simulate. */
+export function SimSpeed({ speed, onSpeed, onReset }: SimControls) {
+  const found = SPEEDS_H_PER_S.indexOf(speed)
+  const i = found < 0 ? 0 : found
+  return (
+    <span className="sim-controls" data-testid="sim-controls">
+      <button type="button" className="tool" onClick={onReset}>
+        Reset to start
+      </button>
+      <label className="sim-speed-field" title="Mission time per second of real time">
+        <span>Speed</span>
+        <input
+          type="range"
+          className="sim-speed"
+          min={0}
+          max={SPEEDS_H_PER_S.length - 1}
+          step={1}
+          value={i}
+          aria-valuetext={speedLabel(SPEEDS_H_PER_S[i])}
+          data-testid="sim-speed"
+          onChange={(e) => onSpeed(SPEEDS_H_PER_S[Number(e.target.value)])}
+        />
+        <span className="mono">{speedShort(SPEEDS_H_PER_S[i])}</span>
+      </label>
+    </span>
+  )
 }
 
 function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number; endMs: number; show: string[] }) {
@@ -44,7 +82,7 @@ function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number;
   )
 }
 
-export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, tools, onScrub }: Props) {
+export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, tools, sim, onScrub }: Props) {
   const body = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const dragging = useRef(false)
@@ -87,7 +125,12 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
 
   return (
     <div className="timeline">
-      {tools && <div className="tl-tools">{tools}</div>}
+      {(tools || sim) && (
+        <div className="tl-tools">
+          {sim && <SimSpeed {...sim} />}
+          {tools}
+        </div>
+      )}
       <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
         <span>Light</span>

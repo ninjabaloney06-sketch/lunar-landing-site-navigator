@@ -8,7 +8,6 @@ import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { TOP_VIEW } from '../scene3d'
-import { SPEEDS_H_PER_S } from '../state'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
@@ -46,17 +45,12 @@ interface Props {
   missions: MissionState[] // saved missions, shown as rows of the table
   onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
   onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
-  speed: number // Simulate: hours of mission time per second
-  onSpeed(hoursPerSecond: number): void
-  onReset(): void // cursor back to the first mission step
   onClose(): void
 }
 
 // Whole-year mode of the table. Measured before shipping (14 Nov 2026, this build in Chromium on ninja's Mac):
 // one site for 365 days (17 520 samples) took 198 ms, all 18 sites 3.2 s; the limit set for shipping was 20 s.
 const WHOLE_YEAR = true
-
-const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
 
 const CATEGORY: Record<SitePotential['category'], string> = {
   'water-ice': 'Water ice',
@@ -328,26 +322,6 @@ export function Drawer(p: Props) {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="drawer-sec" aria-labelledby="sec-simulation">
-        <h3 id="sec-simulation">Simulation</h3>
-        <p className="quiet">Simulate, beside the timeline, plays the mission from the cursor to its last day. Space pauses.</p>
-        <div className="row">
-          <label className="row sim-speed">
-            <span className="quiet">Speed</span>
-            <select className="field" data-testid="speed" value={p.speed} onChange={(e) => p.onSpeed(Number(e.target.value))}>
-              {SPEEDS_H_PER_S.map((h) => (
-                <option key={h} value={h}>
-                  {speedLabel(h)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="btn" type="button" onClick={p.onReset}>
-            Reset to start
-          </button>
-        </div>
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-export">

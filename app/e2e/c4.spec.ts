@@ -692,7 +692,8 @@ async function shown(page: Page) {
   return {
     date: await page.getByTestId('date').innerText(),
     answer: await page.getByTestId('answer').innerText(),
-    value: await page.getByRole('slider').getAttribute('aria-valuetext'),
+    // the timeline, by name: a paused simulation also shows the speed slider (U18)
+    value: await page.getByRole('slider', { name: 'Time in the selected period' }).getAttribute('aria-valuetext'),
     sunLabel: await label('label-sun'),
     earthLabel: await label('label-earth'),
   }
@@ -744,22 +745,36 @@ test.describe('C4 part 4: Simulate', () => {
     await fresh.close()
   })
 
-  test('Simulate follows the clock at the chosen speed, stops at the last step, Space and the drawer controls work', async ({ page }) => {
+  test('Simulate follows the clock at the chosen speed, stops at the last step; Space, the speed slider and Reset to start work', async ({ page }) => {
     await openApp(page, `site=${RIDGE}&period=${AUG}`)
     const sim = page.getByTestId('simulate')
-    const cursorMs = async () => Number(await page.getByRole('slider').getAttribute('aria-valuenow'))
+    const cursorMs = async () => Number(await page.getByRole('slider', { name: 'Time in the selected period' }).getAttribute('aria-valuenow'))
     const start = Date.UTC(2027, 7, 16)
     const lastStep = Date.UTC(2027, 7, 30) - 30 * 60_000
     expect(await cursorMs()).toBe(start)
-    // Speed and "Reset to start" live in the Details drawer, not on the main screen.
-    await expect(page.getByRole('button', { name: 'Reset to start' })).toHaveCount(0)
+    // U18: the speed slider and "Reset to start" sit beside Simulate, only in a simulation; the drawer has neither.
+    const speed = page.getByTestId('sim-speed')
+    const reset = page.getByRole('button', { name: 'Reset to start' })
+    await expect(speed).toHaveCount(0)
+    await expect(reset).toHaveCount(0)
     await page.getByTestId('details').click()
     const drawer = page.getByTestId('drawer')
-    const speed = drawer.getByTestId('speed')
-    await expect(speed.locator('option')).toHaveText(['3 hours per second', '10 hours per second', '1 day per second', '3 days per second'])
-    await expect(speed).toHaveValue('10')
-    await speed.selectOption('24')
+    await expect(drawer.getByTestId('speed')).toHaveCount(0)
+    await expect(drawer.getByRole('heading', { name: 'Simulation' })).toHaveCount(0)
     await drawer.getByRole('button', { name: 'Close' }).click()
+    // Simulate, then pause: the slider stays while paused in the simulation, at 10 hours per second.
+    await sim.click()
+    await expect(speed).toBeVisible()
+    await sim.click()
+    await expect(sim).toHaveText('Simulate')
+    await expect(speed).toBeVisible()
+    await expect(speed).toHaveAttribute('aria-valuetext', '10 hours per second')
+    await speed.focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(speed).toHaveAttribute('aria-valuetext', '1 day per second')
+    await expect(page.getByTestId('sim-controls')).toContainText('1 day/s')
+    await reset.click()
+    expect(await cursorMs()).toBe(start)
     // One day per second: the cursor advances by the real time between the two clicks (measured in the page,
     // so a slow test runner does not count), on the 30-minute grid. The last timer tick may be up to 1 s old.
     await sim.evaluate((el) => {
@@ -784,23 +799,31 @@ test.describe('C4 part 4: Simulate', () => {
     await expect.poll(cursorMs).toBeGreaterThan(paused)
     await page.keyboard.press('Space')
     await expect(sim).toHaveText('Simulate')
-    // Three days per second from near the end: stops on the last step and the control reads Simulate again.
-    await page.getByTestId('details').click()
-    await speed.selectOption('72')
-    await drawer.getByRole('button', { name: 'Close' }).click()
+    // Three days per second from near the end: stops on the last step, the control reads Simulate again and the
+    // simulation is over, so the slider goes.
     await page.goto(`/?test=1#site=${RIDGE}&period=${AUG}&t=2027-08-29T00:00Z`)
     await page.reload()
     await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
+    await expect(speed).toHaveCount(0)
     await page.getByTestId('simulate').click()
+    await speed.focus()
+    await page.keyboard.press('End')
+    await expect(speed).toHaveAttribute('aria-valuetext', '3 days per second')
     await expect(page.getByTestId('simulate')).toHaveText('Simulate', { timeout: 15_000 })
     expect(await cursorMs()).toBe(lastStep)
+    await expect(speed).toHaveCount(0)
     // At the end, Simulate starts over from the first step; "Reset to start" goes back and stops.
     await page.getByTestId('simulate').click()
     await expect.poll(cursorMs).toBeLessThan(lastStep)
-    await page.getByTestId('details').click()
-    await page.getByTestId('drawer').getByRole('button', { name: 'Reset to start' }).click()
+    await reset.click()
     await expect(page.getByTestId('simulate')).toHaveText('Simulate')
     expect(await cursorMs()).toBe(start)
+    // Esc leaves the simulation: the slider goes.
+    await page.getByTestId('simulate').focus()
+    await page.keyboard.press('Escape')
+    await expect(speed).toHaveCount(0)
+    await expect(reset).toHaveCount(0)
+    await page.getByTestId('details').click()
     await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('looks down the +z axis of the Moon body-fixed frame (MOON_ME)')
     await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('It is not to scale')
   })
@@ -855,10 +878,13 @@ for (const vp of [
     await expect(page.getByTestId('simulate')).toHaveText('Pause')
     await noScroll('simulating')
     await page.getByTestId('simulate').click()
+    // Paused in the simulation: the speed slider and "Reset to start" beside Simulate (U18).
+    await expect(page.getByTestId('sim-speed')).toBeVisible()
+    await noScroll('simulation paused')
+    await shot('simulation-paused')
     await page.getByTestId('details').click()
-    await page.getByTestId('drawer').getByRole('heading', { name: 'Simulation' }).scrollIntoViewIfNeeded()
     await noScroll('drawer')
-    await shot('drawer-simulation')
+    await shot('drawer')
   })
 }
 

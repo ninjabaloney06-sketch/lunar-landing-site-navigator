@@ -67,7 +67,7 @@
   gap: var(--s-3);
 }
 
-/* ---------- popovers: site menu and date menu ---------- */
+/* ---------- popovers: the date menu (Time periods) ---------- */
 
 .popover {
   position: absolute;
@@ -194,6 +194,9 @@
   padding: var(--s-6) var(--s-6) var(--s-12);
   background: var(--surface);
   border-left: 1px solid var(--line);
+  /* The rest of the screen recedes behind the open drawer, so the header row it covers reads as behind it,
+     not as a word cut in half. */
+  box-shadow: 0 0 0 100vmax oklch(0% 0 0 / 0.55);
   animation: drawer-in var(--dur-panel) var(--ease-out);
 }
 
@@ -477,6 +480,64 @@
   .btn {
     transition: none;
   }
+}
+
+/* ---------- timeline on the stage: simulation controls and legibility ---------- */
+
+/* Beside Simulate while a simulation runs or is paused: "Reset to start" and the speed slider. */
+.timeline .tl-tools {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--s-2);
+}
+
+.sim-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.sim-speed-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.sim-speed {
+  width: var(--s-24);
+  margin: 0;
+  accent-color: var(--fg);
+}
+
+.sim-speed-field .mono {
+  min-width: 7ch;
+  color: var(--fg);
+}
+
+/* Track names in the foreground colour, 6 px tracks (names and cursor re-aligned to them). */
+.timeline .tl-names {
+  row-gap: 6px;
+  padding-top: 5px;
+  color: var(--fg);
+}
+
+.timeline .tl-track {
+  height: 6px;
+}
+
+.timeline .tl-cursor {
+  height: calc(var(--s-2) + 6px + var(--s-3) + 6px + var(--s-1));
+}
+
+.timeline .tl-tick.is-day {
+  color: var(--fg);
+}
+
+/* The light sentence in the Sun colour only while the site is lit (App adds .is-dark when it is not). */
+.answer-sun.is-dark {
+  color: var(--fg);
 }
 
 /* Saved mission row: the flight choices, and the button into the Flight plan with them. */
