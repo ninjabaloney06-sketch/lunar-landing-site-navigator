@@ -20,7 +20,11 @@ import {
 } from './flightResultText'
 
 const grouped = (v: number) => Math.round(v).toLocaleString('en-US')
-const signed = (v: number, unit: string, digits = 0) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${Math.abs(v).toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits })} ${unit}`
+/** "+11 kg", "−16 kg", "±0 m/s": the sign of the rounded value, so a difference that rounds to zero has none. */
+const signed = (v: number, unit: string, digits = 0) => {
+  const r = Number(v.toFixed(digits))
+  return `${r > 0 ? '+' : r < 0 ? '−' : '±'}${Math.abs(r).toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits })} ${unit}`
+}
 
 /** "not yet validated by the science lead", the marker every new number carries (Trap 2). */
 export function Unvalidated() {
