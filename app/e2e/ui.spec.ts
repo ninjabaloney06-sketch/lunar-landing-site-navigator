@@ -672,8 +672,8 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 6 controls and the main screen 10.
-  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(6)
+  // The warning is text, not a control: the header still has 5 controls (U4) and the main screen 10.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(5)
   await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)

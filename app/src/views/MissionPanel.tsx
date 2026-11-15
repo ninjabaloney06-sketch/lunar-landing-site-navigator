@@ -611,6 +611,9 @@ export function MissionPanel(p: Props) {
 
       <div className="mp-sec mp-bottom">
         <div className="mp-save">
+          <button type="button" className="link" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
+            Calculate flight
+          </button>
           <button type="button" className="btn" data-testid="add-mission" disabled={p.missionSaved || p.missions.length >= MAX_MISSIONS} onClick={p.onAddMission}>
             Add mission
           </button>
@@ -621,9 +624,6 @@ export function MissionPanel(p: Props) {
                 ? `At most ${MAX_MISSIONS} saved missions.`
                 : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
           </span>
-          <button type="button" className="link" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
-            Calculate flight
-          </button>
         </div>
       </div>
     </div>
