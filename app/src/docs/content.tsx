@@ -681,7 +681,7 @@ export const DOC_SECTIONS: DocSection[] = [
           window and the longest window without coverage, in hours. All are weighted by time.
         </p>
         <p>
-          <strong>Find better dates.</strong> Landing times are tried every 6 hours, from the mission start to 60 days
+          <strong>Find better dates.</strong> Landing times are tried every 30 minutes, from the mission start to 60 days
           later. Each candidate mission is scored on 30-minute samples against four thresholds: minimum percent sunlit,
           minimum percent coverage, longest coverage gap and longest darkness. The defaults are a 14-day mission, 70 %
           sunlit, 50 % coverage, a longest coverage gap of 48 h and a longest darkness of 72 h. They are proposed defaults, and
