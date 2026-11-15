@@ -37,7 +37,8 @@ export function payloadSentence(p: PayloadResult): string {
       return `Max payload: of the order of ${grouped(mag)} t, beyond the range this method is checked for (cargo above 30 % of the lander's mass).`
     }
     case 'undetermined':
-      return "Max payload: cannot be decided from published data: the lander's full propellant load is not published, and the figure used is only a lower limit."
+      // the reason (the propellant figure is a lower bound) is the note under the result, not repeated here
+      return 'Max payload: cannot be decided from published data.'
     case 'short': {
       const s = p.shortfall.find((x) => x.carriesCargo) ?? p.shortfall[0]
       if (s) return `Max payload: none. Even with no cargo the ${s.element} is ${tonnes(s.kg)} short of propellant (reserve included).`
