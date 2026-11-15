@@ -8,6 +8,7 @@ import { MU_EARTH, MU_MOON, R_EARTH_EQ, G0 } from './astro'
 import { MU_SUN, makeBodyTable, tableState } from './nbody'
 import type { BodyTable } from './nbody'
 import type { FlightEphemeris, Vec3 } from './types'
+import { qrot, unit } from './vec'
 
 /** Earth's second zonal harmonic (EGM96 value): the pull of the equatorial bulge. */
 export const J2_EARTH = 1.08262668e-3
@@ -258,9 +259,28 @@ export function earthField(ephem: FlightEphemeris, fromMs: number, toMs: number,
   }
 }
 
+/** The Moon's second zonal harmonic J2 (unnormalised) and the reference radius it belongs to.
+ *  J2 = 203.3 × 10⁻⁶ from the GRAIL gravity fields (Konopliv et al. 2014, Lemoine et al. 2013, Williams et al.
+ *  2014), as tabulated in https://en.wikipedia.org/wiki/Gravitation_of_the_Moon ("Selected coefficients").
+ *  Reference radius 1738.0 km: label of the GRAIL field GL0660B,
+ *  https://pds-geosciences.wustl.edu/grail/grail-l-lgrs-5-rdr-v1/grail_1001/shadr/jggrx_0660b_sha.xml
+ *  NOT YET VALIDATED BY THE SCIENCE LEAD: the term is off in every plan the app shows (MoonFieldOptions.j2) and
+ *  is switched on only in the dispersion runs (dispersion.ts) and in tests that measure its effect. */
+export const J2_MOON = 203.3e-6
+export const J2_MOON_REF_RADIUS_KM = 1738.0
+export const J2_MOON_SOURCE = 'https://en.wikipedia.org/wiki/Gravitation_of_the_Moon'
+
+export interface MoonFieldOptions {
+  /** Add the Moon's J2 (oblateness). Default false: the validated plans fly the Moon as a point mass. The spin
+   *  axis is the Moon-fixed (MOON_ME) z axis at the middle of the span, held fixed: it moves by a few hundredths
+   *  of a degree in a month, and the GRAIL fields' principal-axis frame differs from MOON_ME by well under 0.1°. */
+  j2?: boolean
+}
+
 /** Moon-centred field (J2000 axes) for [fromMs, toMs]: the Moon as a point mass, Earth and the Sun as third
- *  bodies. Positions are relative to the Moon's centre; the Moon's own gravity field is not modelled. */
-export function moonField(ephem: FlightEphemeris, fromMs: number, toMs: number): Field {
+ *  bodies. Positions are relative to the Moon's centre; the Moon's own gravity field beyond the point mass is
+ *  not modelled unless opts.j2 asks for its oblateness (J2_MOON). */
+export function moonField(ephem: FlightEphemeris, fromMs: number, toMs: number, opts: MoonFieldOptions = {}): Field {
   const moon = makeBodyTable(ephem.moonPos, fromMs, toMs) // Earth → Moon; Earth seen from the Moon is its negative
   const sunFromMoon = makeBodyTable((t) => {
     const s = ephem.sunPos(t)
@@ -268,6 +288,7 @@ export function moonField(ephem: FlightEphemeris, fromMs: number, toMs: number):
     return [s[0] - m[0], s[1] - m[1], s[2] - m[2]]
   }, fromMs, toMs)
   const rb: Vec3 = [0, 0, 0]
+  const pole: Vec3 | null = opts.j2 ? moonPole(ephem, 0.5 * (fromMs + toMs)) : null
   return {
     centre: 'moon',
     accel(r, utcMs, out) {
@@ -276,10 +297,29 @@ export function moonField(ephem: FlightEphemeris, fromMs: number, toMs: number):
       out[0] = k * r[0]
       out[1] = k * r[1]
       out[2] = k * r[2]
+      if (pole) addJ2(J2_MOON, MU_MOON, J2_MOON_REF_RADIUS_KM, pole, r, out)
       thirdBody(moon, MU_EARTH, -1, r, utcMs, rb, out)
       thirdBody(sunFromMoon, MU_SUN, 1, r, utcMs, rb, out)
     },
   }
+}
+
+/** The Moon's spin axis (unit, J2000): the Moon-fixed z axis at utcMs. */
+export function moonPole(ephem: FlightEphemeris, utcMs: number): Vec3 {
+  return unit(qrot(ephem.moonFixedToInertial(utcMs), [0, 0, 1]))
+}
+
+/** Adds the J2 acceleration of a body (μ, reference radius R, spin axis p) at r to out:
+ *  a = −(3/2) J2 μ R² / r⁵ · [ r (1 − 5 s²) + 2 s r p ],  s = (r·p)/r. The same formula as earthField's. */
+export function addJ2(j2: number, mu: number, refR: number, p: Vec3, r: Vec3, out: Vec3): void {
+  const r2 = r[0] * r[0] + r[1] * r[1] + r[2] * r[2]
+  const r1 = Math.sqrt(r2)
+  const s = (r[0] * p[0] + r[1] * p[1] + r[2] * p[2]) / r1
+  const c = (-1.5 * j2 * mu * refR * refR) / (r2 * r2 * r1)
+  const q = 1 - 5 * s * s
+  out[0] += c * (r[0] * q + 2 * s * r1 * p[0])
+  out[1] += c * (r[1] * q + 2 * s * r1 * p[1])
+  out[2] += c * (r[2] * q + 2 * s * r1 * p[2])
 }
 
 /** A plain point-mass field, for tests and for short phases where third bodies do not matter. */

@@ -195,8 +195,11 @@ export function propagate(g: Gravity, s0: State, t0Ms: number, opt: PropagateOpt
   for (let guard = 0; guard < 200000 && tS < opt.maxSeconds; guard++) {
     h = Math.min(h, hMax, opt.maxSeconds - tS)
     const err = dpStep(g, t0Ms + tS * 1000, y, h, k, yNew)
-    if (err > 1) {
-      h *= Math.max(0.2, 0.9 * Math.pow(err, -0.2))
+    // !(err <= 1) also rejects a step whose error is NaN (sim.ts does the same); for any number the
+    // control is the one it always was
+    if (!(err <= 1)) {
+      h *= Math.max(0.2, 0.9 * Math.pow(Number.isFinite(err) ? err : 1e6, -0.2))
+      if (h < 1e-9) throw new RangeError('propagate: step size underflow')
       continue
     }
     const tNew = tS + h
