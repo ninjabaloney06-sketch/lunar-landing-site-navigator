@@ -107,9 +107,20 @@ export function compass(deg: number): string {
   return names[(((Math.round(deg / 22.5) % 16) + 16) % 16)]
 }
 
+// One format per quantity across the app (values audit, 15 Nov): percentages 1 decimal as everywhere else, distances in
+// km 2 decimals, areas 1 decimal, metres as recorded, counts with a thousands separator. Only the
+// display rounds; the file's values are unchanged.
+const DIGITS: Record<string, number> = { ' %': 1, ' km': 2, ' km²': 1 }
 const withUnit = (v: unknown, unit: string) => {
   const n = num(v)
-  return n === null ? UNKNOWN : `${n}${unit}`
+  if (n === null) return UNKNOWN
+  const d = DIGITS[unit]
+  // A share just short of all or just above none is never rounded to 100 % or 0 %.
+  if (unit === ' %' && n > 99.95 && n < 100) return '> 99.9 %'
+  if (unit === ' %' && n > 0 && n < 0.05) return '< 0.1 %'
+  if (d !== undefined) return `${n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}${unit}`
+  if (unit === ' m') return `${n.toLocaleString('en-US', { maximumFractionDigits: 3 })}${unit}`
+  return Number.isInteger(n) ? n.toLocaleString('en-US') : String(n)
 }
 
 /** A file text up to its first "; " (the summary form of a long reason). */

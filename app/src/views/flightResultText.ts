@@ -4,7 +4,7 @@
 import type { DispersionResult, DispersionSigmas } from '../flight/dispersion'
 import type { SpacecraftSpec } from '../flight/hardware'
 import type { PayloadResult } from '../flight/payload'
-import { fmtKg } from './flightFormat'
+import { fmtTonnes } from './flightFormat'
 
 export const NOT_VALIDATED_TEXT = 'Validated by the science lead (statement of 15 Nov 2026; see record).'
 
@@ -94,7 +94,7 @@ export function propellantStatus(
 ): { tone: 'enough' | 'short' | 'undecided'; text: string } {
   const short = uses.filter((u) => u.usedKg > u.capacityKg)
   if (short.length === 0) return { tone: 'enough', text: 'Propellant: every stage has enough.' }
-  const list = short.map((u) => `${u.element} short by ${fmtKg(u.usedKg - u.capacityKg)}`).join(', ')
+  const list = short.map((u) => `${u.element} short by ${fmtTonnes(u.usedKg - u.capacityKg)}`).join(', ')
   const undecided = lowerBoundElement !== null && short.every((u) => u.element === lowerBoundElement)
   return { tone: undecided ? 'undecided' : 'short', text: `Propellant: ${list}.` }
 }

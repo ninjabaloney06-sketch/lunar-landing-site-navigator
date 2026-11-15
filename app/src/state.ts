@@ -237,6 +237,15 @@ export function parseHash(hash: string): HashState {
   s.from = parseTime(p.get('from'))
   const days = Number(p.get('days'))
   if (Number.isInteger(days) && days >= 1 && days <= MAX_DAYS) s.days = days
+  // The end of a custom span (values audit, 15 Nov: a shared link had from= only, so its end hung on the 14-day
+  // default). Old links without to= keep reading days= or the default.
+  // (The end is exclusive and may lie past the supported dates, which resolvePeriod clips, so only its format is checked.)
+  const toRaw = p.get('to')
+  const to = toRaw && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/.test(toRaw) ? Date.parse(toRaw) : null
+  if (s.from !== null && to !== null && Number.isFinite(to)) {
+    const n = Math.round((to - s.from) / DAY_MS)
+    if (n >= 1 && n <= MAX_DAYS) s.days = n
+  }
   s.t = parseTime(p.get('t'))
   const st = p.get('st')
   if (st !== null) {
@@ -276,7 +285,7 @@ export function serializeHash(s: HashState): string {
   if (s.period) p.set('period', s.period)
   if (s.period === 'custom' && s.from !== null) {
     p.set('from', isoMinute(s.from))
-    if (s.days !== DEFAULT_DAYS) p.set('days', String(s.days))
+    p.set('to', isoMinute(s.from + s.days * DAY_MS))
   }
   if (s.t !== null) p.set('t', isoMinute(s.t))
   if (s.st) p.set('st', s.st.join(','))

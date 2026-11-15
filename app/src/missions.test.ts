@@ -8,7 +8,7 @@ describe('saved missions', () => {
     const hs = parseHash('#site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&t=2027-09-14T06:00Z&st=madrid,canberra&view=eye&drawer=details&pts=1,2&name=Massif+survey&goal=cold-trap')
     const m = missionOf(hs)
     expect(m).toEqual({ site: 'malapert-massif', period: 'custom', from: Date.UTC(2027, 8, 12), days: 10, st: ['madrid', 'canberra'], name: 'Massif survey', goal: 'cold-trap', pad: null, rocket: null, stay: null, tmax: null })
-    expect(missionKey(m)).toBe('site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&st=madrid,canberra&name=Massif+survey&goal=cold-trap')
+    expect(missionKey(m)).toBe('site=malapert-massif&period=custom&from=2027-09-12T00:00Z&to=2027-09-22T00:00Z&st=madrid,canberra&name=Massif+survey&goal=cold-trap')
     expect(parseMissions(JSON.stringify([missionKey(m)]))).toEqual([m])
   })
 

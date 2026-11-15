@@ -191,7 +191,7 @@ export function DateMenu(p: Props) {
                         <Marked text={spanLabel(s, e)} />
                       </span>
                       <span className="opt-label mono">
-                        sunlit {w.best.litPct.toFixed(0)} % · station contact {w.best.coveragePct.toFixed(0)} %
+                        sunlit {w.best.litPct.toFixed(1)} % · station contact {w.best.coveragePct.toFixed(1)} %
                       </span>
                     </button>
                   </li>

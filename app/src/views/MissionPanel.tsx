@@ -241,14 +241,16 @@ export function MissionPanel(p: Props) {
   const showList = rankingOpen || searching
   const match = (s: Site) => !searching || `${s.name} ${s.label ?? ''}`.toLowerCase().includes(q)
   const toRow = (r: RankedSite): Row => ({ site: byId.get(r.siteId)!, r, entry: entries[r.siteId] })
+  const byName = (a: Row, b: Row) => a.site.name.localeCompare(b.site.name, 'en')
   const groups = [
     {
       key: 'ranked',
       title: 'Passes the 5° slope limit',
       rows: [...ranking.ranked.map(toRow), ...waiting.map((s): Row => ({ site: s, r: null, entry: entries[s.id] }))],
     },
-    { key: 'failed', title: 'Too steep to land (slope above 5°)', rows: ranking.failed.map(toRow) },
-    { key: 'unknown', title: 'Not enough data', rows: ranking.unknown.map(toRow) },
+    // Not ranked: listed A–Z by name, and the heading says so (values audit, 15 Nov: under "Best first" they read as ranked).
+    { key: 'failed', title: 'Too steep to land (slope above 5°), A–Z', rows: ranking.failed.map(toRow).sort(byName) },
+    { key: 'unknown', title: 'Not enough data, A–Z', rows: ranking.unknown.map(toRow).sort(byName) },
   ]
     .map((g) => ({ ...g, rows: g.rows.filter((row) => match(row.site)) }))
     .filter((g) => showList && g.rows.length > 0)

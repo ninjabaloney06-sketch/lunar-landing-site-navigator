@@ -219,7 +219,7 @@ const COORD_PAIR = /(?<![\w.])(-\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)(?!\w
 
 /** One research-note text cleaned for the full data card: no internal file names or record ids, coordinates as
  *  "84.90° S 35.50° W", conflicts as a sentence, "+/-" as "±", "deg" as "°". '' when nothing is left. */
-export function cleanText(text: string): string {
+export function cleanText(text: string, at?: { lat: number; lon: number }): string {
   let s = text
     // a parenthesis that only points into the research files: "(see psr_and_ice.json)"
     .replace(/\s*\([^()]*(?:\.json|\.csv|\b[a-z][a-z0-9]*_[a-z0-9_]+\b)[^()]*\)/g, '')
@@ -232,6 +232,12 @@ export function cleanText(text: string): string {
   s = s
     .split(/(?<=\.)\s+(?=[A-Z])/)
     .filter((part) => !INTERNAL.test(part))
+    // values audit (15 Nov): "Another note gives -89.667, 129.783." under a point stated at 89.67° S 129.78° E repeats
+    // the centre; such a sentence goes when its pair rounds to the point's own position (2 decimals, as shown)
+    .filter((part) => {
+      const m = at && /^Another note gives (-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\.?$/.exec(part.trim())
+      return !(m && Number(m[1]).toFixed(2) === at!.lat.toFixed(2) && Number(m[2]).toFixed(2) === at!.lon.toFixed(2))
+    })
     .join(' ')
   s = s.replace(COORD_PAIR, (m, a: string, b: string) => {
     const lat = Number(a)

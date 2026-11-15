@@ -616,13 +616,13 @@ function TimeLink({ ms, label, onSeek }: { ms: number; label: string; onSeek(utc
 function EnergyFactor({ plan }: { plan: MissionPlan }) {
   const m = energyMultiplier(plan)
   return (
-    <div className="flight-energy" data-testid="flight-energy">
-      <div className="flight-factor">
+    <details className="flight-energy" data-testid="flight-energy">
+      <summary className="flight-factor">
         <span className="quiet">Energy multiplier</span>
         <span className="flight-factor-value mono" data-testid="flight-factor" data-factor={m ? m.factor.toFixed(4) : ''}>
           {m ? fmtFactor(m.factor) : '–'}
         </span>
-      </div>
+      </summary>
       <ul className="flight-bullets">
         {m ? (
           <li data-testid="flight-factor-note">
@@ -637,7 +637,7 @@ function EnergyFactor({ plan }: { plan: MissionPlan }) {
           mission: Launch Complex 39B at Kennedy Space Center, landing from 16 Aug 2027, the design's default stay, a grid of {m ? m.gridPoints : 108} points over the whole Moon).
         </li>
       </ul>
-    </div>
+    </details>
   )
 }
 
@@ -663,11 +663,10 @@ function ResultCard({ plan, onSeek, missionStartMs, missionDays, fromMission }: 
   const status = propellantStatus(plan.propellant, lb?.element ?? null)
   return (
     <section className="flight-result" aria-label="Result" data-testid="flight-result">
-      <MissionDatesLine plan={plan} missionStartMs={missionStartMs} missionDays={missionDays} fromMission={fromMission} />
-      <EnergyFactor plan={plan} />
-      <PayloadLine shortElements={shortElementsOf(plan.propellant, lb?.element ?? null)} />
+      {/* The answer first (science lead, 15 Nov: "readable, intuitive"): does this design have the propellant for this
+          mission, then when it launches, lands and returns, then what it can carry; the energy multiplier folds. */}
       <ul className="flight-glance">
-        <li data-testid="flight-glance-propellant" data-tone={status.tone}>
+        <li className="flight-verdict" data-testid="flight-glance-propellant" data-tone={status.tone}>
           <span className={status.tone === 'short' ? 'flight-glance-short' : undefined}>
             <Abbr>{status.text}</Abbr>
           </span>
@@ -684,6 +683,7 @@ function ResultCard({ plan, onSeek, missionStartMs, missionDays, fromMission }: 
           )}
         </li>
         <li className="flight-glance-times" data-testid="flight-glance-times">
+          <MissionDatesLine plan={plan} missionStartMs={missionStartMs} missionDays={missionDays} fromMission={fromMission} />
           <span className="flight-glance-row">
             <span className="quiet">Launch</span> <TimeLink ms={plan.launchMs} label="launch" onSeek={onSeek} />
           </span>
@@ -705,6 +705,8 @@ function ResultCard({ plan, onSeek, missionStartMs, missionDays, fromMission }: 
           <span className="mono">{fmtDv(dvAfterLaunchOf(plan))}</span>
         </li>
       </ul>
+      <PayloadLine shortElements={shortElementsOf(plan.propellant, lb?.element ?? null)} />
+      <EnergyFactor plan={plan} />
       <AnalysisActions />
     </section>
   )
