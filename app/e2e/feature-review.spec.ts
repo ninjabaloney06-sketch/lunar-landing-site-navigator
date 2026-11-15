@@ -80,21 +80,23 @@ test('F23: the in-app documentation names no repository file in its SI (AI) use 
 })
 
 test('View menu: Moon works while the camera still flies down to the site', async ({ page }) => {
-  type S = { flying(): boolean; setAnimated(on: boolean): void; advance(ms: number): void; level(): string }
-  await open(page, `/?test=1${DEMO.slice(1)}&view=globe`)
+  type S = { flying(): boolean; setAnimated(on: boolean): void; advance(ms: number): void; level(): string; setView(o: object): Promise<unknown> }
+  const sc = <T,>(fn: (s: S) => T | Promise<T>) => page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
+  await open(page, `/?test=1${DEMO.slice(1)}`)
   await page.waitForFunction(() => (window as unknown as { __scene?: unknown }).__scene !== undefined)
-  // Animated with a clock only the test moves: the fly to the new site stays under way until advanced.
-  await page.evaluate(() => (window as unknown as { __scene: S }).__scene.setAnimated(true))
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.level()), { timeout: 30_000 }).toBe('globe')
+  // The camera on the whole Moon, then animated with a clock only the test moves (scene-motion.spec.ts does the
+  // same): Landing site starts the fly down, which stays under way until the test advances it.
+  await sc((s) => s.setView({ level: 'globe' }).then(() => s.setAnimated(true)))
   await page.getByTestId('view').click()
   await page.getByTestId('view-menu').getByRole('menuitem', { name: /Landing site/ }).click()
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.flying()), { timeout: 30_000 }).toBe(true)
+  await expect.poll(() => sc((s) => s.flying())).toBe(true)
   await page.getByTestId('view').click()
   await page.getByTestId('view-menu').getByRole('menuitem', { name: /Moon/ }).click()
+  // The request waits for the fly down to end, then flies back out to the whole Moon.
+  await expect
+    .poll(() => sc((s) => (s.advance(100), s.level() === 'globe' && !s.flying())), { timeout: 30_000, intervals: [50] })
+    .toBe(true)
   await expect(page.getByTestId('view')).toHaveText('View: Moon')
-  for (let i = 0; i < 400 && (await page.evaluate(() => (window as unknown as { __scene: S }).__scene.flying())); i++)
-    await page.evaluate(() => (window as unknown as { __scene: S }).__scene.advance(50))
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.level())).toBe('globe')
 })
 
 test('Add mission when the browser refuses storage says so', async ({ page }) => {

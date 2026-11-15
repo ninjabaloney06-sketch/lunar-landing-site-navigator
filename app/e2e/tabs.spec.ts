@@ -35,7 +35,7 @@ test('Details opens at Site details; Dates and Compare are tabs of their own, ea
 
   await page.getByTestId('drawer-tab-dates').click()
   await expect(page.getByTestId('drawer-tab-dates')).toHaveAttribute('aria-selected', 'true')
-  expect(await headings(page)).toEqual(['Find better dates', 'Year timeline'])
+  expect(await headings(page)).toEqual(['Find better dates', 'If the mission slips', 'Year timeline'])
   await expect.poll(() => drawerOf(page)).toBe('finder')
 
   await page.getByTestId('drawer-tab-compare').click()

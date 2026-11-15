@@ -516,6 +516,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
   // globe), then the Moon viewpoint of the right-click menu.
   const viewpointAt = useRef(-Infinity) // when the scene last accepted a viewpoint (the Moon)
+  const viewpointRetry = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearInterval(viewpointRetry.current), [])
   const goLevel = (view: SceneLevel) => {
     if (hs.view === view) scene.current?.setLevel(view)
     else patch({ view })
@@ -526,12 +528,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
     // Only for the scene's regression tests (?test=1): the app itself has no eye-level view.
     ...(ENGINE_TEST ? [{ id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') }] : []),
-    // A viewpoint is refused while the camera flies (goTo false, e.g. just after choosing a site): the Moon level then,
-    // which the scene applies when the fly ends (feature review: "Moon" in this menu did nothing in that moment).
-    // A refusal right after an accepted request is that request's own fly (a tap can select twice): left alone.
+    // A viewpoint is refused while the camera flies (goTo false, e.g. just after choosing a site): the same request
+    // is tried again every 100 ms for up to 6 s, so it runs as soon as the fly ends (feature review: "Moon" in this
+    // menu did nothing in that moment). A refusal right after an accepted request is that request's own fly (a tap
+    // can select twice): left alone.
     ...viewpointItems((v: Viewpoint) => {
+      window.clearInterval(viewpointRetry.current)
       if (scene.current?.goTo(v)) viewpointAt.current = performance.now()
-      else if (performance.now() - viewpointAt.current > 2000) goLevel('globe')
+      else if (performance.now() - viewpointAt.current > 2000) {
+        let tries = 0
+        viewpointRetry.current = window.setInterval(() => {
+          if (++tries > 60 || scene.current?.goTo(v)) window.clearInterval(viewpointRetry.current)
+        }, 100)
+      }
     }).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
