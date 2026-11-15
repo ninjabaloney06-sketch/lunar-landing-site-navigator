@@ -24,6 +24,7 @@ GROUP_OF = {  # restated here on purpose: the test does not trust the script's o
 }
 POI_KEYS = ["id", "name", "group", "category", "lat", "lon", "summary", "facts", "evidence", "limitations",
             "sources", "siteId"]
+PLAIN = POI_DIR / "plain.json"  # U8 plain summary texts keyed by output id; not a group file
 CAVEAT = "Not validated by the science lead"
 NUM = re.compile(r"-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?")
 
@@ -38,7 +39,7 @@ def _point(rec):
 
 @pytest.fixture(scope="module")
 def raw():
-    return {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted(POI_DIR.glob("*.json"))}
+    return {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted(POI_DIR.glob("*.json")) if p != PLAIN}
 
 
 @pytest.fixture(scope="module")
@@ -95,7 +96,7 @@ def test_record_shape_and_unique_ids(out):
     ids = [p["id"] for p in out]
     assert len(ids) == len(set(ids))
     for p in out:
-        assert list(p) == POI_KEYS
+        assert list(p) in (POI_KEYS, POI_KEYS + ["plain"])
         assert p["id"].startswith(p["group"] + ":")
 
 
@@ -224,10 +225,61 @@ def test_group_files_carry_the_validation_caveat(raw):
 
 
 def test_checked_in_file_equals_fresh_build():
-    pois_, skipped, _ = pois.build(pois.load_docs(), pois.load_site_ids())
+    plain = pois.load_plain()
+    pois_, skipped, _ = pois.build(pois.load_docs(), pois.load_site_ids(), plain)
     assert skipped == 0
     assert OUT.read_bytes() == pois.render(pois_)
-    assert pois.render(pois_) == pois.render(pois.build(pois.load_docs(), pois.load_site_ids())[0])
+    assert pois.render(pois_) == pois.render(pois.build(pois.load_docs(), pois.load_site_ids(), plain)[0])
+
+
+# ---------- plain summary texts (U8): docs/POIs/plain.json merged verbatim ----------
+
+def test_plain_field_equals_plain_json_entry(out):
+    plain = json.loads(PLAIN.read_text(encoding="utf-8"))
+    assert set(plain) == {p["id"] for p in out}  # every shipped POI has its plain text today, and nothing else
+    for p in out:
+        assert p["plain"] == plain[p["id"]], p["id"]
+        assert list(p["plain"]) == ["type", "bullets"]
+        assert p["plain"]["type"].strip() and len(p["plain"]["bullets"]) <= 3, p["id"]
+
+
+def test_plain_texts_carry_no_research_internals(out):
+    """The summary card shows these: no evidence grades in capitals, no file names, no 'not retrieved', no raw signed
+    decimal coordinates (U8)."""
+    bad = re.compile(r"\b(ESTABLISHED|INDIRECT|DIRECT|MODEL|CONTESTED|SPECULATIVE)\b|\.json|not retrieved|(?<![\w.~-])-\d{1,2}\.\d+\s*,")
+    for p in out:
+        for text in [p["plain"]["type"], *p["plain"]["bullets"]]:
+            assert not bad.search(text), (p["id"], text)
+
+
+def test_missing_plain_file_adds_no_plain_field(docs, site_ids, tmp_path):
+    assert pois.load_plain(tmp_path) is None
+    shipped, _, _ = pois.build(docs, site_ids, None)
+    assert all(list(p) == POI_KEYS for p in shipped)
+
+
+def test_plain_json_is_not_a_group_file(docs):
+    assert "plain" not in docs  # load_docs skips it, so build() does not call it an unknown file
+
+
+def test_plain_entry_for_an_unknown_id_or_malformed_raises(docs, site_ids):
+    good = pois.load_plain()
+    with pytest.raises(pois.PoiError, match="not shipped"):
+        pois.build(docs, site_ids, {**good, "hazard:no_such_record": {"type": "Crater", "bullets": []}})
+    pid = next(iter(good))
+    for bad in ({"type": "", "bullets": []}, {"type": "Crater", "bullets": ["a", "b", "c", "d"]},
+                {"type": "Crater", "bullets": [""]}, {"type": "Crater"}, {"type": "Crater", "bullets": [], "x": 1}):
+        with pytest.raises(pois.PoiError, match="plain.json"):
+            pois.build(copy.deepcopy(docs), site_ids, {**good, pid: bad})
+
+
+def test_poi_without_a_plain_entry_has_no_plain_field(docs, site_ids):
+    good = pois.load_plain()
+    pid = next(iter(good))
+    shipped, _, _ = pois.build(docs, site_ids, {k: v for k, v in good.items() if k != pid})
+    by_id = {p["id"]: p for p in shipped}
+    assert "plain" not in by_id[pid]
+    assert all("plain" in p for p in shipped if p["id"] != pid)
 
 
 # ---------- the script refuses bad input (in memory, nothing written) ----------

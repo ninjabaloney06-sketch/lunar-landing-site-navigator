@@ -31,7 +31,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332",
    "https://physicsworld.com/a/moonquakes-and-landslides-make-the-lunar-south-pole-unstable/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Lobate thrust scarp",
+   "bullets": [
+    "Lobate scarp ~4 km long, relief ~60-80 m, on <10° slope",
+    "Within de Gerlache Rim 2 candidate region, ~60 km from pole"
+   ]
+  }
  },
  {
   "id": "hazard:scarp_wiechert_cluster",
@@ -56,7 +63,14 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Scarp cluster",
+   "bullets": [
+    "Cluster of at least 5 scarps",
+    "Relief ~10 m; scarp evidence established"
+   ]
+  }
  },
  {
   "id": "hazard:scarp_ibn_bajja_cluster",
@@ -81,7 +95,14 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Scarp cluster",
+   "bullets": [
+    "Cluster of 3 scarps",
+    "Relief ~20 m; scarp evidence established"
+   ]
+  }
  },
  {
   "id": "hazard:scarp_shoemaker",
@@ -106,7 +127,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Lobate scarp",
+   "bullets": [
+    "Relief ~80 m, length ~4 km",
+    "~30 km from Nobile Rim 1",
+    "PSR on Nobile rim within 20 km of scarp is landslide-susceptible"
+   ]
+  }
  },
  {
   "id": "hazard:scarp_newton_e",
@@ -122,7 +151,11 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Lobate scarp",
+   "bullets": []
+  }
  },
  {
   "id": "hazard:seismic_n9",
@@ -151,7 +184,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Shallow moonquake",
+   "bullets": [
+    "Shallow moonquake, mb ~5-5.6, dated 1973-03-13",
+    "Event established; epicentre location uncertain, approximate",
+    "Strongest Apollo-era; context 28 shallow moonquakes recorded 1969-1977"
+   ]
+  }
  },
  {
   "id": "hazard:terrain_landing_outcomes",
@@ -187,7 +228,15 @@
    "https://www.theregister.com/2026/03/11/nasa_oig_artemis_lander/",
    "https://spacepolicyonline.com/news/nasa-is-full-steam-ahead-on-artemis-iii-iv-and-v/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Demonstrated landing outcomes",
+   "bullets": [
+    "IM-2 altimeter failed; came to rest on its side in ~20 m shadowed crater",
+    "IM-1 broke a leg on 12° slope, ~30° tilt",
+    "Common cause: altimetry or navigation sensors, not slope or lighting (inference)"
+   ]
+  }
  },
  {
   "id": "water:lcross_targeted_impact_point",
@@ -203,7 +252,11 @@
   "sources": [
    "https://ar5iv.labs.arxiv.org/html/1103.1687"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact point",
+   "bullets": []
+  }
  },
  {
   "id": "water:lcross_shepherding_spacecraft_target",
@@ -219,7 +272,11 @@
   "sources": [
    "https://ar5iv.labs.arxiv.org/html/1103.1687"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact target",
+   "bullets": []
+  }
  },
  {
   "id": "water:lcross_reconstructed_impact_point",
@@ -235,7 +292,15 @@
   "sources": [
    "https://ar5iv.labs.arxiv.org/html/1103.1687"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact point",
+   "bullets": [
+    "1-sigma 115 m in latitude, 44 m in longitude; 146 m from target",
+    "Reconstruction by LRO, 4 methods",
+    "Position evidence is direct"
+   ]
+  }
  },
  {
   "id": "water:lcross_measurements",
@@ -269,7 +334,15 @@
    "https://www.nasa.gov/centers/ames/news/releases/2010/10-89AR.html",
    "https://www.planetary.org/articles/2728"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact measurements",
+   "bullets": [
+    "Measured in one impact's ejecta plume; not valid for whole crater",
+    "Centaur impact 2009-10-09 11:31:19.506 UTC",
+    "Shepherding spacecraft time ~11:37 UTC"
+   ]
+  }
  },
  {
   "id": "water:lend_cabeus_1",
@@ -298,7 +371,15 @@
   "sources": [
    "https://www.arxiv.org/pdf/2303.03911"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Hydrogen maximum (LEND)",
+   "bullets": [
+    "Anomalously enhanced; at least two hydrogen sources",
+    "Collimated WEH 0.39 wt%, suppression 0.82; indirect evidence",
+    "Diviner max temperature 78 K"
+   ]
+  }
  },
  {
   "id": "water:lend_haworth",
@@ -327,7 +408,15 @@
   "sources": [
    "https://www.arxiv.org/pdf/2303.03911"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Hydrogen maximum (LEND)",
+   "bullets": [
+    "Maximum at base of poleward-facing slope, T_max 60.3 K",
+    "Collimated WEH 0.27 wt%, suppression 0.87; indirect evidence",
+    "Haworth PSR ~35 km"
+   ]
+  }
  },
  {
   "id": "water:lend_shoemaker",
@@ -356,7 +445,15 @@
   "sources": [
    "https://www.arxiv.org/pdf/2303.03911"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Hydrogen maximum (LEND)",
+   "bullets": [
+    "Largest PSR, ~37 km equivalent diameter, most detectable",
+    "Collimated WEH 0.37 wt%, suppression 0.83; indirect evidence",
+    "Diviner max temperature 59 K"
+   ]
+  }
  },
  {
   "id": "water:lend_faustini",
@@ -385,7 +482,15 @@
   "sources": [
    "https://www.arxiv.org/pdf/2303.03911"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Hydrogen maximum (LEND)",
+   "bullets": [
+    "Collimated WEH 0.26 wt%, suppression 0.87; indirect evidence",
+    "Diviner max temperature 73 K",
+    "Reduced early-mission LEND coverage"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_01",
@@ -418,7 +523,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 1075.518 km², perimeter 166.2 km",
+    "High-reflectance south-facing wall",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_02",
@@ -451,7 +564,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 1017.932 km², perimeter 173.9 km",
+    "Smooth crater with high reflectance",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_03",
@@ -484,7 +605,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 663.93 km², perimeter 133.4 km",
+    "Heavily cratered floor",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_04",
@@ -513,7 +642,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 548.791 km², perimeter 177.4 km",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_05",
@@ -546,7 +682,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 439.222 km², perimeter 413.3 km",
+    "Wall terracing",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_06",
@@ -579,7 +723,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 376.916 km², perimeter 197.4 km",
+    "Cluster of craters",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_07",
@@ -608,7 +760,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 371.549 km², perimeter 133.3 km",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_08",
@@ -641,7 +800,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 326.779 km², perimeter 102.0 km",
+    "Smooth dark floor, central peak",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_09",
@@ -670,7 +837,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 315.029 km², perimeter 340.9 km",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_10",
@@ -703,7 +877,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 300.589 km², perimeter 109.0 km",
+    "High-reflectance streaks",
+    "Atlas centre point only; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_11",
@@ -736,7 +918,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 243.292 km²",
+    "Perimeter 111.1 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_12",
@@ -765,7 +955,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 237.287 km²",
+    "Perimeter 170.6 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_13",
@@ -798,7 +995,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 233.698 km²",
+    "Perimeter 70.3 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_14",
@@ -831,7 +1036,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 194.702 km²",
+    "Perimeter 104.4 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_15",
@@ -860,7 +1073,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 194.479 km²",
+    "Perimeter 139.2 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_16",
@@ -893,7 +1113,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 183.172 km²",
+    "Perimeter 106.9 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_17",
@@ -926,7 +1154,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 182.268 km²",
+    "Perimeter 114.1 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_18",
@@ -955,7 +1191,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 166.374 km²",
+    "Perimeter 98.6 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_19",
@@ -984,7 +1227,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 155.074 km²",
+    "Perimeter 171.8 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_20",
@@ -1013,7 +1263,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 142.949 km²",
+    "Perimeter 76.4 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_21",
@@ -1042,7 +1299,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 138.251 km²",
+    "Perimeter 158.5 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_22",
@@ -1071,7 +1335,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 132.347 km²",
+    "Perimeter 98.5 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_23",
@@ -1100,7 +1371,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 129.557 km²",
+    "Perimeter 172.0 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_24",
@@ -1129,7 +1407,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 127.296 km²",
+    "Perimeter 87.4 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_25",
@@ -1158,7 +1443,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 124.33 km²",
+    "Perimeter 100.3 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_26",
@@ -1187,7 +1479,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 120.575 km²",
+    "Perimeter 55.4 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_27",
@@ -1216,7 +1515,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 119.171 km²",
+    "Perimeter 115.3 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_28",
@@ -1245,7 +1551,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 114.437 km²",
+    "Perimeter 144.8 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_29",
@@ -1274,7 +1587,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 113.414 km²",
+    "Perimeter 76.1 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_30",
@@ -1307,7 +1627,15 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 103.727 km²",
+    "Perimeter 88.7 km",
+    "Atlas marks centre point; the PSR is an area"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_31",
@@ -1336,7 +1664,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 101.833 km²",
+    "Perimeter 55.7 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_32",
@@ -1365,7 +1700,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 101.758 km²",
+    "Perimeter 125.2 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_33",
@@ -1394,7 +1736,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 99.558 km²",
+    "Perimeter 121.1 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_34",
@@ -1423,7 +1772,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 98.23 km²",
+    "Perimeter 85.6 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_35",
@@ -1452,7 +1808,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 97.967 km²",
+    "Perimeter 60.5 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_36",
@@ -1481,7 +1844,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 95.083 km², perimeter 80.0 km",
+    "Atlas centre point; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_37",
@@ -1510,7 +1880,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 88.607 km², perimeter 45.8 km",
+    "Atlas centre point; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_38",
@@ -1539,7 +1916,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 85.18 km², perimeter 109.1 km",
+    "Atlas centre point; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_39",
@@ -1568,7 +1952,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 79.788 km², perimeter 35.9 km",
+    "Atlas centre point; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:atlas_40",
@@ -1597,7 +1988,14 @@
   "sources": [
    "https://lroc.im-ldi.com/atlases/psr/list"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "PSR area 79.142 km², perimeter 46.9 km",
+    "Atlas centre point; the PSR is an area, not a point"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_shoemaker",
@@ -1662,7 +2060,14 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.24 wt%, 134 M3 ice detections (0.13 per km²)",
+    "Illumination 2% within 1 km, 24% within 5 km, 47% within 10 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_haworth",
@@ -1723,7 +2128,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.31 wt%, 80 M3 ice detections (0.08 per km²)",
+    "PSR area 1009 km², access slope class 5-10°",
+    "Model age 4.18 Ga; min temperature 14 K looks like a data artefact"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_faustini",
@@ -1788,7 +2201,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.37 wt%, 34 M3 ice detections (0.05 per km²)",
+    "Illumination 5% within 1 km, 65% within 5 km, 68% within 10 km",
+    "Traverse 10433 m at 15°, 4784 m at 20° slope limit"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_sverdrup_1",
@@ -1853,7 +2274,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Access slope class 0-5°, traverse 20741 m at 10°",
+    "Illumination 29% within 1 km, 55% within 5 km, 77% within 10 km",
+    "Max WEH 0.12 wt%, 93 M3 ice detections (0.17 per km²)"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_cabeus_1",
@@ -1914,7 +2343,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.9 wt%, 9 M3 ice detections (0.03 per km²)",
+    "PSR area 285 km², access slope class 5-10°",
+    "H₂O stability depth 0.00-0.11 m, model age 3.5 Ga"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_wiechert_j",
@@ -1979,7 +2416,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.06 wt%, 17 M3 ice detections (0.05 per km²)",
+    "Illumination 41% within 1 km, 45% within 5 km, 50% within 10 km",
+    "Longitude conflicts with LROC atlas; sources disagree"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_malapert",
@@ -2040,7 +2485,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Access slope class 0-5°, traverse 15413 m at 10°",
+    "Illumination 43% within 1 km, 55% within 5 and 10 km",
+    "Max WEH 0.05 wt%, 17 M3 ice detections (0.09 per km²)"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_nobile_2",
@@ -2105,7 +2558,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Fastest-access target, ~4 km from a landing site on 0-10° slopes",
+    "About 2 km if slopes up to 15° are allowed",
+    "Max WEH 0.13 wt%, 15 M3 ice detections (0.08 per km²)"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_psr_120",
@@ -2166,7 +2627,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Highest M3 detection density, 36 ice detections (0.41 per km²)",
+    "Max WEH 0.15 wt%, PSR area 87 km²",
+    "Illumination 6% within 1 km, 44% within 5 km, 64% within 10 km"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_psr_89",
@@ -2223,7 +2692,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Traverse case study: 20-50 km mission",
+    "Max WEH 0.84 wt%, 10 M3 ice detections (0.24 per km²)",
+    "PSR area 42 km², access slope class 0-5°"
+   ]
+  }
  },
  {
   "id": "cold-trap:lem21_psr_57",
@@ -2284,7 +2761,15 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/abf3c5"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Permanently shadowed region",
+   "bullets": [
+    "Max WEH 0.08 wt%, 10 M3 ice detections (0.31 per km²)",
+    "Illumination 9% within 1 km, 37% within 5 km, 62% within 10 km",
+    "Access slope class 5-10°, traverse 7549 m at 10°"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_shackleton",
@@ -2314,7 +2799,14 @@
    "https://planetarynames.wr.usgs.gov/Feature/5450",
    "https://en.wikipedia.org/wiki/Shackleton_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 20.92 km, depth 4.2 km",
+    "Floor 6.6 km wide, walls ~30°"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_haworth",
@@ -2340,7 +2832,14 @@
    "https://planetarynames.wr.usgs.gov/Feature/14502",
    "https://en.wikipedia.org/wiki/Haworth_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 51.42 km, host crater centre",
+    "Older notice gives a different centre position"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_shoemaker",
@@ -2370,7 +2869,14 @@
    "https://planetarynames.wr.usgs.gov/Feature/5494",
    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 51.82 km, depth 3.81 km",
+    "Another reference uses 52 km diameter"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_faustini",
@@ -2396,7 +2902,14 @@
    "https://planetarynames.wr.usgs.gov/Feature/1919",
    "https://en.wikipedia.org/wiki/Faustini_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 42.48 km, host crater centre",
+    "Another reference uses 41 km; older centre about 10 km off"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_cabeus",
@@ -2425,7 +2938,15 @@
   "sources": [
    "https://planetarynames.wr.usgs.gov/Feature/953"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 100.58 km, depth ~4 km",
+    "Floor ~60 km across, walls 10-15°",
+    "Sunlit ~25% per lunar day; shaded region below 100 K"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_cabeus_a",
@@ -2447,7 +2968,13 @@
    "https://planetarynames.wr.usgs.gov/Feature/8057",
    "https://en.wikipedia.org/wiki/Cabeus_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 40.88 km, host crater centre"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_cabeus_b",
@@ -2469,7 +2996,13 @@
    "https://planetarynames.wr.usgs.gov/Feature/8058",
    "https://en.wikipedia.org/wiki/Cabeus_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 59.62 km, host crater centre"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_de_gerlache",
@@ -2495,7 +3028,13 @@
    "https://planetarynames.wr.usgs.gov/Feature/1439",
    "https://en.wikipedia.org/wiki/De_Gerlache_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 32.71 km; depth unconfirmed, 7.5 km value implausible"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_sverdrup",
@@ -2517,7 +3056,13 @@
    "https://planetarynames.wr.usgs.gov/Feature/5782",
    "https://en.wikipedia.org/wiki/Sverdrup_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 32.83 km, host crater centre"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_slater",
@@ -2539,7 +3084,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/15325",
    "https://en.wikipedia.org/wiki/Slater_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_nobile",
@@ -2561,7 +3110,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/4321",
    "https://en.wikipedia.org/wiki/Nobile_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_amundsen",
@@ -2582,7 +3135,11 @@
   "sources": [
    "https://planetarynames.wr.usgs.gov/Feature/247"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_wiechert",
@@ -2604,7 +3161,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/6541",
    "https://en.wikipedia.org/wiki/Wiechert_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_wiechert_j",
@@ -2626,7 +3187,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/13888",
    "https://en.wikipedia.org/wiki/Wiechert_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_idelson",
@@ -2652,7 +3217,14 @@
    "https://planetarynames.wr.usgs.gov/Feature/2650",
    "https://en.wikipedia.org/wiki/Idel%27son_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": [
+    "Diameter 59.82 km, depth 2.83 km",
+    "Depth from a secondary source only"
+   ]
+  }
  },
  {
   "id": "cold-trap:host_idelson_l",
@@ -2674,7 +3246,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/10114",
    "https://en.wikipedia.org/wiki/Idel%27son_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_malapert",
@@ -2696,7 +3272,11 @@
    "https://planetarynames.wr.usgs.gov/Feature/3603",
    "https://en.wikipedia.org/wiki/Malapert_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Host crater",
+   "bullets": []
+  }
  },
  {
   "id": "cold-trap:host_mons_mouton",
@@ -2721,7 +3301,14 @@
   "sources": [
    "https://en.wikipedia.org/wiki/Mons_Mouton"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Mountain",
+   "bullets": [
+    "Flat-topped mountain, ~6 km base-to-peak",
+    "Just under 100 km wide, host crater centre"
+   ]
+  }
  },
  {
   "id": "light:gl18_c1_surface",
@@ -2778,7 +3365,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 76.0%, solar visibility 81.3%, modelled",
+    "Longest dark 268 h, 20 m DEM"
+   ]
+  }
  },
  {
   "id": "light:maz11_c1_surface",
@@ -2835,7 +3429,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 89.0%, solar visibility 92.7%, modelled",
+    "Coarse DEM overestimates illumination, 240 m resolution"
+   ]
+  }
  },
  {
   "id": "light:sr13_c1_surface",
@@ -2888,7 +3489,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 64.2%, image-based values underestimate",
+    "Longest dark 308 h, 100 m image resolution, not a DEM"
+   ]
+  }
  },
  {
   "id": "light:gl18_c2_surface",
@@ -2945,7 +3553,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 75.6%, solar visibility 80.6%, modelled",
+    "Longest dark 166 h, 20 m DEM"
+   ]
+  }
  },
  {
   "id": "light:gl18_s_surface",
@@ -3002,7 +3617,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 81.0%, solar visibility 85.5%, modelled",
+    "Longest dark 221 h, 20 m DEM"
+   ]
+  }
  },
  {
   "id": "light:maz11_s_surface",
@@ -3055,7 +3677,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 86.7%, solar visibility 90.5%, modelled",
+    "Based on a 240 m DEM"
+   ]
+  }
  },
  {
   "id": "light:sr13_s_surface",
@@ -3108,7 +3737,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 71.6%, image-based",
+    "Longest dark 145 h, 100 m resolution"
+   ]
+  }
  },
  {
   "id": "light:gl18_c1_2m",
@@ -3165,7 +3801,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 88.0% at 2 m height, modelled",
+    "Solar visibility 92.1%, longest dark 112 h"
+   ]
+  }
  },
  {
   "id": "light:gl18_c2_2m",
@@ -3222,7 +3865,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 78.1% at 2 m height, modelled",
+    "Longest dark 165 h, no gain in darkness from height"
+   ]
+  }
  },
  {
   "id": "light:gl18_s_2m_max_illum",
@@ -3279,7 +3929,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination peak",
+   "bullets": [
+    "Maximum illumination 85.5% at 2 m height, modelled",
+    "Solar visibility 89.4%, longest dark 66 h"
+   ]
+  }
  },
  {
   "id": "light:gl18_s_2m_max_vis",
@@ -3336,7 +3993,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20170007365/downloads/20170007365.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Maximum solar visibility 89.8%, illumination 82.1%, modelled",
+    "Longest dark 65 h at 2 m height"
+   ]
+  }
  },
  {
   "id": "light:bus10_a",
@@ -3401,7 +4065,15 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 81%, modelled, upper bound from coarse DEM",
+    "A and B together lit ~94% of the year, less than 10 km apart",
+    "Lit 98% at midsummer, 44% at midwinter"
+   ]
+  }
  },
  {
   "id": "light:bus10_b",
@@ -3466,7 +4138,15 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 82%, modelled, over 4.5 continuous months lit",
+    "Eclipses only 12-24 h, 4.5 days total in 8 months centred on midsummer",
+    "Lit 100% at midsummer, 56% at midwinter"
+   ]
+  }
  },
  {
   "id": "light:bus10_c",
@@ -3527,7 +4207,15 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 85%, modelled",
+    "Shortest maximum single eclipse of all points, ~6 days",
+    "Lit 98% at midsummer, 64% at midwinter"
+   ]
+  }
  },
  {
   "id": "light:bus10_d",
@@ -3592,7 +4280,15 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 86%, modelled, highest of the study",
+    "Longest lit over 5 continuous months, centred on midsummer",
+    "Study sources disagree on latitude"
+   ]
+  }
  },
  {
   "id": "light:bus10_m1",
@@ -3649,7 +4345,15 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Illumination 74%, modelled",
+    "Lit 95% at midsummer, 54% at midwinter",
+    "Based on a 474 m DEM"
+   ]
+  }
  },
  {
   "id": "light:bus10_m2",
@@ -3706,7 +4410,13 @@
   "sources": [
    "https://spudislunarresources.nss.org/Bibliography/p/98.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Modelled illumination 74% average, 90% at midsummer, 58% at midwinter"
+   ]
+  }
  },
  {
   "id": "light:petro21_malapert_summit_earth",
@@ -3743,7 +4453,15 @@
   "sources": [
    "https://www.hou.usra.edu/meetings/lunarsurface12/pdf/8015.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Illumination point",
+   "bullets": [
+    "Modelled Earth visibility 100%, permanent line of sight",
+    "A 5 m summit mast would widen line of sight toward the pole",
+    "Slopes under 15° in places"
+   ]
+  }
  },
  {
   "id": "landing:faustini_rim_a",
@@ -3771,7 +4489,15 @@
    "https://arxiv.org/html/2406.19863v2",
    "https://doi.org/10.1029/2025JE009434"
   ],
-  "siteId": "faustini-rim-a"
+  "siteId": "faustini-rim-a",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Among the largest suitable fractional areas, after Slater Plain and Nobile Rim 2",
+    "Size ~15 × 15 km, image mosaic ~20 km north-south",
+    "Dropped in 2024; best of 80 candidate points at rank 16"
+   ]
+  }
  },
  {
   "id": "landing:peak_near_shackleton",
@@ -3800,7 +4526,15 @@
    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "peak-near-shackleton"
+  "siteId": "peak-near-shackleton",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "SPA material fraction 47%, rank 2 of 13",
+    "Size ~15 × 15 km, image mosaic ~22 km north-south",
+    "Dropped in 2024"
+   ]
+  }
  },
  {
   "id": "landing:connecting_ridge",
@@ -3828,7 +4562,15 @@
    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "connecting-ridge"
+  "siteId": "connecting-ridge",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Ranked first for average illumination in a 2011 study",
+    "SPA material fraction 46%, rank 3 of 13",
+    "Dropped from the Artemis III list in 2024, first Moon Base robotic target"
+   ]
+  }
  },
  {
   "id": "landing:connecting_ridge_extension",
@@ -3856,7 +4598,15 @@
    "https://arxiv.org/html/2406.19863v2",
    "https://doi.org/10.1029/2025JE009434"
   ],
-  "siteId": "connecting-ridge-extension"
+  "siteId": "connecting-ridge-extension",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Among the smallest suitable fractional areas",
+    "Size ~15 × 15 km",
+    "Dropped in 2024; none of its 36 points in the top 100"
+   ]
+  }
  },
  {
   "id": "landing:de_gerlache_rim_1",
@@ -3887,7 +4637,15 @@
    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "de-gerlache-rim-1"
+  "siteId": "de-gerlache-rim-1",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Among the smallest suitable fractional areas",
+    "Size ~15 × 15 km",
+    "Dropped in 2024"
+   ]
+  }
  },
  {
   "id": "landing:de_gerlache_rim_2",
@@ -3920,7 +4678,15 @@
    "https://arxiv.org/html/2406.19863v2",
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": "de-gerlache-rim-2"
+  "siteId": "de-gerlache-rim-2",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Hazard: de Gerlache thrust scarp lies within this region",
+    "Unstable slope of a permanently shadowed region lies to its north",
+    "Kept in 2024; best of 104 points at rank 19"
+   ]
+  }
  },
  {
   "id": "landing:de_gerlache_kocher_massif",
@@ -3947,7 +4713,11 @@
    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "de-gerlache-kocher-massif"
+  "siteId": "de-gerlache-kocher-massif",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": []
+  }
  },
  {
   "id": "landing:haworth",
@@ -3976,7 +4746,15 @@
    "https://arxiv.org/html/2406.19863v2",
    "https://doi.org/10.1029/2025JE009434"
   ],
-  "siteId": "haworth"
+  "siteId": "haworth",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Two Haworth sites exceed 25 days of simultaneous Sun and Earth visibility at midsummer",
+    "Size ~15 × 15 km, image mosaic ~39 km north-south",
+    "Kept in 2024; none of its 20 points in the top 100"
+   ]
+  }
  },
  {
   "id": "landing:malapert_massif",
@@ -4005,7 +4783,14 @@
    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "malapert-massif"
+  "siteId": "malapert-massif",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Summit rises more than 5,000 m above its base; nearside slope faces Earth",
+    "A 2030 mission targets Mons Malapert"
+   ]
+  }
  },
  {
   "id": "landing:leibnitz_beta_plateau",
@@ -4036,7 +4821,15 @@
    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "leibnitz-beta-plateau"
+  "siteId": "leibnitz-beta-plateau",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Chang'e-8 planned for the Leibnitz Beta plateau",
+    "Name dropped in 2024; the area is now called Mons Mouton",
+    "Size ~15 × 15 km"
+   ]
+  }
  },
  {
   "id": "landing:nobile_rim_1",
@@ -4069,7 +4862,15 @@
    "https://arxiv.org/html/2406.19863v2",
    "https://iopscience.iop.org/article/10.3847/PSJ/ad1332"
   ],
-  "siteId": "nobile-rim-1"
+  "siteId": "nobile-rim-1",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Hazard: ~30 km from the Shoemaker scarp",
+    "Landslide-susceptible interior walls",
+    "Kept in 2024; size ~15 × 15 km"
+   ]
+  }
  },
  {
   "id": "landing:nobile_rim_2",
@@ -4097,7 +4898,15 @@
    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "nobile-rim-2"
+  "siteId": "nobile-rim-2",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Second-largest suitable fractional area",
+    "Kept in 2024; best of its 473 points at rank 1; 36% of the top 100",
+    "Size ~15 × 15 km, image mosaic ~27 km north-south"
+   ]
+  }
  },
  {
   "id": "landing:amundsen_rim",
@@ -4124,7 +4933,15 @@
    "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": "amundsen-rim"
+  "siteId": "amundsen-rim",
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Dropped in 2024; best of 149 points at rank 10",
+    "13% of the top 100 points lie here",
+    "Size ~15 × 15 km, image mosaic ~26 km north-south"
+   ]
+  }
  },
  {
   "id": "landing:peak_near_cabeus_b",
@@ -4150,7 +4967,14 @@
    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_CABEUSPKLO2",
    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Among the smallest suitable fractional areas",
+    "New region in 2024; image mosaic ~26 km north-south"
+   ]
+  }
  },
  {
   "id": "landing:mons_mouton_plateau",
@@ -4177,7 +5001,13 @@
    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/",
    "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025JE009127"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "Region average Sun 0.45 ± 0.14; Earth 74 ± 19% of lunar year"
+   ]
+  }
  },
  {
   "id": "landing:mons_mouton_region",
@@ -4207,7 +5037,14 @@
    "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_ROI_MTMOUTONLO1",
    "https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Artemis region",
+   "bullets": [
+    "2024 name for the area formerly called Leibnitz Beta Plateau",
+    "Among the smallest suitable fractional areas"
+   ]
+  }
  },
  {
   "id": "landing:connecting_ridge_shackleton_junction",
@@ -4232,7 +5069,15 @@
   "sources": [
    "https://lroc.im-ldi.com/images/1247"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ridge junction",
+   "bullets": [
+    "Flat spot with line of sight into Shackleton permanently shadowed region",
+    "Blocks of ~8 m near the junction are primary sampling targets",
+    "Ridge ~14 km long"
+   ]
+  }
  },
  {
   "id": "landing:malapert_scan_site_hls_md",
@@ -4253,7 +5098,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20230002566/downloads/HLS%20NRHO%20to%20Lunar%20Surface%20and%20Back%20Mission%20Design_STRIVES.pptx.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Analysis site",
+   "bullets": [
+    "557 HLS opportunities in a 10-year scan from 3 Sep 2024",
+    "Based on the legacy NRHO design"
+   ]
+  }
  },
  {
   "id": "landing:mons_mouton_feature",
@@ -4278,7 +5130,15 @@
   "sources": [
    "https://en.wikipedia.org/wiki/Mons_Mouton"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Named feature",
+   "bullets": [
+    "Flat-topped mountain just under 100 km wide, about 6 km high",
+    "Possibly an SPA rim remnant",
+    "Formerly Leibnitz Beta; named 13 May 2022"
+   ]
+  }
  },
  {
   "id": "landing:im2_intended_site",
@@ -4299,7 +5159,14 @@
   "sources": [
    "https://lroc.im-ldi.com/images/1401"
   ],
-  "siteId": "im-2-intended"
+  "siteId": "im-2-intended",
+  "plain": {
+   "type": "Intended landing site",
+   "bullets": [
+    "Central portion of one of the Artemis 3 potential landing regions",
+    "160 km from the pole"
+   ]
+  }
  },
  {
   "id": "landing:viper_planned_landing_2021",
@@ -4320,7 +5187,15 @@
   "sources": [
    "https://www.nationalacademies.org/cdn/materials/9fba0b0c-198c-4772-a367-136febe32e2a"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Average slope 5°; chosen for high WEH",
+    "Variety of ice-stability depths and survivable shadow durations",
+    "2021 values may be superseded for the 2027 Blue Moon MK1 delivery"
+   ]
+  }
  },
  {
   "id": "landing:gracy_lee_connecting_ridge",
@@ -4341,7 +5216,15 @@
   "sources": [
    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Proposed landing site",
+   "bullets": [
+    "Screened for slope ≤ 5° over ≥ 25% of a 2 km-radius exploration zone",
+    "Screened for solar illumination ≥ 33% of time; DTE visibility ≥ 50% of time",
+    "Near rim of a crater holding an H₂O-ice permanently shadowed region"
+   ]
+  }
  },
  {
   "id": "landing:gracy_lee_peak_near_shackleton",
@@ -4362,7 +5245,14 @@
   "sources": [
    "https://www.hou.usra.edu/meetings/lpsc2024/pdf/1695.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Proposed landing site",
+   "bullets": [
+    "Near rim of a crater holding an H₂O-ice permanently shadowed region",
+    "SPA fraction 47%"
+   ]
+  }
  },
  {
   "id": "landing:topsis_dm2_nobile_rim_2",
@@ -4383,7 +5273,15 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": [
+    "Rank 1 of 1,247 points in a modelled TOPSIS ranking",
+    "Ri = 0.6916, or 0.8453 in the sensitivity case",
+    "First under TOPSIS, MABAC, CoCoSo and VIKOR"
+   ]
+  }
  },
  {
   "id": "landing:topsis_dm1_amundsen_rim",
@@ -4404,7 +5302,11 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": []
+  }
  },
  {
   "id": "landing:topsis_site07_peak_near_shackleton",
@@ -4425,7 +5327,11 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": []
+  }
  },
  {
   "id": "landing:topsis_lm7_faustini_rim_a",
@@ -4446,7 +5352,11 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": []
+  }
  },
  {
   "id": "landing:topsis_sl2_de_gerlache_rim_2",
@@ -4467,7 +5377,11 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": []
+  }
  },
  {
   "id": "landing:topsis_site04_point",
@@ -4488,7 +5402,11 @@
   "sources": [
    "https://arxiv.org/html/2406.19863v2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ranked landing point",
+   "bullets": []
+  }
  },
  {
   "id": "landing:faustini_rim_a_unnamed_crater",
@@ -4509,7 +5427,14 @@
   "sources": [
    "https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2042.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": [
+    "Point from a 2023 Artemis III workshop abstract",
+    "Location from a search-result snippet only, not the abstract"
+   ]
+  }
  },
  {
   "id": "landing:lcross_actual",
@@ -4544,7 +5469,14 @@
    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
    "https://en.wikipedia.org/wiki/Lunar_south_pole"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Water: 5.6 ± 2.9 wt% H₂O in impact ejecta",
+    "Impact 9 Oct 2009, Cabeus PSR (permanently shadowed region)"
+   ]
+  }
  },
  {
   "id": "landing:lcross_intended",
@@ -4579,7 +5511,14 @@
    "https://www.chem.uci.edu/~unicorn/old/H2A/handouts/PDFs/LCROSSPaper.pdf",
    "https://en.wikipedia.org/wiki/Lunar_south_pole"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Intended impact target, Cabeus PSR (permanently shadowed region)",
+    "Water: 5.6 ± 2.9 wt% H₂O in impact ejecta"
+   ]
+  }
  },
  {
   "id": "landing:luna_25_actual",
@@ -4613,7 +5552,15 @@
    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crash site",
+   "bullets": [
+    "Crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+    "New crater about 10 m, about 400 km from target",
+    "Failure after an orbit-lowering burn"
+   ]
+  }
  },
  {
   "id": "landing:luna_25_intended",
@@ -4647,7 +5594,15 @@
    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Intended landing site",
+   "bullets": [
+    "Intended main site, north of Boguslawsky",
+    "Crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+    "New crater about 10 m, about 400 km from target"
+   ]
+  }
  },
  {
   "id": "landing:luna_25_reserve",
@@ -4681,7 +5636,14 @@
    "https://spacepolicyonline.com/news/nasas-lro-spots-likely-luna-25-crash-site",
    "https://www.leonarddavid.com/india-russia-moon-missions-south-pole-landing-targets/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Reserve site; mission crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+    "New crater about 10 m, about 400 km from target"
+   ]
+  }
  },
  {
   "id": "landing:chandrayaan_3_actual",
@@ -4716,7 +5678,15 @@
    "https://jatan.space/moon-monday-issue-136.md",
    "https://jatan.space/chandrayaan-3-makes-historic-touchdown/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "First soft landing near the south pole, 23 Aug 2023",
+    "Lander and rover worked one lunar day; rover 12 days",
+    "No response to wake-up calls on 22 Sep 2023"
+   ]
+  }
  },
  {
   "id": "landing:chandrayaan_3_actual_alt",
@@ -4751,7 +5721,15 @@
    "https://jatan.space/moon-monday-issue-136.md",
    "https://jatan.space/chandrayaan-3-makes-historic-touchdown/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "First soft landing near the south pole, 23 Aug 2023",
+    "Lander and rover worked one lunar day; rover 12 days",
+    "No response to wake-up calls on 22 Sep 2023"
+   ]
+  }
  },
  {
   "id": "landing:im_1_actual",
@@ -4788,7 +5766,15 @@
    "https://en.wikipedia.org/wiki/IM-1",
    "https://payloadspace.com/im-1-is-sideways-but-weve-all-been-there/"
   ],
-  "siteId": "im-1"
+  "siteId": "im-1",
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "Partial: within about 1.5 km of target; 100 m precision goal missed",
+    "Rested ~30 deg tilted after breaking a leg; degraded ~1 km crater",
+    "About seven days of data; power lost 28/29 Feb, sources differ"
+   ]
+  }
  },
  {
   "id": "landing:im_2_actual",
@@ -4828,7 +5814,14 @@
    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "Failure: on its side in a shadowed crater about 20 m wide",
+    "Southernmost landing to date; ~12 h of operations, over 400 MB returned"
+   ]
+  }
  },
  {
   "id": "landing:im_2_actual_alt",
@@ -4868,7 +5861,14 @@
    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "Failure: on its side in a shadowed crater about 20 m wide",
+    "Southernmost landing to date; ~12 h of operations, over 400 MB returned"
+   ]
+  }
  },
  {
   "id": "landing:im_2_intended",
@@ -4908,7 +5908,15 @@
    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Intended site at Mons Mouton; lander ended on its side",
+    "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+    "Southernmost landing to date; over 400 MB returned"
+   ]
+  }
  },
  {
   "id": "landing:im_2_intended_alt",
@@ -4948,7 +5956,15 @@
    "https://ntrs.nasa.gov/api/citations/20260003150/downloads/MSolo%20PRIME-1%20overview%20and%20results%20-%20LSSW.pdf",
    "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Intended site at Mons Mouton; lander ended on its side",
+    "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+    "Southernmost landing to date; over 400 MB returned"
+   ]
+  }
  },
  {
   "id": "landing:change_6_actual",
@@ -4981,7 +5997,15 @@
   "sources": [
    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12086667/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Sample return site",
+   "bullets": [
+    "Not a polar site; SPA basin on the far side",
+    "SPA basin dated 4247 ± 5 Ma from norite clasts",
+    "Samples returned 2024; papers 2025"
+   ]
+  }
  },
  {
   "id": "landing:viper_intended_2021_plan",
@@ -5016,7 +6040,15 @@
    "https://jatan.space/moon-monday-issue-277/",
    "https://www.nasa.gov/moonbase-phases/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Revived by CLPS task order Sep 2025, up to ~$190M",
+    "Delivery late 2027; June 2026 newsletter says 2H 2028 more likely",
+    "2021 coordinates may be superseded; updated site not published"
+   ]
+  }
  },
  {
   "id": "landing:change_7_intended",
@@ -5049,7 +6081,15 @@
    "https://www.space.com/space-exploration/launches-spacecraft/bad-weather-delays-launch-of-chinas-historic-change-7-mission-to-moons-south-pole",
    "https://spacepolicyonline.com/?p=90081"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Illuminated rim of Shackleton, southeast ridge or rim",
+    "Launch scrubbed 23 Aug 2026; 2027 at the earliest",
+    "Target coordinates from secondary reports, not official"
+   ]
+  }
  },
  {
   "id": "landing:pgda78_dm1_centre",
@@ -5091,7 +6131,14 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "PGDA study site",
+   "bullets": [
+    "Centre of PGDA DEM polygon, not a landing point",
+    "Centre points accurate to 5 to 10 meters"
+   ]
+  }
  },
  {
   "id": "landing:pgda78_dm2_centre",
@@ -5133,7 +6180,14 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "PGDA study site",
+   "bullets": [
+    "Centre of PGDA DEM polygon, not a landing point",
+    "Centre points accurate to 5 to 10 meters"
+   ]
+  }
  },
  {
   "id": "landing:pgda78_haworth_centre",
@@ -5171,7 +6225,14 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "PGDA study site",
+   "bullets": [
+    "Centre of PGDA DEM polygon, not a landing point",
+    "Centre points accurate to 5 to 10 meters"
+   ]
+  }
  },
  {
   "id": "landing:pgda78_lm1_centre",
@@ -5209,7 +6270,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm2_centre",
@@ -5247,7 +6312,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm3_centre",
@@ -5285,7 +6354,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm4_centre",
@@ -5323,7 +6396,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm5_centre",
@@ -5361,7 +6438,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm6_centre",
@@ -5399,7 +6480,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm7_centre",
@@ -5441,7 +6526,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_lm8_centre",
@@ -5479,7 +6568,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_npa_centre",
@@ -5517,7 +6610,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Exterior wall",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_npb_centre",
@@ -5555,7 +6652,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Study site",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_npc_centre",
@@ -5593,7 +6694,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_npd_centre",
@@ -5631,7 +6736,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site01_centre",
@@ -5673,7 +6782,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ridge",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site06_centre",
@@ -5715,7 +6828,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site07_centre",
@@ -5757,7 +6874,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Peak",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site11_centre",
@@ -5799,7 +6920,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site20_centre",
@@ -5841,7 +6966,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Plateau",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site20v2_centre",
@@ -5883,7 +7012,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Plateau, extended boundaries",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_site42_centre",
@@ -5925,7 +7058,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Massif",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_shoemaker_centre",
@@ -5959,7 +7096,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Study site",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_sl2_centre",
@@ -6001,7 +7142,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Rim",
+   "bullets": []
+  }
  },
  {
   "id": "landing:pgda78_sl3_centre",
@@ -6043,7 +7188,11 @@
    "https://ntrs.nasa.gov/api/citations/20230007818/downloads/ACD-50044%20Lunar%20Surface%20Data%20Book%20Rev%20A.pdf",
    "https://pgda.gsfc.nasa.gov/products/78"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ridge",
+   "bullets": []
+  }
  },
  {
   "id": "landing:derosa12_cr1",
@@ -6087,7 +7236,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest",
+   "bullets": [
+    "Connecting Ridge region, studied for ESA's Lunar Lander project",
+    "Candidate site, not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_gr1",
@@ -6127,7 +7283,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest",
+   "bullets": [
+    "de Gerlache Rim region, studied for ESA's Lunar Lander project",
+    "Candidate site, not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_lp1",
@@ -6167,7 +7330,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest",
+   "bullets": [
+    "Leibnitz beta Plateau region, studied for ESA's Lunar Lander project",
+    "Candidate site, not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_mp1",
@@ -6207,7 +7377,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Among six LUPEX candidate sites; not a landing decision"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_mp2",
@@ -6247,7 +7424,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Among six LUPEX candidate sites; not a landing decision"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_sr1",
@@ -6285,7 +7469,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_sr2",
@@ -6323,7 +7514,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_gr2",
@@ -6363,7 +7561,14 @@
    "https://iopscience.iop.org/article/10.3847/PSJ/ae10a4",
    "https://jlpeda.jaxa.jp/en/product/archive/detail_14/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Among six LUPEX candidate sites; not a landing decision"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_sr3",
@@ -6397,7 +7602,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_sv1",
@@ -6431,7 +7643,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_lp2",
@@ -6465,7 +7684,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:derosa12_lp3",
@@ -6499,7 +7725,14 @@
    "https://arxiv.org/pdf/1208.5587",
    "https://arxiv.org/abs/1208.5587"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Region of interest centre",
+   "bullets": [
+    "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+    "Not a selected or flown landing point"
+   ]
+  }
  },
  {
   "id": "landing:chandrayaan_1_mip_impact_stooke2021",
@@ -6528,7 +7761,14 @@
   "sources": [
    "https://www.hou.usra.edu/meetings/lpsc2021/pdf/1013.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Approximate point on the Earth-facing slope of the Connecting Ridge",
+    "Crater not yet found in LROC NAC images"
+   ]
+  }
  },
  {
   "id": "landing:lunar_prospector_impact_nssdca",
@@ -6557,7 +7797,14 @@
   "sources": [
    "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1998-001A"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Approximate targeted impact point; no crater named",
+    "Impact 31 July 1999 at 9:52:02 UT"
+   ]
+  }
  },
  {
   "id": "landing:chandrayaan_2_vikram_impact",
@@ -6578,7 +7825,14 @@
   "sources": [
    "https://lroc.im-ldi.com/images/1131"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Crash site found by LROC, not a soft landing",
+    "Elevation 834 m at the impact site"
+   ]
+  }
  },
  {
   "id": "landing:chandrayaan_2_vikram_intended",
@@ -6599,7 +7853,14 @@
   "sources": [
    "https://lroc.im-ldi.com/images/1128"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Planned landing site",
+   "bullets": [
+    "Planned target stated by LROC, rounded to 0.1 degree",
+    "Not reached, so a planned target only"
+   ]
+  }
  },
  {
   "id": "landing:kaguya_impact",
@@ -6624,7 +7885,14 @@
   "sources": [
    "https://global.jaxa.jp/press/2009/06/20090611_kaguya_e.html"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact site",
+   "bullets": [
+    "Controlled impact near GILL crater",
+    "Release does not say planned or confirmed point"
+   ]
+  }
  },
  {
   "id": "landing:kumari22_site011_l1",
@@ -6649,7 +7917,14 @@
   "sources": [
    "https://iopscience.iop.org/article/10.3847/PSJ/ac88c2"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Landing site",
+   "bullets": [
+    "Suggested landing point inside candidate site 011, not a NASA selection",
+    "Safer landing point away from boulder-rich hazard, at highest illumination"
+   ]
+  }
  },
  {
   "id": "science:feat_shackleton",
@@ -6675,7 +7950,14 @@
    "https://en.wikipedia.org/wiki/Shackleton_(crater)",
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": [
+    "PSR floor ~88-90 K; rim peaks sunlit ~80-90% of the time",
+    "Pole lies on its rim; D 21.0 km, depth 4.2 km"
+   ]
+  }
  },
  {
   "id": "science:feat_connecting_ridge_junction",
@@ -6701,7 +7983,14 @@
    "https://lroc.im-ldi.com/images/1247",
    "https://en.wikipedia.org/wiki/Lunar_south_pole"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Ridge junction",
+   "bullets": [
+    "Illumination 92.27-95.65% at 2-10 m; line of sight into Shackleton PSR",
+    "Longest darkness 3-5 days; ~8 m blocks near junction are primary sampling targets"
+   ]
+  }
  },
  {
   "id": "science:feat_de_gerlache",
@@ -6726,7 +8015,15 @@
   "sources": [
    "https://en.wikipedia.org/wiki/De_Gerlache_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": [
+    "PSR pocket incl. possible CO2 cold trap",
+    "D 32.4 km, depth 7.5 km",
+    "2022 study of 'slope exposed ice'"
+   ]
+  }
  },
  {
   "id": "science:feat_haworth",
@@ -6752,7 +8049,15 @@
    "https://en.wikipedia.org/wiki/Haworth_(crater)",
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater · PSR",
+   "bullets": [
+    "Large PSR; coldest areas never exceed ~40 K",
+    "D 51.4 km (52 km in a second estimate)",
+    "Pre-Nectarian age 4.18 ± 0.02 Ga (model age)"
+   ]
+  }
  },
  {
   "id": "science:feat_shoemaker",
@@ -6778,7 +8083,15 @@
    "https://en.wikipedia.org/wiki/Shoemaker_(lunar_crater)",
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": [
+    "Strongest, most uniform LAMP water-band signal of the four",
+    "Hydrogen ~146 ppm (LP) or 220-245 ppm (LEND interpretation)",
+    "Possibly ~5%+ subsurface ice"
+   ]
+  }
  },
  {
   "id": "science:feat_faustini",
@@ -6804,7 +8117,15 @@
    "https://en.wikipedia.org/wiki/Faustini_(crater)",
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater · PSR",
+   "bullets": [
+    "664 km² PSR, third largest",
+    "Floor may hold ejecta from Imbrium, Orientale and Schrodinger",
+    "Radar-bright signal probably rocks, per ShadowCam"
+   ]
+  }
  },
  {
   "id": "science:feat_nobile",
@@ -6829,7 +8150,15 @@
   "sources": [
    "https://en.wikipedia.org/wiki/Nobile_(crater)"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater",
+   "bullets": [
+    "Former VIPER site on the west rim, Mons Mouton side",
+    "Griffin Mission One planned to land nearby with Astrolab FLIP rover",
+    "D 79.27 km"
+   ]
+  }
  },
  {
   "id": "science:feat_mons_mouton",
@@ -6854,7 +8183,15 @@
   "sources": [
    "https://en.wikipedia.org/wiki/Mons_Mouton"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Massif",
+   "bullets": [
+    "Near PSRs and extended illumination",
+    "~100 km wide, ~6 km base-to-peak, flat-topped",
+    "IM-4 and Chang'e-8 planned for the plateau"
+   ]
+  }
  },
  {
   "id": "science:feat_malapert_massif",
@@ -6879,7 +8216,15 @@
   "sources": [
    "https://lroc.im-ldi.com/posts/1294"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Massif",
+   "bullets": [
+    "Flat area at the heart of the candidate region",
+    "Summit >5,000 m above base; ~3,500 m cliff",
+    "Thought to be an SPA rim remnant (>4 Ga)"
+   ]
+  }
  },
  {
   "id": "science:feat_cabeus",
@@ -6905,7 +8250,14 @@
    "https://en.wikipedia.org/wiki/Cabeus_(crater)",
    "https://ar5iv.labs.arxiv.org/html/1103.1687"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater · PSR",
+   "bullets": [
+    "LCROSS ground truth: 5.6 ± 2.9 wt% H₂O, plus other volatiles",
+    "D 100.58 km, depth ~4 km"
+   ]
+  }
  },
  {
   "id": "science:feat_schrodinger",
@@ -6931,7 +8283,15 @@
    "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_(crater)",
    "https://www.jpl.nasa.gov/missions/farside-seismic-suite/"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Impact basin",
+   "bullets": [
+    "Volcanic vent and lava flows; target of the Farside Seismic Suite",
+    "D 312 km, depth 4.8 km",
+    "Early Imbrian peak-ring basin"
+   ]
+  }
  },
  {
   "id": "science:feat_southernmost_pit",
@@ -6948,7 +8308,15 @@
    "https://en.wikipedia.org/wiki/List_of_lunar_pits",
    "https://ui.adsabs.harvard.edu/abs/2021LPI....52.2530W/abstract"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Lunar pit",
+   "bullets": [
+    "No catalogued pit lies poleward of 80 S",
+    "Catalogue: 281 impact-melt, 15 mare, 5 highland pits",
+    "Polar imaging hampered by lighting"
+   ]
+  }
  },
  {
   "id": "science:age_haworth",
@@ -6981,7 +8349,15 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater age",
+   "bullets": [
+    "Modelled formation age 4.18 +0.02/-0.02 Ga, pre-Nectarian",
+    "Floor retention age 3.55 +0.01/-0.02 Ga",
+    "Pre-Nectarian absolute ages particularly uncertain"
+   ]
+  }
  },
  {
   "id": "science:age_shoemaker",
@@ -7014,7 +8390,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater age",
+   "bullets": [
+    "Modelled formation age 4.15 +0.02/-0.02 Ga, pre-Nectarian",
+    "Floor retention age 3.46 +0.02/-0.02 Ga"
+   ]
+  }
  },
  {
   "id": "science:age_faustini",
@@ -7047,7 +8430,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater age",
+   "bullets": [
+    "Modelled formation age 4.10 +0.03/-0.03 Ga, pre-Nectarian",
+    "Floor retention age 3.50 +0.03/-0.03 Ga"
+   ]
+  }
  },
  {
   "id": "science:age_shackleton",
@@ -7080,6 +8470,14 @@
   "sources": [
    "https://ntrs.nasa.gov/api/citations/20150006822/downloads/20150006822.pdf"
   ],
-  "siteId": null
+  "siteId": null,
+  "plain": {
+   "type": "Crater age",
+   "bullets": [
+    "Modelled rim formation age 3.51 +0.05/-0.08 Ga, Late Imbrian",
+    "Other values 3.60 and 3.69 Ga; sources disagree",
+    "Floor retention 2.63 +0.54/-0.76 Ga, slope-limited, not a formation age"
+   ]
+  }
  }
 ]
