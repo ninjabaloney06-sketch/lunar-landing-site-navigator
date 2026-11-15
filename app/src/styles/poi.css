@@ -70,6 +70,76 @@
   color: var(--muted);
 }
 
+/* ---------- "Full data" switch (views/FullDataSwitch.tsx), for every card with two modes ----------
+   Label always visible; state = knob position (left off, right on), the filled track only repeats it. */
+
+.full-switch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--t-small);
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.full-switch:hover,
+.full-switch[aria-checked='true'] {
+  color: var(--fg);
+}
+
+.full-switch:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.full-switch-track {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--muted);
+  border-radius: 7px;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.full-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.full-switch[aria-checked='true'] .full-switch-track {
+  border-color: var(--fg);
+  background: var(--fg);
+}
+
+.full-switch[aria-checked='true'] .full-switch-knob {
+  transform: translateX(10px);
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .full-switch-track,
+  .full-switch-knob {
+    transition: none;
+  }
+}
+
 /* ---------- info box at a pin (placed by SceneView with a transform) ---------- */
 
 .poi-info {
