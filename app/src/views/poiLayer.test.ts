@@ -22,8 +22,18 @@ describe('full data card: cleaned record', () => {
     expect(fullFacts(cabeus).map((f) => f.label)).toEqual(['Size']) // ... the card hides it
     expect(cleanText(cabeus.summary)).toBe('LCROSS ground truth (5.6 ± 2.9 wt% water + other volatiles); impact at 84.68° S 48.71° W')
     const ev = evidenceText(cabeus.evidence)!
-    expect(ev.text).toBe('Established')
-    expect(ev.meaning).toEqual(['Established: measured or documented in primary or official sources.'])
+    expect(ev.text).toBe('Established: measured or documented in primary or official sources.')
+    expect(ev.meaning).toEqual([])
+    // A longer note keeps its words (grades in lower case) and explains each grade once.
+    const mixed = evidenceText('ESTABLISHED (scarp); link to N9 MODEL/plausible')!
+    expect(mixed.text).toBe('Established (scarp); link to N9 model/plausible')
+    expect(mixed.meaning).toEqual([
+      'Established: measured or documented in primary or official sources.',
+      'Model: result of a published simulation, not a measurement.',
+    ])
+    expect(evidenceText('USGS Gazetteer (primary) for centre and diameter; depth WP (secondary)')!.text).toBe(
+      'USGS Gazetteer (primary) for centre and diameter; depth Wikipedia (secondary)',
+    )
   })
 
   it('coordinates read "84.90° S, 35.50° W"', () => {
@@ -40,6 +50,7 @@ describe('full data card: cleaned record', () => {
       for (const t of texts) {
         expect(t, p.id).not.toMatch(INTERNAL)
         expect(t, p.id).not.toMatch(RAW_COORD)
+        expect(t, p.id).not.toMatch(/\b(Lat|Lon)(itude|gitude)?( \(°\))?\s+[−-]\d/)
         expect(t, p.id).not.toMatch(/not retrieved/i)
         expect(t, p.id).not.toMatch(GRADE_CAPS)
         n++
@@ -54,6 +65,10 @@ describe('full data card: cleaned record', () => {
     expect(cleanText('24, 243, 51')).toBe('24, 243, 51')
     expect(cleanText('not tabulated')).toBe('')
     expect(cleanText('no value, no value')).toBe('')
+    expect(cleanText('Longitude −67.12 | Latitude −88.65')).toBe('Longitude 67.12° W | Latitude 88.65° S')
+    expect(cleanText('Geodetic Lat (°) -89.4679, Lon (°) -137.411, Polar stereographic X (km) -10.92')).toBe(
+      'Geodetic Lat (°) 89.4679° S, Lon (°) 137.411° W, Polar stereographic X (km) -10.92',
+    )
   })
 })
 

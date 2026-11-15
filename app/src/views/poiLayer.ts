@@ -135,6 +135,10 @@ export function cleanText(text: string): string {
     if (!(a.includes('.') || b.includes('.')) || lat < -90 || Math.abs(lon) > 180) return m
     return fmtLatLon(lat, lon, ' ')
   })
+  // a labelled signed value as printed in a table: "Latitude -88.65", "Lon (°) -137.411" -> "88.65° S", "137.411° W"
+  s = s
+    .replace(/\b(Lat(?:itude)?(?: \(°\))?)\s+[−-](\d{1,2}(?:\.\d+)?)(?![\d.])/g, '$1 $2° S')
+    .replace(/\b(Lon(?:gitude)?(?: \(°\))?)\s+([−-]?)(\d{1,3}(?:\.\d+)?)(?![\d.])/g, (_m, k: string, sign: string, v: string) => `${k} ${v}° ${sign ? 'W' : 'E'}`)
   s = s.replace(/\s+/g, ' ').trim()
   return EMPTY_VALUE.test(s) || /^(no value(, )?)+$/.test(s) ? '' : s
 }
@@ -156,7 +160,10 @@ export function evidenceText(evidence: string | null): { text: string; meaning: 
   const grades = [...new Set([...evidence.matchAll(GRADE_WORD)].map((m) => m[1]))]
   const text = cleanText(evidence.replace(/\bWP\b/g, 'Wikipedia'))
   if (!text) return null
-  const meaning = grades.map((g) => `${g.charAt(0)}${g.slice(1).toLowerCase()}: ${GRADES[g]}.`)
+  const word = (g: string) => `${g.charAt(0)}${g.slice(1).toLowerCase()}`
+  // The note is only the grade: one line, "Established: measured or documented in primary or official sources."
+  if (grades.length === 1 && text.toLowerCase() === grades[0].toLowerCase()) return { text: `${word(grades[0])}: ${GRADES[grades[0]]}.`, meaning: [] }
+  const meaning = grades.map((g) => `${word(g)}: ${GRADES[g]}.`)
   return { text: text.charAt(0).toUpperCase() + text.slice(1), meaning }
 }
 
