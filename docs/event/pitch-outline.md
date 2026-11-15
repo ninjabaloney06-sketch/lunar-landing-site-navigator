@@ -12,7 +12,7 @@ Order from the 2022 "30 Seconds of Glory" template ([past-winners.md](../referen
 
 1. (0–5 s) "Landing at the lunar south pole, a mission needs two things: sunlight for power and a line of sight to Earth for radio."
 2. (5–12 s) "We asked three NASA tools one question: at Connecting Ridge, 14 to 28 November, when do we get both? Fourteen minutes later: one wrong answer, two dead ends."
-3. (12–25 s) Live app: pick Connecting Ridge, 16–29 Aug 2027 (the confirmed demo question, spec.md) → Sun and Earth over the real horizon, windows for light, Earth and both. **[Sunday: the exact answer sentence the app gives]**
+3. (12–25 s) Live app: pick Connecting Ridge, 16–29 Aug 2027 (the confirmed demo question, spec.md) → Sun and Earth over the real horizon, windows for light, Earth and both. The app answers for 16 Aug 2027, 00:00 UTC: "Sunlight for 12 more days. Next station contact in 4 hours." (read from the live app on 15 Nov 2026).
 4. (25–30 s) "Every number is checked against JPL Horizons and comes with its source."
 
 ## Slides
@@ -38,10 +38,9 @@ Say: Lighting at the pole is a terrain question, not a calendar question.
 Say: First-time user, timed run on 27 Oct, screenshots in our repo.
 
 ## Slide 4 · Pick a site and a date, get the answer
-- Sun and Earth shown against the site's real terrain horizon, in 3D and as numbers.
-- Daily windows: sunlight, Earth contact, and both together.
-- Compare sites and date ranges; the window finder lists the next dates that still work when a launch slips.
-- [Sunday: screenshot of the app answering the Connecting Ridge question]
+- Sun and Earth over the site's real terrain horizon; one timeline for sunlight and station contact.
+- When the launch slips: the same mission 1, 7 and 30 days later, better dates, and all 18 sites ranked.
+- ![The app answering the Connecting Ridge question, 16–29 Aug 2027: live app, 15 Nov 2026](pitch-app.png)
 Say: Show it live here. If the live demo fails, this slide and the recording are the backup.
 
 ## Slide 5 · How it works
@@ -54,13 +53,14 @@ Say: Keep this to 15 seconds unless judges ask.
 ## Slide 6 · How we checked the numbers
 - Sun and Earth angles compared against JPL Horizons with an observer on the lunar surface. Target: under 0.05°.
 - Horizon results cross-checked against published illumination maps where the definitions match (Mazarico et al. 2011).
-- [Sunday: measured error from validation.md]
-- [Sunday: sites and periods validated]
+- Measured on 15 Nov: 72 comparisons at three sites over 2027–2030, largest elevation difference 0.000043° (run by an SI tool, every pair in the repo).
+- Sunlit share at all 18 sites against the published maps: within 9.0 percentage points (context only: different periods).
+- The science lead's statement of 15 Nov covers every check; there is no per-check written sign-off.
 Say: Our science lead answers the physics questions.
 
 ## Slide 7 · Limits and next steps
-- Not modelled: thermal, landing trajectories, rover routes, ground-station coverage on Earth.
-- [Sunday: features cut during the build, stated plainly]
+- Station contact is geometric visibility of the chosen stations, not a radio link.
+- Not modelled: temperature during the mission, boulders, rover routes. South polar region and Nov 2026 to Dec 2030 only.
 - Open source (Apache 2.0); data from NASA, NAIF and PGDA, cited on the project page.
-- [Sunday: next step we would build]
+- Next: check the terrain horizon against LROC photographs, and replay real south-pole landings (IM-1, IM-2, Chandrayaan-3).
 Say: Close on why it matters: the right landing date is a power and comms decision.

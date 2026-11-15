@@ -5,9 +5,14 @@ A web app that compares landing sites near the Moon's south pole by sunlight and
 - Hosted preview: <https://nasa.digi-works.org> (the deployed revision is recorded in [BUILD_LOG.md](BUILD_LOG.md))
 - Technical and product documentation: [docs/documentation.md](docs/documentation.md), also on the app's `/docs` page with the scientific proof of each calculation ([docs/scientific-proof/](docs/scientific-proof/README.md)) and the credits
 - Project page draft: [docs/event/project-page.md](docs/event/project-page.md)
+- Measured check, 15 Nov 2026: Sun and Earth directions from the app's own files against JPL Horizons at 72 body-site-time pairs, largest elevation difference 0.000043° against a tolerance of 0.05° (run by an SI tool; [every pair](app/public/data/validation/horizons.json), script `scripts/tools/horizons_check.py`).
 - Status of the numbers: validated by the science lead (statement of 15 Nov 2026; see record: [docs/event/validation.md](docs/event/validation.md#validation-status-15-nov), section "Validation status 15 Nov"), including the calculations added on 15 Nov (maximum payload, cheapest route, landing dispersion, power estimate). The statement does not say what was compared for each check; no check has a per-check sign-off written by him. The numbers were also recomputed independently by an SI tool on 14 and 15 Nov and found in agreement except where that file says otherwise. How the records relate: [docs/scientific-proof/README.md](docs/scientific-proof/README.md).
 
 > SI marking: this README was drafted by an SI (AI) tool, Claude Code, on 14 Nov 2026 from the repository's own files. See [AI/SI use](#aisi-use).
+
+![The app answering the demo question: Connecting Ridge, 16–29 August 2027, Sun and Earth over the terrain horizon, with the light and station contact timeline](docs/event/pitch-app.png)
+
+Screenshot of the live app, 15 Nov 2026.
 
 ## What the app answers
 
@@ -27,6 +32,8 @@ What you can do on main today:
 - Compare the current view with another site or another named period.
 - Download the windows as CSV and copy a link that reproduces the view.
 - Set any place south of 80° S as a custom landing site (approximate numbers, marked so).
+- Compare places over a whole year in the Dates tab: the current mission, saved missions, your own points and, on request, all prepared sites, one row each.
+- Zoom in on the Moon to open the landing-site view, zoom out of it to return.
 - Show points of interest from the cited research sources and search for sites near them.
 - Read the site assessment (slope, roughness, nearest permanent shadow, temperature), a first power estimate and links that open the site in NASA Moon Trek, LROC QuickMap and JPL Horizons.
 - Calculate the rocket flight for a saved mission (launch, transfer, descent, return; payload, cheapest route and landing dispersion included; validated by the science lead, statement of 15 Nov 2026; see record).
@@ -63,7 +70,7 @@ npm test
 npx playwright test
 ```
 
-`npm test` runs the unit tests (vitest; 70 passed on 14 Nov 2026). `npx playwright test` starts its own dev server on port 5180 and runs the end-to-end tests in Chromium (on 14 Nov 2026: 40 passed, 1 skipped by design). Counts of the final gate: see BUILD_LOG.md, 15 Nov. It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download). The 3D tests render with SwiftShader (software WebGL) by default; on a machine where that is too slow (a Windows laptop: the S3 fly test exceeded its 400 s timeout), `PW_GPU=1 npx playwright test` renders on the machine's own GPU instead (127 tests in about 2.6 min on a Radeon 860M, 15 Nov 2026).
+`npm test` runs the unit tests (vitest; 645 passed on 15 Nov 2026 on the build machine; 10 more pin flight results bit for bit and pass only on the laptop they were recorded on). `npx playwright test` starts its own dev server on port 5180 (or `PW_PORT`) and runs the end-to-end tests in Chromium (last full run logged on 15 Nov 2026: 124 passed, 1 skipped by design; the specs added later that day were run on their own, see BUILD_LOG.md). Counts of the final gate: see BUILD_LOG.md, 15 Nov. It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download). The 3D tests render with SwiftShader (software WebGL) by default; on a machine where that is too slow (a Windows laptop: the S3 fly test exceeded its 400 s timeout), `PW_GPU=1 npx playwright test` renders on the machine's own GPU instead (127 tests in about 2.6 min on a Radeon 860M, 15 Nov 2026).
 
 ## Data pipeline (Python)
 
