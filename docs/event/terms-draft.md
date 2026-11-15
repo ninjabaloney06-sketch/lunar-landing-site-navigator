@@ -1,6 +1,6 @@
 # Terms of use for the app — text approved by ninja (14 Nov 2026)
 
-Status: AI draft, 14 Nov 2026; visible text below approved by ninja on 14 Nov 2026 (not yet in the app). Decided by ninja: short terms of use + disclaimer (no contract-style T&C); operator named by team name only, no personal names or address (submission rule: no recognizable names of anyone under 18); the UI wiring is done separately by the frontend owner. Not legal advice. Whether a German Impressum is required for this demo site has not been checked.
+Status: AI draft, 14 Nov 2026; visible text below approved by ninja on 14 Nov 2026 (now in the app: `app/src/views/Terms.tsx`). Decided by ninja: short terms of use + disclaimer (no contract-style T&C); operator named by team name only, no personal names or address (submission rule: no recognizable names of anyone under 18); the UI wiring is done separately by the frontend owner. Not legal advice. Whether a German Impressum is required for this demo site has not been checked.
 
 Facts checked for this draft (main `742ac84`): the app sets no cookies, uses no localStorage/sessionStorage/IndexedDB, loads no analytics or third-party scripts, and bundles its fonts; it is served as static files by a Cloudflare Worker on `nasa.digi-works.org` (`app/wrangler.jsonc`). Code licence: Apache 2.0 (`LICENSE`).
 
