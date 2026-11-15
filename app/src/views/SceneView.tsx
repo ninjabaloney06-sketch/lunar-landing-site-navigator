@@ -504,24 +504,6 @@ export function SceneView(props: Props) {
       el.hidden = true
     }
 
-    // Sun and Earth a few degrees apart low over the horizon (3D audit, 15 Nov): their labels lay on each other.
-    // The Earth label flips to the other side of its tick; if that still touches, the Sun label flips instead.
-    const unclash = () => {
-      const s = sun.current?.firstElementChild
-      const e = earth.current?.firstElementChild
-      if (!s || !e || sun.current!.hidden || earth.current!.hidden) return
-      const hit = () => {
-        const a = s.getBoundingClientRect()
-        const b = e.getBoundingClientRect()
-        return a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
-      }
-      if (!hit()) return
-      e.classList.toggle('is-below')
-      if (!hit()) return
-      e.classList.toggle('is-below')
-      s.classList.toggle('is-below')
-    }
-
     let raf = 0
     const tick = () => {
       h.setFlightTime(flightRef.current.clock.timeMs)
@@ -530,7 +512,6 @@ export function SceneView(props: Props) {
       const ep = h.labelPoint('earth')
       place(earth.current, ep, have.current.earth)
       clearOfText(earth.current)
-      unclash()
       place(site.current, h.project('site'), true)
       clearOfText(site.current)
       const n = namedNow()
