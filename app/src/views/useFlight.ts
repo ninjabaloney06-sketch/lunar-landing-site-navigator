@@ -11,7 +11,6 @@ import { loadMonthsFor } from '../data/load'
 import { makeFlightEphemeris } from '../flight/ephemeris'
 import type { ArchitectureSpec, LaunchVehicleSpec, SpacecraftSpec } from '../flight/hardware'
 import { cheapestRoute, routeOptions } from '../flight/payload'
-import { runPlan } from '../flight/planWorker'
 import type { DispersionCancel, DispersionReply, DispersionRequest, PayloadReply, PlanReply, PlanRequest, WorkerReply } from '../flight/planWorker'
 import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
 import { DAY_MS } from '../state'
@@ -122,7 +121,8 @@ function compute(req: Omit<PlanRequest, 'id'>, onPayload: (r: PayloadReply | nul
     // no workers here (an old browser, a test page): compute on the page after it has painted "Computing…".
     // The payload's ascent sensitivity takes seconds, too slow for the page: it is not offered then.
     onPayload(null)
-    return { id, reply: new Promise((resolve) => window.setTimeout(() => resolve(runPlan({ ...req, id })), 30)) }
+    // No worker: the planner is loaded here, on demand, so the landing-site view does not carry it in its bundle.
+    return { id, reply: new Promise((resolve) => window.setTimeout(() => void import('../flight/planWorker').then(({ runPlan }) => resolve(runPlan({ ...req, id }))), 30)) }
   }
   payloadWait = { id, resolve: onPayload }
   return {
