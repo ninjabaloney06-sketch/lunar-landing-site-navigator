@@ -8,6 +8,7 @@ import '../styles/flight.css'
 import type { MissionPlan } from '../flight/types'
 import type { FlightFocus, FlightLayers } from '../scene3d'
 import { DEFAULT_SPEED, SPEEDS, burnName, fmtDuration, fmtElapsed, fmtKms, fmtUtc } from './flightFormat'
+import { useFlightAnalysis } from './flightAnalysis'
 import { expand } from './flightGlossary'
 
 export interface FlightTransportProps {
@@ -36,6 +37,9 @@ const FOCUS: { id: FlightFocus; label: string }[] = [
 // without a text: their name is in the tooltip, at the burn in the 3D view and in the panel's table.
 const MARKED = new Set(['touchdown', 'docking', 'ei'])
 const LABELLED = new Set(['tli', 'loi', 'touchdown', 'docking', 'tei', 'ei'])
+// Which tick text wins when two would touch: the loser has no text (its name is in its tooltip, at the burn in
+// the 3D view and in the panel's table). One line only, so no text ever sits on top of another.
+const LABEL_PRIORITY = ['tli', 'touchdown', 'tei', 'ei', 'loi', 'docking']
 
 const END_PHASE = 'Entry Interface'
 
@@ -67,37 +71,51 @@ function phaseAt(plan: MissionPlan, timeMs: number): string {
   return latest?.label ?? ''
 }
 
-/** Where each tick's text goes: 0 = directly above the tick, 1 = one line higher (the neighbour's text is in
- *  the way), null = no text (not a labelled tick, or no room on either line). Ticks are in time order. */
-function textRows(ticks: { pct: number; text: string | null }[], trackPx: number): (0 | 1 | null)[] {
-  const taken = [-Infinity, -Infinity] // right edge of the last text on each line, px
-  return ticks.map((tick) => {
-    if (tick.text === null) return null
-    const half = (tick.text.length * CHAR_PX) / 2 + TEXT_GAP_PX
-    const x = (tick.pct / 100) * trackPx
-    const row = x - half >= taken[0] ? 0 : x - half >= taken[1] ? 1 : null
-    if (row !== null) taken[row] = x + half
-    return row
-  })
+/** Whether each tick shows its text (0 = directly above the tick) or none (null): texts are placed in
+ *  LABEL_PRIORITY order and one that would touch a text already placed, or run past either end of the track, is
+ *  left out. Exported for the test. */
+export function textRows(ticks: { id: string; pct: number; text: string | null }[], trackPx: number): (0 | null)[] {
+  const placed: [number, number][] = []
+  const out: (0 | null)[] = ticks.map(() => null)
+  const rank = (id: string) => {
+    const r = LABEL_PRIORITY.indexOf(id)
+    return r < 0 ? LABEL_PRIORITY.length : r
+  }
+  const order = ticks.map((t, i) => i).filter((i) => ticks[i].text !== null).sort((a, b) => rank(ticks[a].id) - rank(ticks[b].id) || a - b)
+  for (const i of order) {
+    const t = ticks[i]
+    const half = (t.text!.length * CHAR_PX) / 2 + TEXT_GAP_PX
+    const x = (t.pct / 100) * trackPx
+    // the text is centred on its tick but kept inside the track (CSS clamps it the same way: is-start / is-end)
+    const left = Math.min(Math.max(x - half, 0), Math.max(0, trackPx - 2 * half))
+    const right = left + 2 * half
+    if (placed.some(([a, b]) => left < b && right > a)) continue
+    placed.push([left, right])
+    out[i] = 0
+  }
+  return out
 }
 
 // ---------- the layer menu ----------
 
-const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'trail'; label: string; hint: string }[] = [
+const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'trail' | 'tube'; label: string; hint: string }[] = [
   { key: 'paths', label: 'Flight path', hint: 'the path of the capsule and of the lander' },
   { key: 'burns', label: 'Burns', hint: 'a ring at each burn, a wide line while the engine fires, the glow of a firing craft' },
   { key: 'burnNames', label: 'Burn names', hint: 'a name at each burn' },
   { key: 'stageNames', label: 'Stage names', hint: 'the stage or engine that fires, at each burn' },
   { key: 'trail', label: 'Trail only', hint: 'nothing is drawn ahead; the path fades out behind' },
+  { key: 'tube', label: 'Dispersion tube', hint: 'the 1σ and 3σ spread of 200 unguided descents around the planned one (not yet validated by the science lead)' },
 ]
 
-/** The layer toggles, always in view: one chip per layer; the trail length appears while the trail is on. */
+/** The layer toggles, always in view: one plain checkbox per layer; the trail length appears while the trail is
+ *  on; the dispersion tube only once a dispersion has been computed. */
 function LayersMenu({ layers, onLayers }: { layers: FlightLayers; onLayers(l: FlightLayers): void }) {
   const trailId = useId()
+  const hasTube = useFlightAnalysis().dispersion.state === 'ready'
   return (
     <div className="flight-layers" role="group" aria-label="Show in the 3D view" data-testid="flight-layers">
-      {LAYER_CHECKS.map((c) => (
-        <label key={c.key} className={`flight-chip${layers[c.key] ? ' is-on' : ''}`} title={c.hint}>
+      {LAYER_CHECKS.filter((c) => c.key !== 'tube' || hasTube).map((c) => (
+        <label key={c.key} className="check flight-check" title={c.hint}>
           <input
             type="checkbox"
             checked={layers[c.key]}
@@ -136,7 +154,6 @@ function LayersMenu({ layers, onLayers }: { layers: FlightLayers; onLayers(l: Fl
 export function FlightTransport(p: FlightTransportProps) {
   const { plan, timeMs, playing, speed, focus, onPlaying, onSeek, onSpeed, onFocus } = p
   const { launchMs, endMs } = plan
-  const lookId = useId()
   const ticksRef = useRef<HTMLDivElement>(null)
   const [trackPx, setTrackPx] = useState(FALLBACK_TRACK_PX)
 
@@ -170,6 +187,7 @@ export function FlightTransport(p: FlightTransportProps) {
         pct: Math.min(100, Math.max(0, ((e.utcMs - launchMs) / span) * 100)),
         widthPx: Math.max(BURN_MIN_PX, (((e.durationS ?? 0) * 1000) / span) * trackPx),
         text: LABELLED.has(e.id) ? name : null,
+        id: e.id,
       }
     })
   const rows = textRows(ticks, trackPx)
@@ -178,17 +196,6 @@ export function FlightTransport(p: FlightTransportProps) {
     if (playing) return onPlaying(false)
     if (atEnd) onSeek(launchMs)
     onPlaying(true)
-  }
-
-  // Radio group keys: the arrows move to the neighbouring choice and make it.
-  const onLookKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
-    if (step === 0) return
-    e.preventDefault()
-    const at = Math.max(0, FOCUS.findIndex((f) => f.id === focus))
-    const next = FOCUS[(at + step + FOCUS.length) % FOCUS.length]
-    onFocus(next.id)
-    e.currentTarget.querySelector<HTMLButtonElement>(`[data-focus="${next.id}"]`)?.focus()
   }
 
   return (
@@ -226,7 +233,7 @@ export function FlightTransport(p: FlightTransportProps) {
                 >
                   {burn && <span className="flight-burn-span" style={{ width: `${widthPx.toFixed(1)}px` }} />}
                   {text !== null && rows[i] !== null && (
-                    <span className={rows[i] === 1 ? 'flight-tick-text is-raised' : 'flight-tick-text'}>
+                    <span className={`flight-tick-text${pct < 4 ? ' is-start' : pct > 96 ? ' is-end' : ''}`}>
                       {long ? <abbr title={long}>{text}</abbr> : text}
                     </span>
                   )}
@@ -249,29 +256,17 @@ export function FlightTransport(p: FlightTransportProps) {
         </div>
       </div>
 
-      <div className="flight-row">
-        <div className="flight-look-field">
-          <span id={lookId} className="quiet">
-            Look at
-          </span>
-          <div className="tabs flight-look" role="radiogroup" aria-labelledby={lookId} onKeyDown={onLookKey}>
+      <div className="flight-row flight-controls">
+        <label className="flight-look-field">
+          <span className="quiet">Camera</span>
+          <select className="field flight-look" value={focus} data-testid="flight-focus" onChange={(e) => onFocus(e.target.value as FlightFocus)}>
             {FOCUS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                role="radio"
-                className="tab"
-                aria-checked={focus === f.id}
-                tabIndex={focus === f.id ? 0 : -1}
-                data-focus={f.id}
-                data-testid={`focus-${f.id}`}
-                onClick={() => onFocus(f.id)}
-              >
+              <option key={f.id} value={f.id}>
                 {f.label}
-              </button>
+              </option>
             ))}
-          </div>
-        </div>
+          </select>
+        </label>
 
         <LayersMenu layers={p.layers} onLayers={p.onLayers} />
 

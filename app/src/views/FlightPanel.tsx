@@ -3,7 +3,7 @@
 // sections that open and close: the choices, the notes, the events, the propellant budget, the flight facts, the
 // view and its legend, the explanations (FlightExplain) and how the numbers are made. Presentational only: the
 // mission is computed outside, and the status it is given drives the loading and error text.
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import '../styles/flight.css'
 import type { ArchitectureSpec } from '../flight/hardware'
@@ -92,6 +92,38 @@ interface LatLon {
   lonDeg: number
 }
 
+// ---------- the panel ends above the playback bar ----------
+
+/** The panel's height: down to the playback bar (no fixed height that cuts it mid-line while room is left), and
+ *  on a phone at most 36 % of the screen, so the trajectory stays in view. Measured, because the bar's height
+ *  depends on the plan and the window. */
+function usePanelFit() {
+  const ref = useRef<HTMLElement | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const fit = () => {
+      const bar = document.querySelector('.flight-bottom')
+      const bottom = bar ? bar.getBoundingClientRect().top : window.innerHeight
+      const top = el.getBoundingClientRect().top
+      const room = bottom - top - 12
+      const narrow = window.innerWidth <= 640
+      const max = Math.max(160, narrow ? Math.min(room, window.innerHeight * 0.36) : room)
+      el.style.maxHeight = `${Math.round(max)}px`
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit)
+    const bar = document.querySelector('.flight-bottom')
+    if (bar) ro?.observe(bar)
+    return () => {
+      window.removeEventListener('resize', fit)
+      ro?.disconnect()
+    }
+  })
+  return ref
+}
+
 // ---------- a section that opens and closes ----------
 
 // Which sections are open, kept for the session: the panel is taken down while the Mission panel is open and when
@@ -142,6 +174,7 @@ export function FlightPanel(p: FlightPanelProps) {
   const { architectureId, rendezvous, pads, padId, target, siteMode, status, trueScale, picking, collapsed } = p
   const uid = useId()
   const plan = status.state === 'ready' ? status.plan : null
+  const fitRef = usePanelFit()
 
   // Remembered per kind of design, so the explanations can set a halo-orbit plan beside a low-orbit one.
   useEffect(() => {
@@ -154,11 +187,6 @@ export function FlightPanel(p: FlightPanelProps) {
         Rocket flight
       </h2>
       {!collapsed && <FullDataSwitch className="flight-full" />}
-      {p.onClose && (
-        <button type="button" className="link flight-close" data-testid="flight-close" onClick={p.onClose}>
-          Back to landing site
-        </button>
-      )}
       <button
         type="button"
         className="link flight-collapse"
@@ -182,21 +210,33 @@ export function FlightPanel(p: FlightPanelProps) {
   const design = designOf(architectureId)
 
   return (
-    <section className="popover menu flight-panel" aria-labelledby="flight-title" data-testid="flight-panel">
+    <section ref={fitRef} className="popover menu flight-panel" aria-labelledby="flight-title" data-testid="flight-panel">
       {head}
-      <ul className="plain flight-mission" data-testid="flight-mission">
-        <li>
-          <span className="quiet">Mission</span> <strong>{p.missionName}</strong>
-        </li>
-        <li className="flight-site-row">
-          <span className="quiet">Landing site</span> <span className="flight-site-name">{target.name}</span>
-          {siteMode === 'mission' && (
+      <p className="flight-mission" data-testid="flight-mission">
+        <strong>{p.missionName}</strong>
+        <span className="quiet"> at </span>
+        <span className="flight-site-name">{target.name}</span>
+        {siteMode === 'mission' && (
+          <>
+            <span className="quiet" aria-hidden="true">
+              {' · '}
+            </span>
             <button type="button" className="link flight-change-site" onClick={p.onChangeSite}>
               change site
             </button>
-          )}
-        </li>
-      </ul>
+          </>
+        )}
+        {p.onClose && (
+          <>
+            <span className="quiet" aria-hidden="true">
+              {' · '}
+            </span>
+            <button type="button" className="link flight-close" data-testid="flight-close" onClick={p.onClose}>
+              back to landing site
+            </button>
+          </>
+        )}
+      </p>
 
       {status.state === 'loading' && (
         <p className="menu-msg is-quiet flight-status" role="status">

@@ -108,9 +108,10 @@ export interface FlightLayers {
   stageNames: boolean // a label at each burn: the stage or engine that fires
   trail: boolean // draw the path only behind each craft, fading out
   trailHours: number | null // flight time over which the trail fades; null = everything flown stays
+  tube: boolean // the 1σ / 3σ landing-dispersion tube around the descent, once one has been computed
 }
 
-export const DEFAULT_LAYERS: FlightLayers = { paths: true, burns: true, burnNames: true, stageNames: false, trail: false, trailHours: 24 }
+export const DEFAULT_LAYERS: FlightLayers = { paths: true, burns: true, burnNames: true, stageNames: false, trail: false, trailHours: 24, tube: true }
 
 /** The events that get a burn marker and a burn label, in the plan's (time) order. */
 export function flightBurns(plan: MissionPlan): MissionEvent[] {
