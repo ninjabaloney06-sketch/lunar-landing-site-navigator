@@ -394,8 +394,9 @@ a:hover {
 
 /* "UTC" beside the axis dates, under the track names. */
 .tl-names-utc {
-  margin-top: var(--s-3);
+  margin-top: var(--s-8);
   font-family: var(--font-mono);
+  color: var(--faint);
 }
 
 .tl-body {

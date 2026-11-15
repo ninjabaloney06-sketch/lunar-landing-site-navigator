@@ -628,7 +628,7 @@
 
 .strip-readout {
   margin-top: var(--s-2);
-  font: 400 var(--t-small) / 1.4 var(--font-mono);
+  font: 400 var(--t-small) / 1.4 var(--font-sans); /* prose: sans (audit, 15 Nov) */
   color: var(--muted);
 }
 

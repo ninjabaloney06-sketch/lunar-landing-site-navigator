@@ -13,7 +13,7 @@
   --terrain: oklch(19% 0.01 260);
   --fg: oklch(94% 0.008 85);
   --muted: oklch(72% 0.01 85);
-  --faint: oklch(56% 0.01 85);
+  --faint: oklch(62% 0.01 85); /* 56 % fell below WCAG AA (4.5:1) for small text on --bg (audit, 15 Nov) */
   --sun: oklch(86% 0.15 95);
   --comms: oklch(72% 0.11 245);
   --hatch: oklch(72% 0.01 85);
@@ -25,7 +25,7 @@
   --t-display: 32px;
   --t-display-sm: 24px;
   --t-ui: 14px;
-  --t-small: 12px;
+  --t-small: 13px; /* body notes at least 13 px (audit, 15 Nov) */
 
   --s-1: 4px;
   --s-2: 8px;

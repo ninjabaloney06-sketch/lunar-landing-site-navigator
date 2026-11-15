@@ -148,12 +148,15 @@ const grown = (b: Box): Box => ({ x0: b.x0 - PAD_PX, y0: b.y0 - PAD_PX, x1: b.x1
  * an info box placed there could not be read, or would hide them.
  */
 const OVERLAY_SELECTORS = ['.top > :not(.actions-col)', '.top .actions-col > *', '.bottom > *', '.foot', '.poi-key', '.mission-panel', '.flight-panel', '.flight-transport']
-function overlayBoxes(stage: HTMLElement): Box[] {
+function overlayBoxes(stage: HTMLElement): (Box & { w: number })[] {
   const o = stage.getBoundingClientRect()
-  const out: Box[] = []
+  const out: (Box & { w: number })[] = []
   for (const el of document.querySelectorAll(OVERLAY_SELECTORS.join(','))) {
     const r = el.getBoundingClientRect()
-    if (r.width > 0 && r.height > 0) out.push({ x0: r.left - o.left, y0: r.top - o.top, x1: r.right - o.left, y1: r.bottom - o.top })
+    // The header's controls weigh three times the rest (phone audit, 15 Nov: with no free side, the card lay over
+    // Landing site and Dates; covering the timeline for a moment is the lesser harm).
+    const w = el.closest('.top') ? 3 : 1
+    if (r.width > 0 && r.height > 0) out.push({ x0: r.left - o.left, y0: r.top - o.top, x1: r.right - o.left, y1: r.bottom - o.top, w })
   }
   return out
 }
@@ -460,7 +463,7 @@ export function SceneView(props: Props) {
         .filter(([, x, y]) => x >= m - 0.5 && y >= m - 0.5 && x + w <= W - m + 0.5 && y + ht <= H - m + 0.5)
         .map(([side, x, y]) => [side, { x0: x, y0: y, x1: x + w, y1: y + ht }])
       const blocked = overlayBoxes(stage)
-      const cover = (b: Box) => blocked.reduce((s, o) => s + Math.max(0, Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0)) * Math.max(0, Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0)), 0)
+      const cover = (b: Box) => blocked.reduce((s, o) => s + o.w * Math.max(0, Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0)) * Math.max(0, Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0)), 0)
       let best: [string, Box] | null = null
       let least = Infinity
       for (const c of sides) {
