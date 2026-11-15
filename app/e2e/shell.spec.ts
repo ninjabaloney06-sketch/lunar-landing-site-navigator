@@ -7,6 +7,7 @@ import type { Locator } from '@playwright/test'
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
 const DEMO = `/#site=${RIDGE}&period=${AUG}`
+const SHOTS = 'test-results/shell' // copied to the run's reports folder by hand
 
 async function open(page: import('@playwright/test').Page, url = DEMO) {
   await page.goto(url)
@@ -36,17 +37,22 @@ test('U4: one Details control with an info icon and a visible label; it opens th
   await expect(drawer.getByRole('heading', { level: 3 }).first()).toHaveText('Find better dates')
 })
 
+test.use({ viewport: { width: 1280, height: 720 } })
+
 test('U12: no Flight plan tab; the current mission reaches the flight view in two clicks; back to the landing site; old flight links still open', async ({ page }) => {
   await open(page, `${DEMO}&name=Ridge+one&tmax=3`)
   await expect(page.getByRole('tab')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Flight plan' })).toHaveCount(0)
   // two clicks: the Mission control, then "Calculate flight" for the mission on screen (not saved)
   await page.getByTestId('mission').click()
+  await page.getByTestId('current-calculate-flight').scrollIntoViewIfNeeded()
+  await page.screenshot({ path: `${SHOTS}/1280-mission-calculate-flight.png` })
   await page.getByTestId('current-calculate-flight').click()
   await expect.poll(() => viewOf(page)).toBe('flight')
   const h = await hashOf(page)
   expect([h.get('site'), h.get('name'), h.get('tmax')]).toEqual([RIDGE, 'Ridge one', '3'])
   await expect(page.getByTestId('flight-panel')).toBeVisible()
+  await page.screenshot({ path: `${SHOTS}/1280-flight-back-link.png` })
   // a visible way back
   await page.getByTestId('back-to-site').click()
   await expect.poll(() => viewOf(page)).toBeNull() // the landing-site view is the default, so not in the link
@@ -106,7 +112,6 @@ test.describe('U9: a press outside closes every open menu and panel; the 3D canv
   })
 })
 
-const SHOTS = 'test-results/shell' // copied to the run's reports folder by hand
 
 test.describe('header at 375 px (visual sweep 8, 26, 29) and the drawer beside the header (11), the site subtitle (21)', () => {
   test('375 px: header controls on at most two rows, each at least 44 px tall; coordinates on one line; View and Simulate 44 px', async ({ page }) => {
@@ -208,4 +213,20 @@ test.describe('U8: the Full data switch in the site-details drawer', () => {
     await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toBeInViewport()
     await expect(drawer.getByTestId('full-data-switch')).toHaveAttribute('aria-checked', 'false')
   })
+})
+
+test('375 px: Calculate flight in the Mission menu and Back to landing site are in reach, no horizontal scroll', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await open(page)
+  await page.getByTestId('mission').click()
+  const calc = page.getByTestId('current-calculate-flight')
+  await calc.scrollIntoViewIfNeeded()
+  await expect(calc).toBeInViewport()
+  await page.screenshot({ path: `${SHOTS}/375-mission-calculate-flight.png` })
+  await calc.click()
+  const back = page.getByTestId('back-to-site')
+  await expect(back).toBeInViewport()
+  expect((await back.boundingBox())!.height).toBeGreaterThanOrEqual(44 - 0.01)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  await page.screenshot({ path: `${SHOTS}/375-flight-back-link.png` })
 })
