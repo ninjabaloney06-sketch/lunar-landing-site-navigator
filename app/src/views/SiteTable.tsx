@@ -22,6 +22,9 @@ import { capital, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
 import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
+import { customHorizon, customSiteBase } from '../data/customSite'
+import type { CapHorizon } from '../data/southcap'
+import { approxText } from './custom'
 import type { RowEntry } from './useSiteRows'
 
 export const YEAR_DAYS = 365
@@ -217,7 +220,8 @@ export function SiteTable(p: Props) {
   )
 }
 
-/** A saved mission as a row: summarize() for its own landing site, dates and stations. */
+/** A saved mission as a row: summarize() for its own landing site, dates and stations. A custom landing site
+ *  (data/customSite.ts) is rebuilt from its id and says that its values are approximate. */
 function MissionRow(p: {
   mission: MissionState
   sites: Site[]
@@ -228,13 +232,13 @@ function MissionRow(p: {
 }) {
   const { mission: m, sites, stations } = p
   // null = the default site, as in a link (App resolves it the same way)
-  const site = sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID)) ?? null
+  const site = sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID)) ?? (m.site ? customSiteBase(m.site) : null)
   const period = resolvePeriod(m, p.periods)
   const known = stations.map((s) => s.id)
   const chosen = m.st ? known.filter((id) => m.st!.includes(id)) : known
   const ids = chosen.length ? chosen : known
   const key = `${site?.id}|${period.startMs}|${period.endMs}|${ids.join(',')}`
-  const [state, setState] = useState<{ key: string; entry: RowEntry }>({ key, entry: { status: 'computing' } })
+  const [state, setState] = useState<{ key: string; entry: RowEntry; approx?: string }>({ key, entry: { status: 'computing' } })
   useEffect(() => {
     let alive = true
     if (!site) {
@@ -242,8 +246,8 @@ function MissionRow(p: {
       return
     }
     setState({ key, entry: { status: 'computing' } })
-    computeRow({ site, stations, ids, startMs: period.startMs, endMs: period.endMs }).then(
-      (r: RowResult) => alive && setState({ key, entry: { status: 'done', ...r } }),
+    Promise.all([computeRow({ site, stations, ids, startMs: period.startMs, endMs: period.endMs }), site.group === 'custom' ? customHorizon(site.id) : null]).then(
+      ([r, h]: [RowResult, CapHorizon | null]) => alive && setState({ key, entry: { status: 'done', ...r }, approx: h ? approxText(h.computed) : undefined }),
       (e: Error) => alive && setState({ key, entry: { status: 'none', reason: e instanceof NoDataError ? 'no data in this build' : 'could not load' } }),
     )
     return () => {
@@ -259,6 +263,7 @@ function MissionRow(p: {
         <span className="th-sub">
           {site ? site.name : 'unknown site'} · {period.label}
         </span>
+        {state.key === key && state.approx && <span className="th-sub">{state.approx}</span>}
         <span className="th-sub" data-testid="mission-flight">
           {flightSummary(m)}
         </span>

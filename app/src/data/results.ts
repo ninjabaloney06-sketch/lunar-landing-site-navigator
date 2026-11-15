@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { answerSentence, answerState, computeSeries, coverage, interpolate, summarize, windows } from '../geometry'
 import type { AnswerLines, CoverageState, Series, SiteGeo, Summary, Window } from '../geometry'
 import type { SceneFrame } from '../scene3d'
+import { customHorizon, customTerrain, loadCustomSite, parseCustomSiteId } from './customSite'
 import { loadEphem, loadHorizon, loadMonthsFor, loadTerrain, MissingDataError, monthKey } from './load'
 import type { Horizon, Site, Station } from './types'
 
@@ -34,6 +35,15 @@ export function resultsKey(i: ResultsInput): string {
 
 async function horizonOf(site: Site): Promise<Horizon> {
   const missing = () => new NoDataError(`No terrain data for ${site.name} in this build.`)
+  // A custom site: the browser's approximate mask from the south-cap rasters (no cap data, or a point they do not
+  // cover, is the same "no data" state as a missing horizon file).
+  if (site.group === 'custom') {
+    try {
+      return await customHorizon(site.id)
+    } catch (e) {
+      throw e instanceof MissingDataError || e instanceof RangeError ? missing() : e
+    }
+  }
   if (!site.horizon) throw missing()
   try {
     return await loadHorizon(site.horizon)
@@ -42,14 +52,29 @@ async function horizonOf(site: Site): Promise<Horizon> {
   }
 }
 
+/** The observer's ground point. A custom site's height is its horizon's (the site shown while that is computed has
+ *  none yet); a prepared site's is the one in sites.json. */
+function geoOf(site: Site, horizon: Horizon): SiteGeo {
+  return site.group === 'custom' ? { lat: horizon.lat, lon: horizon.lon, elev_m: horizon.elev_m } : { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
+}
+
+/** Horizon and ground point for the finder: as for the answer, except that a prepared site without a horizon file
+ *  gets null (the finder's own handling). */
+export async function finderInputs(site: Site): Promise<{ geo: SiteGeo; horizon: Horizon | null }> {
+  if (site.group === 'custom') {
+    const horizon = await horizonOf(site)
+    return { geo: geoOf(site, horizon), horizon }
+  }
+  return { geo: { lat: site.lat, lon: site.lon, elev_m: site.elev_m }, horizon: site.horizon ? await loadHorizon(site.horizon) : null }
+}
+
 // The series holds every station; a different selection reuses it and only recomputes coverage.
 const seriesCache = new Map<string, Promise<Series>>()
 
 async function buildSeries(site: Site, stations: Station[], startMs: number, endMs: number): Promise<Series> {
   const [horizon, months] = await Promise.all([horizonOf(site), loadMonthsFor(startMs, endMs)])
   if (!months) throw new NoDataError('No data for these dates in this build.')
-  const geo: SiteGeo = { lat: site.lat, lon: site.lon, elev_m: site.elev_m }
-  return computeSeries(months, geo, horizon, stations, startMs, endMs)
+  return computeSeries(months, geoOf(site, horizon), horizon, stations, startMs, endMs)
 }
 
 function getSeries(site: Site, stations: Station[], startMs: number, endMs: number): Promise<Series> {
@@ -122,10 +147,12 @@ export function useResults(input: ResultsInput | null): ResultsState {
 }
 
 /** SceneDeps.loadFrame for the app (scene contract): site, horizon, terrain tile and the body state at utcMs.
- *  Rejects when the ephemeris does not cover utcMs; the scene then keeps no invented sky. */
+ *  Rejects when the ephemeris does not cover utcMs; the scene then keeps no invented sky. A custom site id
+ *  (data/customSite.ts) gives the custom site, its capHorizon mask and, as no terrain file exists for it, capTerrain. */
 export function makeLoadFrame(sites: Site[]) {
   return async (siteId: string, utcMs: number): Promise<SceneFrame> => {
-    const site = sites.find((s) => s.id === siteId)
+    const custom = parseCustomSiteId(siteId) !== null
+    const site = sites.find((s) => s.id === siteId) ?? (custom ? await loadCustomSite(siteId) : null)
     if (!site) throw new Error(`unknown site ${siteId}`)
     const d = new Date(utcMs)
     const keys = [monthKey(utcMs), monthKey(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))]
@@ -135,8 +162,8 @@ export function makeLoadFrame(sites: Site[]) {
         throw e
       })
     const [horizon, terrain, months] = await Promise.all([
-      site.horizon ? optional(loadHorizon(site.horizon)) : Promise.resolve(null),
-      loadTerrain(site.id),
+      site.group === 'custom' ? customHorizon(site.id) : site.horizon ? optional(loadHorizon(site.horizon)) : Promise.resolve(null),
+      loadTerrain(site.id).then((t) => t ?? (site.group === 'custom' ? customTerrain(site.id) : null)),
       Promise.all(keys.map((k) => optional(loadEphem(k)))),
     ])
     const state = interpolate(

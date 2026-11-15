@@ -7,6 +7,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
+import { EXAMPLE } from '../src/views/examples'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -341,18 +342,91 @@ test('UX-03: a broken link falls back to defaults, never NaN', async ({ page }) 
   await expect(page.locator('body')).not.toContainText('NaN')
 })
 
-// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details) ----------
+// ---------- U6: greyed examples in the free-text fields; each is accepted exactly as shown ----------
+
+test('U6: the examples in the search, name, date and point-name fields are accepted as typed', async ({ page }) => {
+  await page.goto(`/#site=${RIDGE}&period=${SEP}`)
+  await expectAnswer(page, RIDGE, SEP, 60_000)
+  await page.getByTestId('mission').click()
+  const panel = page.getByTestId('mission-panel')
+  // Coordinates: Connecting Ridge, as sites.json and the header give them.
+  const search = panel.getByRole('combobox', { name: 'Search a site or type coordinates' })
+  await expect(search).toHaveAttribute('placeholder', `Site name, or e.g. ${EXAMPLE.coords}`)
+  await search.fill(EXAMPLE.coords)
+  await expect(panel.getByRole('status')).toContainText('89.46° S · 136.68° W')
+  await expect(page.getByTestId('coords')).toHaveText('89.46° S · 136.68° W')
+  await search.press('Enter') // typed coordinates add a point
+  await expect(panel.getByTestId('point')).toHaveCount(1)
+  // Point name.
+  const pointName = panel.getByTestId('point').getByRole('textbox')
+  await pointName.fill('')
+  await expect(pointName).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.point}`)
+  await pointName.fill(EXAMPLE.point)
+  await expect(panel.getByRole('button', { name: new RegExp(`^Select ${EXAMPLE.point},`) })).toBeVisible()
+  // Mission name.
+  const name = panel.getByLabel('Name', { exact: true })
+  await name.fill('')
+  await expect(name).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.name}`)
+  await name.fill(EXAMPLE.name)
+  await expect(page.getByTestId('mission')).toHaveText(EXAMPLE.name)
+  // Dates: from the September period, the Start example moves the mission to start on 16 Aug (its length kept), and
+  // the End example makes it 16–29 Aug, the named August period.
+  const start = panel.getByLabel('Start', { exact: true })
+  const end = panel.getByLabel('End', { exact: true })
+  await start.fill('')
+  await expect(start).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.start}`)
+  await start.fill(EXAMPLE.start)
+  await start.press('Enter')
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('from=2027-08-16T00:00Z')
+  await end.fill('')
+  await expect(end).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.end}`)
+  await end.fill(EXAMPLE.end)
+  await end.press('Enter')
+  await expect(end).toHaveValue(EXAMPLE.end)
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain(`period=${AUG}`)
+})
+
+// ---------- U7: Sun and Earth paths over the mission on the horizon chart ----------
+
+test('U7: the horizon chart draws each body\'s path over the mission, unbroken except at the north wrap, through its dot', async ({ page }) => {
+  await page.goto(`${DEMO}&t=2027-08-20T06:00Z&drawer=details`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
+  const width = await strip.locator('svg').evaluate((e) => (e as SVGSVGElement).width.baseVal.value)
+  for (const key of ['sun', 'earth']) {
+    const track = strip.getByTestId(`strip-track-${key}`)
+    const d = (await track.locator('path').evaluateAll((ps) => ps.map((p) => p.getAttribute('d') ?? ''))).join('')
+    // Vertices and the segments between them ("L" continues, "M" lifts the pen).
+    const cmds = [...d.matchAll(/([ML])(-?[\d.]+),(-?[\d.]+)/g)].map((m) => ({ c: m[1], x: Number(m[2]), y: Number(m[3]) }))
+    expect(cmds.length, `${key}: path vertices`).toBeGreaterThan(50)
+    for (let i = 1; i < cmds.length; i++) if (cmds[i].c === 'L') expect(Math.abs(cmds[i].x - cmds[i - 1].x), `${key}: no line across the chart`).toBeLessThan(width / 2)
+    // The dot at the cursor lies on its path (both from the same sample), unless it is pinned below the axis.
+    const dot = strip.getByTestId(`strip-${key}`)
+    if (!(await dot.getAttribute('class'))!.includes('is-below')) {
+      const c = await dot.locator('circle').evaluate((e) => ({ x: Number(e.getAttribute('cx')), y: Number(e.getAttribute('cy')) }))
+      expect(Math.min(...cmds.map((v) => Math.hypot(v.x - c.x, v.y - c.y))), `${key}: dot on its path`).toBeLessThan(0.1)
+    }
+  }
+  // The part already passed is drawn fainter than the part still to come.
+  const op = (sel: string) => strip.locator(`[data-testid=strip-track-sun] ${sel}`).evaluate((e) => Number(getComputedStyle(e).opacity))
+  expect(await op('.is-past')).toBeLessThan(await op('.is-next'))
+  await expect(strip).toContainText('lines: paths over the mission dates')
+})
+
+// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 4 controls, main screen 7, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 6 controls, main screen 10, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(4)
-    // 4 in the header + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is
-    // computed"; the answer line is text, not a control.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(6)
+    // 6 in the header (mission, date, Points of interest, Search, Find better dates, Details) + "View" and
+    // "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed" and "Docs"; the answer line is
+    // text, not a control.
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
     await noHorizontalScroll(page)
@@ -592,9 +666,9 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
-  // The warning is text, not a control: the header still has 4 controls and the main screen 7.
-  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(4)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(7)
+  // The warning is text, not a control: the header still has 6 controls and the main screen 10.
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(6)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
@@ -741,3 +815,80 @@ for (const vp of [
     await shot('drawer-sources')
   })
 }
+
+// ---------- wave 3, E3: the Moon label at the Earth and Sun viewpoints ----------
+
+type Pt = { x: number; y: number; visible: boolean }
+type MoonScene = {
+  ready: Promise<void>
+  goTo(v: string): Promise<boolean>
+  load(siteId: string, utc: number): Promise<void>
+  handle(): { labelPoint(n: string): Pt | null }
+}
+
+/** The label's anchor as SceneView placed it, beside labelPoint('moon'), after two frames. */
+const moonLabel = (page: Page) =>
+  page.evaluate(async () => {
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+    const p = (window as unknown as { __scene: MoonScene }).__scene.handle().labelPoint('moon')
+    const box = document.querySelector('[data-testid=label-moon]')!
+    const anchor = box.parentElement as HTMLElement
+    const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(anchor.style.transform)
+    return { p, hidden: anchor.hidden, at: m ? { x: Number(m[1]), y: Number(m[2]) } : null, text: box.textContent }
+  })
+
+test('Moon label: hidden at the globe, site and eye levels; at the Sun and Earth viewpoints it sits where labelPoint("moon") puts it', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`/?test=1#site=${RIDGE}&period=${AUG}`)
+  await expectAnswer(page, RIDGE, AUG, 60_000)
+  await page.waitForFunction(() => (window as unknown as { __scene?: unknown }).__scene !== undefined)
+  await page.evaluate(() => (window as unknown as { __scene: MoonScene }).__scene.ready)
+  // Site level, eye level and the globe: the scene gives no Moon anchor, the label is hidden.
+  for (const key of ['', 'e', 'Escape']) {
+    if (key) await page.keyboard.press(key)
+    const s = await moonLabel(page)
+    expect(s.p, `no anchor (${key || 'site'})`).toBeNull()
+    expect(s.hidden).toBe(true)
+  }
+  // Half-day steps over 17 days. Sun viewpoint chosen once, then the camera follows the Sun (the scene's own S8
+  // check): the Moon starts behind the camera and passes through the picture. Earth viewpoint chosen afresh at each
+  // step: the Moon is in the picture around 16–18 Aug 2027. Wherever labelPoint gives a visible point the label shows
+  // "Moon" there, and nowhere else.
+  const T0 = Date.parse('2027-08-03T00:00:00Z')
+  const seen: Record<string, number> = { sun: 0, earth: 0 }
+  const shot: Record<string, boolean> = {}
+  const at = (t: number) => page.evaluate((t) => (window as unknown as { __scene: MoonScene }).__scene.load('connecting-ridge', t), t)
+  const go = async (v: string) => expect(await page.evaluate((v) => (window as unknown as { __scene: MoonScene }).__scene.goTo(v), v)).toBe(true)
+  for (const vp of ['sun', 'earth']) {
+    await at(T0)
+    await go(vp)
+    for (let k = 0; k <= 34; k++) {
+      await at(T0 + k * 43_200_000)
+      if (vp === 'earth') await go(vp)
+      const s = await moonLabel(page)
+      if (s.p && s.p.visible) {
+        seen[vp]++
+        expect(s.hidden, `${vp} step ${k}: shown`).toBe(false)
+        expect(s.text).toBe('Moon')
+        expect(Math.abs(s.at!.x - s.p.x), `${vp} step ${k}: x`).toBeLessThan(0.11)
+        expect(Math.abs(s.at!.y - s.p.y), `${vp} step ${k}: y`).toBeLessThan(0.11)
+        await expect(page.getByTestId('label-moon')).toBeVisible()
+        // Seen from the Sun's side the Moon and Earth nearly coincide: their labels must not cover each other.
+        if (await page.getByTestId('label-earth').isVisible()) {
+          const [m, e] = [(await page.getByTestId('label-moon').boundingBox())!, (await page.getByTestId('label-earth').boundingBox())!]
+          const overlap = m.x < e.x + e.width && e.x < m.x + m.width && m.y < e.y + e.height && e.y < m.y + m.height
+          expect(overlap, `${vp} step ${k}: Moon and Earth labels apart`).toBe(false)
+        }
+        if (!shot[vp] && s.p.x > 200 && s.p.x < 1240) {
+          shot[vp] = true
+          await page.evaluate(() => document.fonts.ready)
+          await page.screenshot({ path: `test-results/moon-label-${vp}-1440.png`, animations: 'disabled' })
+        }
+      } else expect(s.hidden, `${vp} step ${k}: hidden`).toBe(true)
+    }
+  }
+  console.log(`Moon label: shown at ${seen.sun} of 35 steps at the Sun viewpoint, ${seen.earth} at the Earth viewpoint`)
+  expect(seen.sun).toBeGreaterThan(0)
+  expect(seen.earth).toBeGreaterThan(0)
+})

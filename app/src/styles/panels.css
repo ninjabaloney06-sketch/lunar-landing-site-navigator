@@ -438,6 +438,30 @@
   stroke-width: 1.5;
 }
 
+/* U7: each body's path over the mission period; brighter for the part still to come. */
+.strip-track path {
+  fill: none;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.strip-track-sun path {
+  stroke: var(--sun);
+}
+
+.strip-track-earth path {
+  stroke: var(--comms);
+}
+
+.strip-track .is-past {
+  opacity: 0.3;
+}
+
+.strip-track .is-next {
+  opacity: 0.75;
+}
+
 .strip-body-num {
   font-family: var(--font-mono);
   fill: var(--muted);

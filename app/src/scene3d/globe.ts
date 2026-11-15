@@ -1,9 +1,17 @@
 // Space scene for the globe level: origin = Moon centre, axes = MOON_ME, unit = km. Textured Moon lit by the
 // true Sun direction, one pin per site, click on the surface → planetocentric lat/lon.
+// South polar cap (wave 3): once the cap data are loaded (data/southcap.ts), the part of the sphere south of the
+// cap's edge is replaced by the cap mesh (southcap.ts: real relief from the 400 m base, its own texture), so the
+// equirectangular maps no longer pinch into streaks at the pole. Pins, user points and points of interest there
+// stand on that relief, the pin region's tint is mixed into the cap's own pixels, and picking hits it. Without the cap data the
+// whole sphere stays; the checker texture (T16) always shows the whole sphere.
 
 import {
   BoxGeometry,
+  BufferGeometry,
   DirectionalLight,
+  DoubleSide,
+  Float32BufferAttribute,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -18,10 +26,18 @@ import {
   Vector2,
   Vector3,
 } from 'three'
+import { Line2 } from 'three/examples/jsm/lines/Line2.js'
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { loadCap, type SouthCap } from '../data/southcap'
 import type { Site } from '../data/types'
 import { MOON_RADIUS_KM, siteVector } from '../geometry'
 import { checkerTexture, type TextureSet } from './assets'
 import { SPHERE_TO_BODY, latLonOf, v3 } from './frames'
+import type { ScenePoi } from './index'
+import { PinField } from './pins'
+import { PIN_REGION_NORTH_LAT } from './region'
+import { capGeometry, capSurfacePoint, globeWithoutCap, matchRimNormals, type NormalSampler } from './southcap'
 
 const PIN_LEN_PX = 26
 const PIN_W_PX = 1.6
@@ -31,6 +47,44 @@ const MARK_HEAD_PX = 3
 const PIN_MAX_DIST_KM = 60_000 // farther out the pins would be longer than the Moon is wide: hidden
 const NAME_RADIUS_PX = 10
 const Z = new Vector3(0, 0, 1)
+// The pin region (S5): the cap south of region.ts PIN_REGION_NORTH_LAT, where user points can be placed. Drawn in
+// the colour of the user points themselves (0xece9e2, tokens.css --fg), unlit, so it reads the same on the lit
+// and on the dark side: a line on the boundary and a faint tint over the cap.
+const REGION_COLOR = 0xece9e2
+const REGION_LINE_PX = 1.5
+const REGION_LINE_OPACITY = 0.9
+const REGION_TINT_OPACITY = 0.09
+const REGION_LIFT_KM = 0.4 // above the Moon's mesh, below the 1 km the camera keeps from the sphere
+const REGION_STEP_DEG = 1 // spacing of the vertices along the boundary and across the cap
+
+/**
+ * The globe's normal map as the shader reads it (bilinear, u wrapping, v clamped, image row 0 at v = 1), for the
+ * cap's rim normals (southcap.ts matchRimNormals). null where the image cannot be read back.
+ */
+function normalSampler(img: CanvasImageSource & { width: number; height: number }): NormalSampler | null {
+  const w = img.width
+  const h = img.height
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx || !w || !h) return null
+  ctx.canvas.width = w
+  ctx.canvas.height = h
+  ctx.drawImage(img, 0, 0)
+  const d = ctx.getImageData(0, 0, w, h).data
+  const px = (x: number, y: number, k: number) => d[(Math.min(Math.max(y, 0), h - 1) * w + (((x % w) + w) % w)) * 4 + k] / 127.5 - 1
+  return (u, v) => {
+    const fx = u * w - 0.5
+    const fy = (1 - v) * h - 0.5
+    const x0 = Math.floor(fx)
+    const y0 = Math.floor(fy)
+    const dx = fx - x0
+    const dy = fy - y0
+    const out: [number, number, number] = [0, 0, 0]
+    for (let k = 0; k < 3; k++) {
+      out[k] = (px(x0, y0, k) * (1 - dx) + px(x0 + 1, y0, k) * dx) * (1 - dy) + (px(x0, y0 + 1, k) * (1 - dx) + px(x0 + 1, y0 + 1, k) * dx) * dy
+    }
+    return out
+  }
+}
 
 /** A user point on the globe (Brief C4 part 3): a place, never a computed site. */
 export interface GlobeMarker {
@@ -61,10 +115,28 @@ export class GlobeWorld {
   private readonly moon: Mesh
   private readonly moonMat: MeshPhysicalMaterial
   private checkerMat: MeshBasicMaterial | null = null
+  private readonly sphere: SphereGeometry // the whole sphere
+  // The south polar cap (wave 3), once its data are loaded: its mesh, the sphere without it, its edge.
+  private cap: { mesh: Mesh; cut: BufferGeometry; northLat: number } | null = null
+  /** Resolves when the cap is in the scene, or when the cap data turned out to be missing. */
+  readonly capReady: Promise<void>
+  private texture: 'real' | 'checker' = 'real'
+  private capEnabled = true // test helper: off = the globe as it was without the cap
+  private moonShown = true
+  private sitesList: Site[] = []
+  private markList: GlobeMarker[] = []
+  private poiList: ScenePoi[] = []
+  // The pin region's tint on the cap (wave 3): mixed into the cap's own fragments, so it lies exactly on the relief.
+  private readonly capTint = { value: 0 }
   private readonly pins: Pin[] = []
   private readonly pinGroup = new Group()
   private readonly marks: Mark[] = []
   private readonly markGroup = new Group()
+  private readonly pois = new PinField()
+  private readonly region = new Group()
+  private regionFlat = new Mesh() // the tint on the sphere, without the cap data
+  private regionLine: number[] = []
+  private regionCap: number[] = []
   private readonly sunLight = new DirectionalLight(0xfff4e6, 3 * Math.PI)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
@@ -81,27 +153,228 @@ export class GlobeWorld {
       roughness: 1,
       metalness: 0,
     })
-    this.moon = new Mesh(new SphereGeometry(MOON_RADIUS_KM, 256, 128), this.moonMat)
+    this.sphere = new SphereGeometry(MOON_RADIUS_KM, 256, 128)
+    this.moon = new Mesh(this.sphere, this.moonMat)
     this.moon.quaternion.copy(SPHERE_TO_BODY) // texture longitude 0 → +x MOON_ME, north → +z (T16)
-    this.scene.add(this.moon, this.pinGroup, this.markGroup, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+    this.buildRegion()
+    this.scene.add(this.moon, this.region, this.pinGroup, this.markGroup, this.pois.group, this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target)
+    // The whole sphere stays when the cap data are missing.
+    this.capReady = loadCap()
+      .then((c) => this.addCap(c, tex))
+      .catch(() => undefined)
   }
 
-  /** 'checker' = T16 debug texture with labelled meridians, unlit so the terminator cannot hide it. */
-  setTexture(mode: 'real' | 'checker') {
-    if (mode === 'checker') {
-      this.checkerMat ??= new MeshBasicMaterial({ map: checkerTexture(), toneMapped: false })
-      this.moon.material = this.checkerMat
-    } else this.moon.material = this.moonMat
+  /**
+   * The cap mesh in MOON_ME km as built (no rotation), the sphere cut at its edge with the whole sphere's texture
+   * coordinates (southcap.ts globeWithoutCap: SphereGeometry with a shorter thetaLength alone would stretch the
+   * maps over the remaining latitudes), and everything that stands on the surface placed again on the relief.
+   */
+  private addCap(c: SouthCap, tex: TextureSet) {
+    const mat = new MeshPhysicalMaterial({
+      specularIntensity: 0,
+      map: tex.cap ?? null,
+      color: tex.cap ? 0xffffff : 0x8b8781,
+      roughness: 1,
+      metalness: 0,
+    })
+    // The tint as the overlay on the sphere draws it (unlit, opacity REGION_TINT_OPACITY, blended over the finished
+    // pixel), applied after the cap's tone mapping and output encoding: mix(pixel, REGION_COLOR, tint). A second mesh
+    // over the 197,377-vertex cap would have needed a lift above the relief; this lies exactly on it.
+    const c255 = (shift: number) => (((REGION_COLOR >> shift) & 255) / 255).toFixed(6)
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uRegionTint = this.capTint
+      shader.fragmentShader =
+        'uniform float uRegionTint;\n' +
+        shader.fragmentShader.replace(
+          '#include <colorspace_fragment>',
+          `#include <colorspace_fragment>\n\tgl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( ${c255(16)}, ${c255(8)}, ${c255(0)} ), uRegionTint );`,
+        )
+    }
+    const geo = capGeometry(c)
+    const normals = tex.moonNormal ? normalSampler(tex.moonNormal.image as CanvasImageSource & { width: number; height: number }) : null
+    if (normals) matchRimNormals(geo, c.northLat, normals)
+    const mesh = new Mesh(geo, mat)
+    this.cap = { mesh, cut: globeWithoutCap(MOON_RADIUS_KM, 256, 128, c.northLat), northLat: c.northLat }
+    this.scene.add(mesh)
+    this.applyMoon()
+    this.placeAgain()
   }
+
+  /** Which Moon is drawn: with the real texture the cut sphere and the cap, with the checker the whole sphere. */
+  private applyMoon() {
+    const real = this.texture === 'real'
+    const cap = this.capOn()
+    this.moon.material = real ? this.moonMat : (this.checkerMat ??= new MeshBasicMaterial({ map: checkerTexture(), toneMapped: false }))
+    this.moon.geometry = cap ? cap.cut : this.sphere
+    this.moon.visible = this.moonShown
+    if (this.cap) this.cap.mesh.visible = this.moonShown && cap !== null
+    // The region's tint: on the cap's own surface while the cap is drawn, the overlay on the sphere otherwise.
+    this.regionFlat.visible = cap === null
+    this.capTint.value = cap && this.region.visible ? REGION_TINT_OPACITY : 0
+  }
+
+  /** Test helper: the cap on (default) or off (the whole sphere, as before wave 3), for before/after pictures. */
+  useCap(on: boolean) {
+    this.capEnabled = on
+    this.applyMoon()
+    this.placeAgain()
+  }
+
+  /** The cap when it is part of the Moon as drawn (loaded, real texture); setMoonVisible() does not change it. */
+  private capOn(): { mesh: Mesh; cut: BufferGeometry; northLat: number } | null {
+    return this.texture === 'real' && this.capEnabled ? this.cap : null
+  }
+
+  /** The meshes of the Moon's surface: the sphere, and the cap when it is part of it. */
+  private ground(): Mesh[] {
+    const cap = this.capOn()
+    return cap ? [this.moon, cap.mesh] : [this.moon]
+  }
+
+  /**
+   * Point of the drawn surface (MOON_ME km) at planetocentric lat/lon: on the cap's relief where the cap is shown,
+   * on the 1737.4 km sphere elsewhere.
+   */
+  surfacePoint(lat: number, lon: number): Vector3 {
+    const p = v3(siteVector(lat, lon, 0))
+    const cap = this.capOn()
+    if (!cap || lat > cap.northLat) return p
+    return capSurfacePoint(cap.mesh.geometry, cap.northLat, p.clone().normalize()) ?? p
+  }
+
+  /** Distance (km) from the Moon's centre to the drawn surface below the point p (the camera's floor). */
+  groundRadius(p: Vector3): number {
+    const cap = this.capOn()
+    if (!cap) return MOON_RADIUS_KM
+    const u = p.clone().normalize()
+    if (latLonOf(u).lat > cap.northLat) return MOON_RADIUS_KM
+    return capSurfacePoint(cap.mesh.geometry, cap.northLat, u)?.length() ?? MOON_RADIUS_KM
+  }
+
+  /** Site pins, user points and points of interest stand on the surface as drawn now. */
+  private placeAgain() {
+    this.sitesDrawn = null
+    this.setSites(this.sitesList, this.selected)
+    this.setMarkers(this.markList)
+    this.setPois(this.poiList)
+  }
+
+  /**
+   * The pin region. Every vertex comes from geometry.siteVector at the constant's latitude or south of it, so
+   * the boundary is where region.ts inPinRegion() changes, in the same latitude convention.
+   */
+  private buildRegion() {
+    const north = PIN_REGION_NORTH_LAT
+    const line: number[] = []
+    for (let lon = 0; lon <= 360; lon += REGION_STEP_DEG) line.push(...siteVector(north, lon, REGION_LIFT_KM))
+    const boundary = new Line2(
+      new LineGeometry().setPositions(line),
+      new LineMaterial({ color: REGION_COLOR, linewidth: REGION_LINE_PX, transparent: true, opacity: REGION_LINE_OPACITY, depthWrite: false, toneMapped: false }),
+    )
+    boundary.renderOrder = 2
+    // The cap: parallels from the boundary to the pole, a vertex every REGION_STEP_DEG of longitude.
+    const rings = Math.max(2, Math.ceil((north + 90) / REGION_STEP_DEG))
+    const cols = Math.round(360 / REGION_STEP_DEG)
+    const cap: number[] = []
+    for (let i = 0; i <= rings; i++) {
+      const lat = north + ((-90 - north) * i) / rings
+      for (let j = 0; j <= cols; j++) cap.push(...siteVector(lat, (360 * j) / cols, REGION_LIFT_KM))
+    }
+    const idx: number[] = []
+    for (let i = 0; i < rings; i++) {
+      for (let j = 0; j < cols; j++) {
+        const a = i * (cols + 1) + j
+        const b = a + cols + 1
+        idx.push(a, b, a + 1, a + 1, b, b + 1)
+      }
+    }
+    const geo = new BufferGeometry()
+    geo.setAttribute('position', new Float32BufferAttribute(cap, 3))
+    geo.setIndex(idx)
+    const tint = new Mesh(
+      geo,
+      new MeshBasicMaterial({ color: REGION_COLOR, transparent: true, opacity: REGION_TINT_OPACITY, depthWrite: false, toneMapped: false, side: DoubleSide }),
+    )
+    tint.renderOrder = 1
+    this.region.add(tint, boundary)
+    this.regionFlat = tint
+    this.regionLine = line
+    this.regionCap = cap
+  }
+
+  /**
+   * Test helpers: the boundary line's vertices and the vertices of the tint overlay on the sphere (MOON_ME km),
+   * and the region on or off. With the cap drawn, the tint is the cap's own surface (south of its edge by
+   * construction), mixed in by its shader.
+   */
+  regionInfo(): { boundary: number[][]; cap: number[][] } {
+    const rows = (a: number[]) => Array.from({ length: a.length / 3 }, (_, i) => [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]])
+    return { boundary: rows(this.regionLine), cap: rows(this.regionCap) }
+  }
+
+  /** Test helper: the Moon's own mesh on or off (the pins and the region stay). */
+  showMoon(on: boolean) {
+    this.moonShown = on
+    this.applyMoon()
+  }
+
+  /** Test helper: the cap as drawn now, and the southernmost latitude of any sphere vertex in a face. */
+  capInfo(): { loaded: boolean; visible: boolean; vertices: number; northLat: number | null; sphereSouthLat: number; sphereFaces: number; tint: number } {
+    const g = this.moon.geometry
+    const pos = g.getAttribute('position')
+    const idx = g.getIndex()
+    const v = new Vector3()
+    let south = 90
+    const n = idx ? idx.count : pos.count
+    for (let k = 0; k < n; k++) {
+      v.fromBufferAttribute(pos, idx ? idx.getX(k) : k).applyQuaternion(this.moon.quaternion)
+      south = Math.min(south, latLonOf(v).lat)
+    }
+    return {
+      loaded: this.cap !== null,
+      visible: this.cap?.mesh.visible ?? false,
+      vertices: this.cap?.mesh.geometry.getAttribute('position').count ?? 0,
+      northLat: this.cap?.northLat ?? null,
+      sphereSouthLat: south,
+      sphereFaces: n / 3,
+      tint: this.capTint.value,
+    }
+  }
+
+  /** Test helper: the Moon point under the pointer with the mesh that was hit. */
+  hitAt(ndc: Vector2, cam: PerspectiveCamera): { point: number[]; mesh: 'cap' | 'sphere' } | null {
+    this.raycaster.setFromCamera(ndc, cam)
+    const hit = this.raycaster.intersectObjects(this.ground(), false)[0]
+    return hit ? { point: hit.point.toArray(), mesh: this.cap && hit.object === this.cap.mesh ? 'cap' : 'sphere' } : null
+  }
+
+  showRegion(on: boolean) {
+    this.region.visible = on
+    this.applyMoon()
+  }
+
+  /** 'checker' = T16 debug texture with labelled meridians, unlit so the terminator cannot hide it (whole sphere, no cap). */
+  setTexture(mode: 'real' | 'checker') {
+    if (mode === this.texture) return
+    this.texture = mode
+    this.applyMoon()
+    if (this.cap) this.placeAgain()
+  }
+
+  private sitesDrawn: Site[] | null = null
 
   setSites(sites: Site[], selectedId: string | null) {
     this.selected = selectedId
+    // Called on every frame update: the pins are rebuilt only for another list of sites.
+    if (sites === this.sitesDrawn) return
+    this.sitesDrawn = sites
+    this.sitesList = sites
     for (const p of this.pins) this.pinGroup.remove(p.group)
     this.pins.length = 0
     const stemMat = new MeshBasicMaterial({ color: 0xd9d6cf, toneMapped: false })
     const headMat = new MeshBasicMaterial({ color: 0xf2efe8, toneMapped: false })
     for (const site of sites) {
-      const surface = v3(siteVector(site.lat, site.lon, 0))
+      const surface = this.surfacePoint(site.lat, site.lon)
       const group = new Group()
       group.position.copy(surface)
       group.quaternion.copy(new Quaternion().setFromUnitVectors(Z, surface.clone().normalize()))
@@ -115,11 +388,12 @@ export class GlobeWorld {
 
   /** User points: a thin stem with a square head, so they are not mistaken for a site pin (round head). */
   setMarkers(markers: GlobeMarker[]) {
+    this.markList = markers
     for (const k of this.marks) this.markGroup.remove(k.group)
     this.marks.length = 0
     const mat = new MeshBasicMaterial({ color: 0xf2efe8, toneMapped: false })
     for (const m of markers) {
-      const surface = v3(siteVector(m.lat, m.lon, 0))
+      const surface = this.surfacePoint(m.lat, m.lon)
       const group = new Group()
       group.position.copy(surface)
       group.quaternion.copy(new Quaternion().setFromUnitVectors(Z, surface.clone().normalize()))
@@ -131,6 +405,34 @@ export class GlobeWorld {
     }
   }
 
+  /** Points of interest: a pin each in its colour, the site-pin shape for landing records, a triangle otherwise. */
+  setPois(pois: ScenePoi[]) {
+    this.poiList = pois
+    this.pois.set(
+      pois.map((p) => {
+        const base = this.surfacePoint(p.lat, p.lon)
+        return { kind: 'poi', id: p.id, name: p.name, shape: p.landing ? 'site' : 'poi', base, up: base.clone().normalize(), color: p.color }
+      }),
+    )
+  }
+
+  get poiCount() {
+    return this.pois.count
+  }
+
+  /** Head position (MOON_ME km) of a point of interest's pin. */
+  poiTop(id: string): Vector3 | null {
+    const i = this.pois.indexOf('poi', id)
+    return i < 0 ? null : this.pois.head(i, new Vector3())
+  }
+
+  /** The point of interest whose head is within 10 px of the pointer and not behind the Moon. */
+  poiAt(ndc: Vector2, cam: PerspectiveCamera, sizePx: Vector2): string | null {
+    if (!this.pinGroup.visible) return null
+    const i = this.pois.nearest('poi', ndc, cam, sizePx.x, sizePx.y, NAME_RADIUS_PX, (head) => this.occluded(cam.position, head))
+    return i < 0 ? null : this.pois.item(i)!.id
+  }
+
   setLights(sunDirMe: Vector3, earthDirMe: Vector3, earthFill: number) {
     this.sunLight.position.copy(sunDirMe).multiplyScalar(1e5)
     this.earthLight.position.copy(earthDirMe).multiplyScalar(1e5)
@@ -139,7 +441,8 @@ export class GlobeWorld {
 
   /** Constant on-screen pin size. */
   updatePins(cam: PerspectiveCamera, heightPx: number) {
-    this.pinGroup.visible = this.markGroup.visible = cam.position.length() < PIN_MAX_DIST_KM
+    this.pinGroup.visible = this.markGroup.visible = this.pois.group.visible = cam.position.length() < PIN_MAX_DIST_KM
+    if (this.pois.group.visible) this.pois.update(cam, heightPx)
     for (const k of this.marks) {
       const dist = cam.position.distanceTo(k.surface)
       const perPx = (2 * dist) / (cam.projectionMatrix.elements[5] * heightPx)
@@ -214,7 +517,7 @@ export class GlobeWorld {
   /** Surface point of the Moon under the pointer (planetocentric lat/lon, MOON_ME), pins ignored. */
   surface(ndc: Vector2, cam: PerspectiveCamera): { lat: number; lon: number } | null {
     this.raycaster.setFromCamera(ndc, cam)
-    const hit = this.raycaster.intersectObject(this.moon, false)[0]
+    const hit = this.raycaster.intersectObjects(this.ground(), false)[0]
     return hit ? latLonOf(hit.point) : null
   }
 
@@ -234,20 +537,19 @@ export class GlobeWorld {
     }
     if (best) return { lat: best.site.lat, lon: best.site.lon }
     this.raycaster.setFromCamera(ndc, cam)
-    const hit = this.raycaster.intersectObject(this.moon, false)[0]
+    const hit = this.raycaster.intersectObjects(this.ground(), false)[0]
     return hit ? latLonOf(hit.point) : null
   }
 
-  /** True when the Moon blocks the segment from `from` to `to` (km). */
+  /**
+   * True when the Moon blocks the segment from `from` to `to` (km): a sphere just inside the Moon, or just inside
+   * `to` where `to` is lower (a pin's head in a crater of the cap, seen from close by).
+   */
   occluded(from: Vector3, to: Vector3): boolean {
     const dir = to.clone().sub(from)
     const len = dir.length()
-    const hit = new Ray(from, dir.normalize()).intersectSphere(new Sphere(new Vector3(), MOON_RADIUS_KM * 0.9995), new Vector3())
+    const r = Math.min(MOON_RADIUS_KM * 0.9995, to.length() * 0.9995)
+    const hit = new Ray(from, dir.normalize()).intersectSphere(new Sphere(new Vector3(), r), new Vector3())
     return hit !== null && hit.distanceTo(from) < len - 1e-6
-  }
-
-  /** True when the Moon blocks the ray from `from` along unit `dir`. */
-  occludedDir(from: Vector3, dir: Vector3): boolean {
-    return new Ray(from, dir).intersectSphere(new Sphere(new Vector3(), MOON_RADIUS_KM * 0.9995), new Vector3()) !== null
   }
 }

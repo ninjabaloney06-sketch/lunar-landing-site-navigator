@@ -9,6 +9,7 @@ export const TEXTURE_FILES = {
   moonNormal: 'moon_normal_2k.png',
   stars: 'stars_4k.jpg',
   earth: 'earth_2k.jpg',
+  cap: 'cap_color_2k.webp', // the south polar cap's colour in its own layout (southcap.ts CAP_TEXTURE_FILE), sRGB
 } as const
 
 export type TextureName = keyof typeof TEXTURE_FILES

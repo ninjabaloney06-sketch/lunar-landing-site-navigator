@@ -31,6 +31,8 @@ raw NASA data (outside git)  →  Python scripts (scripts/)  →  JSON, binary t
 | `scripts/assessments.py` | both LOLA models, the Sun-visibility maps, the Diviner table, `sites.json` | `assessments.json` |
 | `scripts/windows.py` | — | nothing: the Python reference of the browser geometry, used by tests |
 | `scripts/export_fixtures.py` | the shipped `ephem/`, `sites.json`, `horizons/` | `app/src/test/fixtures.json`: 200 test cases |
+| `scripts/pois.py` | `docs/POIs/*.json` (seven research files and `additional-sites.json`) | `pois.json`: one record per point of interest, 206 on 14 Nov 2026 |
+| `scripts/poi_horizons.py` | `docs/POIs/*.json`, `LDEM_80S_20MPP_ADJ.TIF`, `LDEM_60S_120MPP_ADJ.TIF`, `scripts/sites.csv`, `ephem/YYYY-MM.json` | `horizons/poi-<group>-<id>.json`: terrain horizon per point; `search-sites.json`: 180 entries on 14 Nov 2026 |
 
 3. **The browser** loads `sites.json`, `periods.json` and `stations.json` at start, then the horizon of the chosen site and the ephemeris months the chosen dates need. All results on screen are computed in the browser from these files (`app/src/geometry/`). There is no server-side computation, no database, no account, no cookie.
 
@@ -90,6 +92,19 @@ The minimum elevation is one value per antenna for all azimuths: 6.0° for the t
 
 **15. 3D scene (`app/src/scene3d/`).** A view of the same geometry, not a source of numbers. Sun, Earth and stars are drawn at their true directions and true angular sizes. Lit and dark are never taken from rendered shadows. At eye level the terrain silhouette is the horizon of step 4.
 
+### Points of interest
+
+The points of interest come from the records in `docs/POIs/`: seven research files and `additional-sites.json`, which adds researched points. Each file states its source (`derived_from`), its coordinate convention and its validation status in its header fields.
+
+- **Which records become pins.** A record is shipped only if its geometry is a point and it has at least one source URL. Regional findings without coordinates are not pins (`scripts/pois.py`).
+- **Groups.** Hazards (`hazards.json`), Water and volatiles (`ice-volatile-evidence.json`), Permanent shadow (`psr-cold-traps.json`), Sunlit points (`illumination-sites.json`), Landing sites (`landing-sites.json` and `additional-sites.json`), Science features (`science-features.json`). `pgda-study-sites.json` has names only and contributes no point.
+- **Values.** `scripts/pois.py` copies each value from its record by a fixed mapping: name, category, summary, facts, evidence, limitations and sources. Nothing is reworded. Labels of the info box come from `KEY_LABELS` in `scripts/pois.py`.
+- **Coordinates.** Latitude is planetocentric, south negative. Longitude is taken from `lon_east_180` (east-positive, -180 to 180) and must agree with `lon_east_360` to 1e-9°, or the script stops. Where a source names no frame, `MOON_ME` is assumed (`app/src/data/pois.ts`).
+- **Status.** These are research notes, not validated by the science lead. Landing records carry the note that their coordinates still need a check.
+- **What is shown.** The app shows only points south of 80° S (`app/src/scene3d/region.ts`; filter in `app/src/views/poiLayer.ts`). On 14 Nov 2026 `pois.json` holds 206 records, of which 195 lie at or south of 80° S.
+- **Counts on 14 Nov 2026** (from `pois.json`): Landing sites 88, Permanent shadow 69, Sunlit points 18, Science features 16, Water and volatiles 8, Hazards 7.
+- **Terrain horizons.** `scripts/poi_horizons.py` gives each point that lies inside the 20 m model a terrain horizon, by the method of step 4. Each one is copied into `search-sites.json` as a site-shaped entry with its `poi_id`. A point without a horizon file shows "no data" in the search. Its `far_side` flag is derived from the shipped ephemeris and ignores terrain.
+
 ### Validation results
 
 Copied from [docs/event/validation.md](event/validation.md) on 14 Nov 2026 with their status. That file is the record; if the two differ, it is right.
@@ -131,7 +146,7 @@ Automated tests (run on 14 Nov 2026, see README): 206 Python tests, 76 unit test
 - Terrain beyond 80° S. Outside the 20 m model the horizon uses a 120 m model, coarser than the 20 m used near the site. This matters for IM-1 only, which lies about 4 km from the edge of the 20 m model: its skyline to the north-north-east (52 of 720 directions) comes from 120 m data.
 - The change of the horizon across the width of a disc. The horizon is taken at the disc centre's azimuth.
 - Scattered light, earthshine and heat from surrounding terrain as inputs to any result.
-- Arbitrary coordinates. Only the 18 listed sites can be analysed.
+- Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see "Custom landing sites"). North of 80° S only the listed sites can be analysed.
 - Launch, transfer and descent in the site analysis. The Rocket flight menu (Part 2) computes them separately; its result does not enter any site value or ranking. Its energy multiplier is for one reference mission per design (see `app/src/flight/energyBaseline.ts`) and does not include the Moon's uneven gravity, station keeping or abort constraints.
 - Uncertainty. No error bars are computed; errors of the terrain model are not propagated.
 
@@ -214,6 +229,52 @@ Added after this text was written: see [BUILD_LOG.md](../BUILD_LOG.md).
 The layer toggles (flight path, burns, burn names, stage names, trail only) are chips in the playback bar, always in view.
 
 **States.** While data loads, the answer line says so and the tracks stay empty. A site or date without data gives a plain "no data" message. The previous selection's values are never shown under a new selection.
+
+### Points of interest layer
+
+The top-bar button "Points of interest" switches the layer on and off. It is off by default, so a first visit shows the plain scene, and the link carries no `poi` parameter until it is on. While it is on, a key under the top bar lists the six groups with their colour, a checkbox per group and, once the data has loaded, the number of pins in each group. The file `pois.json` is fetched the first time the layer or the search opens.
+
+- Link format (`app/src/state.ts`, `poi`): absent = off; `poi=all` = every group; `poi=none` = on with no group; otherwise `poi=hazard,water,…` in key order.
+- Key note: "Hover or tap a pin to read about it." With no 3D view the note says that no pins are drawn. Both end with "Only south of 80° S. From research notes, not validated by the science lead."
+- Pins: the view hands the visible points to the 3D scene through `setPois` (`app/src/scene3d/index.ts`). On the globe every given point is drawn as a coloured pin with a dark outline; at site and eye level only the points and other landing sites within 60 km of the current site are drawn (`POI_NEAR_KM` in `app/src/scene3d/pins.ts`).
+- Info box (`app/src/views/SceneView.tsx`, `app/src/views/PoiInfo.tsx`): with a mouse it shows while the pointer is on a pin and stays while the pointer moves onto it. A click on the pin, or a tap, keeps it open. A kept box closes with its "Close" button, Esc, a press anywhere else, or a camera move away from it. It shows the group and coordinates, the name, the summary, the record's facts, "Evidence", "Limitations", the caveat about research notes, and the source links, each shown by host name.
+- A right-click outside the south cap gives "Points can be added only south of 80° S."
+
+### Search sites
+
+The top-bar button "Search" opens the search panel (`app/src/views/SearchPanel.tsx`; drawer `search` in the link). Candidates are the sites of `sites.json` and the points of interest that have a horizon file (`search-sites.json`). Until the points of interest are loaded the panel says "Loading the points of interest…".
+
+Defaults, as the code has them:
+
+- Groups selected: Water and volatiles, Permanent shadow, Science features. Hazards is off. Landing sites and Sunlit points are off too.
+- "Within, km": 20. The field accepts 1 to 200 km.
+- "Must pass the 5° slope limit": on.
+- "Rank by": Both.
+
+The search settings are not part of the link. Only `drawer=search` is.
+
+Each row shows its rank (once the list is ordered), "Best" for the first 3 rows (more when tied), the count of each chosen group within the radius, Sunlit, Coverage and Slope ("— too steep" when it fails the limit). A site row offers "Select". A point row offers "Show" only, which opens the globe with the point's group switched on.
+
+The count of a group is the number of its points within the radius (inclusive), measured along a 1737.4 km sphere. A candidate's own record is not counted. The order of the list (`app/src/geometry/poiSearch.ts`, header comment) is:
+
+1. Rows that meet the slope filter and have a sunlit or coverage value, ranked by the number of chosen groups covered (most first), then by the number of points nearby (most first), then by that value (most first). Equal keys share a rank (1, 1, 3) and are listed by site id. For "Both" the value is the sunlit percentage plus the coverage percentage; no other weighted score is used.
+2. Then rows that meet the slope filter but have no data, by groups covered, points nearby and site id.
+3. Then rows that fail the slope filter, by groups covered, points nearby and value (no data last), then site id.
+
+With the slope filter off, the panel says "Order:" in place of the slope sentence and every row counts as meeting it. Sunlit and Coverage are the values of the comparison table for the mission dates. A place without a horizon file shows "no data". The list appears once every row is computed; until then the panel shows "Computing X of N places for these dates…".
+
+### Documentation view
+
+The footer link "Docs" opens the documentation as a panel (drawer `docs`; `drawer=docs` in the link). The panel is loaded as a separate part of the app the first time it is opened (`app/src/App.tsx`). Its text is in `app/src/docs/content.tsx`.
+
+### Custom landing sites
+
+A place south of 80° S can be made the landing site: typed coordinates in the Mission panel search and every user point offer "Set as landing site" (`app/src/views/MissionPanel.tsx`; the right-click menu on a user point offers the same). Outside the cap the action is not offered. The link carries the place as `site=cap:<lat>,<lon>` with five decimals (`app/src/state.ts`); older links are read as before.
+
+- Terrain and horizon are computed in the browser from the south-cap rasters (`app/src/data/southcap.ts`, files under `app/public/data/terrain/cap/`, written by `scripts/south_cap.py` from `LDEM_80S_20MPP_ADJ.TIF` and `LDEM_60S_120MPP_ADJ.TIF`): 40 m and 80 m tiles fetched on demand, a 400 m base and a 1920 m outer raster. The horizon uses the conventions of `scripts/horizon.py` (720 directions, eye 1.75 m above the ground, rays to 300 km).
+- All results (answer, timeline, horizon chart, slope warning, finder) come from the same functions as for a listed site. They are marked "Approximate: from 40 m / 80 m terrain, not validated."
+- How approximate: compared with the pipeline horizons of the 18 listed sites on 14 Nov 2026 (`app/src/data/southcap.test.ts`), the browser horizon differs by 0.013° in the median over sites, and by up to 1.68° in single directions (four sites above 0.8°). A difference of that size can move a sunrise or sunset. Only those 18 places (rims, ridges and plateaus) were measured. Not validated by the science lead.
+- A custom site is named "Custom site" and is not a row in the site list, the all-sites table or the search.
 
 ### What is not covered
 

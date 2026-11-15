@@ -1,11 +1,17 @@
 // URL-hash state (build-plan §5.2): site, cursor time, period, selected stations, view, drawer, user
-// points, mission name, science goal and the flight plan's choices (launchpad, rocket, transfer time, surface stay). A copied link reproduces the view. Parsing never throws and never
+// points, mission name, science goal, the points-of-interest layer and the flight plan's choices (launchpad, rocket,
+// transfer time, surface stay). A copied link reproduces the view. Parsing never throws and never
 // yields NaN: anything invalid falls back to the default for that key.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { parseCustomSiteId } from './data/customSite'
+import { POI_GROUPS } from './data/pois'
+import type { PoiGroup } from './data/pois'
 import type { ScienceGoal } from './geometry'
 import type { SceneLevel } from './scene3d'
 
-export type DrawerSection = 'details' | 'finder' | 'sources'
+// 'search' (site search by nearby POIs) and 'docs' (documentation) are panels of their own, opened from the top bar
+// and the footer; the other three are sections of the details drawer.
+export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs'
 
 /** Start and End are places and viewpoints only: no route, and unrelated to the period's start and end times. */
 export type PointRole = 'start' | 'end'
@@ -22,7 +28,7 @@ export interface UserPoint {
 export const MAX_POINTS = 26
 
 export interface HashState {
-  site: string | null // site id; null = default site
+  site: string | null // site id or custom site id (see "landing site" below); null = default site
   period: string | null // period id, 'custom', or null = default period
   from: number | null // custom period start, UTC ms
   days: number // custom period length
@@ -33,6 +39,7 @@ export interface HashState {
   pts: UserPoint[]
   name: string | null // mission name, plain text; null = DEFAULT_MISSION_NAME
   goal: ScienceGoal
+  poi: PoiGroup[] | null // points-of-interest layer: null = off (the default; absent from the link), else the groups shown
   pad: string | null // flight plan: launchpad id; null = the default pad
   rocket: string | null // flight plan: vehicle id; null = the default vehicle
   tmax: number | null // flight plan: longest transfer in days; null = minimum energy
@@ -57,7 +64,8 @@ export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
 const VIEWS: SceneLevel[] = ['globe', 'site', 'eye', 'flight']
-const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources']
+const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs']
+const POI_IDS: PoiGroup[] = POI_GROUPS.map((g) => g.id)
 export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', 'science']
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/
 export const NAME_MAX = 40
@@ -83,6 +91,7 @@ export const EMPTY_STATE: HashState = {
   pts: [],
   name: null,
   goal: DEFAULT_GOAL,
+  poi: null,
   pad: null,
   rocket: null,
   tmax: null,
@@ -112,6 +121,37 @@ function parseTime(v: string | null): number | null {
   const ms = Date.parse(v)
   if (!Number.isFinite(ms) || ms < COVERAGE_START_MS || ms >= COVERAGE_END_MS) return null
   return ms
+}
+
+// ---------- landing site ----------
+// Link format: site=<id> for a site of sites.json (ID_RE, as every link before custom sites), or
+// site=cap:<lat>,<lon> for a custom landing site, latitude and longitude with exactly five decimals as
+// data/customSite.customSiteId writes them (e.g. site=cap:-85.50000,12.25000). The two forms cannot be confused
+// (ID_RE has no ':'), so every older link reads as before. A cap: value in another form, or outside the pin region,
+// is ignored (default site).
+
+function parseSite(v: string | null): string | null {
+  if (!v) return null
+  return ID_RE.test(v) || parseCustomSiteId(v) ? v : null
+}
+
+// ---------- points-of-interest layer ----------
+// Link format: absent = layer off; poi=all = every group; poi=none = on with no group; else poi=hazard,water,…
+// (POI_GROUPS order). Unknown words are dropped; a value with no known group and not "none" is ignored (off).
+
+function parsePoi(v: string | null): PoiGroup[] | null {
+  if (v === null) return null
+  if (v === 'all') return [...POI_IDS]
+  if (v === 'none') return []
+  const words = v.split(',')
+  const groups = POI_IDS.filter((g) => words.includes(g))
+  return groups.length ? groups : null
+}
+
+function serializePoi(groups: PoiGroup[]): string {
+  const known = POI_IDS.filter((g) => groups.includes(g))
+  if (known.length === POI_IDS.length) return 'all'
+  return known.length ? known.join(',') : 'none'
 }
 
 // ---------- user points ----------
@@ -195,8 +235,7 @@ export function removePoint(pts: UserPoint[], i: number): UserPoint[] {
 export function parseHash(hash: string): HashState {
   const p = new URLSearchParams(hash.replace(/^#/, ''))
   const s: HashState = { ...EMPTY_STATE, pts: [] }
-  const site = p.get('site')
-  if (site && ID_RE.test(site)) s.site = site
+  s.site = parseSite(p.get('site'))
   const period = p.get('period')
   if (period && ID_RE.test(period)) s.period = period
   s.from = parseTime(p.get('from'))
@@ -216,6 +255,7 @@ export function parseHash(hash: string): HashState {
   s.name = cleanName(p.get('name'))
   const goal = p.get('goal') as ScienceGoal | null
   if (goal && GOALS.includes(goal)) s.goal = goal
+  s.poi = parsePoi(p.get('poi'))
   const pad = p.get('pad')
   if (pad && ID_RE.test(pad)) s.pad = pad
   const rocket = p.get('rocket')
@@ -243,6 +283,7 @@ export function serializeHash(s: HashState): string {
   if (s.pts.length) p.set('pts', serializePoints(s.pts))
   if (s.name) p.set('name', s.name)
   if (s.goal !== DEFAULT_GOAL) p.set('goal', s.goal)
+  if (s.poi) p.set('poi', serializePoi(s.poi))
   if (s.pad) p.set('pad', s.pad)
   if (s.rocket) p.set('rocket', s.rocket)
   if (s.tmax !== null) p.set('tmax', String(s.tmax))

@@ -1,8 +1,8 @@
-// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, three header
-// controls (mission, date, Find better dates), the answer sentence, the timeline and one footer line.
+// Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, the header controls
+// (mission, date, points of interest, Find better dates, Details), the answer sentence, the timeline and one footer line.
 // Two tabs share the stage: "Landing site" (the above) and "Flight plan" (the Earth-to-Moon trajectory for the
 // mission's site and start date, with its own panel and playback bar).
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
@@ -41,6 +41,9 @@ import { FlightTransport } from './views/FlightTransport'
 import { HorizonStrip } from './views/HorizonStrip'
 import { Icon } from './views/Icon'
 import { MissionPanel } from './views/MissionPanel'
+import { PoiKey, PoiToggle } from './views/PoiControl'
+import { pinCounts, scenePois, usePois } from './views/poiLayer'
+import { SearchPanel } from './views/SearchPanel'
 import { SceneView, viewpointItems } from './views/SceneView'
 import type { FlightScene, SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
@@ -51,9 +54,15 @@ import { resolvePeriod } from './views/period'
 import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
 import type { MissionState } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
+import { approxText, footTerrain, useCustomSite } from './views/custom'
+import { customSiteId } from './data/customSite'
 import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
 import './styles/view.css'
+import './styles/poi.css'
+
+// The documentation is a separate chunk, fetched when the Docs view is first opened.
+const DocsView = lazy(() => import('./docs/DocsView').then((m) => ({ default: m.DocsView })))
 
 type Boot =
   | { status: 'loading' }
@@ -139,7 +148,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const clickGuard = useCallback(() => !menuOpen.current && performance.now() - menuClosedAt.current > 400, [])
   const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
-  const site = sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  // A custom landing site (data/customSite.ts) lives in the link as its id; its height and slope arrive with capHorizon.
+  const custom = useCustomSite(hs.site)
+  const site = custom?.site ?? sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
+  const customReady = custom?.status === 'ready' ? custom : null
   const missionName = hs.name ?? DEFAULT_MISSION_NAME
   // Saved missions (this browser only): listed in the Mission panel and as rows of the comparison table.
   const missions = useMissions()
@@ -184,6 +196,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const idx = Math.round((cursor - period.startMs) / STEP_MS)
   const atCursor = ready ? (results.results.series.samples[idx] ?? null) : null
   const answer = ready ? results.results.answerAt(cursor) : null
+
+  // Points of interest: pois.json is fetched the first time the layer or the search is opened (layer off by default).
+  const poiData = usePois(hs.poi !== null || hs.drawer === 'search')
+  const visiblePois = useMemo(
+    () => (poiData.status === 'ready' && hs.poi ? scenePois(poiData.pois, hs.poi, sites) : []),
+    [poiData, hs.poi, sites],
+  )
+  const poiCounts = useMemo(() => (poiData.status === 'ready' ? pinCounts(poiData.pois, sites) : null), [poiData, sites])
 
   // ---------- Flight plan tab: launchpad → this mission's site, touching down at the mission start ----------
   const inFlight = hs.view === 'flight'
@@ -370,6 +390,18 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     },
     [hs.pts, patch],
   )
+  // "Set as landing site" (typed coordinates, a user point's row, the right-click menu on a user point): only
+  // inside the pin region, where customSiteId gives an id. On the Flight plan tab the tab stays, as for a site
+  // chosen in the Mission panel.
+  const setLandingSite = useCallback(
+    (lat: number, lon: number) => {
+      const id = customSiteId(lat, lon)
+      if (!id) return
+      setMenu(null)
+      patch(inFlight ? { site: id } : { site: id, view: 'site' })
+    },
+    [patch, inFlight],
+  )
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
   // globe), then the six viewpoints of the right-click menu.
@@ -448,6 +480,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onTopView={setTopView}
             canAddPoint={hs.pts.length < MAX_POINTS}
             onAddPoint={addUserPoint}
+            onSetSite={setLandingSite}
+            pois={visiblePois}
+            poiById={poiData.status === 'ready' ? poiData.byId : null}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -455,7 +490,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               <p className="quiet">The flight view needs WebGL, which this browser does not provide. The flight plan's numbers are not affected.</p>
             ) : (
               <>
-                <HorizonStrip horizon={ready ? results.results.series.horizon : null} sample={atCursor} height={220} className="strip-main" />
+                <HorizonStrip
+                  horizon={ready ? results.results.series.horizon : null}
+                  sample={atCursor}
+                  track={ready ? results.results.series.samples : null}
+                  height={220}
+                  className="strip-main"
+                />
                 <p className="quiet">The 3D view needs WebGL, which this browser does not provide. The horizon strip shows the same sky.</p>
               </>
             )}
@@ -528,6 +569,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onCalculateFlight={calculateFlight}
               onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
+              onSetSite={(lat, lon) => {
+                setLandingSite(lat, lon)
+                missionBtn.current?.focus()
+              }}
               onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
               onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
               onPointSelect={setSelPoint}
@@ -613,50 +658,66 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
         </div>
-        <div className="actions">
-          <div className="tabs" role="tablist" aria-label="View">
+        <div className="actions-col">
+          <div className="actions">
+            <div className="tabs" role="tablist" aria-label="View">
+              <button
+                type="button"
+                role="tab"
+                className="tab"
+                data-testid="tab-site"
+                aria-selected={!inFlight}
+                onClick={() => inFlight && patch({ view: 'site' })}
+              >
+                Landing site
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className="tab"
+                data-testid="tab-flight"
+                aria-selected={inFlight}
+                onClick={() => {
+                  setMenu(null)
+                  setPlaying(false)
+                  patch({ view: 'flight', drawer: null })
+                }}
+              >
+                Flight plan
+              </button>
+            </div>
+            {/* The points-of-interest layer and the search belong to the Landing site tab, like the two buttons after them. */}
+            {!inFlight && <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />}
             <button
               type="button"
-              role="tab"
-              className="tab"
-              data-testid="tab-site"
-              aria-selected={!inFlight}
-              onClick={() => inFlight && patch({ view: 'site' })}
+              hidden={inFlight}
+              className="find"
+              data-testid="search-open"
+              aria-haspopup="dialog"
+              aria-expanded={hs.drawer === 'search'}
+              onClick={() => patch({ drawer: 'search' })}
             >
-              Landing site
+              Search
             </button>
+            <button type="button" className="find" hidden={inFlight} onClick={() => patch({ drawer: 'finder' })}>
+              Find better dates
+            </button>
+            {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
             <button
               type="button"
-              role="tab"
-              className="tab"
-              data-testid="tab-flight"
-              aria-selected={inFlight}
-              onClick={() => {
-                setMenu(null)
-                setPlaying(false)
-                patch({ view: 'flight', drawer: null })
-              }}
+              hidden={inFlight}
+              className="details-btn"
+              data-testid="details"
+              aria-label="Details"
+              title="Details"
+              aria-haspopup="dialog"
+              aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
+              onClick={() => patch({ drawer: 'details' })}
             >
-              Flight plan
+              <Icon name="settings" />
             </button>
           </div>
-          <button type="button" className="find" hidden={inFlight} onClick={() => patch({ drawer: 'finder' })}>
-            Find better dates
-          </button>
-          {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
-          <button
-            type="button"
-            hidden={inFlight}
-            className="details-btn"
-            data-testid="details"
-            aria-label="Details"
-            title="Details"
-            aria-haspopup="dialog"
-            aria-expanded={hs.drawer !== null}
-            onClick={() => patch({ drawer: 'details' })}
-          >
-            <Icon name="settings" />
-          </button>
+          {hs.poi && !inFlight && <PoiKey groups={hs.poi} data={poiData} counts={poiCounts} webgl={webgl} onChange={(poi) => patch({ poi })} />}
         </div>
       </header>
 
@@ -695,6 +756,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <span>
               Landing not recommended: slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°
             </span>
+          </p>
+        )}
+        {/* A custom site: its slope (no Mission panel row shows it) and why its numbers are approximate. */}
+        {customReady && (
+          <p className="custom-note" data-testid="custom-note">
+            {slope.state !== 'fail' && slope.deg !== null && (
+              <span data-testid="custom-slope">
+                Slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°.{' '}
+              </span>
+            )}
+            <span data-testid="approx-note">{approxText(customReady.horizon.computed)}.</span>
           </p>
         )}
         <Timeline
@@ -749,10 +821,16 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
         <footer className="foot">
-          <p>
-            Terrain LOLA 20 m (160 m beyond 20 km) · ephemeris JPL DE440 ·{' '}
+          <p data-testid="foot-sources">
+            {/* A custom site: the spacings capHorizon used (nothing while it computes); a prepared site: its fixed text. */}
+            {custom ? (customReady ? `${footTerrain(customReady.horizon.computed)} · ` : '') : 'Terrain LOLA 20 m (160 m beyond 20 km) · '}
+            ephemeris JPL DE440 ·{' '}
             <button type="button" className="link" onClick={() => patch({ drawer: 'sources' })}>
               how this is computed
+            </button>
+            {' · '}
+            <button type="button" className="link" data-testid="docs-open" aria-haspopup="dialog" onClick={() => patch({ drawer: 'docs' })}>
+              Docs
             </button>
           </p>
           {!VALIDATED && (
@@ -763,10 +841,34 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </footer>
       </div>
 
-      {hs.drawer && (
+      {hs.drawer === 'search' && (
+        <SearchPanel
+          sites={sites}
+          stations={stations}
+          ids={ids}
+          site={site}
+          period={period}
+          pois={poiData}
+          // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
+          onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
+          onShowPoi={(poi, groups) =>
+            patch({ view: 'globe', drawer: null, poi: [...new Set([...(hs.poi ?? []), ...groups, poi.group])] })
+          }
+          onClose={() => patch({ drawer: null })}
+        />
+      )}
+
+      {hs.drawer === 'docs' && (
+        <Suspense fallback={null}>
+          <DocsView onClose={() => patch({ drawer: null })} />
+        </Suspense>
+      )}
+
+      {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
         <Drawer
           section={hs.drawer}
           site={site}
+          customHorizon={customReady?.horizon ?? null}
           period={period}
           cursorMs={cursor}
           sites={sites}

@@ -3,7 +3,9 @@
 // stations and goal by geometry/rankSites; every row shows the values it was ranked by. Grown from the C2 site
 // menu: its search, which also accepts typed coordinates. Typed coordinates can be added as a user point (Brief
 // C4 part 3): a name, a place and a role, never numbers. A user point has no horizon file, and nothing is
-// computed for it with a flat horizon or a neighbour's.
+// computed for it with a flat horizon or a neighbour's. Inside the pin region, typed coordinates and a user point
+// can instead become the landing site ("Set as landing site": a custom site, data/customSite.ts), whose numbers
+// are then computed like any site's.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Period, Site, Station } from '../data/types'
 import { MAX_MISSIONS, missionKey } from '../missions'
@@ -13,12 +15,16 @@ import type { RankedSite, ScienceGoal, Summary } from '../geometry'
 import { DAY_MS, DEFAULT_MISSION_NAME, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
 import type { PointRole, UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
+import { EXAMPLE, eg } from './examples'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
 import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { SLOPE_BASELINE, slopeOf } from './slope'
 import { StationChecklist } from './Stations'
 import { useSummaries } from './useSummaries'
+import { inPinRegion } from '../scene3d/region'
+import { CUSTOM_SITE_NAME, parseCustomSiteId } from '../data/customSite'
+import { SITE_REGION_TEXT } from './custom'
 import type { SummaryEntry } from './useSummaries'
 
 export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
@@ -53,6 +59,8 @@ const GROUP_TEXT: Record<Site['group'], string> = {
   commercial: 'Lander',
   international: 'Lander',
   apollo: 'Lander',
+  poi: 'Point of interest',
+  custom: 'Custom site',
 }
 
 interface Props {
@@ -81,6 +89,7 @@ interface Props {
   onLoadMission(m: MissionState): void
   onRemoveMission(key: string): void
   onAddPoint(lat: number, lon: number): void
+  onSetSite(lat: number, lon: number): void // makes the place a custom landing site (inside the pin region only)
   onPointName(i: number, name: string): void
   onPointRole(i: number, role: PointRole | null): void
   onPointSelect(i: number | null): void
@@ -263,6 +272,7 @@ export function MissionPanel(p: Props) {
             className="field"
             type="text"
             maxLength={NAME_MAX}
+            placeholder={eg(EXAMPLE.name)}
             value={nameDraft ?? p.name ?? DEFAULT_MISSION_NAME}
             onChange={(e) => {
               setNameDraft(e.target.value)
@@ -279,6 +289,7 @@ export function MissionPanel(p: Props) {
             className="field mono"
             type="text"
             aria-describedby="mp-dates-note"
+            placeholder={eg(EXAMPLE.start)}
             value={startDraft ?? fmtDate(period.startMs)}
             onChange={(e) => setStartDraft(e.target.value)}
             onBlur={commitStart}
@@ -292,6 +303,7 @@ export function MissionPanel(p: Props) {
             className="field mono"
             type="text"
             aria-describedby="mp-dates-note"
+            placeholder={eg(EXAMPLE.end)}
             value={endDraft ?? fmtDate(lastDayMs)}
             onChange={(e) => setEndDraft(e.target.value)}
             onBlur={commitEnd}
@@ -329,7 +341,7 @@ export function MissionPanel(p: Props) {
             {p.missions.map((m) => {
               const key = missionKey(m)
               const name = m.name ?? DEFAULT_MISSION_NAME
-              const where = sites.find((s) => s.id === m.site)?.name ?? site.name
+              const where = sites.find((s) => s.id === m.site)?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : site.name)
               return (
                 <li key={key} className="ms-row" data-mission={key}>
                   <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
@@ -380,7 +392,7 @@ export function MissionPanel(p: Props) {
             aria-controls="site-list"
             aria-activedescendant={flat[activeIdx] ? `site-opt-${flat[activeIdx].site.id}` : undefined}
             aria-label="Search a site or type coordinates"
-            placeholder="Search a site or type coordinates"
+            placeholder={`Site name, or ${eg(EXAMPLE.coords)}`}
             value={query}
             onKeyDown={onSearchKey}
             onChange={(e) => {
@@ -403,6 +415,26 @@ export function MissionPanel(p: Props) {
               <button type="button" className="link" data-testid="add-point" onClick={addTyped}>
                 Add point
               </button>
+            )}
+            <span className="quiet" aria-hidden="true">
+              {' · '}
+            </span>
+            {inPinRegion(coords.lat) ? (
+              <button
+                type="button"
+                className="link"
+                data-testid="set-site"
+                onClick={() => {
+                  setQuery('')
+                  p.onSetSite(coords.lat, coords.lon)
+                }}
+              >
+                Set as landing site
+              </button>
+            ) : (
+              <span className="quiet" data-testid="set-site-none">
+                {SITE_REGION_TEXT}
+              </span>
             )}
           </p>
         )}
@@ -449,6 +481,7 @@ export function MissionPanel(p: Props) {
                     type="text"
                     aria-label={`Name of ${name}`}
                     maxLength={NAME_MAX}
+                    placeholder={eg(EXAMPLE.point)}
                     value={pointDraft?.i === i ? pointDraft.text : name}
                     onChange={(e) => {
                       setPointDraft({ i, text: e.target.value })
@@ -489,6 +522,19 @@ export function MissionPanel(p: Props) {
                   <span className="pt-none" data-fact="none">
                     No terrain data for this point
                   </span>
+                  {inPinRegion(pt.lat) ? (
+                    <button
+                      type="button"
+                      className="link pt-land"
+                      data-testid="point-set-site"
+                      aria-label={`Set as landing site: ${name}`}
+                      onClick={() => p.onSetSite(pt.lat, pt.lon)}
+                    >
+                      Set as landing site
+                    </button>
+                  ) : (
+                    <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
+                  )}
                 </li>
               )
             })}

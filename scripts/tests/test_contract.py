@@ -61,7 +61,7 @@ def test_real_horizon_shape(name):
     # truncated directions are azimuths on the 0.5 deg grid, each listed once
     assert all(0 <= a < 360 and (a * 2) == int(a * 2) for a in h["truncated"])
     assert len(set(h["truncated"])) == len(h["truncated"])
-    site = next(s for s in load("sites.json") if s["horizon"] == name)
+    site = next(s for s in load("sites.json") + load("search-sites.json") if s["horizon"] == name)
     assert (h["lat"], h["lon"]) == (site["lat"], site["lon"])
 
 

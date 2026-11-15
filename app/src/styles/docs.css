@@ -1,0 +1,266 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Documentation view: a reading panel over the app (above the drawer, z 30, and the phone Mission panel, z 40).
+   Its own scroller; the header stays in view; text can be selected and copied. */
+
+.docs {
+  --docs-head: calc(var(--s-16) + var(--s-2));
+
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  width: min(880px, 100vw);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  -webkit-user-select: text;
+  user-select: text;
+  animation: docs-in var(--dur-panel) var(--ease-out);
+}
+
+@keyframes docs-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--s-6));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- header: title and Close, always in view ---------- */
+
+.docs-head {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+  box-sizing: border-box;
+  height: var(--docs-head);
+  padding: 0 var(--s-8);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-title {
+  margin: 0;
+  font: 400 var(--t-display-sm) / 1.2 var(--font-serif);
+}
+
+/* ---------- body: contents beside the text on wide panels ---------- */
+
+.docs-body {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: var(--s-10);
+  padding: var(--s-8) var(--s-8) var(--s-24);
+}
+
+.docs-toc {
+  position: sticky;
+  top: calc(var(--docs-head) + var(--s-8));
+  align-self: start;
+  font-size: var(--t-small);
+}
+
+.docs-toc-label {
+  margin: 0 0 var(--s-2);
+  color: var(--faint);
+}
+
+.docs-toc a {
+  display: block;
+  padding: var(--s-1) 0;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.docs-toc a:hover {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--fg);
+}
+
+/* ---------- text ---------- */
+
+.docs-text {
+  min-width: 0;
+  max-width: 68ch;
+  line-height: 1.6;
+}
+
+.docs-text p {
+  margin: 0 0 var(--s-3);
+}
+
+.docs-lede {
+  margin-top: 0;
+}
+
+.docs-mark,
+.docs-quiet {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.docs-sec {
+  margin-top: var(--s-10);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+  scroll-margin-top: calc(var(--docs-head) + var(--s-4));
+}
+
+.docs-sec h3 {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-ui);
+  font-weight: 500;
+}
+
+.docs-sec h3:focus {
+  outline: none;
+}
+
+.docs-sec h3:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.docs-sec h4 {
+  margin: var(--s-6) 0 var(--s-2);
+  font-size: var(--t-ui);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.docs-sec h4:first-of-type {
+  margin-top: 0;
+}
+
+.docs strong {
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.docs-text a {
+  overflow-wrap: anywhere;
+}
+
+.docs-path,
+.docs-key {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  overflow-wrap: anywhere;
+}
+
+.docs-path {
+  color: var(--muted);
+}
+
+.docs-sun {
+  color: var(--sun);
+}
+
+.docs-comms {
+  color: var(--comms);
+}
+
+.docs-list {
+  margin: 0 0 var(--s-4);
+  padding-left: var(--s-5);
+}
+
+.docs-list li {
+  margin-bottom: var(--s-2);
+}
+
+.docs-list li::marker {
+  color: var(--faint);
+}
+
+/* ---------- source list ---------- */
+
+.docs-sources > li {
+  padding: var(--s-4) 0 var(--s-1);
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-sources > li:first-child {
+  border-top: 1px solid var(--line);
+}
+
+.docs-files {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.docs-files li {
+  padding: 2px 0;
+}
+
+.docs-file {
+  font-family: var(--font-mono);
+  color: var(--fg);
+}
+
+.docs-sources + .docs-quiet {
+  margin-top: var(--s-4);
+}
+
+/* ---------- table: scrolls on its own, never the page ---------- */
+
+.docs-table {
+  overflow-x: auto;
+  margin: 0 0 var(--s-4);
+}
+
+.docs-table .tbl {
+  line-height: 1.5;
+}
+
+.docs-table th[scope='row'] {
+  width: 32%;
+  color: var(--fg);
+}
+
+/* ---------- phones: full screen, contents above the text ---------- */
+
+@media (max-width: 900px) {
+  .docs-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-6);
+  }
+
+  .docs-toc {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .docs {
+    left: 0;
+    width: auto;
+    border-left: 0;
+  }
+
+  .docs-head {
+    padding: 0 var(--s-4);
+  }
+
+  .docs-body {
+    padding: var(--s-5) var(--s-4) var(--s-16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs {
+    animation: none;
+  }
+}

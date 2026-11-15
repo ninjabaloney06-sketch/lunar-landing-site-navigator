@@ -7,7 +7,7 @@
 //   utc:   ISO string or Unix ms. fov: vertical, degrees. texture: 'checker' (T16) | 'real'.
 
 import type { Site } from '../data/types'
-import type { SceneDeps, SceneFrame, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
+import type { SceneDeps, SceneFrame, SceneHandle, SceneLabel, SceneLevel, SceneName, ScreenPoint, Viewpoint } from './index'
 import type { Vector3 } from 'three'
 
 export interface DebugView {
@@ -26,24 +26,45 @@ export interface DebugView {
   sunAzEl(): { az: number; el: number } | null
   earthAzEl(): { az: number; el: number } | null
   renderNow(): void
-  project(name: 'sun' | 'earth' | 'site'): ScreenPoint | null
+  project(name: SceneLabel): ScreenPoint | null
   projectPin(siteId: string): ScreenPoint | null
   pinSurface(siteId: string): Vector3 | null
   setGlobeTexture(m: 'real' | 'checker'): void
   setSites(sites: Site[]): void
   camera(): Record<string, unknown>
   terrainInfo(): { levels: string[]; triangles: number }
+  lights(): { sun: number; hidden: number; fill: number; earth: number }
   setFlat(on: boolean): void
   renderInfo(): { calls: number; triangles: number }
   surfaceDist(): number
   terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
   goTo(v: Viewpoint): boolean
+  handle(): SceneHandle
+  setAnimated(on: boolean): void
+  advance(ms: number): void
+  flying(): boolean
+  pins(): { globe: number; near: { kind: string; id: string; shape: string; base: number[]; ground: number; sphere: number }[] }
+  projectPoi(id: string): ScreenPoint | null
+  projectMe(p: number[]): ScreenPoint | null
+  region(): { boundary: number[][]; cap: number[][] } | null
+  setMoonVisible(on: boolean): void
+  showRegion(on: boolean): void
+  flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
   topView(): boolean
   named(): SceneName | null
   surfaceAt(x: number, y: number): { lat: number; lon: number } | null
   bodies(): { name: string; center: number[]; camera: number[] }[]
   projectMark(index: number): ScreenPoint | null
   skySize(b: 'sun' | 'earth'): number | null
+  walkTo(x: number, y: number): boolean
+  nearLevel(on: boolean): Promise<void>
+  nearReady(): Promise<void>
+  levelSpecs(): { name: string; size: number; spacing: number; ext: number }[]
+  capInfo(): { loaded: boolean; visible: boolean; vertices: number; northLat: number | null; sphereSouthLat: number; sphereFaces: number; tint: number } | null
+  globeHit(x: number, y: number): { point: number[]; mesh: 'cap' | 'sphere' } | null
+  moonGround(p: number[]): number
+  setCap(on: boolean): void
+  subSolar(): { lat: number; lon: number } | null
 }
 
 export interface SetViewOptions {
@@ -84,7 +105,7 @@ export function installDebug(v: DebugView) {
       await nextFrame()
       return v.camera()
     },
-    project: (name: 'sun' | 'earth' | 'site') => v.project(name),
+    project: (name: SceneLabel) => v.project(name),
     camera: () => v.camera(),
     // test helpers (not part of the C2 contract)
     level: () => v.level,
@@ -95,6 +116,9 @@ export function installDebug(v: DebugView) {
     setSites: (s: Site[]) => v.setSites(s),
     setLevel: (l: SceneLevel) => v.setLevelNow(l),
     terrainInfo: () => v.terrainInfo(),
+    // Terrain light levels as drawn at site and eye level: the sunlight as a share of full sunlight (never below
+    // `hidden`), the even night fill and the earthshine.
+    lights: () => v.lights(),
     setFlat: async (on: boolean) => {
       v.setFlat(on)
       v.renderNow()
@@ -117,12 +141,56 @@ export function installDebug(v: DebugView) {
       await nextFrame()
       return ok
     },
+    // The handle the app gets, for tests of its members (setPois, project, labelPoint, ...).
+    handle: () => v.handle(),
+    // Animations in test mode: setAnimated(true) turns the easing on (input smoothing, flights, light), with a
+    // clock that only advance(ms) moves, one frame per call. setLevel through the handle then flies.
+    setAnimated: (on: boolean) => v.setAnimated(on),
+    advance: (ms: number) => v.advance(ms),
+    flying: () => v.flying(),
+    // Points of interest: how many pins the globe has, the pins of the site scene (POIs and other landing sites
+    // near the site) with the terrain height and the smooth-sphere height under each, a POI's head on screen at
+    // the current level (null where it has no pin), and a MOON_ME point (km) on screen in the space scene.
+    pins: () => v.pins(),
+    projectPoi: (id: string) => v.projectPoi(id),
+    projectMe: (p: number[]) => v.projectMe(p),
+    // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.
+    region: () => v.region(),
+    // The Moon's mesh on or off: a picture that does not change with it has the Moon covered or out of view.
+    setMoonVisible: (on: boolean) => v.setMoonVisible(on),
+    showRegion: (on: boolean) => v.showRegion(on),
+    // A new frame as the app delivers it (update(frame)): the site and time change, the camera is not placed.
+    load: async (siteId: string, utc: string | number) => {
+      await v.load(siteId, typeof utc === 'number' ? utc : Date.parse(utc))
+      v.renderNow()
+    },
+    // The camera in one frame at every level (MOON_ME km and the orientation in MOON_ME), with the site scene's
+    // share of the picture (0 = space scene, 1 = site scene) and the site's position, for the fly between the scenes.
+    flyPose: () => v.flyPose(),
     topView: () => v.topView(),
     named: () => v.named(),
     surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),
     bodies: () => v.bodies(),
     projectMark: (i: number) => v.projectMark(i),
     skySize: (b: 'sun' | 'earth') => v.skySize(b),
+    // F3: the walk a click on terrain starts, to the ENU point (x, y) in m, without a frame drawn in between (a
+    // test can read the camera before and after the next frame).
+    walkTo: (x: number, y: number) => v.walkTo(x, y),
+    // F2: the near terrain level (160 m to ±40 km from the south-cap 80 m tiles). Off in test mode until
+    // nearLevel(true), which also starts it for the current site; nearReady() resolves once the job for the
+    // current site has ended (the terrain rebuilt, or nothing to do); levelSpecs() lists the levels as built.
+    nearLevel: (on: boolean) => v.nearLevel(on),
+    nearReady: () => v.nearReady(),
+    levelSpecs: () => v.levelSpecs(),
+    // F1: the south polar cap on the globe (loaded, drawn, its vertex count, its edge, the pin region's tint
+    // mixed into it) and the southernmost latitude of the sphere's faces; the Moon point under a screen position with the mesh it is on (globe
+    // level); the radius (km) of the drawn surface under a MOON_ME point, the space camera's floor.
+    capInfo: () => v.capInfo(),
+    globeHit: (x: number, y: number) => v.globeHit(x, y),
+    moonGround: (p: number[]) => v.moonGround(p),
+    // The cap off and on again (before/after pictures), and the sub-solar point (planetocentric degrees).
+    setCap: (on: boolean) => v.setCap(on),
+    subSolar: () => v.subSolar(),
   }
   ;(window as unknown as { __scene: typeof api }).__scene = api
   return api

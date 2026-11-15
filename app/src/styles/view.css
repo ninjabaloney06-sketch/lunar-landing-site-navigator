@@ -91,6 +91,16 @@
   color: var(--faint);
 }
 
+/* Why an entry is disabled, readable without a pointer (U2: "Add point here" outside the pin region). */
+.view-note {
+  max-width: 28ch;
+  margin: var(--s-1) 0 0;
+  padding: var(--s-2) var(--s-4) var(--s-1);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
 /* ---------- name of the pin or user point under the pointer: below the point, so it never covers "Landing site" ---------- */
 
 .obj-pin-name {
@@ -145,6 +155,20 @@
   grid-column: 1 / -1;
   font-size: var(--t-small);
   color: var(--faint);
+}
+
+/* "Set as landing site" under a user point, or why it is not offered */
+.pt-land {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--t-small);
+}
+
+/* custom landing site: its slope and why its numbers are approximate, above the answer */
+.custom-note {
+  margin: 0 0 var(--s-3);
+  color: var(--muted);
+  font-size: var(--t-small);
 }
 
 .menu-msg .link {

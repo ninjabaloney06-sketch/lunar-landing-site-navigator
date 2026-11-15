@@ -234,6 +234,119 @@ New follow-through missing from the existing checklist:
 - [ ] `[H]` **S (Leo)** — **P4, parked: rocket travel tab** (note 9) on Leo's own branch. Not merged before the freeze: there is no trajectory model, no validated numbers and no source in the repo, and the jury answers above name "nice UI without content" as the mistake to avoid. Stays a "what comes next" line in the pitch unless Leo brings a sourced calculation.
 - [ ] `[H]` **I** — **P4, parked: flight lines of celestial bodies and satellites** (note 16). Needs orbit data that is not in the repo (a download, so Isaac's approval, plus source and licence per object) and a new renderer. Not before the freeze.
 
+### Notebook page 2 and bug lists — photographed 14 Nov 2026, ~19:15
+
+**Evidence:** a second handwritten notebook page (copy in git-ignored `private/notes-14nov/notebook-1915.jpg`) and two bug lists ninja sent in chat with screenshots the same evening. Built by three agent tracks (scene, UI, terrain/data) on branches merged through `integration`; task states are written by the orchestrator when the merge is verified.
+
+#### New user-visible strings (approved as they are by ninja, 14 Nov 2026; he may change lines later)
+
+**Top bar and footer**
+
+- "Points of interest"
+- "Search"
+- "Docs"
+
+**POI key**
+
+- "Hover or tap a pin to read about it. Only south of 80° S. From research notes, not validated by the science lead."
+- "The 3D view is not available, so no pins are drawn."
+- "Loading the points of interest…"
+- "Could not load the points of interest. …"
+
+**Right-click menu**
+
+- "Points can be added only south of 80° S."
+
+**Info box**
+
+- "<group> · <coordinates>"
+- "Close"
+- "Evidence"
+- "Limitations"
+- "Source" / "Sources" (link text is the host name)
+- "From research notes, not validated by the science lead." (plus " The coordinates still need a check." for landing records)
+- "Click the pin to keep this open."
+- "Location note"
+- "no value"
+
+**Search panel**
+
+- "Search sites"
+- "Mission dates: …, UTC. N of M stations selected."
+- "Points of interest nearby"
+- "Within, km"
+- "Must pass the 5° slope limit"
+- "Rank by"
+- "Both" / "Light" / "Comms"
+- "Places that pass the 5° slope limit first; then most of the chosen groups within N km, then the most points nearby, then the most sunlight plus station coverage (the two percentages added) / the most sunlight / the most station coverage for the mission dates. The best 3 are marked (more when tied); places without data follow."
+- "Order: most of the chosen groups…" (start of the same line when the slope filter is off)
+- "Computing X of N places for these dates…"
+- "Within: a number from 1 to 200 km. The list uses N km."
+- "The extra points could not be loaded (…); the 18 sites are listed."
+- "Best"
+- "Select"
+- "Show"
+- "<group> point"
+- "Sunlit"
+- "Coverage"
+- "Slope"
+- "— too steep"
+- "unknown"
+- "no data"
+- "Points of interest: only south of 80° S, from research notes, not validated by the science lead. Distances are measured along the surface of a 1737.4 km sphere, not along a drivable route."
+
+**Horizon chart**
+
+- " · lines: paths over the mission dates, brighter for the part still to come"
+
+**Placeholders**
+
+- "Site name, or e.g. lat -89.46 lon -136.68"
+- "e.g. Ridge survey"
+- "e.g. 16 Aug 2027"
+- "e.g. 29 Aug 2027"
+- "e.g. Rim camp"
+
+**Data strings the UI may print (terrain track)**
+
+- "approximate: computed in the browser from the south-cap rasters (box means of LDEM_80S_20MPP_ADJ.TIF): 40 m at the point, up to 80 m within 20 km, 400 m beyond; 1920 m means of LDEM_60S_120MPP_ADJ.TIF outside that DEM's square; not validated"
+- "south-cap raster, 80 m (from LDEM_80S_20MPP_ADJ.TIF)"
+- "Resampled DEM heights for display and approximate horizons. Not validated by the science lead."
+
+**Custom landing sites and Moon label (wave 3, not yet approved by ninja)**
+
+- "Set as landing site"
+- "Set {name} as landing site"
+- "Landing sites can be set only south of 80° S."
+- "Custom site"
+- "Approximate: from 40 m / 80 m terrain, not validated."
+- "Slope {x}° over 100 m, limit 5°. Approximate: from {40 m / 80 m} terrain, not validated."
+- "Terrain LOLA {40 m / 80 m} ({400} m beyond {20} km)"
+- "Frame: the user's own coordinates; MOON_ME assumed."
+- "Site: Chosen by the user in this app."
+- "Moon"
+- "Point of interest" / "Custom site" (group text under a site name in the Mission panel)
+- Drawer terrain sentence for a custom site: `app/src/views/Drawer.tsx`.
+
+Fact labels of the info box: `KEY_LABELS` in `scripts/pois.py`. Docs view text: `app/src/docs/content.tsx`.
+
+#### State (2026-11-15 01:20, merge `c3aa420`, not pushed, not deployed)
+
+- [ ] `[AI+H]` **I (ninja)** — everything on the page and both bug lists is built and merged (see BUILD_LOG 2026-11-15 01:20). → needs ninja: go for push and deploy; wording of the wave 3 strings above; look and feel of pins, region ring, sunset, fly, cap and near level; whether the search's order should put light and comms before nearby points (today the first rows are permanently dark crater-floor points).
+- [ ] `[AI+H]` **S (Leo)** — not validated: POI coordinates, the 180 POI horizon files, the 43 researched points in `docs/POIs/additional-sites.json`, the browser horizon for custom sites (0.013° median, up to 1.68° in single directions against the 18 pipeline horizons).
+- [ ] `[AI]` `L3·Opus` — terrace stripes on the prepared sites' 80 m tiles under a low Sun: write them with `height_scale_m` 0.25 in `scripts/terrain_tiles.py` and regenerate (not done).
+- [ ] `[AI]` `L2·Opus` — a globe pin and name for a custom landing site; a Moon marker that is visible more often at the Earth and Sun viewpoints (today only when the Moon is in the picture).
+- Decided, no change: the top view stays not to scale.
+
+#### Decisions (ninja, 14 Nov 2026 evening)
+
+- Pin region and terrain model: the cap south of 80° S ("80 degrees S but super detailed").
+- Tiles: "you can even use 40m tiles if you want. I dont really care about the storage as quite a bit is free." Built first: 80 m south of 80° S, 40 m south of 85.1° S (200 MB ceiling set by the orchestrator). ninja's rule of the same evening: extend 40 m to the whole cap at once if the 85.1° S limit is hardcoded in more than one place. It was (tests and register rows), so 40 m now covers the whole cap south of 80° S (2885 tiles, 378,142,720 bytes; folder 481,730,659 bytes) and the limit is the one entry `LEVELS` in `scripts/south_cap.py`.
+- Search candidates: "Any POI and other points which you find and research yourself as well."
+- Search defaults accepted as proposed: groups water, permanent shadow and science preselected, hazards off; radius 20 km; 5° slope filter on; rank by light and comms; a POI row offers "Show" only.
+- The top view stays "not to scale"; the label stays.
+- POI coordinates, the POI horizon files and the 43 researched points stay labelled "not validated" until the science lead signs.
+
 ### Course adjustment — science-first missions (ninja, 14 Nov afternoon)
 
 **Direction (ninja):** make the product more innovative, match what the organisers said, and put points of interest for scientists first (water, consistent light, places for biology experiments, anything sourced). Basis: kickoff transcript (challenge = "show the differences between lunar landing sites"; sunlight and a direct line of sight to Earth; judged on the technical side, creativity and presentation; the work should continue after the weekend) and the jury answers (usefulness for researchers and astronauts, intuitive, innovative; prototype over idea; content over UI). Details and reasoning: [decisions.md](docs/reference/decisions.md#science-first-direction--14-nov-2026-afternoon).
