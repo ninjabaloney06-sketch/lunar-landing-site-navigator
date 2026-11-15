@@ -1,4 +1,4 @@
-// The /docs page (D1): a full reading page on a light surface, one column with a table of contents beside it on
+// The /docs page (D1): a full reading page, dark like the app, one column with a table of contents beside it on
 // wide screens and a collapsible list on phones. Content comes from docs/*.md at build time (./pages.ts); the HTML
 // is produced by ./markdown.ts, which escapes every character of the source, so it is set as inner HTML here.
 // main.tsx renders this instead of the app when location.pathname is /docs.

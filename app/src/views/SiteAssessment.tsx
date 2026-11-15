@@ -236,8 +236,9 @@ export function SiteAssessment({ site }: { site: Site }) {
   return (
     <section className="drawer-sec assess" aria-labelledby="sec-assess" data-testid="site-assessment">
       <details open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
-        <summary className="assess-summary">
+        <summary className="assess-summary drawer-fold-sum">
           <h3 id="sec-assess">Landing site assessment</h3>
+          <span className="drawer-fold-hint">How safe the ground is for landing and driving: how steep and rough it is, how far the nearest permanent shadow is, and how cold it gets.</span>
         </summary>
         {open && (
           <div className="assess-body" data-state={view ? view.state : 'loading'}>

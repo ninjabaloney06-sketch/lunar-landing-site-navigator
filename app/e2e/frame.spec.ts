@@ -95,7 +95,9 @@ for (const vp of [
     // Header controls are buttons with a plain 1 px box and the app's 4 px corners, not pills (team request in chat,
     // 15 Nov 11:00: "make the buttons more visually clear that they are buttons"; until then they were text links
     // and this line asserted a 0 px border).
-    const box = await page.getByTestId('search-open').evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopLeftRadius])
+    // Desktop (15 Nov, evening): the actions are one joined bar, so the 1 px box is the bar's, not each button's.
+    const boxed = vp.width > 640 ? page.locator('#header-actions') : page.getByTestId('search-open')
+    const box = await boxed.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopLeftRadius])
     expect(box).toEqual(['1px', '4px'])
     // The View menu: each entry has a one-line hint; the names stay the labels.
     await page.getByTestId('view').click()
