@@ -27,9 +27,9 @@
 //     liftoff for a passage is cut short to that liftoff (6.5 days asked: 6.49 flown, and no week in orbit).
 //   - The way home is cheap once per revolution too: the capsule leaves at the cheapest instant of the allowed
 //     window (one revolution when the caller allows none).
-import { DAY_S, G0, MU_EARTH, MU_MOON, R_EARTH_EQ, R_MOON } from './astro'
+import { DAY_S, G0, MU_EARTH, MU_MOON, R_EARTH_EQ, R_MOON, ellipse, trueToEccentric, visViva } from './astro'
 import { simulateAscent } from './ascent'
-import type { AscentResult } from './ascent'
+import type { AscentResult, AscentVehicle, ParkingEllipse } from './ascent'
 import { firstGuess } from './guess'
 import type { Guess, GuessInput } from './guess'
 import type { LaunchVehicleSpec, SpacecraftSpec, StageSpec } from './hardware'
@@ -89,6 +89,15 @@ const ORION_CREW_DAYS = 21
 /** Flight-path angle at Entry Interface when the caller gives none: Artemis I, −5.66° (Rea, McNamara, Kane,
  *  "Orion Artemis I Entry Performance", https://ntrs.nasa.gov/citations/20240000024). */
 const ARTEMIS_ENTRY_FPA_DEG = -5.66
+
+/** The elliptical parking orbit of SLS Block 1 (ParkingEllipse in ascent.ts, figures in launchVehicles.ts) was added
+ *  after the science lead's statement of 15 Nov 2026 and is not covered by it. Every plan that flies it carries
+ *  this marker (MissionPlan.unvalidated) and says so in its notes; the UI must show `text` with those results. */
+export const PARKING_ELLIPSE_MARKER = {
+  validated: false as const,
+  text: 'not yet validated by the science lead' as const,
+  what: 'Earth parking orbit as flown on Artemis I (insertion orbit, Perigee Raise Maneuver, injection near perigee) and the upper-stage propellant computed on it',
+}
 
 const NRHO_SOURCES: SourceRef[] = [
   { label: 'Whitley, Martinez: Options for Staging Orbits in Cislunar Space (NASA, 2016)', url: 'https://ntrs.nasa.gov/citations/20160003079' },
@@ -208,6 +217,8 @@ interface TliShot {
   B: Vec3
   miss: [number, number]
   moonDistKm: number
+  /** Osculating true anomaly at ignition (elliptical parking orbit only). */
+  ignitionTrueAnomalyRad?: number
 }
 
 interface TliInput {
@@ -220,6 +231,10 @@ interface TliInput {
   wantB(S: Vec3, vInf2: number, tPerMs: number): Vec3
   /** Radius the flyby is aimed at, for the check of the result. */
   flybyRadiusKm: number
+  /** Elliptical parking orbit: `insertion` is the state after the Perigee Raise Maneuver; the burn is centred in
+   *  time on guess.tliPoint as on a circle, timed on the osculating ellipse, but begins at a true anomaly within
+   *  this range (rad) and in the same revolution. */
+  ignitionBandRad?: [number, number]
 }
 
 /** Burn length and turn of the parking orbit plane about the launchpad direction for which the unpowered flight
@@ -245,12 +260,23 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
     const r0 = rotateAbout(inp.insertion.r, guess.padHat, dAz)
     const v0 = rotateAbout(inp.insertion.v, guess.padHat, dAz)
     const h = unit(cross(r0, v0))
-    const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
-    // The burn straddles the injection point: half of it before, half after.
-    let coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
-    while (coastS < 0) coastS += TWO_PI / nPark
-    // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
-    coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
+    let coastS: number
+    if (inp.ignitionBandRad) {
+      // The burn straddles the injection point (half of it before, half after), unless that would start it
+      // outside the band of true anomaly before the next perigee.
+      const osc = osculating(r0, v0)
+      const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
+      const atPoint = osc.secondsTo(osc.nu + angleAbout(unit(r0), point, h))
+      const [lo, hi] = inp.ignitionBandRad
+      coastS = Math.min(Math.max(atPoint - tauS / 2, osc.secondsTo(lo)), osc.secondsTo(hi))
+    } else {
+      const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
+      // The burn straddles the injection point: half of it before, half after.
+      coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
+      while (coastS < 0) coastS += TWO_PI / nPark
+      // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
+      coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
+    }
     try {
       const coast = integrate(earth, { r: r0, v: v0, m: m0 }, inp.insertion.utcMs, { maxSeconds: coastS, maxStepS: 30 })
       const tIgnMs = inp.insertion.utcMs + coastS * 1000
@@ -279,7 +305,9 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
       let T = cross(S, [0, 0, 1])
       if (norm(T) < 0.05) T = cross(S, [1, 0, 0])
       T = unit(T)
-      return { tIgnMs, coast, burn, tCutMs, tPerMs, rp, vInf2, S, B, miss: [dot(off, T), dot(off, cross(S, T))], moonDistKm: norm(moon.r) }
+      const shot: TliShot = { tIgnMs, coast, burn, tCutMs, tPerMs, rp, vInf2, S, B, miss: [dot(off, T), dot(off, cross(S, T))], moonDistKm: norm(moon.r) }
+      if (inp.ignitionBandRad) shot.ignitionTrueAnomalyRad = osculating(coast.end.r, coast.end.v).nu
+      return shot
     } catch (err) {
       if (err instanceof RangeError) return null
       throw err
@@ -333,6 +361,87 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
   }
   if (size(cur) > 0.5 || Math.abs(cur.rp - inp.flybyRadiusKm) > 0.5) throw new NoLeverage()
   return { shot: cur, tauS: x[0], planeTurnRad: x[1] }
+}
+
+/** Osculating two-body orbit about the Earth at a state: its true anomaly there (rad, in (−π, π]) and the seconds
+ *  until it next passes a given true anomaly. */
+function osculating(r: Vec3, v: Vec3): { nu: number; secondsTo: (nu: number) => number } {
+  const rn = norm(r)
+  const v2 = dot(v, v)
+  const a = 1 / (2 / rn - v2 / MU_EARTH)
+  const ev = scale(sub(scale(r, v2 - MU_EARTH / rn), scale(v, dot(r, v))), 1 / MU_EARTH)
+  const e = norm(ev)
+  const nu = Math.sign(dot(r, v) || 1) * Math.acos(Math.max(-1, Math.min(1, dot(ev, r) / (e * rn))))
+  const mean = (x: number) => {
+    const E = trueToEccentric(e, x)
+    return E - e * Math.sin(E)
+  }
+  const n = Math.sqrt(MU_EARTH / a ** 3)
+  const M0 = mean(nu)
+  return { nu, secondsTo: (x) => ((((mean(x) - M0) % TWO_PI) + TWO_PI) % TWO_PI) / n }
+}
+
+interface PerigeeRaise {
+  coast: SimRun // insertion to ignition
+  burn: SimRun
+  tIgnMs: number
+  tauS: number
+  m0Kg: number
+}
+
+/** Perigee Raise Maneuver (ParkingEllipse): from the insertion, a prograde burn of the last stage centred in time
+ *  on the first apogee, as long as it takes to bring the osculating perigee to rpTarget (km from the Earth's
+ *  centre). Solved by the secant method on the burn length. */
+function perigeeRaise(earth: EarthField, ins: OrbitState, m0: number, stage: EngineUse, rpTarget: number): PerigeeRaise {
+  const s0: SimState = { r: ins.r, v: ins.v, m: m0 }
+  const apo = integrate(earth, s0, ins.utcMs, { maxSeconds: 3 * 3600, maxStepS: 30, stop: (_t, s) => -dot(s.r, s.v), path: false })
+  if (!apo.stopped) throw new FlightPlanError('The parking orbit reaches no apogee within three hours of the insertion.')
+  const tApoS = apo.endS
+  const prograde = (_t: number, s: SimState) => unit(s.v)
+  const flow = stage.thrustN / (G0 * stage.ispS)
+  const cKms = (G0 * stage.ispS) / 1000
+  const fire = (tauS: number) => {
+    const coastS = tApoS - tauS / 2
+    const coast = integrate(earth, s0, ins.utcMs, { maxSeconds: coastS, maxStepS: 30 })
+    const tIgnMs = ins.utcMs + coastS * 1000
+    const burn = integrate(earth, coast.end, tIgnMs, { maxSeconds: tauS, maxStepS: 10, engine: constantThrust(stage.thrustN, stage.ispS, prograde) })
+    return { coast, burn, tIgnMs, tauS, m0Kg: m0, err: apsides(MU_EARTH, burn.end.r, burn.end.v).rp - rpTarget }
+  }
+  // impulsive estimate at the apogee
+  const rA = norm(apo.end.r)
+  const dv = visViva(MU_EARTH, rA, 0.5 * (rA + rpTarget)) - norm(apo.end.v)
+  if (!(dv > 0)) throw new FlightPlanError('The insertion orbit needs no perigee raise to reach the parking orbit.')
+  let a = fire((m0 * (1 - Math.exp(-dv / cKms))) / flow)
+  let b = fire(a.tauS * 1.05)
+  for (let i = 0; i < 20 && Math.abs(b.err) > 1e-4; i++) {
+    const next = b.tauS - (b.err * (b.tauS - a.tauS)) / (b.err - a.err)
+    if (!(next > 0) || next >= tApoS) throw new FlightPlanError('The Perigee Raise Maneuver could not be sized.')
+    a = b
+    b = fire(next)
+  }
+  if (Math.abs(b.err) > 0.01) throw new FlightPlanError('The Perigee Raise Maneuver could not be sized.')
+  return { coast: b.coast, burn: b.burn, tIgnMs: b.tIgnMs, tauS: b.tauS, m0Kg: m0 }
+}
+
+/** The note on the parking orbit of a plan that flies a ParkingEllipse: what was flown, against Artemis I. */
+function parkingEllipseNote(ell: ParkingEllipse, ascent: AscentResult, prm: PerigeeRaise, prmEvent: MissionEvent, shot: TliShot, tliS: number, liftoffMs: number): string {
+  const km = (x: number) => Math.round(x).toLocaleString('en-US')
+  const raised = apsides(MU_EARTH, prm.burn.end.r, prm.burn.end.v)
+  const met = (utcMs: number) => {
+    const m = Math.round((utcMs - liftoffMs) / 60000)
+    return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+  }
+  const nu = (shot.ignitionTrueAnomalyRad ?? NaN) / DEG
+  const [lo, hi] = ell.ignitionTrueAnomalyDeg
+  const inside = nu >= lo - 0.5 && nu <= hi + 0.5 // the band is held on the osculating orbit at the perigee raise
+  return (
+    `The parking orbit at Earth is the one flown on Artemis I (${PARKING_ELLIPSE_MARKER.text}): the ascent inserts into ` +
+    `${km(ascent.insertion.perigeeKm)} × ${km(ascent.insertion.apogeeKm)} km (Artemis I: 29 × 1,801 km); near apogee, at mission time ${met(prm.tIgnMs)}, ` +
+    `the upper stage raises the perigee in a ${prm.tauS.toFixed(0)} s burn of ${((prmEvent.dvKms ?? 0) * 1000).toFixed(0)} m/s to ` +
+    `${km(raised.rp - R_EARTH_EQ)} × ${km(raised.ra - R_EARTH_EQ)} km (Artemis I: 185 × 1,805 km; planned 22 s at 00:53), and starts the injection ` +
+    `at ${met(shot.tIgnMs)} before the next perigee, at a true anomaly of ${nu.toFixed(0)}° (Artemis I design: ${lo}° to ${hi}°` +
+    `${inside ? '' : '; this plan is outside that range'}), burning ${(tliS / 60).toFixed(1)} minutes (Artemis I: about 18).`
+  )
 }
 
 /** a·x + b·y */
@@ -390,8 +499,14 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   // ---- 1. How long and how far the ascent goes: one flight due east from this latitude.
   const lat = pad.latDeg * DEG
   const pad0: Vec3 = [Math.cos(lat), 0, Math.sin(lat)]
+  // The launch vehicle's own parking orbit when it has one (SLS Block 1: as flown on Artemis I), else the circle.
+  const ell: ParkingEllipse | undefined = (lv as AscentVehicle).ascent?.parkingEllipse
+  const ignitionBand: [number, number] = ell ? [ell.ignitionTrueAnomalyDeg[0] * DEG, ell.ignitionTrueAnomalyDeg[1] * DEG] : [0, 0]
+  const insertionTarget = ell
+    ? { perigeeKm: ell.insertionPerigeeKm, apogeeKm: ell.insertionApogeeKm }
+    : { perigeeKm: parkingAltKm, apogeeKm: parkingAltKm }
   const fly = (padEci: Vec3, pole: Vec3, planeNormal: Vec3): AscentResult =>
-    simulateAscent({ vehicle: lv, payloadKg, padEci, pole, target: { planeNormal, perigeeKm: parkingAltKm, apogeeKm: parkingAltKm } })
+    simulateAscent({ vehicle: lv, payloadKg, padEci, pole, target: { planeNormal, ...insertionTarget } })
   const trial = fly(pad0, [0, 0, 1], cross(pad0, [0, 1, 0]))
 
   // ---- 2. Liftoff, ascent and injection, aimed at a flyby 100 km above the Moon's northern hemisphere, where
@@ -411,6 +526,28 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     earliestTouchdownMs: inp.earliestTouchdownMs,
     orbitToTouchdownS: (PERIOD_MS - FLYBY_AFTER_PERILUNE_MS + LOW_ORBIT_TO_TOUCHDOWN_MS) / 1000,
   }
+  if (ell) {
+    // the trial ascent's insertion orbit and where on it the ascent inserts; the raised orbit keeps its apogee
+    const ins = apsides(MU_EARTH, trial.insertion.r, trial.insertion.v)
+    const raised = ellipse(R_EARTH_EQ + ell.raisedPerigeeKm, ins.ra)
+    // Where the (impulsive) injection point may lie: the burn is centred on it and begins in the band of true
+    // anomaly, so the point lies about half the burn's arc past that band. Half the arc, estimated for the guess
+    // only: the perigee's angular rate times half the burn length of the rocket equation, for the injection from
+    // the raised orbit's perigee into a transfer to the Moon's mean distance (384,400 km).
+    const vp = visViva(MU_EARTH, raised.a * (1 - raised.e), raised.a)
+    const dvKms = visViva(MU_EARTH, raised.a * (1 - raised.e), 0.5 * (raised.a * (1 - raised.e) + 384400)) - vp
+    const m0 = payloadKg + trial.upperStageDryKg + trial.upperStagePropellantKg
+    const cKms = (G0 * tliEngine.ispVacS) / 1000
+    const tauS = (m0 * (1 - Math.exp(-dvKms / cKms))) / ((tliEngine.thrustVacN * tliEngine.count) / (G0 * tliEngine.ispVacS))
+    const halfArc = (vp / (raised.a * (1 - raised.e))) * (tauS / 2)
+    guessInput.parkingAltKm = ell.raisedPerigeeKm
+    guessInput.ellipse = {
+      insertionTrueAnomalyRad: osculating(trial.insertion.r, trial.insertion.v).nu,
+      insertion: ellipse(ins.rp, ins.ra),
+      raised,
+      injectionBandRad: [ignitionBand[0] + halfArc, ignitionBand[1] + halfArc],
+    }
+  }
   const northAt = (utcMs: number) => qrot(ephem.moonFixedToInertial(utcMs), [0, 0, 1])
   const overTheNorth = (S: Vec3, vInf2: number, tPerMs: number): Vec3 => {
     const north = northAt(tPerMs)
@@ -421,7 +558,9 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     ascent: AscentResult
     earth: EarthField
     tli: { shot: TliShot; tauS: number; planeTurnRad: number }
+    /** What the injection starts with (after the Perigee Raise Maneuver, when one is flown). */
     stage: EngineUse & { dryKg: number; propellantKg: number }
+    prm: PerigeeRaise | null
   }
   const outboundFor = (guess: Guess, wantB: TliInput['wantB']): Outbound => {
     let earth: EarthField
@@ -436,29 +575,51 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       const planeNormal = unit(rotateAbout(guess.planeNormal, guess.padHat, turn))
       const g: Guess = { ...guess, planeNormal, tliPoint: rotateAbout(guess.tliPoint, guess.padHat, turn) }
       const ascent = fly(guess.padHat, guess.pole, planeNormal)
-      const stage = {
+      let stage = {
         name: `${tliStage.name}, ${tliEngine.name}`,
         thrustN: tliEngine.thrustVacN * tliEngine.count,
         ispS: tliEngine.ispVacS,
         dryKg: ascent.upperStageDryKg,
         propellantKg: ascent.upperStagePropellantKg,
       }
+      let start: OrbitState = { utcMs: guess.liftoffMs + ascent.insertion.tS * 1000, r: ascent.insertion.r, v: ascent.insertion.v }
+      let prm: PerigeeRaise | null = null
+      if (ell) {
+        prm = phase('The Perigee Raise Maneuver', () =>
+          perigeeRaise(earth, start, payloadKg + stage.dryKg + stage.propellantKg, stage, R_EARTH_EQ + ell.raisedPerigeeKm),
+        )
+        const end = prm.burn.end
+        stage = { ...stage, propellantKg: stage.propellantKg - (prm.m0Kg - end.m) }
+        start = { utcMs: prm.tIgnMs + prm.tauS * 1000, r: end.r, v: end.v }
+      }
       const tli = aimTli({
         earth,
         guess: g,
-        insertion: { utcMs: guess.liftoffMs + ascent.insertion.tS * 1000, r: ascent.insertion.r, v: ascent.insertion.v },
+        insertion: start,
         stage,
         payloadKg,
         wantB,
         flybyRadiusKm: rFly,
+        ...(ell ? { ignitionBandRad: ignitionBand } : {}),
       })
       turn += tli.planeTurnRad
       // 0.002°: the ascent was flown into the plane the translunar flight needs
-      if (Math.abs(tli.planeTurnRad) < 3.5e-5) return { guess: g, ascent, earth, tli, stage }
+      if (Math.abs(tli.planeTurnRad) < 3.5e-5) return { guess: g, ascent, earth, tli, stage, prm }
     }
     throw new FlightPlanError('Ascent and translunar flight did not settle on a common orbit plane.')
   }
   const launch = (): Outbound => {
+    if (ell) {
+      // the launch opportunities at which the parking orbit's perigee comes where the injection has to be, cheapest first
+      for (let rank = 0; rank < 5; rank++) {
+        try {
+          return outboundFor(firstGuess(guessInput, 0, rank), overTheNorth)
+        } catch (err) {
+          if (!(err instanceof NoLeverage)) throw err
+        }
+      }
+      throw new FlightPlanError('The translunar flight could not be aimed for this launchpad.')
+    }
     for (const shiftMin of [0, 20, -20, 40, -40, 60, -60, 90, -90]) {
       try {
         return outboundFor(firstGuess(guessInput, shiftMin), overTheNorth)
@@ -504,7 +665,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     out = launch()
     nrho = phase('The reference NRHO', () => nrhoFor(out.tli.shot.tPerMs))
   }
-  const { guess, ascent, tli } = out
+  const { guess, ascent, tli, prm } = out
   const shot = tli.shot
   const liftoffMs = guess.liftoffMs
   const field: Field = nrho.field
@@ -714,7 +875,13 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   const insertionMs = liftoffMs + ascent.insertion.tS * 1000
   const allLegs: MissionLeg[] = [
     ...legsOf(ascentPath, 'capsule', 'earth', named('ascent', 'Ascent, engine burn'), named('ascent', 'Ascent')),
-    ...legsOf(runPath(shot.coast, insertionMs, false), 'capsule', 'earth', named('parking', 'Parking orbit'), named('parking', 'Parking orbit')),
+    ...(prm
+      ? [
+          ...legsOf(runPath(prm.coast, insertionMs, false), 'capsule', 'earth', named('parking', 'Parking orbit'), named('parking', 'Parking orbit')),
+          ...legsOf(runPath(prm.burn, prm.tIgnMs, true), 'capsule', 'earth', named('prm', 'Perigee Raise Maneuver'), named('prm', 'Perigee Raise Maneuver')),
+          ...legsOf(runPath(shot.coast, prm.tIgnMs + prm.tauS * 1000, false), 'capsule', 'earth', named('parking', 'Parking orbit'), named('parking', 'Parking orbit')),
+        ]
+      : legsOf(runPath(shot.coast, insertionMs, false), 'capsule', 'earth', named('parking', 'Parking orbit'), named('parking', 'Parking orbit'))),
     ...legsOf(runPath(shot.burn, shot.tIgnMs, true), 'capsule', 'earth', named('tli', 'Trans-Lunar Injection'), named('tli', 'Trans-Lunar Injection')),
     ...arrivalLegs,
     waitLeg,
@@ -754,6 +921,13 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     id: 'tli', label: 'Trans-Lunar Injection (TLI)', utcMs: shot.tIgnMs, kind: 'burn', by: out.stage.name,
     dvKms: (G0 * out.stage.ispS * Math.log(m0Tli / shot.burn.end.m)) / 1000, propellantKg: m0Tli - shot.burn.end.m, durationS: tli.tauS, massAfterKg: payloadKg,
   })
+  const prmEvent = prm
+    ? ev({
+        id: 'prm', label: 'Perigee Raise Maneuver (PRM)', utcMs: prm.tIgnMs, kind: 'burn', by: out.stage.name,
+        dvKms: (G0 * out.stage.ispS * Math.log(prm.m0Kg / prm.burn.end.m)) / 1000, propellantKg: prm.m0Kg - prm.burn.end.m, durationS: prm.tauS,
+        massAfterKg: prm.burn.end.m,
+      })
+    : null
   const events: MissionEvent[] = [
     ev({
       id: 'ascent', short: 'Launch', label: 'Launch and ascent to Earth parking orbit', utcMs: liftoffMs, kind: 'burn', by: lv.name,
@@ -761,6 +935,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       massAfterKg: ascent.insertion.massKg,
     }),
     ...ascent.events.filter((e) => e.id !== 'liftoff').map((e) => ev({ id: `ascent-${e.id}`, short: '', label: e.label, utcMs: liftoffMs + e.tS * 1000 })),
+    ...(prmEvent ? [prmEvent] : []),
     tliEvent,
     ...capsuleBurn(otc, 'otc'),
     ...capsuleBurn(opf, 'opf'),
@@ -782,7 +957,11 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   // ---- 9. What every element has to carry.
   const capsuleUsedKg = payloadKg - capsuleOnNrhoKg + (capsuleOnNrhoKg - home.end.massKg)
   const propellant: PropellantUse[] = [
-    { element: tliStage.name, usedKg: tliStage.propellantKg - ascent.upperStagePropellantKg + (tliEvent.propellantKg ?? 0), capacityKg: tliStage.propellantKg },
+    {
+      element: tliStage.name,
+      usedKg: tliStage.propellantKg - ascent.upperStagePropellantKg + (prmEvent ? (prmEvent.propellantKg ?? 0) : 0) + (tliEvent.propellantKg ?? 0),
+      capacityKg: tliStage.propellantKg,
+    },
     { element: capsuleEngine.module.name, usedKg: capsuleUsedKg, capacityKg: capsuleEngine.module.propellantKg },
   ]
   if (twoStage) {
@@ -858,7 +1037,9 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   const lowOrbitH = (touchdownMs - lowOrbit.utcMs) / HOUR_MS
   notes.push(
     `In low lunar orbit the lander starts down as soon as the geometry allows, ${lowOrbitH.toFixed(1)} hours after its insertion; a NASA reference design waits 3 to 4 revolutions there (6.6 hours) to prepare. ` +
-      `The parking orbit at Earth is a ${parkingAltKm} km circle left after one to two revolutions; Artemis I was put into 30 × 1,806 km by the core stage and raised its perigee before the injection.`,
+      (prm && prmEvent
+        ? parkingEllipseNote(ell!, ascent, prm, prmEvent, shot, tli.tauS, liftoffMs)
+        : `The parking orbit at Earth is a ${parkingAltKm} km circle left after one to two revolutions; Artemis I was put into 30 × 1,806 km by the core stage and raised its perigee before the injection.`),
   )
   if (!twoStage) {
     notes.push(
@@ -898,6 +1079,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
   // Every burn of the plan with its engine, for the energy comparison (ideal.ts). The lander's own launches and
   // its flight to the NRHO are not part of this plan and not in the sum.
   const spaceBurns: JetBurn[] = [
+    ...(prmEvent ? [{ propellantKg: prmEvent.propellantKg ?? 0, ispS: tliEngine.ispVacS }] : []),
     { propellantKg: tliEvent.propellantKg ?? 0, ispS: tliEngine.ispVacS },
     { propellantKg: capsuleUsedKg, ispS: capsuleEngine.use.ispS },
     ...(twoStage
@@ -908,12 +1090,13 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       : [{ propellantKg: flownSortie.usedKg, ispS: descentEngine.ispS }]),
   ]
   const burns: JetBurn[] = [...ascentBurns(lv, ascent), ...spaceBurns]
-  const park = apsides(MU_EARTH, ascent.insertion.r, ascent.insertion.v)
+  // the parking orbit the injection starts from: after the Perigee Raise Maneuver when one is flown
+  const park = prm ? apsides(MU_EARTH, prm.burn.end.r, prm.burn.end.v) : apsides(MU_EARTH, ascent.insertion.r, ascent.insertion.v)
   const east = unit(cross(guess.pole, guess.padHat))
   const vHat = cross(guess.planeNormal, guess.padHat)
   const az = Math.atan2(dot(vHat, east), dot(vHat, cross(guess.padHat, east))) / DEG
   const sources: SourceRef[] = []
-  for (const s of [...lv.sources, ...lv.stages.flatMap((x) => x.sources), ...capsule.sources, ...lander.sources, pad.source, ...NRHO_SOURCES, ...(limit?.sources ?? [])]) {
+  for (const s of [...lv.sources, ...lv.stages.flatMap((x) => x.sources), ...capsule.sources, ...lander.sources, pad.source, ...NRHO_SOURCES, ...(limit?.sources ?? []), ...(ell?.sources ?? [])]) {
     if (s.url && !sources.some((x) => x.url === s.url)) sources.push(s)
   }
   return {
@@ -956,5 +1139,6 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
     },
     notes,
     sources,
+    ...(ell ? { unvalidated: [PARKING_ELLIPSE_MARKER] } : {}),
   }
 }

@@ -7,7 +7,7 @@
 // and why; the assumptions are listed again at the end of this file.
 //
 // Unit conversions: 1 lbm = 0.45359237 kg, 1 lbf = 4.4482216 N, 1 ft = 0.3048 m.
-import type { AscentVehicle } from './ascent'
+import type { AscentVehicle, ParkingEllipse } from './ascent'
 import type { LaunchVehicleSpec } from './hardware'
 import type { SourceRef } from './types'
 
@@ -392,6 +392,51 @@ const SLS_MAX_G = 3.25
 // Artemis I, actual: "the best current estimate is 130.818 s MET" for booster separation (planned 00:02:12).
 const SLS_BOOSTER_SEPARATION_S = 130.818
 
+// The orbit before the Trans-Lunar Injection, as flown on Artemis I (new in this model; NOT YET VALIDATED by the
+// science lead, see PARKING_ELLIPSE_MARKER in missionNrho.ts). 1 nmi = 1.852 km.
+//  - Insertion by the Core Stage, flight-reconstructed (used): JANNAF 2024, "The orbital insertion parameters were
+//    972.6 nautical miles (1,801 km) by 15.9 nautical miles (29.4 km)". Other NASA statements, not used:
+//    pre-flight "16 × 975 nmi orbit (30 x 1806 km)" (AAS 20-649, ARTEMIS_I_TRAJECTORY; JANNAF 2024: "Predicted
+//    parameters were 975 nautical miles (1,806 km) by 16 nautical miles (29.6 km)"); flown "an initial orbit of
+//    16 x 972 nautical miles (nmi)" (IAC 2023, ARTEMIS_I_IAC_2023, rounded); SciTech 2024 "972.1 mi. (1,564 km) by
+//    16 mi. (25.7 km)" (converted as statute miles there, which contradicts the other three; not used).
+//  - Perigee Raise Maneuver by the ICPS: flown "raising ICPS/Orion to a 100 x 974.5 nmi Earth orbit" (IAC 2023);
+//    pre-flight "to raise the perigee to 100 nmi (185 km)" (AAS 20-649). Both say 100 nmi. When: "Approximately
+//    45 minutes after CoreSep, the vehicle stack has coasted near apogee" (AAS 20-649); "a 45-minute coast phase
+//    before the ICPS performed at perigee raise maneuver" (JANNAF 2024); planned "Perigee Raise Maneuver (MET
+//    00:52:56)", "22 seconds in duration" (Artemis I press kit, ARTEMIS_I_PRESS_KIT). The planner burns
+//    prograde, centred on the first apogee, as long as it takes to reach the 100 nmi perigee; the flown apogee
+//    after it (974.5 nmi) and the planned 22 s are for comparison, not inputs.
+//  - Injection: "The TLI burn begins prior to the next perigee passage and occurs at a true anomaly between −40◦
+//    and −95◦" (AAS 20-649, pre-flight design; no flown value published). The planner centres the burn in time on
+//    the perigee and checks the ignition against this range. Planned "Trans-lunar injection (MET 01:29:27)",
+//    "Approximately 18 minute burn" (press kit); flown "The 18-minute burn" (JANNAF 2024), "the 20-minute TLI
+//    burn" (IAC 2023): for comparison only.
+// Altitudes are taken as above R_EARTH_EQ, as everywhere in ascent.ts; the sources do not say above which surface.
+const ARTEMIS_I_TRAJECTORY: SourceRef = {
+  label: 'Batcha et al. (NASA JSC), Artemis I Trajectory Design and Optimization, AAS 20-649 (NTRS 20205005150)',
+  url: 'https://ntrs.nasa.gov/api/citations/20205005150/downloads/AAS20649_Artemis1_Trajectory_Design_Optimization.pdf',
+}
+const ARTEMIS_I_IAC_2023: SourceRef = {
+  label: 'NASA, Artemis I flight results paper, IAC 2023 (NTRS 20230012789)',
+  url: 'https://ntrs.nasa.gov/api/citations/20230012789/downloads/IAC%202023Artemis%20I%20paper-FINALSTRIVES.pdf',
+}
+const ARTEMIS_I_PRESS_KIT: SourceRef = {
+  label: 'NASA, Artemis I press kit: ascent and mission timeline (planned times)',
+  url: 'https://www.nasa.gov/artemis-i-press-kit/',
+}
+const NMI = 1.852
+const SLS_BLOCK_1_PARKING: ParkingEllipse = {
+  // JANNAF 2024 (flown): "972.6 nautical miles (1,801 km) by 15.9 nautical miles (29.4 km)"
+  insertionPerigeeKm: 15.9 * NMI,
+  insertionApogeeKm: 972.6 * NMI,
+  // IAC 2023 (flown): "a 100 x 974.5 nmi Earth orbit"; AAS 20-649 (pre-flight): "raise the perigee to 100 nmi (185 km)"
+  raisedPerigeeKm: 100 * NMI,
+  // AAS 20-649: "occurs at a true anomaly between −40◦ and −95◦"
+  ignitionTrueAnomalyDeg: [-95, -40],
+  sources: [JANNAF_2024, ARTEMIS_I_IAC_2023, ARTEMIS_I_TRAJECTORY, ARTEMIS_I_PRESS_KIT],
+}
+
 const SLS_BLOCK_1: AscentVehicle = {
   id: 'sls-block-1',
   name: 'SLS Block 1',
@@ -451,6 +496,7 @@ const SLS_BLOCK_1: AscentVehicle = {
     boosterThrustProfile: SLS_BOOSTER_THRUST,
     boosterSeparationS: SLS_BOOSTER_SEPARATION_S,
     cutoffLabels: ['Main Engine Cutoff (MECO)', 'ICPS engine cut-off'],
+    parkingEllipse: SLS_BLOCK_1_PARKING,
     sources: [SLS_REF_GUIDE, JANNAF_2024, SCITECH_2024, BOOSTER_SEP_PAPER, QM1_PAPER],
   },
 }
