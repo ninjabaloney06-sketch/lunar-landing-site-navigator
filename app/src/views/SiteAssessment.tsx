@@ -171,9 +171,12 @@ export function SiteAssessment({ site }: { site: Site }) {
         </summary>
         {open && (
           <div className="assess-body" data-state={view ? view.state : 'loading'}>
-            <div className="assess-tools">
-              <FullDataSwitch />
-            </div>
+            {view?.state === 'ready' && (
+              // only where it changes something: a custom place or a missing file has no extra rows
+              <div className="assess-tools">
+                <FullDataSwitch />
+              </div>
+            )}
             {!view && (
               <p className="quiet" role="status">
                 Loading the site assessment…

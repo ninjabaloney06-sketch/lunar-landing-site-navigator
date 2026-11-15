@@ -96,6 +96,7 @@ test('a custom site: every block says "Not computed for this place", and the fil
   await expect(msgs).toHaveText(Array(4).fill('Not computed for this place'))
   await expect(sec.locator('tbody tr')).toHaveCount(0)
   await expect(sec.getByTestId('assess-status')).toHaveCount(0)
+  await expect(sec.getByTestId('full-data-switch')).toHaveCount(0) // nothing for it to add here
   await expect(sec).not.toContainText(/NaN|undefined|°/)
   expect(urls).toEqual([])
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/assessment-custom-1280.png` })
