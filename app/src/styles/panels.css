@@ -853,3 +853,70 @@
     transition: none;
   }
 }
+
+/* ---------- Site details: a plain summary first, then folded sections (Fold.tsx) ---------- */
+
+.site-summary {
+  margin-top: var(--s-6);
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.site-summary-list {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--t-ui);
+  line-height: 1.4;
+}
+
+.site-summary-list > li {
+  display: grid;
+  grid-template-columns: 8.5em minmax(0, 1fr);
+  column-gap: var(--s-3);
+}
+
+.site-summary-k {
+  color: var(--muted);
+}
+
+/* Folds: heading, then its one-line summary under it, the +/− at the right; one rule between folds. */
+.drawer-fold,
+.drawer-sec.assess {
+  margin-top: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-summary + .drawer-fold {
+  margin-top: var(--s-4);
+}
+
+.drawer-fold > .drawer-fold-sum {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--s-3);
+  padding: var(--s-2) 0;
+}
+
+.drawer-fold > .drawer-fold-sum h3 {
+  grid-column: 1;
+  margin: 0;
+}
+
+.drawer-fold > .drawer-fold-sum::after {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.drawer-fold-val {
+  grid-column: 1;
+  min-width: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.drawer-fold-body {
+  padding: var(--s-1) 0 var(--s-4);
+}

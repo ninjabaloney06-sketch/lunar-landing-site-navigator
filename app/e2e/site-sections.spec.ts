@@ -5,6 +5,7 @@
 // Screenshots for the report: SITE_SHOTS=<folder>.
 // Run: PW_GPU=1 PW_PORT=5186 npx playwright test e2e/site-sections.spec.ts
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 const SHOTS = process.env.SITE_SHOTS
 const HASH = 'site=malapert-massif&period=shackleton-2027-08'
@@ -24,6 +25,7 @@ async function open(page: Page, hash = HASH) {
   await page.goto(`/?test=1#${hash}&drawer=details`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const drawer = page.getByTestId('drawer')
+  await openDrawerFolds(page) // the sections are folded to one line each
   const assess = drawer.getByTestId('site-assessment')
   await assess.getByText('Landing site assessment', { exact: true }).click()
   await expect(assess.getByTestId('assess-status')).toBeVisible({ timeout: 30_000 })
@@ -32,7 +34,7 @@ async function open(page: Page, hash = HASH) {
   const tools = drawer.getByTestId('nasa-tools')
   await expect(tools.getByTestId('nt-our-sun')).toBeVisible({ timeout: 60_000 })
   // the "Open in NASA tools" section around the nasa-tools block (its heading is Drawer.tsx's)
-  const toolsSec = drawer.locator('section[aria-labelledby="sec-nasa"]')
+  const toolsSec = drawer.locator('[aria-labelledby="sec-nasa"]')
   return { drawer, assess, power, tools: toolsSec }
 }
 
