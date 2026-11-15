@@ -280,7 +280,7 @@ const RESOLUTION: [string, string][] = [
   ['Station geometry', 'Moon elevation at a station differs from JPL Horizons by up to 0.0763° in the 10 recorded values (station check open)'],
   ['Site position', "As printed in each site's source, a representative point of a region; frame assumed where the source does not name it"],
   ['Site slope (5° limit)', 'One value per site over a 100 m baseline on the 20 m model, stored to 0.1°'],
-  ['3D terrain', '20 m within ±2.5 km, 80 m within ±20 km, 400 m within ±60 km, 2 km within ±300 km; for viewing only'],
+  ['3D terrain', '20 m within ±2.5 km, 80 m within ±20 km, 160 m within ±40 km (from the south-cap 80 m tiles), 400 m within ±60 km, 2 km within ±300 km; for viewing only'],
 ]
 
 // ---------- the sections, in reading order ----------
@@ -501,6 +501,18 @@ export const DOC_SECTIONS: DocSection[] = [
           opened.
         </p>
         <p>
+          <strong>Custom landing sites.</strong> A place south of 80° S can be made the landing site: typed coordinates
+          in the Mission panel and every user point offer "Set as landing site" (the right-click menu on a user point
+          offers the same). Outside the south cap the action is not offered. The link holds the place with five
+          decimals. Its terrain and horizon are computed in the browser from coarser south-cap terrain (40 m and 80 m
+          tiles, a 400 m base and a 1920 m outer raster), by the same conventions as the sites: 720 directions, eye
+          1.75 m above the ground, rays to 300 km. Every result then comes from the same functions as for a listed
+          site, and is marked as approximate and not validated. Compared with the horizons of the 18 listed sites on
+          14 Nov 2026, the browser horizon differs by 0.013° in the median over sites and by up to 1.68° in single
+          directions; a difference of that size can move a sunrise or sunset. A custom site is named "Custom site" and
+          is not a row in the site list, the all-sites table or the search.
+        </p>
+        <p>
           <strong>Loading and missing data.</strong> While data loads, the answer line says so and the tracks stay
           empty. A site or date without data gives a plain "no data" message. The previous selection's values are never
           shown under a new selection.
@@ -716,8 +728,11 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
           <li>The change of the horizon across the width of a disc. The horizon is taken at the disc centre's direction.</li>
           <li>Scattered light, earthshine and heat from surrounding terrain, as inputs to any result.</li>
-          <li>Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see &quot;Custom landing sites&quot;). North of 80° S only the listed sites can be analysed.</li>
-          <li>Launch, transfer, descent and any trajectory.</li>
+          <li>Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see &quot;Custom landing sites&quot; under &quot;How to read each view&quot;). North of 80° S only the listed sites can be analysed.</li>
+          <li>
+            Launch, transfer and descent in the site analysis. The Flight plan tab computes them separately; its result
+            does not enter any site value or ranking.
+          </li>
           <li>Uncertainty. No error bars are computed; errors of the terrain model are not propagated.</li>
           <li>
             Site assessments (slope statistics, roughness, shadow clusters, temperature) are computed for all 18 sites
