@@ -38,14 +38,18 @@ dumbing the app down.
 
 ## State at start (verify, do not trust)
 
-- `main` = `c0a09b0` plus the commit that added this file (notebook page 2 + two bug lists already merged through `integration`, deployed
-  as Worker `8469ff2f`).
-- Leo's branch `origin/feature/flight-calculator-lite` (`d7f56b7`, 02:44) was being merged into main by
-  another session while this prompt was written (03:00–03:30). **Before you start: `git fetch` and check whether `d7f56b7` is an ancestor of
-  `origin/main` (if it was squashed or rebased, check instead that `app/src/flight/energyBaseline.ts` and
-  `app/e2e/flight.spec.ts` exist on `origin/main`). If neither, stop and tell ninja — do not merge it
-  yourself, do not start work on an old main.**
-  That branch already does:
+- `main` = merge commit `4c3cb3e` (PR #21, 04:06) plus the log commit that records the deploy below. It
+  contains notebook page 2, the two bug lists, the Flight plan tab and Leo's `feature/flight-calculator-lite`
+  (`d7f56b7` + test fixes `7e68c7d`). Deployed to https://nasa.digi-works.org as Worker
+  `7b0a0906-6739-4352-adde-e30554d6144c` (Cloudflare `Created` 2026-11-15 03:20:52 UTC = 04:20 local).
+  All other branches were deleted after the merge; only `main` exists. **Before you start: `git fetch`,
+  confirm `4c3cb3e` is an ancestor of `origin/main` and `git status` is clean. If not, stop and tell ninja.**
+- Tests on that main (Leo's laptop, 04:05): tsc, vitest 343 passed + 1 skipped, `flight/anySite.test.ts`
+  19 passed, Playwright three full runs with `PW_GPU=1`: 126 passed, 1 skipped, 0 failed. With the default
+  software renderer, `e2e/scene-motion.spec.ts:363` (S3 fly picture) can exceed its timeout on a slow
+  machine — that is pre-existing, not a regression. If it times out here, rerun with `PW_GPU=1` before
+  blaming a change.
+- Leo's merged branch added:
   - "Calculate flight" button on saved-mission rows (All sites table + Mission panel list) → opens the
     Flight plan tab pre-filled with that mission (site, dates, launchpad, rocket, new hash key `stay`).
   - Flight panel compacted into a short "Rocket flight" menu (energy multiplier, Apollo/SLS cards,
