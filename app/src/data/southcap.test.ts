@@ -535,5 +535,5 @@ describe('capHorizon against the 18 pipeline horizons', () => {
     const c = await openCap(io)
     table('D. 40 m within 20 km, 80 m within 60 km, 400 m beyond', await compare(c, { fineKm: 20, nearKm: 60 }))
     console.log(`D fetched ${stats.tiles} tiles, ${(stats.bytes / 1e6).toFixed(1)} MB for the 18 sites`)
-  })
+  }, 60_000) // 18 horizons with 40 m tiles to 20 km: about 5 s alone, past the 5 s default next to other jobs
 })
