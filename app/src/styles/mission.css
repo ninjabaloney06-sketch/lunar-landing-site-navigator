@@ -13,22 +13,25 @@
   mask: var(--icon) center / contain no-repeat;
 }
 
-/* ---------- header: mission control, then the site as plain text ---------- */
+/* ---------- header: the mission's name with its Edit button, then Landing site and Dates as labelled controls ---------- */
 
-.mission-h {
-  margin: 0;
-  font: inherit;
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
 }
 
-.mission {
-  display: inline-flex;
+.mission-h {
+  display: flex;
   align-items: center;
   gap: var(--s-3);
-  max-width: 100%;
+  min-width: 0;
+  margin: 0;
   font: 400 var(--t-display) / 1.2 var(--font-serif);
 }
 
-.mission .icon {
+.mission-h .icon {
   width: var(--s-6);
   height: var(--s-6);
   color: var(--muted);
@@ -37,32 +40,65 @@
 .mission-name {
   min-width: 0;
   overflow-wrap: anywhere;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 7px;
-  text-decoration-color: var(--faint);
 }
 
-/* Focus keeps the global outline (index.css) and also lights the control like hover. */
-.mission:hover .mission-name,
-.mission:focus-visible .mission-name,
-.mission[aria-expanded='true'] .mission-name {
-  text-decoration-color: var(--fg);
+/* "Edit mission": a plain boxed button like the action bar's, a step smaller so the title stays the title. */
+.edit-mission {
+  padding: var(--s-1) var(--s-3);
+  font-size: var(--t-small);
 }
 
-.mission:hover .icon,
-.mission:focus-visible .icon,
-.mission[aria-expanded='true'] .icon {
-  color: var(--fg);
-}
-
-.mission:active .mission-name {
-  color: var(--muted);
-}
-
+/* Landing site · Dates: each a quiet label and a boxed control with a caret (reads as a sentence, left to right). */
 .site-line {
-  margin: var(--s-2) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-5);
+  margin: var(--s-3) 0 0;
   overflow-wrap: anywhere;
+}
+
+.ctl {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.ctl-label {
+  font-size: var(--t-small);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.ctl-btn {
+  min-width: 0;
+  color: var(--fg);
+  font-weight: 500;
+  padding: 2px var(--s-2);
+  border: 1px solid var(--faint);
+  border-radius: var(--radius);
+  background: var(--bg-veil);
+  text-align: left;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.ctl-btn::after {
+  content: '';
+  display: inline-block;
+  margin-left: var(--s-2);
+  border: 4px solid transparent;
+  border-top-color: currentColor;
+  border-bottom: 0;
+  vertical-align: middle;
+}
+
+.ctl-btn:hover,
+.ctl-btn[aria-expanded='true'] {
+  border-color: var(--fg);
+  background: var(--surface-2);
 }
 
 .site-line .coords {
@@ -78,13 +114,46 @@
 }
 
 @media (max-width: 640px) {
-  .mission {
-    font-size: 28px;
+  .mission-h {
+    font-size: var(--t-display-sm);
   }
 
-  .mission .icon {
-    width: var(--s-5);
-    height: var(--s-5);
+  .mission-h .icon {
+    display: none;
+  }
+
+  /* Room on the right for the Menu button, which sits on the title's row (index.css). */
+  .title-row {
+    padding-right: 84px;
+    min-height: 44px;
+  }
+
+  .edit-mission {
+    min-height: 36px;
+  }
+
+  /* Label above its control, both controls on one row at 375 px. */
+  .site-line {
+    gap: var(--s-1) var(--s-4);
+    margin-top: var(--s-1);
+  }
+
+  .ctl {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .ctl-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctl-btn {
+    transition: none;
   }
 }
 

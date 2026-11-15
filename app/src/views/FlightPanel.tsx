@@ -60,7 +60,7 @@ export interface FlightPanelProps {
   onTrueScale(v: boolean): void
   picking: 'pad' | 'site' | null // the 3D view is waiting for a click on Earth (pad) or on the Moon (site)
   onPicking(p: 'pad' | 'site' | null): void
-  onChangeSite(): void // opens the Mission panel
+  onChangeSite(): void // opens the landing-site picker
   onSeek(utcMs: number): void // jump the playback to an event
   collapsed: boolean
   onCollapsed(v: boolean): void

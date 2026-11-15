@@ -102,6 +102,9 @@ const GROUP_TEXT: Record<Site['group'], string> = {
 }
 
 interface Props {
+  /** 'site': only the landing-site choice (the header's Landing site control), its ranking open; 'mission': the whole
+   *  mission (Edit mission). */
+  mode?: 'mission' | 'site'
   sites: Site[]
   stations: Station[]
   ids: string[]
@@ -143,6 +146,8 @@ interface Row {
 
 export function MissionPanel(p: Props) {
   const { sites, site, period, goal } = p
+  const siteOnly = p.mode === 'site'
+  const searchRef = useRef<HTMLInputElement>(null)
   const root = useRef<HTMLDivElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
   const stationsRef = useRef<HTMLElement>(null)
@@ -152,7 +157,7 @@ export function MissionPanel(p: Props) {
   const [dateError, setDateError] = useState<string | null>(null)
   // null = not editing: the field shows the current site's name and no list (U1). Typing shows the matching sites.
   const [query, setQuery] = useState<string | null>(null)
-  const [rankingOpen, setRankingOpen] = useState(false) // the full ranked list, opened on purpose
+  const [rankingOpen, setRankingOpen] = useState(siteOnly) // the full ranked list: open in the site picker, opened on purpose in the mission menu
   const [stationsOpen, setStationsOpen] = useState(p.focusStations) // folded to "n of m stations" (U2)
   const [pointDraft, setPointDraft] = useState<{ i: number; text: string } | null>(null) // the name being typed
   const [activeId, setActiveId] = useState<string | null>(site.id) // keyboard row; null = first row (after typing)
@@ -161,7 +166,8 @@ export function MissionPanel(p: Props) {
     if (p.focusStations && stationsRef.current) {
       stationsRef.current.scrollIntoView({ block: 'start' })
       stationsRef.current.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true })
-    } else closeBtn.current?.focus({ preventScroll: true })
+    } else if (siteOnly) searchRef.current?.focus({ preventScroll: true })
+    else closeBtn.current?.focus({ preventScroll: true })
     // on open only
   }, [])
 
@@ -339,10 +345,10 @@ export function MissionPanel(p: Props) {
   return (
     <div
       ref={root}
-      className="popover menu mission-panel"
+      className={`popover menu mission-panel${siteOnly ? ' site-picker' : ''}`}
       role="dialog"
       aria-labelledby="mission-title"
-      data-testid="mission-panel"
+      data-testid={siteOnly ? 'site-picker' : 'mission-panel'}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation()
@@ -355,17 +361,22 @@ export function MissionPanel(p: Props) {
           ×
         </button>
         <h2 id="mission-title" className="mp-title">
-          Mission
+          {siteOnly ? 'Landing site' : 'Mission'}
         </h2>
-        <button type="button" className="btn mp-play" aria-describedby="mp-play-note" title={PLAY_NOTE} onClick={p.onPlay}>
-          Play mission
-        </button>
-        <span id="mp-play-note" className="sr-only">
-          {PLAY_NOTE}
-        </span>
+        {!siteOnly && (
+          <>
+            <button type="button" className="btn mp-play" aria-describedby="mp-play-note" title={PLAY_NOTE} onClick={p.onPlay}>
+              Play mission
+            </button>
+            <span id="mp-play-note" className="sr-only">
+              {PLAY_NOTE}
+            </span>
+          </>
+        )}
         <FullDataSwitch className="mp-full" />
       </div>
 
+      {!siteOnly && (
       <div className="mp-fields">
         <label className="mp-field">
           <span className="mp-label">Name</span>
@@ -426,14 +437,16 @@ export function MissionPanel(p: Props) {
           </p>
         )}
       </div>
+      )}
 
       {/* U17: the landing site is the first decision, so it comes before the goal that orders its ranking. */}
       <section className="mp-sec" aria-labelledby="mp-sites" data-testid="mp-site-section">
-        <h3 id="mp-sites" className="mp-h">
+        <h3 id="mp-sites" className={siteOnly ? 'sr-only' : 'mp-h'}>
           Landing site
         </h3>
         <div className="menu-search">
           <input
+            ref={searchRef}
             className="field"
             type="text"
             role="combobox"
@@ -552,6 +565,8 @@ export function MissionPanel(p: Props) {
         </div>
       </section>
 
+      {!siteOnly && (
+        <>
       <fieldset className="mp-sec mp-goals">
         <legend className="mp-h">Science goal</legend>
         <p className="quiet mp-hint">Orders the landing-site ranking above.</p>
@@ -743,6 +758,8 @@ export function MissionPanel(p: Props) {
               : 'Keeps name, site, dates, stations, goal, launchpad, rocket, surface stay and transfer cap in this browser.'}
         </p>
       </section>
+        </>
+      )}
     </div>
   )
 }
