@@ -5,9 +5,11 @@
 import { useEffect, useState } from 'react'
 import { computeSeries, windows } from '../geometry'
 import { loadMonthsFor } from '../data/load'
-import { finderInputs } from '../data/results'
+import { finderInputs, NoDataError } from '../data/results'
+import type { CapHorizon } from '../data/southcap'
 import type { Site, Station } from '../data/types'
 import { COVERAGE_END_MS, COVERAGE_START_MS } from '../state'
+import { approxText } from './custom'
 
 export const YEARS = [2026, 2027, 2028, 2029, 2030]
 
@@ -15,7 +17,7 @@ export type Span = [number, number] // [startMs, endMs)
 
 export type YearEntry =
   | { status: 'computing' }
-  | { status: 'done'; lit: Span[]; covered: Span[] }
+  | { status: 'done'; lit: Span[]; covered: Span[]; approx?: string } // approx: a custom site's "Approximate: …" line
   | { status: 'none'; reason: string }
 
 /** The calendar year, and the part of it this build has ephemeris for (Nov 2026 – Dec 2030). */
@@ -43,7 +45,8 @@ async function compute(site: Site, stations: Station[], ids: string[], year: num
   if (!months) return { status: 'none', reason: 'no ephemeris for this year' }
   const series = computeSeries(months, geo, horizon, stations, startMs, endMs)
   const pick = (ws: ReturnType<typeof windows>, state: string): Span[] => ws.filter((w) => w.state === state).map((w) => [w.startMs, w.endMs])
-  return { status: 'done', lit: pick(windows(series, 'sun'), 'lit'), covered: pick(windows(series, 'coverage', ids), 'covered') }
+  const approx = 'computed' in horizon ? approxText((horizon as CapHorizon).computed) : undefined
+  return { status: 'done', lit: pick(windows(series, 'sun'), 'lit'), covered: pick(windows(series, 'coverage', ids), 'covered'), approx }
 }
 
 export function useYearBars(sites: Site[], stations: Station[], ids: string[], year: number): Record<string, YearEntry> {
@@ -66,8 +69,9 @@ export function useYearBars(sites: Site[], stations: Station[], ids: string[], y
         try {
           entry = await compute(site, stations, ids, year)
           done.set(k, entry)
-        } catch {
-          entry = { status: 'none', reason: 'could not load' } // retried next time
+        } catch (e) {
+          // a custom site the cap rasters do not cover; anything else is retried next time
+          entry = { status: 'none', reason: e instanceof NoDataError ? 'no terrain data' : 'could not load' }
         }
         if (!alive) return
         setState((s) => (s.job === job ? { job, entries: { ...s.entries, [site.id]: entry } } : s))
