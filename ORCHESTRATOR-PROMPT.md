@@ -22,17 +22,17 @@ leave main untouched, and report what is left.
 
 ## Target user (applies to every UI and docs task)
 
-NASA's challenge statement names three users: **mission planners, educators and the public** ("intuitive tool
-for mission planners, educators and the public", `docs/reference/decisions.md` l. 128 and 188). One app
-serves all three through the two modes of the global toggle (U8):
-- **Simple mode (default) — educators and the public, and a planner's first glance.** Plain language a
-  teacher can read aloud to a class, but never wrong. Each field term appears next to the plain words the
-  first time, so people learn it: "Speed change needed (Δv): 2.3 km/s", "Line of sight to Earth: 62 % of
-  the time", "Permanently shadowed crater (PSR)". Abbreviations expand on hover.
-- **Advanced mode — mission planners.** Field terms first, full numbers with units and ε, breakdown per
-  phase, method and sources. Nothing dumbed down.
-- **Both modes:** every screen first answers "is this site / date / route good for the mission, and why?",
-  then shows detail. Obvious controls, sensible defaults, short labels, bullets instead of paragraphs.
+NASA's challenge statement names **mission planners, educators and the public** (`docs/reference/decisions.md`
+l. 128 and 188). Priority, decided by ninja (15 Nov): **NASA mission planners first** — the judges read the
+app as NASA people. Educators and the public are served by hover explanations and the docs page, not by
+dumbing the app down.
+- **Language:** NASA's own terms, with units: Δv (m/s), TLI, LOI, line of sight, DSN, PSR, illumination
+  (% of time), slope (°), landing ellipse, 3σ. Every abbreviation expands on hover once ("Δv — change in
+  velocity a burn must deliver"); no invented layman's substitutes.
+- **Summary mode (default):** the decision values only — is this site / date / route good, and why — in
+  short labels and bullets, each with its status (green / yellow / red against a stated threshold).
+- **Full data mode (the global toggle, U8):** everything a planner would check: breakdown per phase, raw
+  values, ε and its dominant term, method, sources.
 - **Remove in both modes:** research-note internals (evidence grades in capitals, "not retrieved",
   internal file names, raw signed decimal coordinates, unformatted numbers, process notes about the team).
 
@@ -152,7 +152,7 @@ remove merged worktrees and `dist/`, `test-results/` folders first.
 |---|---|---|---|---|
 | cam | opus | U5, U6, U16, U14 | `app/src/scene3d/**`, `views/SceneView.tsx`, `views/ViewMenu.tsx`, `views/SearchPanel.tsx` (the "Show" handler for U16 and the U7 string at l. 255); Esc change in `App.tsx` → diff in report | 5181 |
 | points | opus | U10, U11 | `views/custom.ts`, `data/customSite.ts`, the file holding the role button (locate first; if another agent owns it → diff in report), `e2e/` new spec | 5182 |
-| poi | opus | U7, U8 card + toggle | `views/PoiInfo.tsx`, `views/PoiControl.tsx`, `views/poiLayer.ts`, `styles/poi.css`, new `views/advanced.ts` (the global simple/advanced hook with `localStorage`; no `state.ts` edit), `views/Icon.tsx` (add `flask-outline` as key `flask` and `information-circle-outline` as key `info`), `scripts/pois.py` (merge `docs/POIs/plain.json` if present; missing file → no `plain` field), `app/public/data/pois.json` | 5183 |
+| poi | opus | U7, U8 card + toggle | `views/PoiInfo.tsx`, `views/PoiControl.tsx`, `views/poiLayer.ts`, `styles/poi.css`, new `views/advanced.ts` (the global summary / full-data hook with `localStorage`; no `state.ts` edit), `views/Icon.tsx` (add `information-circle-outline` as key `info`, for U4), `scripts/pois.py` (merge `docs/POIs/plain.json` if present; missing file → no `plain` field), `app/public/data/pois.json` | 5183 |
 | poi-text-01 … 09 | haiku | U8 plain texts, 25 records each (batch NN = records 25·(NN−1)+1 … 25·NN in `app/public/data/pois.json` order; give each agent its records inline) | write only `private/poi-plain/batch-NN.json` in the main checkout (no worktree, no git) | — |
 | mission | opus | U1, U2 | `views/MissionPanel.tsx`, `styles/mission.css` | 5184 |
 | dates | opus | U3, U4, U18 | `views/Drawer.tsx`, `views/DateMenu.tsx`, `views/Timeline.tsx`, `views/HorizonStrip.tsx`, `views/period.ts`, `styles/panels.css` (uses the info icon from `poi`'s branch: import name `info`; add it to `Icon.tsx` too if not merged yet) | 5185 |
@@ -242,38 +242,38 @@ U7. **Per-point science-lead markers** (ninja, 15 Nov: Leo will not validate eve
     l. 465 / 567–568): point coordinates and facts come from the cited research sources; they are not
     individually checked by the science lead; the app's computed results (sunlight, contact, flight) are.
     Do not remove the marker from new physics (trap 2) — that is a different thing.
-U8. **POI info card: plain by default, advanced on demand** (ninja, 15 Nov, on the Cabeus crater card:
+U8. **POI info card: summary by default, full data on demand** (ninja, 15 Nov, on the Cabeus crater card:
     "meaningless to even the average mission coordinator"). Today's card shows raw research notes: "LCROSS
     ground truth (5.6 +/- 2.9 wt% water + other volatiles); impact at -84.6796, -48.7093", "Age: not
     retrieved", "Evidence ESTABLISHED", "Limitations: Centre conflict ... (see psr_and_ice.json)", the
     science-lead marker, sources, "Click the pin to keep this open."
-    - **Simple mode (default):** name, feature type, and 2–3 bullets on what matters for landing-site
-      planning, readable by the public and educators (see Target user). Example of the target (check
-      every fact against the record before using it): "Cabeus crater · permanently shadowed crater (PSR) ·
-      • Water ice found here: NASA's LCROSS probe hit it in 2009, about 5–6 % water by weight ·
-      • About 100 km across, 4 km deep · • <computed distance> km from your site". No evidence grades in
+    - **Summary mode (default):** name, feature type, and 2–3 bullets on what matters for landing-site
+      planning, in NASA's terms (see Target user). Example of the target (check every fact against the
+      record before using it): "Cabeus crater · PSR · • Water ice confirmed: LCROSS impact 2009,
+      5.6 ± 2.9 wt% H₂O · • D ≈ 100 km, depth ≈ 4 km · • <computed distance> km from your site". No evidence grades in
       capitals, no file names, no "not retrieved" rows, no raw signed decimal coordinates, no sources.
-    - **Advanced mode:** the full record, cleaned: coordinates as `84.90° S, 35.50° W`; rows with no value
+    - **Full data mode:** the full record, cleaned: coordinates as `84.90° S, 35.50° W`; rows with no value
       are hidden (never "not retrieved"); evidence level explained in a short phrase; conflicts written as
       a sentence ("Centre position differs between sources: Wikipedia 84.9° S 35.5° W, USGS Gazetteer
       85.33° S 42.13° W"); no internal file names (`psr_and_ice.json` etc.); source links at the bottom.
-    - **Toggle:** an icon button in the card's top-right corner — Ionicons `flask-outline` (MIT, same import
-      pattern as `views/Icon.tsx`), `aria-label` and tooltip "Advanced info" / "Simple info", pressed state
-      visible. The choice is **one global setting**: once advanced, every other info card and detail view
-      across the site opens advanced (POI cards, landing-site info, the Rocket flight menu's collapsed
-      details, search results) until switched back. Keep it in one shared hook (`views/advanced.ts`) persisted in `localStorage`
-      (wrap reads/writes in try/catch; default plain if storage fails). Put the toggle in the same corner
+    - **Toggle** (decided by ninja, 15 Nov: labelled toggle, no icon-only button): a small switch in the
+      card's top-right corner with the visible text label "Full data" — `<button role="switch"
+      aria-checked>`, label always shown (also at 375 px), on/off state visible by the switch position and
+      not by colour alone, keyboard operable. No icon. The choice is **one global setting**: once on, every
+      other info card and detail view across the site opens in full data mode (POI cards, landing-site
+      info, the Rocket flight menu's collapsed details, search results) until switched off. Keep it in one shared hook (`views/advanced.ts`) persisted in `localStorage`
+      (wrap reads/writes in try/catch; default summary if storage fails). Put the toggle in the same corner
       of every card that has both modes.
     - **Plain texts for all ~206 points:** add a `plain` field per record, from a new
       `docs/POIs/plain.json` keyed by POI id, merged by `scripts/pois.py` into `pois.json`. Haiku writes
-      them in batches of 25 under one rule: every fact in a simple-mode bullet must appear in that record's
+      them in batches of 25 under one rule: every fact in a summary-mode bullet must appear in that record's
       fields — no outside knowledge, no new numbers. An Opus reviewer checks 25 random entries against
       their records; any invented fact → that batch is redone. Records too thin for a useful sentence get
       just the plain type ("Crater", "Planned landing site").
     - Delete "Click the pin to keep this open." The card must not cover its pin (place beside it, flip at
-      screen edges). Sources leave the plain card; they stay in advanced mode and on the docs page (D2).
-    - Tests: toggle persists across cards and reload; simple card for Cabeus contains no "ESTABLISHED",
-      no ".json", no "not retrieved", no "-84."; advanced card hides empty rows.
+      screen edges). Sources leave the summary card; they stay in full data mode and on the docs page (D2).
+    - Tests: toggle persists across cards and reload; summary card for Cabeus contains no "ESTABLISHED",
+      no ".json", no "not retrieved", no "-84."; full data card hides empty rows; the switch shows the text "Full data" at 375 px.
 U9. **Click outside closes**: every open menu, card or panel closes on a click outside it (same mechanism as
     `FlightTransport.tsx` l. 100). The 3D canvas counts as outside.
 U10. **Custom point naming**: adding your own point and assigning it to a mission renames the location to the
@@ -294,27 +294,26 @@ U16. **Bug: search → "Show" does not land in eye-level view.** Searching for a
     must bring the camera to that site in the same eye-level view as opening a landing site (1.75 m above
     terrain, same angle as U5). Reproduce with a Playwright test first; share the camera code path with U5
     rather than adding a second one.
-U17. **Inputs and values all three users read at a glance** (ninja, 15 Nov: intuitive for mission planners,
-    educators and the public; see Target user). Applies to every screen with inputs or result
+U17. **Inputs and values a NASA mission planner reads at a glance** (ninja, 15 Nov: NASA-oriented,
+    intuitive even for experienced planners; educators and the public via hover and docs; see Target user). Applies to every screen with inputs or result
     values: Mission menu, Find better dates, the info/settings drawer (`views/Drawer.tsx`), Rocket flight
     menu, saved-missions table, compare view, POI and site cards. Rules:
-    - **Every input** has a short plain label, its unit, and a one-line hint that names the field term
-      (e.g. "Ground stations — antennas on Earth that talk to the lander (DSN, ESTRACK)"). Sensible default
-      preselected. A disabled option says why in one short phrase.
+    - **Every input** has a short label in NASA's terms, its unit, and a one-line hint (e.g. "Ground
+      stations — DSN / ESTRACK antennas for line-of-sight contact"). Sensible default preselected. A
+      disabled option says why in one short phrase.
     - **Every value** answers "is this good for my mission?": plain unit and rounding ("62 % of the time —
       about 18 of 29 days", not "0.6214"), and a status colour (green / yellow / red) against a stated
       threshold, with the threshold in the hint. Dates as `16 Aug 2027`, durations as `3 days 4 h`.
-    - **Plain words plus the field term, internals never**: simple mode writes plain words with the
-      standard term beside them ("Speed change needed (Δv)", "Line of sight to Earth"), each abbreviation
-      expanded on hover; advanced mode leads with the field term and adds breakdown, raw values, method
+    - **NASA terms, internals never**: standard terms with units, each abbreviation expanded on hover;
+      summary mode shows decision values and status, full data mode adds breakdown, raw values, method
       and ε. Remove app-internal or research-note wording in both modes ("Access not assessed", evidence
       grades in capitals, "not retrieved", file names, unexplained codes).
     - **Long texts become bullet points**: any explanatory paragraph longer than ~2 lines turns into at most
-      3–4 bullets of ≤ 12 words each; the full text moves to advanced mode or the docs page. Applies to panel
+      3–4 bullets of ≤ 12 words each; the full text moves to full data mode or the docs page. Applies to panel
       intros, method notes (`FlightExplain.tsx`), drawer sections, empty states and error messages.
     - Before you build: list every input and value per screen with its current and proposed wording in a
       table in your report, then implement. Do not change what is computed, only how it is labelled and shown.
-    - Check: a 375 px screenshot of each screen; `grep` the simple-mode render output for the internals list
+    - Check: a 375 px screenshot of each screen; `grep` the summary-mode render output for the internals list
       above ("Access not assessed", "ESTABLISHED", "not retrieved", ".json") returns nothing; every
       abbreviation shown has a hover/hint expansion.
 U18. **Simulation speed slider** (ninja, 15 Nov). Today the speed is a `<select>` in the drawer's
