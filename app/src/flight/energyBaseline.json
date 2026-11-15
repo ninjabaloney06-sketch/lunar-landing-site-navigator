@@ -1,0 +1,38 @@
+{
+  "reference": {
+    "padId": "ksc-39b",
+    "earliestTouchdownUtc": "2027-08-16T00:00:00Z",
+    "surfaceStay": "the design's default",
+    "transfer": "minimum energy"
+  },
+  "gridPoints": 108,
+  "designs": {
+    "apollo": {
+      "idealPoint": {
+        "name": "-15°, 135°",
+        "latDeg": -15,
+        "lonDeg": 135
+      },
+      "spaceJetEnergyMj": 738013.5158868671,
+      "worstOnGridMj": 739468.3369546919
+    },
+    "artemis-starship": {
+      "idealPoint": {
+        "name": "-30°, 90°",
+        "latDeg": -30,
+        "lonDeg": 90
+      },
+      "spaceJetEnergyMj": 2382021.7472721017,
+      "worstOnGridMj": 2705024.6639619186
+    },
+    "artemis-blue-moon": {
+      "idealPoint": {
+        "name": "-30°, 90°",
+        "latDeg": -30,
+        "lonDeg": 90
+      },
+      "spaceJetEnergyMj": 1034413.2279573081,
+      "worstOnGridMj": 1082505.3676934035
+    }
+  }
+}

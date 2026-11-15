@@ -45,6 +45,7 @@ interface Props {
   goal: ScienceGoal // the mission's science goal: the order "Find better location" uses
   missions: MissionState[] // saved missions, shown as rows of the table
   onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
+  onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
   speed: number // Simulate: hours of mission time per second
   onSpeed(hoursPerSecond: number): void
   onReset(): void // cursor back to the first mission step
@@ -300,6 +301,7 @@ export function Drawer(p: Props) {
           goal={p.goal}
           missions={p.missions}
           wholeYear={WHOLE_YEAR}
+          onCalculateFlight={p.onCalculateFlight}
           onFindDates={(id) => {
             p.onFindDates(id)
             finderRef.current?.scrollIntoView({ block: 'start' })

@@ -897,8 +897,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
 
   // Every burn of the plan with its engine, for the energy comparison (ideal.ts). The lander's own launches and
   // its flight to the NRHO are not part of this plan and not in the sum.
-  const burns: JetBurn[] = [
-    ...ascentBurns(lv, ascent),
+  const spaceBurns: JetBurn[] = [
     { propellantKg: tliEvent.propellantKg ?? 0, ispS: tliEngine.ispVacS },
     { propellantKg: capsuleUsedKg, ispS: capsuleEngine.use.ispS },
     ...(twoStage
@@ -908,6 +907,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
         ]
       : [{ propellantKg: flownSortie.usedKg, ispS: descentEngine.ispS }]),
   ]
+  const burns: JetBurn[] = [...ascentBurns(lv, ascent), ...spaceBurns]
   const park = apsides(MU_EARTH, ascent.insertion.r, ascent.insertion.v)
   const east = unit(cross(guess.pole, guess.padHat))
   const vHat = cross(guess.planeNormal, guess.padHat)
@@ -949,7 +949,7 @@ export function planMissionNrho(inp: MissionInput): MissionPlan {
       entry: { speedKms: home.entry.speedKms, fpaDeg: home.entry.fpaDeg, latDeg: home.entry.latDeg, lonDeg: home.entry.lonDeg },
       missionDays,
       ideal: idealEnergy({
-        ephem, pad, target, launchMs: liftoffMs, touchdownMs, lunarLiftoffMs: climb.liftoffMs, entryAltKm: inp.entryAltKm ?? 121.92, burns,
+        ephem, pad, target, launchMs: liftoffMs, touchdownMs, lunarLiftoffMs: climb.liftoffMs, entryAltKm: inp.entryAltKm ?? 121.92, burns, spaceBurns,
         referenceMassKg: home.end.massKg,
       }),
       surfaceStayAskedDays: inp.surfaceStayDays,

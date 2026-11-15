@@ -622,13 +622,13 @@ export function planMission(inp: MissionInput): MissionPlan {
   }
   // Every burn of the plan with its engine, for the energy comparison (ideal.ts).
   const descentEngine = lander.modules[lander.modules.length - 1].engine
-  const burns: JetBurn[] = [
-    ...ascentBurns(lv, ascent),
+  const spaceBurns: JetBurn[] = [
     { propellantKg: tli.propellantKg, ispS: tliStage.engine.ispVacS },
     { propellantKg: loi.propellantKg + way.capsuleUsedKg, ispS: capsuleEngine.use.ispS },
     { propellantKg: descentUsedKg, ispS: descentEngine?.ispVacS ?? 0 },
     { propellantKg: way.ascentUsedKg, ispS: ascentEngine?.ispVacS ?? 0 },
   ]
+  const burns: JetBurn[] = [...ascentBurns(lv, ascent), ...spaceBurns]
   return {
     pad,
     target,
@@ -662,7 +662,7 @@ export function planMission(inp: MissionInput): MissionPlan {
       entry: { speedKms: home.entry.speedKms, fpaDeg: home.entry.fpaDeg, latDeg: home.entry.latDeg, lonDeg: home.entry.lonDeg },
       missionDays: (home.entry.utcMs - liftoffMs) / (DAY_S * 1000),
       ideal: idealEnergy({
-        ephem, pad, target, launchMs: liftoffMs, touchdownMs, lunarLiftoffMs: lunarAscent.liftoffMs, entryAltKm: inp.entryAltKm ?? 121.92, burns,
+        ephem, pad, target, launchMs: liftoffMs, touchdownMs, lunarLiftoffMs: lunarAscent.liftoffMs, entryAltKm: inp.entryAltKm ?? 121.92, burns, spaceBurns,
         referenceMassKg: home.massAfterKg,
       }),
       surfaceStayAskedDays: inp.surfaceStayDays,

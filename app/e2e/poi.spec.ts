@@ -309,6 +309,13 @@ test.describe('POI layer at 375 × 812, touch only', () => {
     await expect(box.getByRole('link').first()).toBeInViewport()
     await box.getByRole('button', { name: 'Close' }).tap()
     await expect(box).toBeHidden()
+    // ...and stays closed: the scene still reports the tapped pin, which must not open the box again (it once did,
+    // on the next frame, unpinned; the check above could pass between the two frames).
+    await page.evaluate(() => new Promise<void>((r) => { let n = 0; const f = () => (++n >= 20 ? r() : requestAnimationFrame(f)); requestAnimationFrame(f) }))
+    await expect(box).toHaveCount(0)
+    // A new tap on the same pin opens it again.
+    await page.touchscreen.tap(190, 560)
+    await expect(box).toHaveAttribute('data-pinned', 'true')
   })
 })
 

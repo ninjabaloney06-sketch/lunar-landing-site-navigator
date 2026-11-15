@@ -130,6 +130,8 @@ export interface IdealInput {
   entryAltKm: number
   /** Every burn of the plan, the ascent from Earth included (ascentBurns). */
   burns: JetBurn[]
+  /** The burns of the plan from the Trans-Lunar Injection on: burns without the ascent's. */
+  spaceBurns: JetBurn[]
   /** The capsule's mass at Entry Interface. */
   referenceMassKg: number
 }
@@ -154,6 +156,7 @@ export function idealEnergy(inp: IdealInput): IdealEnergy {
     returnClimbMjPerKg: climb,
     returnReleasedMjPerKg: released,
     missionJetEnergyMj: jet,
+    spaceJetEnergyMj: jetEnergyMj(inp.spaceBurns),
     referenceMassKg: inp.referenceMassKg,
     missionMjPerKg: perKg,
     ratio: perKg / (outbound + climb),

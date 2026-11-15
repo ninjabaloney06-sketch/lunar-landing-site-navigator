@@ -8,7 +8,9 @@ import type { ReactNode } from 'react'
 import '../styles/flight.css'
 import type { ArchitectureSpec } from '../flight/hardware'
 import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
-import { Glossary, HaloOrbit, IdealMinimum, LandingWays, SurfaceStay, rememberPlan } from './FlightExplain'
+import { DESIGNS, SLS_LANDERS, designOf } from '../flight/designs'
+import { energyMultiplier, fmtFactor } from '../flight/energyBaseline'
+import { Glossary, HaloOrbit, LandingWays, SurfaceStay, rememberPlan } from './FlightExplain'
 import { fmtCoords, fmtDeg } from './format'
 import { fmtDayTime, fmtDays, fmtDuration, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
 import { Abbr } from './flightGlossary'
@@ -54,6 +56,10 @@ export interface FlightPanelProps {
   onSeek(utcMs: number): void // jump the playback to an event
   collapsed: boolean
   onCollapsed(v: boolean): void
+  missionName: string
+  onSaveMission(): void
+  missionSaved: boolean // the current mission is already in the saved list
+  canSaveMission: boolean // false when the list is full
 }
 
 const TRANSFER_LIMITS: { value: string; label: string }[] = [
@@ -116,7 +122,7 @@ function Section({ id, title, count, defaultOpen = false, children }: SectionPro
 }
 
 export function FlightPanel(p: FlightPanelProps) {
-  const { architectures, architectureId, rendezvous, pads, padId, target, siteMode, status, trueScale, picking, collapsed } = p
+  const { architectureId, rendezvous, pads, padId, target, siteMode, status, trueScale, picking, collapsed } = p
   const uid = useId()
   const plan = status.state === 'ready' ? status.plan : null
 
@@ -128,7 +134,7 @@ export function FlightPanel(p: FlightPanelProps) {
   const head = (
     <div className="mp-head flight-head">
       <h2 id="flight-title" className="mp-title">
-        Flight plan
+        Rocket flight
       </h2>
       <button
         type="button"
@@ -150,24 +156,28 @@ export function FlightPanel(p: FlightPanelProps) {
     )
   }
 
-  const architecture = architectures.find((x) => x.id === architectureId)
-  const ideal = plan?.facts.ideal
-  const siteCoords = (
-    <p className="flight-used mono" data-testid="flight-site-coords">
-      {fmtCoords(target.latDeg, target.lonDeg)}
-    </p>
-  )
+  const design = designOf(architectureId)
 
   return (
     <section className="popover menu flight-panel" aria-labelledby="flight-title" data-testid="flight-panel">
       {head}
-      <p className="quiet flight-intro">
-        Launch, landing at the chosen point, stay, ascent, docking and the flight home, with the least propellant.
-      </p>
+      <ul className="plain flight-mission" data-testid="flight-mission">
+        <li>
+          <span className="quiet">Mission</span> <strong>{p.missionName}</strong>
+        </li>
+        <li>
+          <span className="quiet">Landing site</span> {target.name}{' '}
+          {siteMode === 'mission' && (
+            <button type="button" className="link" onClick={p.onChangeSite}>
+              Change
+            </button>
+          )}
+        </li>
+      </ul>
 
       {status.state === 'loading' && (
         <p className="menu-msg is-quiet flight-status" role="status">
-          Computing the mission… This takes a few seconds.
+          Computing the mission… a few seconds.
         </p>
       )}
       {status.state === 'error' && (
@@ -175,110 +185,129 @@ export function FlightPanel(p: FlightPanelProps) {
           {status.message}
         </p>
       )}
-      {plan && <Glance plan={plan} onSeek={p.onSeek} />}
+      {plan && <EnergyCard plan={plan} onSeek={p.onSeek} />}
 
-      <Section id="choices" title="Mission choices" defaultOpen>
-        <div className="mp-fields flight-fields">
-          <div className="mp-field">
-            <label className="mp-label" htmlFor={`${uid}-architecture`}>
-              Mission design
+      <fieldset className="flight-designs" data-testid="flight-designs">
+        <legend className="mp-label">Rocket and lander</legend>
+        {DESIGNS.map((d) => {
+          const on = d.id === design.id
+          return (
+            <label key={d.id} className={`flight-design${on ? ' is-on' : ''}`} data-design={d.id}>
+              <span className="flight-design-head">
+                <input
+                  type="radio"
+                  name={`${uid}-design`}
+                  checked={on}
+                  data-testid={`flight-design-${d.id}`}
+                  onChange={() => p.onArchitecture(d.architectureIds[0])}
+                />
+                <strong>{d.title}</strong>
+              </span>
+              <span className="quiet flight-design-stack">{d.stack}</span>
+              <ul className="flight-bullets">
+                {d.bullets.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
             </label>
-            <div className="flight-control">
-              <select
-                id={`${uid}-architecture`}
-                className="field"
-                value={architectureId}
-                data-testid="flight-architecture"
-                onChange={(e) => p.onArchitecture(e.target.value)}
+          )
+        })}
+        {design.id === 'sls' && (
+          <div className="tabs flight-lander" role="radiogroup" aria-label="Lander">
+            {SLS_LANDERS.map((l) => (
+              <button
+                key={l.architectureId}
+                type="button"
+                role="radio"
+                className="tab"
+                aria-checked={architectureId === l.architectureId}
+                data-testid={`flight-lander-${l.architectureId}`}
+                onClick={() => p.onArchitecture(l.architectureId)}
               >
-                {architectures.map((x) => (
-                  <option key={x.id} value={x.id} disabled={!x.available}>
-                    {x.available ? x.name : `${x.name} (not yet available)`}
-                  </option>
-                ))}
-              </select>
-              {architecture && (
-                <p className="quiet flight-note">
-                  <Abbr>{architecture.note}</Abbr>
-                </p>
-              )}
-              {architecture && !architecture.available && architecture.unavailableReason && (
-                <p className="quiet flight-note">{architecture.unavailableReason}</p>
-              )}
-            </div>
+                {l.label}
+              </button>
+            ))}
           </div>
+        )}
+      </fieldset>
 
-          <div className="mp-field">
-            <label className="mp-label" htmlFor={`${uid}-pad`}>
-              Launchpad
-            </label>
-            <div className="flight-control">
-              <select id={`${uid}-pad`} className="field" value={padId} data-testid="flight-pad" onChange={(e) => p.onPad(e.target.value)}>
-                {pads.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {`${x.name} · ${x.site}`}
-                  </option>
-                ))}
-                <option value="custom">Other coordinates</option>
-              </select>
-              {padId === 'custom' && (
-                <>
-                  <CoordFields value={p.customPad} testId="flight-pad" onChange={p.onCustomPad} />
-                  <button
-                    type="button"
-                    className="link flight-pick"
-                    aria-pressed={picking === 'pad'}
-                    data-testid="flight-pick-pad"
-                    onClick={() => p.onPicking(picking === 'pad' ? null : 'pad')}
-                  >
-                    Pick on Earth
-                  </button>
-                  {picking === 'pad' && (
-                    <p className="quiet flight-hint" role="status">
-                      Click a point on Earth in the 3D view.
-                    </p>
-                  )}
-                  {p.customPad && (
-                    <p className="flight-used mono" data-testid="flight-pad-coords">
-                      {fmtCoords(p.customPad.latDeg, p.customPad.lonDeg)}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
+      <div className="mp-fields flight-fields">
+        <div className="mp-field">
+          <label className="mp-label" htmlFor={`${uid}-pad`}>
+            Launchpad
+          </label>
+          <select id={`${uid}-pad`} className="field" value={padId} data-testid="flight-pad" onChange={(e) => p.onPad(e.target.value)}>
+            {pads.map((x) => (
+              <option key={x.id} value={x.id}>
+                {`${x.name} · ${x.site}`}
+              </option>
+            ))}
+            <option value="custom">Other coordinates</option>
+          </select>
+        </div>
+        <div className="mp-field">
+          <span className="mp-label">Landing</span>
+          <span className="flight-line">
+            not before <span className="mono">{fmtUtc(p.earliestTouchdownMs)}</span>
+          </span>
+        </div>
+        <div className="mp-field">
+          <label className="mp-label" htmlFor={`${uid}-stay`}>
+            Surface stay
+          </label>
+          <div className="flight-control">
+            <StayField id={`${uid}-stay`} value={p.surfaceStayDays} onChange={p.onSurfaceStayDays} />
+            {plan && Math.abs(plan.facts.surfaceStayDays - p.surfaceStayDays) > 0.05 && (
+              <p className="quiet" data-testid="flight-stay-planned">
+                flown: <span className="mono">{fmtDays(plan.facts.surfaceStayDays, 2)}</span>
+                {rendezvous === 'nrho' ? ' (the lander leaves once per halo-orbit revolution)' : ''}
+              </p>
+            )}
           </div>
+        </div>
+      </div>
 
+      <div className="flight-save">
+        <button type="button" className="btn" data-testid="flight-save-mission" disabled={p.missionSaved || !p.canSaveMission} onClick={p.onSaveMission}>
+          Save mission
+        </button>
+        <span className="quiet" aria-live="polite">
+          {p.missionSaved ? 'Saved: see the mission table under Details.' : 'Keeps site, dates, launchpad, rocket and stay.'}
+        </span>
+      </div>
+
+      {plan && <MissionResult plan={plan} onSeek={p.onSeek} />}
+
+      <Section id="advanced" title="More choices">
+        <div className="mp-fields flight-fields">
+          {padId === 'custom' && (
+            <div className="mp-field">
+              <span className="mp-label">Launch point</span>
+              <div className="flight-control">
+                <CoordFields value={p.customPad} testId="flight-pad" onChange={p.onCustomPad} />
+                <button
+                  type="button"
+                  className="link flight-pick"
+                  aria-pressed={picking === 'pad'}
+                  data-testid="flight-pick-pad"
+                  onClick={() => p.onPicking(picking === 'pad' ? null : 'pad')}
+                >
+                  Pick on Earth
+                </button>
+              </div>
+            </div>
+          )}
           <div className="mp-field">
             <span className="mp-label" id={`${uid}-site`}>
               Landing point
             </span>
             <div className="flight-control" role="radiogroup" aria-labelledby={`${uid}-site`}>
-              <div className="flight-choice">
-                <label className="check mp-radio">
-                  <input
-                    type="radio"
-                    name={`${uid}-site-mode`}
-                    checked={siteMode === 'mission'}
-                    data-testid="flight-site-mission"
-                    onChange={() => p.onSiteMode('mission')}
-                  />
-                  <span>{siteMode === 'mission' ? `Mission site: ${target.name}` : 'Mission site'}</span>
-                </label>
-                {siteMode === 'mission' && (
-                  <button type="button" className="link" onClick={p.onChangeSite}>
-                    Change
-                  </button>
-                )}
-              </div>
-              {siteMode === 'mission' && siteCoords}
               <label className="check mp-radio">
-                <input
-                  type="radio"
-                  name={`${uid}-site-mode`}
-                  checked={siteMode === 'custom'}
-                  data-testid="flight-site-custom"
-                  onChange={() => p.onSiteMode('custom')}
-                />
+                <input type="radio" name={`${uid}-site-mode`} checked={siteMode === 'mission'} data-testid="flight-site-mission" onChange={() => p.onSiteMode('mission')} />
+                <span>The mission's site</span>
+              </label>
+              <label className="check mp-radio">
+                <input type="radio" name={`${uid}-site-mode`} checked={siteMode === 'custom'} data-testid="flight-site-custom" onChange={() => p.onSiteMode('custom')} />
                 <span>Other coordinates</span>
               </label>
               {siteMode === 'custom' && (
@@ -293,66 +322,36 @@ export function FlightPanel(p: FlightPanelProps) {
                   >
                     Pick on the Moon
                   </button>
-                  {picking === 'site' && (
-                    <p className="quiet flight-hint" role="status">
-                      Click a point on the Moon in the 3D view.
-                    </p>
-                  )}
-                  {siteCoords}
                 </>
               )}
-            </div>
-          </div>
-
-          <div className="mp-field">
-            <span className="mp-label">Touchdown</span>
-            <div className="flight-control">
-              <p className="flight-line">
-                not before <span className="mono">{fmtUtc(p.earliestTouchdownMs)}</span>
+              <p className="flight-used mono" data-testid="flight-site-coords">
+                {fmtCoords(target.latDeg, target.lonDeg)}
               </p>
-              {plan && (
-                <p className="flight-line flight-line-next" data-testid="flight-touchdown">
-                  planned <span className="mono">{fmtUtc(plan.touchdownMs)}</span>
-                </p>
-              )}
-              <p className="quiet">the earliest opportunity after the mission start</p>
             </div>
           </div>
-
+          {picking && (
+            <p className="quiet flight-hint" role="status">
+              Click a point on {picking === 'pad' ? 'Earth' : 'the Moon'} in the 3D view.
+            </p>
+          )}
           <div className="mp-field">
-            <label className="mp-label" htmlFor={`${uid}-stay`}>
-              Surface stay
+            <label className="mp-label" htmlFor={`${uid}-return`}>
+              Leaving the Moon
             </label>
-            <div className="flight-control">
-              <StayField id={`${uid}-stay`} value={p.surfaceStayDays} onChange={p.onSurfaceStayDays} />
-              {plan && (
-                <p className="flight-line flight-line-next" data-testid="flight-stay-planned">
-                  planned <span className="mono">{fmtDays(plan.facts.surfaceStayDays, 2)}</span>
-                </p>
-              )}
-              <p className="quiet">
-                {rendezvous === 'nrho'
-                  ? 'With the halo orbit the lander can return only once per revolution (6.56 days), so the plan takes the nearest stay that fits.'
-                  : 'Apollo crews stayed 21 to 75 hours.'}
-                {p.surfaceStay && p.surfaceStay.maxDays !== null && ` Longest documented for this design: ${fmtDays(Number(p.surfaceStay.maxDays.toFixed(2)))}.`} More
-                under “Time on the surface”.
-              </p>
-              <select
-                className="field"
-                aria-label="When to leave the Moon"
-                value={String(p.returnWindowDays)}
-                data-testid="flight-return"
-                onChange={(e) => p.onReturnWindowDays(Number(e.target.value))}
-              >
-                {RETURN_WINDOWS.map((x) => (
-                  <option key={x.value} value={String(x.value)}>
-                    {x.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              id={`${uid}-return`}
+              className="field"
+              value={String(p.returnWindowDays)}
+              data-testid="flight-return"
+              onChange={(e) => p.onReturnWindowDays(Number(e.target.value))}
+            >
+              {RETURN_WINDOWS.map((x) => (
+                <option key={x.value} value={String(x.value)}>
+                  {x.label}
+                </option>
+              ))}
+            </select>
           </div>
-
           <div className="mp-field">
             <label className="mp-label" htmlFor={`${uid}-transfer`}>
               Transfer
@@ -372,63 +371,39 @@ export function FlightPanel(p: FlightPanelProps) {
               ))}
             </select>
           </div>
+          <label className="check">
+            <input type="checkbox" checked={trueScale} onChange={(e) => p.onTrueScale(e.target.checked)} />
+            <span>True scale (untick: Earth 3×, Moon 4× for visibility)</span>
+          </label>
         </div>
       </Section>
 
-      {plan && <MissionResult plan={plan} onSeek={p.onSeek} />}
-
-      <Section id="view" title="The 3D view">
-        <label className="check">
-          <input type="checkbox" checked={trueScale} onChange={(e) => p.onTrueScale(e.target.checked)} />
-          <span>True scale</span>
-        </label>
-        <p className="quiet flight-foot">
-          At true scale Earth is one sixtieth of the way to the Moon: use Look at Earth, Moon, Capsule or Lander in the playback bar, or zoom, to see
-          the parking orbit and the lunar orbit. Unticked, Earth (3×), the Moon (4×) and the orbits close to them are drawn enlarged, which bends the
-          drawn path near them. Times and <Abbr>Δv</Abbr> are the same either way.
-        </p>
+      <Section id="view" title="Reading the 3D view">
         <ul className="plain flight-legend" aria-label="Legend">
           <li>
             <span className="flight-key is-capsule" aria-hidden="true" />
-            <span>The capsule: a glowing point.</span>
+            <span>Capsule: glowing point</span>
           </li>
           <li>
             <span className="flight-key is-lander" aria-hidden="true" />
-            <span>
-              The lander: a diamond. Around the capsule’s point while the two are docked, on its own with a filled centre while it flies or stands
-              apart. It is drawn only while the plan follows it: from the first docking (Artemis) or the launch (Apollo) until the capsule leaves for
-              home.
-            </span>
+            <span>Lander: diamond (around the capsule while docked)</span>
           </li>
           <li>
             <span className="flight-key is-burn" aria-hidden="true" />
-            <span>An engine burn: a ring where it starts and a wide line along the powered stretch. A craft glows orange while its engine fires.</span>
+            <span>Engine burn: ring at ignition, wide orange line while firing</span>
           </li>
           <li>
             <span className="flight-key is-path" aria-hidden="true" />
-            <span>
-              The flight path: bright where the craft has been, dim where it is going. The line from Earth is the path in space. The lunar orbit, the
-              descent and the ascent are drawn around the Moon and travel with it.
-            </span>
+            <span>Flight path: bright behind the craft, dim ahead</span>
           </li>
           <li>
             <span className="flight-key is-ring" aria-hidden="true" />
-            <span>The dashed ring: where the Moon will be when the capsule arrives.</span>
+            <span>Dashed ring: the Moon at the capsule's arrival</span>
           </li>
         </ul>
-        <p className="quiet flight-foot">
-          “Layers” in the playback bar chooses what is drawn: the path lines, the burns, a name at each burn, the stage that fires, and a mode that
-          shows the path only behind the craft. With Look at Earth, Moon, Capsule or Lander the camera turns about that object and zooms toward its
-          centre; with Whole flight it zooms toward the pointer.
-        </p>
       </Section>
 
-      {ideal && (
-        <Section id="ideal" title="Theoretical minimum, for comparison only">
-          <IdealMinimum ideal={ideal} />
-        </Section>
-      )}
-      <Section id="halo" title="The halo orbit: why it looks unusual, what it costs and buys">
+      <Section id="halo" title="The halo orbit: why it looks unusual">
         <HaloOrbit plan={plan} rendezvous={rendezvous} />
       </Section>
       <Section id="landing" title="Apollo and Artemis: two ways to land">
@@ -442,16 +417,18 @@ export function FlightPanel(p: FlightPanelProps) {
       </Section>
 
       <Section id="how" title="How this is computed">
-        <p className="quiet">
-          Every phase is integrated numerically with the engines' thrust and propellant flow: the ascent through the atmosphere, the burns in space,
-          the powered descent to the chosen point, the ascent and the rendezvous. Gravity of Earth (with its oblateness), the Moon and the Sun; Moon
-          and Sun positions from the <Abbr>JPL DE440</Abbr> ephemeris. Launch time, launch azimuth, burn lengths and ignition points are searched for
-          the least propellant; the stay in lunar orbit before landing is as short as the geometry allows.
-        </p>
-        <p className="quiet flight-foot">
-          Not modelled: the Moon's uneven gravity, winds, engine start-up and shut-down transients, the entry through Earth's atmosphere after Entry
-          Interface.
-        </p>
+        <ul className="flight-bullets quiet">
+          <li>Every phase integrated numerically with the engines' thrust and propellant flow</li>
+          <li>
+            Gravity of Earth (with its oblateness), the Moon and the Sun; positions from <Abbr>JPL DE440</Abbr>
+          </li>
+          <li>Launch time, azimuth, burn lengths and ignition points searched for the least propellant</li>
+          <li>
+            Energy multiplier: exhaust energy of every burn from <Abbr>TLI</Abbr> on, divided by the same for this design's cheapest landing
+            point (reference mission: LC-39B, landing from 16 Aug 2027, the design's default stay, on a grid over the whole Moon)
+          </li>
+          <li>Not modelled: the Moon's uneven gravity, winds, engine transients, atmospheric entry after Entry Interface</li>
+        </ul>
         {plan && plan.sources.length > 0 && (
           <ul className="plain flight-sources">
             {plan.sources.map((s, i) => (
@@ -468,60 +445,63 @@ export function FlightPanel(p: FlightPanelProps) {
   )
 }
 
-// ---------- at a glance ----------
+// ---------- the result: energy multiplier and the mission in four lines ----------
 
 const dvAfterLaunchOf = (plan: MissionPlan) =>
   plan.events.reduce((sum, e) => (e.kind === 'burn' && e.id !== 'ascent' && e.dvKms !== null ? sum + e.dvKms : sum), 0)
 
-function Glance({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
+function EnergyCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
+  const m = energyMultiplier(plan)
   const f = plan.facts
-  const dvAfterLaunch = dvAfterLaunchOf(plan)
-  const launchDv = plan.events.find((e) => e.id === 'ascent')?.dvKms ?? null
   const short = plan.propellant.filter((u) => u.usedKg > u.capacityKg)
-  const when = (label: string, ms: number, note: string) => (
-    <div>
-      <dt className="quiet">{label}</dt>
-      <dd>
-        <button type="button" className="link mono" aria-label={`Go to: ${label}`} onClick={() => onSeek(ms)}>
-          {fmtUtc(ms)}
-        </button>
-        <span className="flight-glance-note">{note}</span>
-      </dd>
-    </div>
-  )
   return (
-    <section className="flight-glance" aria-label="At a glance" data-testid="flight-glance">
-      <dl>
-        {when('Launch', plan.launchMs, plan.pad.name)}
-        {when('Moon landing', plan.touchdownMs, plan.target.name)}
-        {when('Leaves the Moon', plan.lunarLiftoffMs, `after ${fmtDays(f.surfaceStayDays, 1)} on the surface`)}
-        {when('Back at Earth', plan.endMs, `after ${fmtDays(f.missionDays, 1)}`)}
-        <div>
-          <dt className="quiet">
-            Total <Abbr>Δv</Abbr>
-          </dt>
-          <dd>
-            <span className="mono">{fmtKms(dvAfterLaunch)}</span> after launch
-            {launchDv !== null && (
-              <span className="flight-glance-note">
-                <span className="mono">{fmtKms(dvAfterLaunch + launchDv)}</span> with the launch
-              </span>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">Propellant</dt>
-          <dd data-testid="flight-glance-propellant">
-            {short.length === 0
-              ? 'Every stage has enough'
-              : short.map((u, i) => (
-                  <span key={i} className="flight-glance-short">
-                    <Abbr>{u.element}</Abbr>: <span className="mono">{fmtTonnes(u.usedKg - u.capacityKg)}</span> short
-                  </span>
-                ))}
-          </dd>
-        </div>
-      </dl>
+    <section className="flight-energy" aria-label="Result" data-testid="flight-energy">
+      <div className="flight-factor">
+        <span className="quiet">Energy multiplier</span>
+        <span className="flight-factor-value mono" data-testid="flight-factor" data-factor={m ? m.factor.toFixed(4) : ''}>
+          {m ? fmtFactor(m.factor) : '–'}
+        </span>
+      </div>
+      <ul className="flight-bullets">
+        {m ? (
+          <li data-testid="flight-factor-note">
+            1.00× = this design's ideal landing point (<span className="mono">{fmtCoords(m.idealPoint.latDeg, m.idealPoint.lonDeg)}</span>); the
+            costliest point on the Moon: {fmtFactor(m.worstOnGrid)}
+          </li>
+        ) : (
+          <li>No baseline for this design in this build</li>
+        )}
+        <li>
+          <Abbr>Δv</Abbr> after launch: <span className="mono">{fmtKms(dvAfterLaunchOf(plan))}</span>
+        </li>
+        <li>
+          Launch{' '}
+          <button type="button" className="link mono" onClick={() => onSeek(plan.launchMs)}>
+            {fmtUtc(plan.launchMs)}
+          </button>
+          , landing{' '}
+          <button type="button" className="link mono" onClick={() => onSeek(plan.touchdownMs)}>
+            {fmtUtc(plan.touchdownMs)}
+          </button>
+          , home after <span className="mono">{fmtDays(f.missionDays, 1)}</span>
+        </li>
+        <li data-testid="flight-glance-propellant">
+          {short.length === 0 ? (
+            'Propellant: every stage has enough'
+          ) : (
+            <>
+              Propellant short:{' '}
+              {short.map((u, i) => (
+                <span key={i} className="flight-glance-short">
+                  <Abbr>{u.element}</Abbr> <span className="mono">{fmtTonnes(u.usedKg - u.capacityKg)}</span>
+                  {i < short.length - 1 ? ', ' : ''}
+                </span>
+              ))}{' '}
+              <span className="quiet">(why: Notes on this plan)</span>
+            </>
+          )}
+        </li>
+      </ul>
     </section>
   )
 }

@@ -499,3 +499,17 @@
     transition: none;
   }
 }
+
+/* Saved mission row: the flight choices, and the button into the Flight plan with them. */
+.st-flight {
+  display: block;
+  margin-top: var(--s-1);
+  padding: var(--s-1) var(--s-2);
+  font-size: var(--t-small);
+}
+
+.ms-flight {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--t-small);
+}

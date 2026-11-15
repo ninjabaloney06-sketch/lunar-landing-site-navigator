@@ -234,8 +234,15 @@
   padding: 0 var(--s-4);
 }
 
-/* At a glance: the six things to know, before any section. Times are buttons that jump the playback there. */
-.flight-glance {
+/* The mission this flight belongs to: name and site, one line each. */
+.flight-mission {
+  display: grid;
+  gap: var(--s-1);
+  margin: var(--s-2) var(--s-4) 0;
+}
+
+/* The result first: the energy multiplier large, then four short bullets. Times are buttons into the playback. */
+.flight-energy {
   margin: var(--s-4) var(--s-4) 0;
   padding: var(--s-3);
   border: 1px solid var(--line);
@@ -243,35 +250,88 @@
   background: var(--surface-2);
 }
 
-.flight-glance dl {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--s-2) var(--s-4);
-  margin: 0;
+.flight-factor {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
 }
 
-.flight-glance dl > div {
-  display: contents;
+.flight-factor-value {
+  font-size: 1.75rem;
+  line-height: 1.1;
+  color: var(--fg);
 }
 
-.flight-glance dt {
-  padding-top: 1px;
+.flight-bullets {
+  margin: var(--s-2) 0 0;
+  padding-left: 1.1em;
 }
 
-.flight-glance dd {
-  margin: 0;
+.flight-bullets > li {
+  margin-top: var(--s-1);
   overflow-wrap: anywhere;
 }
 
-.flight-glance-note {
-  display: block;
-  font-size: var(--t-small);
-  color: var(--muted);
+.flight-glance-short {
+  color: var(--error);
 }
 
-.flight-glance-short {
-  display: block;
-  color: var(--error);
+/* Rocket and lander: two cards side by side, the chosen one outlined. */
+.flight-designs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s-2);
+  margin: var(--s-4) var(--s-4) 0;
+  padding: 0;
+  border: 0;
+}
+
+.flight-designs > legend {
+  padding: 0;
+  margin-bottom: var(--s-2);
+}
+
+.flight-design {
+  display: grid;
+  align-content: start;
+  gap: var(--s-1);
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.flight-design.is-on {
+  border-color: var(--fg);
+  background: var(--surface-2);
+}
+
+.flight-design-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.flight-design-stack {
+  font-size: var(--t-small);
+}
+
+.flight-design .flight-bullets {
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+}
+
+.flight-lander {
+  grid-column: 1 / -1;
+}
+
+.flight-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin: var(--s-4) var(--s-4);
 }
 
 /* A section that opens and closes: a rule, the title, a short figure, and a plus or minus sign. */
@@ -926,53 +986,40 @@
   background: var(--surface-2);
 }
 
-/* Layers: a small menu of checkboxes that opens upward from the bar. */
+/* Layers: always-visible toggle chips in the bar. */
 .flight-layers {
-  position: relative;
-  flex: none;
-}
-
-.flight-layers > summary {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--s-2);
-  list-style: none;
-  cursor: pointer;
 }
 
-.flight-layers > summary::-webkit-details-marker {
-  display: none;
-}
-
-.flight-layers[open] > summary {
-  border-color: var(--muted);
-}
-
-.flight-layers-count {
+.flight-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
   font-size: var(--t-small);
   color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.flight-layers-menu {
-  position: absolute;
-  z-index: 30;
-  left: 0;
-  bottom: calc(100% + var(--s-2));
-  display: grid;
-  gap: var(--s-2);
-  width: max-content;
-  max-width: calc(100vw - var(--s-8));
-  padding: var(--s-3) var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+.flight-chip.is-on {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.flight-chip input {
+  margin: 0;
+  accent-color: var(--fg);
 }
 
 .flight-trail {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--s-2);
-  padding-left: var(--s-5);
 }
 
 .flight-trail .field {
@@ -1062,6 +1109,12 @@
 
   .flight-look {
     flex: 1 1 auto;
+  }
+
+  .flight-layers {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 
   .flight-look .tab {

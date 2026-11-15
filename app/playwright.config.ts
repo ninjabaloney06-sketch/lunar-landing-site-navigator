@@ -13,8 +13,13 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: `http://localhost:${PORT}`,
     viewport: { width: 1280, height: 720 },
+    // Default: SwiftShader (software WebGL), the same picture on every machine. PW_GPU=1 renders on the machine's
+    // own GPU instead (Direct3D 11 on Windows), for laptops where software WebGL is too slow for the 3D tests
+    // (S3 fly picture: about 45 s on a Radeon 860M against a 400 s timeout with SwiftShader).
     launchOptions: {
-      args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
+      args: process.env.PW_GPU
+        ? ['--use-angle=' + (process.platform === 'win32' ? 'd3d11' : 'default'), '--ignore-gpu-blocklist', '--enable-gpu', '--enable-gpu-rasterization']
+        : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
     },
   },
   projects: [{ name: 'chromium' }],

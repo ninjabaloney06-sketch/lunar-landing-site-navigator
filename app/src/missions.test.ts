@@ -7,7 +7,7 @@ describe('saved missions', () => {
   it('a mission is the name, site, dates, stations and goal of a link, without cursor, view, drawer or points', () => {
     const hs = parseHash('#site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&t=2027-09-14T06:00Z&st=madrid,canberra&view=eye&drawer=details&pts=1,2&name=Massif+survey&goal=cold-trap')
     const m = missionOf(hs)
-    expect(m).toEqual({ site: 'malapert-massif', period: 'custom', from: Date.UTC(2027, 8, 12), days: 10, st: ['madrid', 'canberra'], name: 'Massif survey', goal: 'cold-trap' })
+    expect(m).toEqual({ site: 'malapert-massif', period: 'custom', from: Date.UTC(2027, 8, 12), days: 10, st: ['madrid', 'canberra'], name: 'Massif survey', goal: 'cold-trap', pad: null, rocket: null, stay: null })
     expect(missionKey(m)).toBe('site=malapert-massif&period=custom&from=2027-09-12T00:00Z&days=10&st=madrid,canberra&name=Massif+survey&goal=cold-trap')
     expect(parseMissions(JSON.stringify([missionKey(m)]))).toEqual([m])
   })
@@ -27,5 +27,17 @@ describe('saved missions', () => {
     expect(m.from).toBeNull()
     expect(Number.isFinite(m.days)).toBe(true)
     expect(m.goal).toBe('light')
+  })
+
+  it('keeps the flight choices: launchpad, rocket and surface stay', () => {
+    const m = missionOf(parseHash('#site=haworth&pad=kourou-ela4&rocket=apollo&stay=2.5&view=flight'))
+    expect(m).toMatchObject({ site: 'haworth', pad: 'kourou-ela4', rocket: 'apollo', stay: 2.5 })
+    expect(missionKey(m)).toBe('site=haworth&pad=kourou-ela4&rocket=apollo&stay=2.5')
+    expect(parseMissions(JSON.stringify([missionKey(m)]))).toEqual([m])
+  })
+
+  it('a surface stay outside 0.5 to 30 days is dropped, never NaN', () => {
+    for (const bad of ['0', '31', 'abc', '', '-2']) expect(missionOf(parseHash(`#stay=${bad}`)).stay).toBeNull()
+    expect(missionOf(parseHash('#stay=0.9')).stay).toBe(0.9)
   })
 })
