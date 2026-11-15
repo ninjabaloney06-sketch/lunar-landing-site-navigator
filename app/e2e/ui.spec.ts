@@ -8,6 +8,7 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
 import { EXAMPLE } from '../src/views/examples'
+import { headerAction, openFold } from './header'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -95,7 +96,9 @@ for (const vp of VIEWPORTS) {
     await expect(page.getByTestId('site-name')).toHaveText('Connecting Ridge')
     await expect(page.getByText('Blue Moon MK1 target')).toBeVisible()
     await expect(page.getByTestId('coords')).toHaveText('89.46° S · 136.68° W')
-    await expect(page.getByTestId('date')).toHaveText('16 August 2027, 00:00 UTC')
+    await expect(page.getByTestId('cursor-time')).toHaveText('16 August 2027, 00:00 UTC')
+    await expect(page.getByTestId('date')).toHaveText('16–29 Aug 2027')
+    await expect(page.getByTestId('date')).toHaveAccessibleName('Dates 16–29 Aug 2027')
     await expectMarker(page)
     await expect(page.locator('body')).not.toContainText('NaN')
     await noHorizontalScroll(page)
@@ -219,7 +222,7 @@ test('basic comparison: Connecting Ridge ↔ Malapert Massif, same period; Aug �
   await expect(page.getByTestId('coords')).toHaveText('85.98° S · 0.26° W')
   await step(() => chooseSite(page, RIDGE), RIDGE, AUG)
   await step(() => choosePeriod(page, SEP), RIDGE, SEP)
-  await expect(page.getByTestId('date')).toHaveText('12 September 2027, 00:00 UTC')
+  await expect(page.getByTestId('cursor-time')).toHaveText('12 September 2027, 00:00 UTC')
   await step(() => choosePeriod(page, AUG), RIDGE, AUG)
 
   // The drawer's Switch button changes context and results together too.
@@ -240,6 +243,7 @@ test('UX-03: invalid coordinates are rejected with a message, never NaN', async 
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
+  await openFold(page.getByTestId('mission-panel'), 'points-toggle') // its "Add a point" line is checked below
   const search = page.getByRole('combobox', { name: 'Search a site or type coordinates' })
   const cases: [string, RegExp][] = [
     ['95 S, 10 E', /Latitude must be between 90° S and 90° N/],
@@ -289,7 +293,7 @@ test('UX-03: a date outside the supported range is rejected', async ({ page }) =
   await page.getByLabel('Date (UTC)').fill('2027-08-20')
   await page.getByLabel('Time (UTC)').fill('06:30')
   await page.getByRole('button', { name: 'Show', exact: true }).click()
-  await expect(page.getByTestId('date')).toHaveText('20 August 2027, 06:30 UTC')
+  await expect(page.getByTestId('cursor-time')).toHaveText('20 August 2027, 06:30 UTC')
   await expectAnswer(page, RIDGE, AUG)
 })
 
@@ -375,7 +379,7 @@ test('U6: the examples in the search, name, date and point-name fields are accep
   await name.fill('')
   await expect(name).toHaveAttribute('placeholder', `e.g. ${EXAMPLE.name}`)
   await name.fill(EXAMPLE.name)
-  await expect(page.getByTestId('mission')).toHaveText(EXAMPLE.name)
+  await expect(page.getByTestId('mission-name')).toHaveText(EXAMPLE.name)
   // Dates: from the September period, the Start example moves the mission to start on 16 Aug (its length kept), and
   // the End example makes it 16–29 Aug, the named August period.
   const start = panel.getByLabel('Start', { exact: true })
@@ -429,18 +433,23 @@ for (const vp of VIEWPORTS) {
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(5)
-    // 5 in the header (mission, date, Points of interest, Search, Details; U4 removed "Find better dates", U12 the
+    // Header (science lead, 15 Nov: "make the UI more intuitive"): Edit mission, Landing site, Dates, then the action
+    // bar Find the best site, Site details, Points of interest, Flight plan, Help = 8; on a phone the action bar folds
+    // behind one Menu button = 4 (Edit mission, Landing site, Dates, Menu).
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(vp.width <= 640 ? 4 : 8)
+    // Before: 5 in the header (mission, date, Points of interest, Search, Details; U4 removed "Find better dates", U12 the
     // tabs) + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed" and
     // "Documentation" (read-header, wave 3: "Docs" and "Full documentation" were two entries to the documentation;
     // the in-app one stays) + the footer's validation line with its one link to the record ("see record", add-on
     // task 3 of 15 Nov); the answer line is text, not a control.
     // On a phone the footer's validation line is not shown (it would take a row from the scene; the same line is in
     // the Details drawer), so its link is not on the main screen there: 9 on a phone, 10 on a desktop.
-    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(vp.width <= 640 ? 9 : 10)
+    // Now: the header's 8 (4 on a phone) + View, Play, the footer's two links and the record link (not on a phone).
+    await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(vp.width <= 640 ? 8 : 13)
     await expect(page.getByTestId('validation-claim')).toBeVisible({ visible: vp.width > 640 })
-    await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
+    await noHorizontalScroll(page)
+    await expect(await headerAction(page, 'details')).toHaveAccessibleName('Site details')
     await noHorizontalScroll(page)
   })
 }
@@ -467,10 +476,13 @@ test('answer sits in the timeline as text; Details opens the drawer; nothing on 
   const name = page.getByTestId('mission-panel').getByLabel('Name', { exact: true })
   expect(await name.evaluate((e) => getComputedStyle(e).userSelect)).toBe('text')
   await page.keyboard.press('Escape')
-  // The Details button top right (info icon + label, U4) opens the details drawer the answer used to open.
+  // The Site details button in the action bar top right (info icon + label, U4) opens the details drawer the answer
+  // used to open; the bar ends at the right edge with Help.
   const details = page.getByTestId('details')
   const box = (await details.boundingBox())!
-  expect(box.x + box.width).toBeGreaterThan(page.viewportSize()!.width - 60)
+  const help = (await page.getByTestId('help-open').boundingBox())!
+  expect(help.x + help.width).toBeGreaterThan(page.viewportSize()!.width - 60)
+  expect(Math.abs(help.y - box.y)).toBeLessThan(2)
   expect(box.y).toBeLessThan(60)
   await details.click()
   await expect(page.getByTestId('drawer')).toBeVisible()
@@ -481,7 +493,7 @@ test('answer sits in the timeline as text; Details opens the drawer; nothing on 
 test('a copied link reproduces site, period, cursor, stations and drawer', async ({ page }) => {
   await page.goto(`/#site=${MASSIF}&period=malapert-2026-12&t=2026-12-22T06:30Z&st=madrid,canberra&drawer=details`)
   await expectAnswer(page, MASSIF, 'malapert-2026-12', 60_000)
-  await expect(page.getByTestId('date')).toHaveText('22 December 2026, 06:30 UTC')
+  await expect(page.getByTestId('cursor-time')).toHaveText('22 December 2026, 06:30 UTC')
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
   const all = await stationIds(page)
@@ -521,24 +533,27 @@ test('the drawer\'s "Terms of use" link opens the approved terms next to the sou
 test('(e) mission: the name defaults to "Mission 1" and the goal to Consistent light; a copied link restores name and goal', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await expect(page.getByTestId('mission')).toHaveText('Mission 1')
-  await expect(page.getByTestId('mission')).toHaveAccessibleName('Mission 1')
+  await expect(page.getByTestId('mission-name')).toHaveText('Mission 1')
+  await expect(page.getByTestId('mission')).toHaveAccessibleName('Edit mission')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mission 1')
   await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('goal=')
   await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('name=')
 
   await page.goto(`/#site=${MASSIF}&period=${SEP}&name=Ice%20survey%201&goal=cold-trap`)
   await expectAnswer(page, MASSIF, SEP, 60_000)
-  await expect(page.getByTestId('mission')).toHaveText('Ice survey 1')
+  await expect(page.getByTestId('mission-name')).toHaveText('Ice survey 1')
   await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Ice+survey+1')
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=cold-trap')
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
   await expect(panel.getByLabel('Name', { exact: true })).toHaveValue('Ice survey 1')
+  await expect(panel.getByTestId('goal-toggle')).toHaveText('Science goal: Cold traps (permanent shadow)')
+  await openFold(panel, 'goal-toggle')
   await expect(panel.getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
   // Editing the name in the panel changes the header and the link at once.
   await panel.getByLabel('Name', { exact: true }).fill('Rim survey')
-  await expect(page.getByTestId('mission')).toHaveText('Rim survey')
+  await expect(page.getByTestId('mission-name')).toHaveText('Rim survey')
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('name=Rim+survey')
   await panel.getByRole('radio', { name: 'Water ice and volatiles' }).check()
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('goal=water-ice')
@@ -546,7 +561,7 @@ test('(e) mission: the name defaults to "Mission 1" and the goal to Consistent l
   // Invalid values fall back to the defaults, like every other key; names are cut to 40 characters.
   await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=biology&name=${'x'.repeat(45)}`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await expect(page.getByTestId('mission')).toHaveText('x'.repeat(40))
+  await expect(page.getByTestId('mission-name')).toHaveText('x'.repeat(40))
   await expect.poll(() => page.evaluate(() => location.hash)).not.toContain('goal=')
 })
 
@@ -554,7 +569,7 @@ test('(f) mission: a name containing <script> renders as text', async ({ page })
   const name = '<script>window.__pwned=1</script>'
   await page.goto(`/#site=${RIDGE}&period=${AUG}&name=${encodeURIComponent(name)}`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  await expect(page.getByTestId('mission')).toHaveText(name)
+  await expect(page.getByTestId('mission-name')).toHaveText(name)
   expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined()
   await expect(page.locator('header.top script')).toHaveCount(0)
 })
@@ -591,6 +606,7 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   await panel.getByLabel('End', { exact: true }).press('Enter')
   await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', SEP)
   await expectAnswer(page, RIDGE, SEP)
+  await openFold(panel, 'goal-toggle')
   await panel.getByRole('radio', { name: 'Consistent light' }).check()
   await panel.getByTestId('site-ranking').click()
   await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station contact')
@@ -662,15 +678,15 @@ test('panel: Play mission goes to the mission start and plays, in the landing-si
   await page.getByTestId('mission').click()
   await page.getByTestId('mission-panel').getByRole('button', { name: 'Play mission' }).click()
   await expect(page.getByTestId('mission-panel')).toBeHidden()
-  await expect(page.getByTestId('date')).toHaveText(/^16 August 2027, \d\d:\d0 UTC$/)
-  await expect(page.getByTestId('date')).not.toHaveText('16 August 2027, 00:00 UTC')
+  await expect(page.getByTestId('cursor-time')).toHaveText(/^16 August 2027, \d\d:\d0 UTC$/)
+  await expect(page.getByTestId('cursor-time')).not.toHaveText('16 August 2027, 00:00 UTC')
   await page.keyboard.press('Space') // pause; the link is written once the cursor rests
-  const paused = await page.getByTestId('date').innerText()
+  const paused = await page.getByTestId('cursor-time').innerText()
   // 15 Nov: the eye-level view was removed from the app; the mission plays in the landing-site view (the default,
   // so the link carries no view).
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('t=2027-08-16')
   expect(await page.evaluate(() => location.hash)).not.toContain('view=')
-  await expect(page.getByTestId('date')).toHaveText(paused)
+  await expect(page.getByTestId('cursor-time')).toHaveText(paused)
 })
 
 test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Ridge (3.7°) does not', async ({ page }) => {
@@ -683,12 +699,12 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveText("Landing not recommended: slope 31.8° over 100 m. NASA's Artemis III landing requirement is under 10° over 100 m. Source")
-  // The warning is text, not a control: the header still has 5 controls (U4: mission, date, Points of interest,
-  // Search, Details) and the main screen 10 (+ View, Simulate, the footer's "how this is computed", "Documentation"
-  // and the validation line's record link; read-header dropped the second documentation link).
-  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(5)
+  // The warning is text, not a control: the header still has 8 controls (Edit mission, Landing site, Dates, Find the
+  // best site, Site details, Points of interest, Flight plan, Help) and the main screen 13 (+ View, Play, the footer's
+  // "how this is computed", "Documentation" and the validation line's record link).
+  await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(8)
   // 15 Nov: the warning names NASA's requirement and links its source, one more link while it shows.
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(11)
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(14)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
@@ -713,10 +729,10 @@ test('timeline: three dimmed context days each side, a bracket with the mission,
   const day = page.locator('.tl-tick.is-day').nth(1)
   const label = await day.innerText() // e.g. "18 Aug"
   await day.click()
-  await expect(page.getByTestId('date')).toHaveText(`${label.replace(/ (\w{3})$/, '')} August 2027, 12:00 UTC`)
+  await expect(page.getByTestId('cursor-time')).toHaveText(`${label.replace(/ (\w{3})$/, '')} August 2027, 12:00 UTC`)
   // Dragging into the context days keeps the cursor inside the mission.
   await page.mouse.click(s.x + 4, s.y + 10)
-  await expect(page.getByTestId('date')).toHaveText('16 August 2027, 00:00 UTC')
+  await expect(page.getByTestId('cursor-time')).toHaveText('16 August 2027, 00:00 UTC')
 })
 
 test('globe: clicking a site pin selects that site', async ({ page }) => {
@@ -749,7 +765,7 @@ test('globe: clicking a site pin selects that site', async ({ page }) => {
 test('keys and drag move the cursor; space plays', async ({ page }) => {
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
-  const date = page.getByTestId('date')
+  const date = page.getByTestId('cursor-time')
   await page.keyboard.press('ArrowRight')
   await expect(date).toHaveText('16 August 2027, 00:30 UTC')
   await page.keyboard.press('Shift+ArrowRight')
@@ -832,7 +848,7 @@ for (const vp of [
     await shot('main-steep')
     await chooseSite(page, RIDGE)
     await expectAnswer(page, RIDGE, AUG)
-    await page.getByTestId('details').click()
+    await (await headerAction(page, 'details')).click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')
     await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)

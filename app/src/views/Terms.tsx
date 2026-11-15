@@ -26,7 +26,8 @@ export const Terms = forwardRef<HTMLElement>(function Terms(_props, ref) {
       </p>
       <p>
         <strong>Your privacy.</strong> The app has no accounts and collects nothing about you: no cookies, no tracking,
-        no analytics. Your saved missions and the Full data setting are kept only in your own browser&apos;s local storage;
+        no analytics. Your saved missions, the Full data setting and whether you closed the How to use card are kept only in
+        your own browser&apos;s local storage;
         they never leave your device, and clearing your browser data removes them. Like any website, the hosting provider
         (Cloudflare) processes technical request data such as your IP address to deliver the pages.
       </p>

@@ -4,6 +4,7 @@
 // Run: PW_GPU=1 PW_PORT=5181 npx playwright test e2e/cam-visual.spec.ts
 import { expect, test, type Page } from '@playwright/test'
 import { join } from 'node:path'
+import { headerAction } from './header'
 
 const DEMO = 'site=connecting-ridge&period=shackleton-2027-08'
 const SHOTS = process.env.CAM_SHOTS ?? 'test-results'
@@ -41,7 +42,7 @@ for (const vp of [
 
     test('the POI card sits beside its pin at every edge, never on the pin, and off the header, timeline and POI key where there is room', async ({ page }) => {
       await open(page, `${DEMO}&view=site`)
-      await page.getByTestId('poi-toggle').click()
+      await (await headerAction(page, 'poi-toggle')).click()
       const stage = (await boxOf(page, 'scene'))!
       const m = 30
       // A pin just above the answer and timeline rows (a pin behind them is hidden by them anyway).

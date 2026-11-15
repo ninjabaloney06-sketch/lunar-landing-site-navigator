@@ -75,7 +75,7 @@ test.describe('U2: the Mission menu folds what is not needed to decide', () => {
     await expect(panel.getByRole('checkbox')).toHaveCount(0)
     const stations = panel.getByTestId('stations-toggle')
     await expect(stations).toHaveAttribute('aria-expanded', 'false')
-    await expect(stations).toContainText(`${n} of ${n} stations`)
+    await expect(stations).toHaveText(`Ground stations: ${n} of ${n}`)
     await stations.click()
     await expect(panel.getByRole('checkbox', { checked: true })).toHaveCount(n)
     await expect(panel).toContainText('not a guaranteed radio link')

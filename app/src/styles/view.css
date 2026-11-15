@@ -24,6 +24,27 @@
   position: relative;
 }
 
+/* The time at the timeline cursor, at the left of the tools row (it was the header's date button before the header
+   showed the mission dates instead). */
+.tl-now {
+  margin-right: auto;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Play / Pause: the symbol is drawn by CSS, so the button's text and accessible name stay "Play" or "Pause". */
+.play-btn::before {
+  content: '\25B6' / '';
+  display: inline-block;
+  margin-right: var(--s-2);
+  font-size: 0.85em;
+}
+
+.play-btn[aria-pressed='true']::before {
+  content: '\275A\275A' / '';
+  letter-spacing: -0.15em;
+}
+
 /* View and Simulate: buttons with the same 1 px box as the header controls (team request, 15 Nov). */
 .tool {
   color: var(--fg);

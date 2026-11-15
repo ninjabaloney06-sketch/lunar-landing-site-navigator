@@ -6,6 +6,7 @@
 // 2026), so its slope passes the limit and the slope line is the custom one, not the warning.
 import { expect, test, type Page } from '@playwright/test'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
+import { openFold } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -26,6 +27,7 @@ async function openPanel(page: Page) {
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
   await expect(panel).toBeVisible()
+  await openFold(panel, 'points-toggle') // folded to "Your points: n" (science lead, 15 Nov)
   return panel
 }
 

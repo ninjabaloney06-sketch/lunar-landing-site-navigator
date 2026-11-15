@@ -44,6 +44,13 @@
   display: none;
 }
 
+/* What a propellant shortfall means for the mission: its own line under the verdict. */
+.flight-short-meaning {
+  display: block;
+  margin-top: var(--s-1);
+  color: var(--muted);
+}
+
 /* ---------- labels on the flight scene ---------- */
 
 /* Earth and Moon: the name above the body, no elevation number and no tick. */

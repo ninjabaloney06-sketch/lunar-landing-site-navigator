@@ -2,6 +2,7 @@
 // notes 2, 7, 13, 15). Expected values are computed in the page straight from geometry + the data files, never
 // typed in. Run: PW_PORT=5184 npx playwright test e2e/table.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { openFold } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -218,10 +219,10 @@ test.describe('comparison table for all sites', () => {
     await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
     await expect(drawer.getByRole('heading', { level: 2 })).toHaveText('Malapert Massif')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('drawer=finder')
-    // U4: the header's "Find better dates" went; Details is the one way into the drawer (ui.spec D4: 5 controls).
+    // U4: the header's "Find better dates" went; Site details is the one way into the drawer (ui.spec D4: 8 controls).
     const header = page.locator('header.top')
     await expect(header.getByRole('button', { name: 'Find better dates' })).toHaveCount(0)
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(5)
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(8)
   })
 })
 
@@ -279,11 +280,12 @@ test.describe('saved missions', () => {
     const saved = page.getByTestId('mission-panel').getByTestId('saved-missions')
     await expect(saved.locator('li')).toHaveCount(2)
     await saved.getByRole('button', { name: 'Massif survey', exact: true }).click()
-    await expect(page.getByTestId('mission')).toHaveText('Massif survey')
+    await expect(page.getByTestId('mission-name')).toHaveText('Massif survey')
     await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
     await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'shackleton-2027-09')
+    await openFold(page.getByTestId('mission-panel'), 'goal-toggle')
     await expect(page.getByTestId('mission-panel').getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
-    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "n of m stations" (U2)
+    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "Ground stations: n of m" (U2)
     await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount(2)
     await expect(page.getByTestId('mission-panel').getByTestId('add-mission')).toBeDisabled() // it is the saved one
     // Remove one: gone from the panel, and after a reload from the table too.

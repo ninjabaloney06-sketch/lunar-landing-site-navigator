@@ -78,6 +78,7 @@ export function SearchPanel(p: Props) {
   const minLitPct = pctOf(minLitText) ?? 0
   const minCoveragePct = pctOf(minCovText) ?? 0
   const minError = pctOf(minLitText) === null || pctOf(minCovText) === null
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [extra, setExtra] = useState<SearchSite[] | null>(null)
   const [extraError, setExtraError] = useState<string | null>(null)
 
@@ -131,7 +132,7 @@ export function SearchPanel(p: Props) {
   // all with 0 nearby, answers nothing.
   const empty: string | null =
     groups.length === 0
-      ? 'Choose at least one kind of point of interest above.'
+      ? 'Choose at least one kind of point of interest in Filters above.'
       : results && !results.some((r) => r.groupsCovered > 0)
         ? `No place has a chosen point of interest within ${radiusKm} km; choose more kinds or a larger distance.`
         : results && !results.some((r) => r.meetsMin)
@@ -140,6 +141,14 @@ export function SearchPanel(p: Props) {
   // Places below a minimum the user set are not listed; the line under the form says how many.
   const below = results ? results.filter((r) => !r.meetsMin).length : 0
   const list: SearchRow[] | null = empty ? null : results && results.filter((r) => r.meetsMin)
+  // The folded filters' one line: every active filter, in the order of the form.
+  const filterSummary = [
+    `${groups.length} of ${POI_GROUPS.length} kinds of point within ${radiusKm} km`,
+    slopeRequired ? 'passes the 5° slope limit' : 'any slope',
+    ...(minLitPct > 0 ? [`sunlit at least ${minLitPct} %`] : []),
+    ...(minCoveragePct > 0 ? [`station contact at least ${minCoveragePct} %`] : []),
+    `ranked by ${(BY.find((b) => b.id === by) ?? BY[0]).label.toLowerCase()}`,
+  ].join(' · ')
   // Summary: what "Best" means in one line. Full data: the whole order rule.
   const bestHint = `Best: top ${BEST_COUNT} with a chosen point within ${radiusKm} km and a value above 0 %.`
   const rule = `${slopeRequired ? 'Places that pass the 5° slope limit first; then ' : 'Order: '}places with a value above 0 (lit and in contact for part of the dates, for "Both"); then most of the chosen groups within ${radiusKm} km, then ${(BY.find((b) => b.id === by) ?? BY[0]).rule} for the mission dates, then the flatter slope, then the most points nearby. The best ${BEST_COUNT} with a point nearby and a value above 0 are marked (more when tied); places without data follow.`
@@ -160,7 +169,7 @@ export function SearchPanel(p: Props) {
       <header className="drawer-head">
         <div>
           <h2 id="search-title" className="drawer-title">
-            Search sites
+            Find the best site
           </h2>
           <p className="quiet" data-testid="search-dates">
             Sunlit and station contact are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
@@ -175,7 +184,21 @@ export function SearchPanel(p: Props) {
         </div>
       </header>
 
-      <form className="search-form" onSubmit={(e) => e.preventDefault()}>
+      {/* Results first (science lead, 15 Nov: "make the UI more intuitive"): the filters are folded behind one line
+          that names the active ones; their defaults are unchanged. */}
+      <button
+        type="button"
+        className="link mp-disclose mp-sum mp-fold search-filters"
+        aria-expanded={filtersOpen}
+        aria-controls="search-filter-form"
+        data-testid="search-filters"
+        onClick={() => setFiltersOpen((v) => !v)}
+      >
+        Filters:{' '}
+        <span className="mp-sum-val">{filterSummary}</span>
+      </button>
+      {filtersOpen && (
+      <form id="search-filter-form" className="search-form" onSubmit={(e) => e.preventDefault()}>
         <fieldset className="search-groups">
           <legend className="quiet">Points of interest nearby</legend>
           {POI_GROUPS.map((g) => (
@@ -271,6 +294,7 @@ export function SearchPanel(p: Props) {
           </p>
         </fieldset>
       </form>
+      )}
 
       <p className="quiet search-progress" aria-live="polite" data-testid="search-rule">
         {pois.status === 'error'
