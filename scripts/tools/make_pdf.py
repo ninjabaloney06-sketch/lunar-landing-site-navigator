@@ -3,7 +3,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
 
 OUT = str(Path(__file__).resolve().parents[2] / "docs" / "event" / "NASA-Heilbronn-CLPS.pdf")
 

@@ -1,5 +1,5 @@
 """periods.json: five ids, UTC [start, end) with the last named day included."""
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from periods import PERIODS, build
 
