@@ -609,8 +609,23 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         )}
       </div>
 
-      {help && !inFlight && hs.drawer === null && menu === null && (
-        <section id="help-card" className="help-card" data-testid="help-card" aria-labelledby="help-title">
+      {/* A small start card in the middle of a dimmed screen (it no longer lies over the Sun and Earth labels or the
+          site marker of some sites): Got it, Esc or a press beside it closes it. */}
+      {help && !inFlight && (
+        <div
+          className="help-backdrop"
+          data-testid="help-backdrop"
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) setHelpShown(false)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation()
+              setHelpShown(false)
+            }
+          }}
+        >
+        <section id="help-card" className="help-card" role="dialog" aria-modal="true" data-testid="help-card" aria-labelledby="help-title">
           <h2 id="help-title" className="help-title">
             How to use
           </h2>
@@ -627,11 +642,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </ol>
           <p className="help-foot">
             <span className="quiet">Drag to turn the view, scroll to zoom.</span>
-            <button type="button" className="btn" data-testid="help-dismiss" onClick={() => setHelpShown(false)}>
+            <button type="button" className="btn btn-primary" data-testid="help-dismiss" autoFocus onClick={() => setHelpShown(false)}>
               Got it
             </button>
           </p>
         </section>
+        </div>
       )}
 
       <header className="top">

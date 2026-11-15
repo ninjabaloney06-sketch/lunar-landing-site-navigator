@@ -52,6 +52,18 @@
   background: none;
 }
 
+/* The one primary action of a panel or card: light fill, dark text; everything else stays a quiet .btn. */
+.btn-primary:not(:disabled) {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
 .msg {
   margin: var(--s-2) 0 0;
   font-size: var(--t-small);

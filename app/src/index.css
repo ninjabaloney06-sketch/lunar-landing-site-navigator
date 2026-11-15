@@ -600,13 +600,20 @@ select {
 
 
 /* "How to use" card (App.tsx): three numbered steps under the header on the left, until "Got it"; Help reopens it. */
+.help-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--s-4);
+  background: oklch(0% 0 0 / 0.55);
+}
+
 .help-card {
-  position: absolute;
-  z-index: 30;
-  top: 152px;
-  left: var(--s-10);
+  position: relative;
   box-sizing: border-box;
-  width: min(330px, calc(100vw - var(--s-8)));
+  width: min(360px, 100%);
   padding: var(--s-3) var(--s-4);
   font-size: var(--t-small);
   color: var(--fg);
@@ -710,12 +717,6 @@ select {
 
   .actions-col.is-open > .actions > .find {
     text-align: left;
-  }
-
-  .help-card {
-    top: 150px;
-    left: var(--s-4);
-    width: calc(100vw - var(--s-8));
   }
 
   .help-foot .btn {
