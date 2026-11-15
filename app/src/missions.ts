@@ -1,6 +1,7 @@
 // Saved missions (notebook note 13): "Add mission" keeps the current mission — name, landing site, dates,
-// stations, science goal and the flight choices (launchpad, mission design, surface stay) — in this browser's
-// localStorage. "Calculate flight" on a saved mission opens the Flight plan with exactly these values. No account, nothing leaves the device. Each
+// stations, science goal and the flight choices (launchpad, mission design, surface stay, transfer cap) — in this
+// browser's localStorage. "Calculate flight" on a saved mission opens the flight view with exactly these values; a
+// mission saved before the transfer cap was stored reads it as unset (minimum energy), never as the cap on screen. No account, nothing leaves the device. Each
 // mission is stored as the same text a link holds (serializeHash) and read back through parseHash, so a stored
 // value is validated exactly like a link and can never yield NaN or an unknown key.
 import { useCallback, useEffect, useState } from 'react'
@@ -11,10 +12,10 @@ const MISSIONS_KEY = 'llsn.missions.v1'
 export const MAX_MISSIONS = 12
 
 /** The part of the state that is the mission: not the cursor, the view, the drawer or the user points. */
-export type MissionState = Pick<HashState, 'site' | 'period' | 'from' | 'days' | 'st' | 'name' | 'goal' | 'pad' | 'rocket' | 'stay'>
+export type MissionState = Pick<HashState, 'site' | 'period' | 'from' | 'days' | 'st' | 'name' | 'goal' | 'pad' | 'rocket' | 'stay' | 'tmax'>
 
 export function missionOf(s: HashState): MissionState {
-  return { site: s.site, period: s.period, from: s.from, days: s.days, st: s.st, name: s.name, goal: s.goal, pad: s.pad, rocket: s.rocket, stay: s.stay }
+  return { site: s.site, period: s.period, from: s.from, days: s.days, st: s.st, name: s.name, goal: s.goal, pad: s.pad, rocket: s.rocket, stay: s.stay, tmax: s.tmax }
 }
 
 /** One mission as link text; also its identity (two saves of the same mission are one entry). */

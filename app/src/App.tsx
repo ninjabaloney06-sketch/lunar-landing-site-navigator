@@ -1,7 +1,8 @@
 // Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, the header controls
-// (mission, date, points of interest, Find better dates, Details), the answer sentence, the timeline and one footer line.
-// Two tabs share the stage: "Landing site" (the above) and "Flight plan" (the Earth-to-Moon trajectory for the
-// mission's site and start date, with its own panel and playback bar).
+// (mission, date, points of interest, Search, Details), the answer sentence, the timeline and one footer line.
+// The flight view shares the stage: the Earth-to-Moon trajectory for a mission's site and start date, with its own
+// panel and playback bar. It has no tab: "Calculate flight" on a mission opens it (U12); "Back to landing site" or
+// Esc leaves it.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
@@ -48,6 +49,7 @@ import type { FlightScene, SceneApi } from './views/SceneView'
 import { ViewMenu } from './views/ViewMenu'
 import type { ViewItem } from './views/ViewMenu'
 import { Timeline } from './views/Timeline'
+import { useClickOutside } from './views/useClickOutside'
 import { fmtCoords, fmtDateTime, fmtDeg } from './views/format'
 import { resolvePeriod } from './views/period'
 import { MAX_MISSIONS, missionKey, missionOf, useMissions } from './missions'
@@ -99,6 +101,13 @@ export default function App() {
   return <Main sites={boot.sites} periods={boot.periods} stations={boot.stations} />
 }
 
+// The line under the site name: the site's caveat ("Blue Moon MK1 target", "intended landing site, not
+// touchdown"). A label that only records the site's history in NASA's candidate lists ("dropped in 2024") is a
+// research note, not something to decide on, so the line is left out (visual sweep 21); sites.json has no region.
+function siteSubtitle(site: Site): string | null {
+  return site.label && !/^dropped in \d{4}$/i.test(site.label.trim()) ? site.label : null
+}
+
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
@@ -146,7 +155,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const dateBtn = useRef<HTMLButtonElement>(null)
   const viewBtn = useRef<HTMLButtonElement>(null)
   const scene = useRef<SceneApi | null>(null)
-  const [topView, setTopView] = useState(false)
   const [selPoint, setSelPoint] = useState<number | null>(null) // user point highlighted in the panel and the scene
   // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
   const menuOpen = useRef(false)
@@ -289,6 +297,15 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }, [])
   const closeMenuQuiet = useCallback(() => closeMenu(false), [closeMenu])
 
+  // The drawer, the search and the docs close on a press outside them (U9), the 3D canvas included; as for a menu,
+  // that press is not also a click on the scene.
+  const drawerHost = useRef<HTMLDivElement>(null)
+  const closeDrawerOutside = useCallback(() => {
+    menuClosedAt.current = performance.now()
+    patch({ drawer: null })
+  }, [patch])
+  useClickOutside(drawerHost, closeDrawerOutside, hs.drawer !== null)
+
   // Simulate: the cursor follows the real clock (elapsed time × speed), on the 30-minute grid, until the
   // period's last step. A timer that reads the clock, so a throttled tab plays at the same pace, in fewer steps.
   const cursorNow = useRef(cursor)
@@ -334,9 +351,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         if (menu) closeMenu(true)
         else if (hs.drawer) patch({ drawer: null })
         else {
+          // Esc during the simulation stops it and goes to the landing-site view (U6); otherwise to the Moon.
+          // `playing` is read before it is set to false.
+          const toSite = inFlight || (playing && hs.view !== 'site')
           setPlaying(false)
           setSimMode(false)
-          patch({ view: inFlight ? 'site' : 'globe' })
+          patch({ view: toSite ? 'site' : 'globe' })
         }
         return
       }
@@ -365,7 +385,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [menu, hs.drawer, hs.view, inFlight, flight, cursor, snap, patch, closeMenu])
+  }, [menu, hs.drawer, hs.view, inFlight, playing, flight, cursor, snap, patch, closeMenu])
 
   const toggleStation = (id: string) => {
     const next = ids.includes(id) ? ids.filter((x) => x !== id) : stations.map((s) => s.id).filter((x) => x === id || ids.includes(x))
@@ -382,7 +402,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }
 
   // A pin on the globe: the scene reports a pin within its pick radius as that site's own source coordinates.
-  // Any other point on the surface matches no site and is ignored (no arbitrary coordinates before step 7).
+  // A click elsewhere on the globe chooses no site; custom landing sites come from setLandingSite below.
   const onPick = useCallback(
     (lat: number, lon: number) => {
       const hit = sites.find((s) => Math.abs(s.lat - lat) < 1e-9 && Math.abs(s.lon - lon) < 1e-9)
@@ -419,14 +439,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   )
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
-  // globe), then the six viewpoints of the right-click menu.
+  // globe), then the Moon viewpoint of the right-click menu.
   const goLevel = (view: SceneLevel) => {
     if (hs.view === view) scene.current?.setLevel(view)
     else patch({ view })
   }
   const viewItems: ViewItem[] = [
-    { id: 'site', label: 'Landing site', current: !topView && hs.view === 'site', onSelect: () => goLevel('site') },
-    { id: 'eye', label: 'Eye level', current: !topView && hs.view === 'eye', onSelect: () => goLevel('eye') },
+    { id: 'site', label: 'Landing site', current: hs.view === 'site', onSelect: () => goLevel('site') },
+    { id: 'eye', label: 'Eye level', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
     ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
   ]
 
@@ -437,7 +457,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     setPlaying(true)
   }
 
-  // "Calculate flight" on a saved mission: its site, dates, launchpad, rocket and stay, in the Flight plan tab.
+  // "Calculate flight" on a mission: its site, dates, launchpad, rocket, stay and transfer cap, in the flight view
+  // (a mission saved without a cap patches tmax: null, so the cap on screen never carries over).
   const calculateFlight = (m: MissionState) => {
     setMenu(null)
     setPlaying(false)
@@ -492,7 +513,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             clickGuard={clickGuard}
             points={scenePoints}
             api={scene}
-            onTopView={setTopView}
             canAddPoint={hs.pts.length < MAX_POINTS}
             onAddPoint={addUserPoint}
             onSetSite={setLandingSite}
@@ -550,7 +570,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               {fmtCoords(site.lat, site.lon)}
             </span>
           </p>
-          {site.label && <p className="site-label">{site.label}</p>}
+          {siteSubtitle(site) && <p className="site-label">{siteSubtitle(site)}</p>}
           <button
             ref={dateBtn}
             type="button"
@@ -582,6 +602,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onAddMission={() => missions.add(missionNow)}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
+              onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
               onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
               onSetSite={(lat, lon) => {
@@ -685,61 +706,41 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </div>
         <div className="actions-col">
           <div className="actions">
-            <div className="tabs" role="tablist" aria-label="View">
-              <button
-                type="button"
-                role="tab"
-                className="tab"
-                data-testid="tab-site"
-                aria-selected={!inFlight}
-                onClick={() => inFlight && patch({ view: 'site' })}
-              >
-                Landing site
+            {/* The flight view has no tab (U12): it opens from "Calculate flight" on a mission, and this link (or Esc)
+                goes back to the landing site. */}
+            {inFlight && (
+              <button type="button" className="find" data-testid="back-to-site" onClick={() => patch({ view: 'site' })}>
+                Back to landing site
               </button>
-              <button
-                type="button"
-                role="tab"
-                className="tab"
-                data-testid="tab-flight"
-                aria-selected={inFlight}
-                onClick={() => {
-                  setMenu(null)
-                  setPlaying(false)
-                  patch({ view: 'flight', drawer: null })
-                }}
-              >
-                Flight plan
-              </button>
-            </div>
-            {/* The points-of-interest layer and the search belong to the Landing site tab, like the two buttons after them. */}
+            )}
+            {/* The points-of-interest layer, the search and Details belong to the landing-site view. */}
             {!inFlight && <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />}
             <button
               type="button"
               hidden={inFlight}
               className="find"
               data-testid="search-open"
+              data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
               onClick={() => patch({ drawer: 'search' })}
             >
               Search
             </button>
-            <button type="button" className="find" hidden={inFlight} onClick={() => patch({ drawer: 'finder' })}>
-              Find better dates
-            </button>
-            {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
+            {/* One entry point to the drawer, which starts with the date search (U4: "Find better dates" and the cog
+                were two ways to the same drawer). */}
             <button
               type="button"
               hidden={inFlight}
-              className="details-btn"
+              className="find details-btn"
               data-testid="details"
-              aria-label="Details"
-              title="Details"
+              data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
               onClick={() => patch({ drawer: 'details' })}
             >
-              <Icon name="settings" />
+              <Icon name="info" />
+              <span>Details</span>
             </button>
           </div>
           {hs.poi && !inFlight && <PoiKey groups={hs.poi} data={poiData} counts={poiCounts} webgl={webgl} onChange={(poi) => patch({ poi })} />}
@@ -816,11 +817,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           valueText={valueText}
           tools={
             <>
-              {topView && (
-                <span className="tl-note" data-testid="not-to-scale">
-                  Not to scale
-                </span>
-              )}
               {webgl && (
                 <span className="tool-wrap">
                   <button
@@ -869,6 +865,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <button type="button" className="link" data-testid="docs-open" aria-haspopup="dialog" onClick={() => patch({ drawer: 'docs' })}>
               Docs
             </button>
+            {' · '}
+            <a className="link" href="/docs" data-testid="docs-page-link">
+              Full documentation
+            </a>
           </p>
           {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
@@ -878,59 +878,65 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </footer>
       </div>
 
-      {hs.drawer === 'search' && (
-        <SearchPanel
-          sites={sites}
-          stations={stations}
-          ids={ids}
-          site={site}
-          period={period}
-          pois={poiData}
-          // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
-          onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
-          onShowPoi={(poi, groups) =>
-            patch({ view: 'globe', drawer: null, poi: [...new Set([...(hs.poi ?? []), ...groups, poi.group])] })
-          }
-          onClose={() => patch({ drawer: null })}
-        />
-      )}
+      {/* display: contents, so the panels lay out as before; the host only tells inside from outside (U9). */}
+      <div ref={drawerHost} className="drawer-host">
+        {hs.drawer === 'search' && (
+          <SearchPanel
+            sites={sites}
+            stations={stations}
+            ids={ids}
+            site={site}
+            period={period}
+            pois={poiData}
+            // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
+            onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
+            // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
+            onShowPoi={(poi, groups) => {
+              const id = customSiteId(poi.lat, poi.lon)
+              const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
+              patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
+            }}
+            onClose={() => patch({ drawer: null })}
+          />
+        )}
 
-      {hs.drawer === 'docs' && (
-        <Suspense fallback={null}>
-          <DocsView onClose={() => patch({ drawer: null })} />
-        </Suspense>
-      )}
+        {hs.drawer === 'docs' && (
+          <Suspense fallback={null}>
+            <DocsView onClose={() => patch({ drawer: null })} />
+          </Suspense>
+        )}
 
-      {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
-        <Drawer
-          section={hs.drawer}
-          site={site}
-          customHorizon={customReady?.horizon ?? null}
-          period={period}
-          cursorMs={cursor}
-          sites={sites}
-          periods={periods}
-          stations={stations}
-          ids={ids}
-          results={results}
-          atCursor={atCursor}
-          onChooseStations={() => {
-            patch({ drawer: null })
-            setPanelAtStations(true)
-            setMenu('mission')
-          }}
-          onShowWindow={(startMs, days, landingMs) =>
-            // open exactly the interval the finder scored: [landing, landing + days), not the landing day's midnight
-            patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
-          }
-          onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
-          goal={hs.goal}
-          missions={missions.list}
-          onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
-          onCalculateFlight={calculateFlight}
-          onClose={() => patch({ drawer: null })}
-        />
-      )}
+        {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
+          <Drawer
+            section={hs.drawer}
+            site={site}
+            customHorizon={customReady?.horizon ?? null}
+            period={period}
+            cursorMs={cursor}
+            sites={sites}
+            periods={periods}
+            stations={stations}
+            ids={ids}
+            results={results}
+            atCursor={atCursor}
+            onChooseStations={() => {
+              patch({ drawer: null })
+              setPanelAtStations(true)
+              setMenu('mission')
+            }}
+            onShowWindow={(startMs, days, landingMs) =>
+              // open exactly the interval the finder scored: [landing, landing + days), not the landing day's midnight
+              patch({ period: 'custom', from: startMs, days, t: landingMs, drawer: null })
+            }
+            onSwitch={(siteId, periodId) => patch({ site: siteId, period: periodId, from: null, t: null })}
+            goal={hs.goal}
+            missions={missions.list}
+            onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
+            onCalculateFlight={calculateFlight}
+            onClose={() => patch({ drawer: null })}
+          />
+        )}
+      </div>
     </div>
   )
 }

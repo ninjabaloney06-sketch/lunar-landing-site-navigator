@@ -171,6 +171,15 @@
   color: var(--fg);
 }
 
+/* ---------- Details drawer: the Full data switch beside Close, top right (U8) ---------- */
+
+.drawer-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
 /* ---------- Details drawer: simulation speed ---------- */
 
 .sim-speed {
@@ -355,5 +364,13 @@
 
   .tl-tools {
     gap: var(--s-4);
+    align-items: center;
+  }
+
+  /* View and Simulate: 44 px tall targets on a phone (visual sweep 8), the text stays a quiet link */
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
