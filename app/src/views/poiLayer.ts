@@ -359,15 +359,14 @@ export function conditionLines(site: SearchSite, mission: PoiMission, summary: S
   const out: ConditionLine[] = []
   const days = (mission.endMs - mission.startMs) / DAY
   const n = Math.round(days)
-  const ofDays = (pct: number | null) => (n >= 1 ? ` — about ${pct === null ? '…' : Math.round((pct / 100) * days)} of ${n} days` : '')
+  const ofDays = (pct: number | null) => (n >= 1 ? `about ${pct === null ? '…' : Math.round((pct / 100) * days)} of ${n} days` : '')
   const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
   const lit = summary && finite(summary.litPct) ? summary.litPct : null
   const cov = summary && finite(summary.coveragePct) ? summary.coveragePct : null
   const wait = computing && !summary
-  if (lit !== null || wait) out.push({ key: 'lit', label: 'Sunlit', value: lit === null ? '…' : fmtPct(lit), note: `of the mission dates${ofDays(lit)}` })
-  if (cov !== null || wait) {
-    out.push({ key: 'comms', label: 'Station contact', value: cov === null ? '…' : fmtPct(cov), note: 'line of sight to a chosen ground station' })
-  }
+  if (lit !== null || wait) out.push({ key: 'lit', label: 'Sunlit', value: lit === null ? '…' : fmtPct(lit), note: ofDays(lit) })
+  // Contact: line of sight to at least one chosen ground station (geometry coverage), as the search's "Coverage".
+  if (cov !== null || wait) out.push({ key: 'comms', label: 'Station contact', value: cov === null ? '…' : fmtPct(cov), note: ofDays(cov) })
   // The slope rule is rankSites' (5° limit, spec.md "Terrain slope"); the card only words its answer.
   const r = rankSites([{ site, summary: null }], 'any')
   const row = [...r.ranked, ...r.failed, ...r.unknown][0]
@@ -376,7 +375,7 @@ export function conditionLines(site: SearchSite, mission: PoiMission, summary: S
       key: 'slope',
       label: 'Slope',
       value: fmtDeg(row.slopeDeg),
-      note: row.slope === 'fail' ? 'steeper than the 5° landing limit' : 'within the 5° landing limit',
+      note: row.slope === 'fail' ? 'steeper than the 5° limit' : 'within the 5° limit',
       status: row.slope === 'fail' ? 'fail' : 'pass',
     })
   }

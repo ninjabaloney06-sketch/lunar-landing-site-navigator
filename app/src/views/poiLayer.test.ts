@@ -153,9 +153,9 @@ describe('"At this point, for your mission dates" (U17)', () => {
   it('three lines: sunlit and station contact as the search shows them, the slope with the 5° limit', () => {
     const lines = conditionLines(site, mission, summary)
     expect(lines.map((l) => [l.label, l.value, l.note])).toEqual([
-      ['Sunlit', '62.3 %', 'of the mission dates — about 9 of 14 days'],
-      ['Station contact', '41.0 %', 'line of sight to a chosen ground station'],
-      ['Slope', '2.6°', 'within the 5° landing limit'],
+      ['Sunlit', '62.3 %', 'about 9 of 14 days'],
+      ['Station contact', '41.0 %', 'about 6 of 14 days'],
+      ['Slope', '2.6°', 'within the 5° limit'],
     ])
     expect(lines[2].status).toBe('pass')
     expect(conditionLines({ ...site, slope_deg: 7.2 }, mission, summary)[2]).toMatchObject({ value: '7.2°', status: 'fail' })
@@ -164,9 +164,9 @@ describe('"At this point, for your mission dates" (U17)', () => {
   it('while computing, "…" holds the place of sunlit and contact with the same notes; no slope in the file, no slope line; never NaN', () => {
     const wait = conditionLines(site, mission, null, true)
     expect(wait.map((l) => [l.value, l.note])).toEqual([
-      ['…', 'of the mission dates — about … of 14 days'],
-      ['…', 'line of sight to a chosen ground station'],
-      ['2.6°', 'within the 5° landing limit'],
+      ['…', 'about … of 14 days'],
+      ['…', 'about … of 14 days'],
+      ['2.6°', 'within the 5° limit'],
     ])
     expect(conditionLines(site, mission, null).map((l) => l.key)).toEqual(['slope'])
     expect(conditionLines({ ...site, slope_deg: null } as unknown as SearchSite, mission, null)).toEqual([])

@@ -89,7 +89,7 @@ test.describe('POI card at 1440 × 900', () => {
     await expect(full).toContainText('Centre position differs between sources: Wikipedia 84.90° S 35.50° W; USGS Gazetteer list gives 85.33° S 42.13° W.')
     const text = await full.innerText()
     for (const bad of ['ESTABLISHED', '.json', 'not retrieved', '-84.', 'science lead']) expect(text, bad).not.toContain(bad)
-    const links = full.locator('.poi-info-sources').getByRole('link')
+    const links = full.getByRole('link')
     await expect(links).toHaveCount(cabeus.sources.length)
     for (const [i, u] of cabeus.sources.entries()) await expect(links.nth(i)).toHaveAttribute('href', u)
     // Sources are the last thing in the card.

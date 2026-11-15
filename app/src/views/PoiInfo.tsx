@@ -5,12 +5,12 @@
 //   dates": sunlit and station contact % (only for points with a terrain horizon of their own, computed like the
 //   search's values) and the slope from the shipped file;
 // - full data: the whole record, cleaned (poiLayer.cleanText): coordinates as "84.90° S, 35.50° W", rows with no
-//   value hidden, evidence grades explained, no internal file names, the same computed block with how it was
-//   computed and its validation status, source links at the bottom.
+//   value hidden, evidence grades explained, no internal file names, the record's source links at its bottom; then
+//   the same computed block with how it was computed and its validation status.
 // Every abbreviation in the texts carries its long form (<abbr title>, poiLayer.POI_ABBR).
 // Placement and open/close behaviour: SceneView.
 import { useLayoutEffect, useRef } from 'react'
-import type { PointerEventHandler, ReactNode, Ref } from 'react'
+import type { PointerEventHandler, Ref } from 'react'
 import type { Poi } from '../data/pois'
 import { useFullData } from './advanced'
 import { FullDataSwitch } from './FullDataSwitch'
@@ -27,8 +27,7 @@ import {
   usePoiConditions,
 } from './poiLayer'
 import type { PoiMission } from './poiLayer'
-import { spanLabel } from './period'
-import { OTHER_CHECKS, RECORD_HREF, RECORD_LABEL, V1_CLAIM } from './validationClaim'
+import { OTHER_CHECKS, V1_CLAIM } from './validationClaim'
 
 interface Props {
   poi: Poi
@@ -45,7 +44,13 @@ interface Props {
   onPointerLeave: PointerEventHandler
 }
 
-const LOLA_DOI = 'https://doi.org/10.3847/PSJ/acf3e1' // the horizons' terrain model (horizons/*.json "dem")
+
+/** What each computed line means (hover), with the threshold where the app has one. */
+const HINT = {
+  lit: 'Share of the mission dates with any part of the Sun’s disc above this point’s terrain horizon',
+  comms: 'Share of the mission dates with line of sight to at least one chosen ground station',
+  slope: 'Terrain slope at the point from the horizon file; the app’s landing-slope limit is 5° (project criterion)',
+} as const
 
 /** Text with each abbreviation marked. */
 function T({ text }: { text: string }) {
@@ -117,14 +122,9 @@ export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onClose, o
       <h3 className="poi-info-name">
         <T text={poi.name} />
       </h3>
-      {full ? (
-        <FullBody poi={poi} here={<Here poiId={poi.id} mission={mission ?? null} full />} />
-      ) : (
-        <>
-          <SummaryBody poi={poi} from={from ?? null} />
-          <Here poiId={poi.id} mission={mission ?? null} full={false} />
-        </>
-      )}
+      {full ? <FullBody poi={poi} /> : <SummaryBody poi={poi} from={from ?? null} />}
+      {/* The app's own values, after the record (and, in full data, after the record's sources). */}
+      <Here poiId={poi.id} mission={mission ?? null} full={full} />
     </aside>
   )
 }
@@ -166,7 +166,7 @@ function Here({ poiId, mission, full }: { poiId: string; mission: PoiMission | n
       {lines.length > 0 && (
         <dl className="poi-here-list">
           {lines.map((l) => (
-            <div key={l.key} className="poi-here-row" data-key={l.key} data-status={l.status}>
+            <div key={l.key} className="poi-here-row" data-key={l.key} data-status={l.status} title={HINT[l.key]}>
               <dt>{l.label}</dt>
               <dd>
                 <span className="mono poi-here-value">{l.value}</span> <span className="poi-here-note">{l.note}</span>
@@ -181,24 +181,15 @@ function Here({ poiId, mission, full }: { poiId: string; mission: PoiMission | n
       )}
       {full && (
         <p className="poi-here-method" data-testid="poi-here-method">
-          Computed in this app from the point’s terrain horizon (
-          <a href={LOLA_DOI} target="_blank" rel="noreferrer">
-            <abbr title="Lunar Orbiter Laser Altimeter (LRO)">LOLA</abbr> 20 m/px
-          </a>
-          , 720 directions) and the Sun, Earth and station positions over
-          {c.status === 'ready' ? ` ${spanLabel(c.mission.startMs, c.mission.endMs)}` : ' these dates'}, as in the search. Validation as
-          for every app result: {V1_CLAIM}; {OTHER_CHECKS} (
-          <a href={RECORD_HREF} target="_blank" rel="noopener noreferrer">
-            {RECORD_LABEL}
-          </a>
-          ).
+          Computed in this app from the point’s <abbr title="Lunar Orbiter Laser Altimeter (LRO)">LOLA</abbr> terrain horizon, as in
+          the search; validation status as for every app result: {V1_CLAIM}; {OTHER_CHECKS}.
         </p>
       )}
     </section>
   )
 }
 
-function FullBody({ poi, here }: { poi: Poi; here: ReactNode }) {
+function FullBody({ poi }: { poi: Poi }) {
   const g = groupInfo(poi.group)
   const summary = cleanText(poi.summary)
   const facts = fullFacts(poi)
@@ -243,7 +234,6 @@ function FullBody({ poi, here }: { poi: Poi; here: ReactNode }) {
           <span className="poi-info-key">Limitations</span> <T text={limitations} />
         </p>
       )}
-      {here}
       <Sources poi={poi} />
     </div>
   )

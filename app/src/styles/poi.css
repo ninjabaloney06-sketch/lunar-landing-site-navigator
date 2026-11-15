@@ -263,7 +263,7 @@
 
 /* "At this point, for your mission dates": the app's own values, a second block under the record's bullets. */
 .poi-here {
-  margin: var(--s-3) 0 0;
+  margin: var(--s-2) 0 0;
   padding-top: var(--s-2);
   border-top: 1px solid var(--line);
 }
