@@ -255,6 +255,76 @@
   color: var(--muted);
 }
 
+.poi-info abbr[title] {
+  text-decoration: underline dotted var(--faint);
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+/* "At this point, for your mission dates": the app's own values, a second block under the record's bullets. */
+.poi-here {
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+
+.poi-here-title {
+  margin: 0;
+  font: inherit;
+  color: var(--muted);
+}
+
+.poi-here .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.poi-here-list {
+  display: grid;
+  gap: 2px;
+  margin: var(--s-1) 0 0;
+}
+
+.poi-here-row {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr);
+  gap: var(--s-2);
+}
+
+.poi-here-row dt {
+  color: var(--muted);
+}
+
+.poi-here-row dd {
+  margin: 0;
+}
+
+.poi-here-row[data-key='lit'] .poi-here-value {
+  color: var(--sun);
+}
+
+.poi-here-row[data-key='comms'] .poi-here-value {
+  color: var(--comms);
+}
+
+.poi-here-row[data-status='fail'] .poi-here-value {
+  color: var(--error);
+}
+
+.poi-here-note {
+  color: var(--muted);
+}
+
+.poi-here-msg,
+.poi-here-method {
+  margin: var(--s-1) 0 0;
+  color: var(--muted);
+}
+
 /* ---------- site search: a panel of its own, laid out like the details drawer ---------- */
 
 .search-form {
