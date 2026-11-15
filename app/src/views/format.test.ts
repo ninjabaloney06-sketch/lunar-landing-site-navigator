@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fmtRange, fmtSpanH } from './format'
+import { fmtCoords, fmtDeg, fmtHours, fmtPct, fmtRange, fmtSpanH } from './format'
 
 describe('fmtSpanH: durations as a planner reads them (U17)', () => {
   it('under a day in hours with one decimal', () => {
@@ -29,5 +29,24 @@ describe('fmtRange: mission dates in the header (feature review)', () => {
   it('a one-day mission is one date, not "31–31 Dec 2030"', () => {
     expect(fmtRange(Date.UTC(2030, 11, 31), Date.UTC(2030, 11, 31) + D)).toBe('31 Dec 2030')
     expect(fmtRange(Date.UTC(2027, 7, 16), Date.UTC(2027, 7, 17))).toBe('16 Aug 2027')
+  })
+})
+
+describe('number formatters never print NaN or Infinity (feature review)', () => {
+  it('a non-finite value is an em dash', () => {
+    for (const v of [Number.NaN, Infinity, -Infinity]) {
+      expect(fmtPct(v)).toBe('—')
+      expect(fmtHours(v)).toBe('—')
+      expect(fmtDeg(v)).toBe('—')
+      expect(fmtCoords(v, 10)).toBe('—')
+      expect(fmtCoords(-89, v)).toBe('—')
+    }
+  })
+  it('finite values are unchanged', () => {
+    expect(fmtPct(91.25)).toBe('91.3 %')
+    expect(fmtPct(0)).toBe('0.0 %')
+    expect(fmtHours(3.14)).toBe('3.1 h')
+    expect(fmtDeg(-0.42)).toBe('−0.4°')
+    expect(fmtCoords(-89.46, -136.68)).toBe('89.46° S · 136.68° W')
   })
 })
