@@ -204,12 +204,12 @@ that agent's brief; list the rest for ninja in your final report. Waves 1–4 br
 
 | Agent | Model | Tasks | Owns (edit only these) | Port |
 |---|---|---|---|---|
-| cam | opus | U5, U6, U16, U14 | `app/src/scene3d/**`, `views/SceneView.tsx`, `views/ViewMenu.tsx`, `views/SearchPanel.tsx` (the "Show" handler for U16 and the U7 string at l. 255); Esc change in `App.tsx` → diff in report | 5181 |
+| cam | opus | U5, U6, U16, U19, U14 | `app/src/scene3d/**`, `views/SceneView.tsx`, `views/ViewMenu.tsx`, `views/SearchPanel.tsx` (the "Show" handler for U16 and the U7 string at l. 255); Esc change in `App.tsx` → diff in report | 5181 |
 | points | opus | U10, U11 | `views/custom.ts`, `data/customSite.ts`, the file holding the role button (locate first; if another agent owns it → diff in report), `e2e/` new spec | 5182 |
 | poi | opus | U7, U8 card + toggle | `views/PoiInfo.tsx`, `views/PoiControl.tsx`, `views/poiLayer.ts`, `styles/poi.css`, new `views/advanced.ts` (the global summary / full-data hook with `localStorage`; no `state.ts` edit), `views/Icon.tsx` (add `information-circle-outline` as key `info`, for U4), `scripts/pois.py` (merge `docs/POIs/plain.json` if present; missing file → no `plain` field), `app/public/data/pois.json` | 5183 |
 | poi-text-01 … 09 | haiku | U8 plain texts, 25 records each (batch NN = records 25·(NN−1)+1 … 25·NN in `app/public/data/pois.json` order; give each agent its records inline) | write only `private/poi-plain/batch-NN.json` in the main checkout (no worktree, no git) | — |
 | mission | opus | U1, U2 | `views/MissionPanel.tsx`, `styles/mission.css` | 5184 |
-| dates | opus | U3, U4, U18 | `views/Drawer.tsx`, `views/DateMenu.tsx`, `views/Timeline.tsx`, `views/HorizonStrip.tsx`, `views/period.ts`, `styles/panels.css` (uses the info icon from `poi`'s branch: import name `info`; add it to `Icon.tsx` too if not merged yet) | 5185 |
+| dates | opus | U3, U4 (drawer content), U18 | `views/Drawer.tsx`, `views/DateMenu.tsx`, `views/Timeline.tsx`, `views/HorizonStrip.tsx`, `views/period.ts`, `styles/panels.css` (uses the info icon from `poi`'s branch: import name `info`; add it to `Icon.tsx` too if not merged yet) | 5185 |
 | phys-a | opus | P1, P4 | new `app/src/flight/*.proof.test.ts`, `flight/hardware.ts` | — |
 | phys-b | opus | P2, P3 (compute only, no UI) | new `flight/payload.ts`, `flight/plan.ts`, `flight/mission.ts`, `flight/missionNrho.ts`, `flight/designs.ts` | — |
 | phys-c | opus | P5 compute (J2 + Monte Carlo, no UI) | `flight/sim.ts`, `flight/nbody.ts`, `flight/lunar.ts`, new `flight/dispersion.ts`, `flight/planWorker.ts` | — |
@@ -225,7 +225,7 @@ into `docs/POIs/plain.json` on `integration` and runs `scripts/pois.py`.
 
 | Agent | Model | Tasks | Owns | Port |
 |---|---|---|---|---|
-| shell | opus | U9, U12, U13, U8 toggle on the other cards (site info, search results, flight details link), the Esc diff from `cam`, an in-app link to `/docs` | `App.tsx`, `state.ts`, `views/SiteTable.tsx`, `views/Compare.tsx`, `views/SearchPanel.tsx`, `views/Stations.tsx`, `views/Finder.tsx` | 5187 |
+| shell | opus | U4 (header buttons), U9, U12, U13, U8 toggle on the other cards (site info, search results, flight details link), the Esc diff from `cam`, an in-app link to `/docs` | `App.tsx`, `state.ts`, `views/SiteTable.tsx`, `views/Compare.tsx`, `views/SearchPanel.tsx`, `views/Stations.tsx`, `views/Finder.tsx` | 5187 |
 | flight-ui | opus | P2/P3/P5 UI (payload, cheapest route, 1σ/3σ tube in the scene), P6 uncertainty budget, P7 markers | `views/FlightPanel.tsx`, `views/FlightExplain.tsx`, `views/FlightTransport.tsx`, `views/flight*.ts`, `views/useFlight.ts`, `scene3d/flight.ts`, `styles/flight.css`, new `docs/scientific-proof/uncertainty.md` | 5188 |
 | proof | opus | D3 except uncertainty | new `docs/scientific-proof/*.md` (not `uncertainty.md`) | — |
 
@@ -276,12 +276,19 @@ U2. **Compact the Mission menu**: remove from the first view what a user does no
     the bottom of the menu. Do not remove a function, only fold it.
 U3. **Time periods tab**: shows the mission currently selected in the Mission table, lists the best computed
     periods for that mission's current landing site, and picking one edits that mission's dates.
-U4. **Split "Find better dates" and the button next to it into two screens.** Replace the settings (cog)
-    icon with an info icon (Ionicons `information-circle-outline`, MIT, same import pattern as
-    `views/Icon.tsx`). The info screen contains the stacked timeline: a `Light | Communication` select, a year
-    select (2026–2030, within data coverage Nov 2026–Dec 2030), a month axis, and one bar row per location
-    (current site + saved missions' sites) under each other, bars = lit / in contact spans. Compact: one
-    select row, legend inline, no prose paragraphs.
+U4. **One entry point instead of two** (ninja, 15 Nov: the header's "Find better dates" button opens the
+    same drawer as the settings cog, only scrolled further down — redundant). In the header (`App.tsx`
+    ~l. 696 cog, ~l. 703 "Find better dates"): remove the "Find better dates" button; replace the cog with
+    an info icon button (Ionicons `information-circle-outline`, MIT, key `info` in `views/Icon.tsx`) with a
+    visible short label ("Details") and put it where the two buttons were, so the header row stays aligned.
+    The drawer it opens starts with the date search (landing windows) at the top, then the stacked
+    timeline: a `Light | Communication` select, a year select (2026–2030, within data coverage Nov 2026–Dec
+    2030), a month axis, and one bar row per location (current site + saved missions' sites) under each
+    other, bars = lit / in-contact spans. Compact: one select row, legend inline, no prose paragraphs.
+    Keep the per-row "Find better dates" action in the sites table only if it opens the search for a
+    different site than the current one (check; if it duplicates too, remove it). Update `docs/content.tsx`
+    mentions in wave 3 (`docs-update`). Split: the drawer content is the wave-1 `dates` agent; the header
+    change is the wave-2 `shell` agent (owns `App.tsx`).
 U5. **Camera at eye height**: entering a simulation from the Moon view, and looking at a newly added point,
     puts the camera inside the floor. Keep the angle, raise the camera to `OBSERVER_HEIGHT_M` (1.75 m) above
     the terrain under it. Regression test in `scene3d/`.
@@ -344,6 +351,13 @@ U14. **View menu** (decided by ninja, 15 Nov): remove "Point start", "Point end"
     "Solar system — top view" from `VIEWPOINTS` in `views/ViewMenu.tsx`; only "Moon" stays. Remove the code
     that becomes unreachable (camera presets, keyboard shortcuts, tests for those entries); if the menu with a
     single entry is pointless, replace it with a plain "Moon view" button and say so in the report.
+U19. **Bug: "Eye level" sometimes spawns the camera under the Moon's surface** (ninja, 15 Nov). Reproduce
+    first: select Eye level (`App.tsx` l. 414 `goLevel('eye')`) at every one of the 18 sites and at 20
+    random custom points, before and after the terrain tiles have loaded; assert camera height ≥ terrain
+    height under the camera + `OBSERVER_HEIGHT_M` at every frame for 5 s. Likely cause to check: the height
+    is taken from a coarser terrain level and a finer tile that loads later is higher. Fix in one place: a
+    single eye-level placement function used by U5, U16 and U19, which samples the finest loaded terrain
+    under the camera and re-clamps when a finer level arrives. Playwright regression test over the sites.
 U16. **Bug: search → "Show" does not land in eye-level view.** Searching for a site and pressing "Show"
     must bring the camera to that site in the same eye-level view as opening a landing site (1.75 m above
     terrain, same angle as U5). Reproduce with a Playwright test first; share the camera code path with U5
@@ -385,7 +399,7 @@ U15. **Top view**: dropped. Its only entry point goes in U14. If the solar-syste
     reachable some other way after U14 (check), report where; do not build anything on it.
 
 Done = `npx tsc --noEmit`, `npx vitest run`, `npx playwright test` green in `app/`; a new or updated test
-for U1, U3, U5, U6, U7, U8, U9, U10, U11, U16, U18; desktop + 375 px browser check of each changed screen with screenshots
+for U1, U3, U4, U5, U6, U7, U8, U9, U10, U11, U16, U18, U19; desktop + 375 px browser check of each changed screen with screenshots
 named in the report.
 
 ## Workstream P — physics (agents and timing: see Orchestration)
