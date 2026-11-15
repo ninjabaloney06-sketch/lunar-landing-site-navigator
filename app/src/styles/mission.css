@@ -90,26 +90,38 @@
 
 /* ---------- Mission panel: under the mission control, ends above the answer (desktop); full sheet on phones ---------- */
 
+/* --mp-top is the panel's measured top (MissionPanel); 168 px keeps the answer sentence and timeline free. */
 .mission-panel {
   width: min(440px, calc(100vw - var(--s-8)));
-  max-height: max(280px, calc(100dvh - 430px));
+  max-height: max(280px, calc(100dvh - var(--mp-top, 157px) - 168px));
   padding-bottom: var(--s-4);
   overscroll-behavior: contain;
 }
 
+/* Title, close and Play stay in view while the panel scrolls. */
 .mp-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  padding: var(--s-3) var(--s-4) 0;
+  padding: var(--s-3) var(--s-4) var(--s-2);
+  background: var(--surface);
 }
 
+.mp-head .mp-play {
+  margin-left: auto;
+  min-height: 44px;
+}
+
+/* 44 px: the smallest tap target at 375 px. */
 .mp-close {
   display: grid;
   place-items: center;
   flex: none;
-  width: var(--s-8);
-  height: var(--s-8);
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   font-size: var(--s-5);
@@ -136,7 +148,7 @@
 .mp-fields {
   display: grid;
   gap: var(--s-2);
-  padding: var(--s-4) var(--s-4) 0;
+  padding: var(--s-2) var(--s-4) 0;
 }
 
 .mp-field {
@@ -161,13 +173,14 @@
 }
 
 .mp-sec {
+  display: flow-root; /* contains the floated heading when a section is folded to it */
   margin: 0;
   padding: var(--s-6) var(--s-4) 0;
   border: 0;
   min-width: 0;
 }
 
-/* Rows and the search reach the panel edges, as in the site menu. */
+/* Rows and the search reach the panel edges. */
 .mp-sec .menu-search,
 .mp-sec .menu-group,
 .mp-sec .menu-msg,
@@ -195,6 +208,28 @@
   margin: 0 0 var(--s-2);
 }
 
+/* Disclosures in the panel: a text link with a chevron, tall enough to tap (44 px). */
+.mp-disclose {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.mp-disclose:hover,
+.mp-disclose:focus-visible,
+.mp-disclose[aria-expanded='true'] {
+  color: var(--fg);
+}
+
+.mp-chev {
+  display: inline-block;
+  width: 1em;
+  color: var(--faint);
+}
+
 .mp-progress:empty {
   padding: 0;
 }
@@ -211,14 +246,24 @@
   padding: var(--s-1) 0;
 }
 
-.mp-play {
-  display: grid;
-  justify-items: start;
-  gap: var(--s-2);
+.mp-sum {
+  flex-wrap: wrap;
+  font-weight: 500;
+  color: var(--fg);
 }
 
-.mp-play .quiet {
-  margin: 0;
+.mp-sum-val {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Saved missions and "Add mission" close the panel. */
+.mp-bottom .mp-save {
+  padding-left: 0;
+}
+
+.mission-panel .ms-row {
+  grid-template-columns: minmax(0, 1fr) 44px;
 }
 
 .drawer-note {
@@ -250,6 +295,11 @@
   margin-top: var(--s-1);
   font: 400 var(--t-small) / 1.5 var(--font-mono);
   color: var(--muted);
+}
+
+.rank-facts > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rank-facts .is-fail {

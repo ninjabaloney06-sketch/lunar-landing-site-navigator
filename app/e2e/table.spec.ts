@@ -238,6 +238,7 @@ test.describe('saved missions', () => {
     // A second mission: another name and site.
     await panel.getByLabel('Name', { exact: true }).fill('Ridge ops')
     await expect(add).toBeEnabled()
+    await panel.getByTestId('site-ranking').click() // U1: the site list opens on typing or from the ranking
     await page.locator(`#site-opt-${RIDGE}`).click()
     await page.getByTestId('mission').click()
     await page.getByTestId('mission-panel').getByTestId('add-mission').click()
@@ -276,6 +277,7 @@ test.describe('saved missions', () => {
     await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
     await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'shackleton-2027-09')
     await expect(page.getByTestId('mission-panel').getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
+    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "n of m stations" (U2)
     await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount(2)
     await expect(page.getByTestId('mission-panel').getByTestId('add-mission')).toBeDisabled() // it is the saved one
     // Remove one: gone from the panel, and after a reload from the table too.
