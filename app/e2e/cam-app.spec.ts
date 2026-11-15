@@ -6,8 +6,8 @@ import { expect, test, type Page } from '@playwright/test'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
-const APP_DIFF_U16 = true // set false (or delete the fixme line) once the U16 diff to App.tsx onShowPoi is applied
-const APP_DIFF_U6 = true // the same for the U6 Esc diff
+const APP_DIFF_U16 = false // set false (or delete the fixme line) once the U16 diff to App.tsx onShowPoi is applied
+const APP_DIFF_U6 = false // the same for the U6 Esc diff
 
 type Scene = {
   ready: Promise<void>
@@ -50,8 +50,7 @@ test('U6: Esc while the simulation plays returns to the landing site, not to the
   await page.locator('body').press('Escape')
   await expect.poll(async () => await viewOf(page)).not.toBe('globe')
   await expect.poll(() => scene(page, (s) => s.level())).toBe('site')
-  // Not playing: Esc keeps today's behaviour (the Moon view).
-  await page.getByTestId('simulate').click()
+  // Esc also ended the simulation (U18). Not playing: Esc keeps today's behaviour (the Moon view).
   await expect(page.getByTestId('simulate')).toHaveText('Simulate')
   await page.locator('body').press('Escape')
   await expect.poll(async () => await viewOf(page)).toBe('globe')

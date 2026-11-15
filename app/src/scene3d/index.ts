@@ -53,7 +53,6 @@ import { SiteWorld } from './site'
 import { inPinRegion } from './region'
 import { Sky } from './sky'
 
-export { TOP_VIEW } from './topview'
 export { POI_AT_SITE_KM, POI_NEAR_KM } from './pins'
 
 export type SceneLevel = 'globe' | 'site' | 'eye' | 'flight'

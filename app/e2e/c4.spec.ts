@@ -727,8 +727,9 @@ test.describe('C4 part 4: Simulate', () => {
     await expect(speed).toHaveCount(0)
     await expect(reset).toHaveCount(0)
     await page.getByTestId('details').click()
-    await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('looks down the +z axis of the Moon body-fixed frame (MOON_ME)')
-    await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('It is not to scale')
+    // U14 removed the solar-system top view, so the note no longer describes it.
+    await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('move the camera only')
+    await expect(page.getByTestId('drawer').getByTestId('views-note')).not.toContainText('top view')
   })
 })
 

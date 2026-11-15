@@ -146,7 +146,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const dateBtn = useRef<HTMLButtonElement>(null)
   const viewBtn = useRef<HTMLButtonElement>(null)
   const scene = useRef<SceneApi | null>(null)
-  const [topView, setTopView] = useState(false)
   const [selPoint, setSelPoint] = useState<number | null>(null) // user point highlighted in the panel and the scene
   // A press on the scene that closes a menu is not also a click on the scene (it would walk the camera).
   const menuOpen = useRef(false)
@@ -334,9 +333,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         if (menu) closeMenu(true)
         else if (hs.drawer) patch({ drawer: null })
         else {
+          // Esc during the simulation stops it and goes to the landing-site view (U6); otherwise to the Moon.
+          // `playing` is read before it is set to false.
+          const toSite = inFlight || (playing && hs.view !== 'site')
           setPlaying(false)
           setSimMode(false)
-          patch({ view: inFlight ? 'site' : 'globe' })
+          patch({ view: toSite ? 'site' : 'globe' })
         }
         return
       }
@@ -365,7 +367,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [menu, hs.drawer, hs.view, inFlight, flight, cursor, snap, patch, closeMenu])
+  }, [menu, hs.drawer, hs.view, inFlight, playing, flight, cursor, snap, patch, closeMenu])
 
   const toggleStation = (id: string) => {
     const next = ids.includes(id) ? ids.filter((x) => x !== id) : stations.map((s) => s.id).filter((x) => x === id || ids.includes(x))
@@ -419,14 +421,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   )
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
-  // globe), then the six viewpoints of the right-click menu.
+  // globe), then the Moon viewpoint of the right-click menu.
   const goLevel = (view: SceneLevel) => {
     if (hs.view === view) scene.current?.setLevel(view)
     else patch({ view })
   }
   const viewItems: ViewItem[] = [
-    { id: 'site', label: 'Landing site', current: !topView && hs.view === 'site', onSelect: () => goLevel('site') },
-    { id: 'eye', label: 'Eye level', current: !topView && hs.view === 'eye', onSelect: () => goLevel('eye') },
+    { id: 'site', label: 'Landing site', current: hs.view === 'site', onSelect: () => goLevel('site') },
+    { id: 'eye', label: 'Eye level', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
     ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
   ]
 
@@ -492,7 +494,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             clickGuard={clickGuard}
             points={scenePoints}
             api={scene}
-            onTopView={setTopView}
             canAddPoint={hs.pts.length < MAX_POINTS}
             onAddPoint={addUserPoint}
             onSetSite={setLandingSite}
@@ -816,11 +817,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           valueText={valueText}
           tools={
             <>
-              {topView && (
-                <span className="tl-note" data-testid="not-to-scale">
-                  Not to scale
-                </span>
-              )}
               {webgl && (
                 <span className="tool-wrap">
                   <button
@@ -869,6 +865,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             <button type="button" className="link" data-testid="docs-open" aria-haspopup="dialog" onClick={() => patch({ drawer: 'docs' })}>
               Docs
             </button>
+            {' · '}
+            <a className="link" href="/docs" data-testid="docs-page-link">
+              Full documentation
+            </a>
           </p>
           {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
@@ -888,9 +888,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           pois={poiData}
           // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
           onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
-          onShowPoi={(poi, groups) =>
-            patch({ view: 'globe', drawer: null, poi: [...new Set([...(hs.poi ?? []), ...groups, poi.group])] })
-          }
+          // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
+          onShowPoi={(poi, groups) => {
+            const id = customSiteId(poi.lat, poi.lon)
+            const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
+            patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
+          }}
           onClose={() => patch({ drawer: null })}
         />
       )}

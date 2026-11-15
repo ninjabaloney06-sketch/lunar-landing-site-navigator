@@ -150,9 +150,11 @@ test.describe('search at 1440 × 900', () => {
     await expect(own).toContainText('Science features point')
     await panel.getByLabel('Within, km').fill('1')
     await expect(own.locator('.search-count[data-group="science"] .mono')).toHaveText('1')
-    // "Show" turns the layer on with the chosen groups and that point's group, and goes to the globe.
+    // "Show" turns the layer on with the chosen groups and that point's group, and opens the point as a custom
+    // landing site at eye level (U16).
     await own.getByRole('button', { name: 'Show' }).click()
-    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=globe')
+    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=eye')
+    await expect.poll(() => page.evaluate(() => location.hash)).toContain('site=cap:')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('poi=water,cold-trap,science')
   })
 })

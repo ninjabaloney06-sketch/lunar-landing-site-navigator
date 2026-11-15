@@ -79,7 +79,6 @@ interface Props {
   clickGuard(): boolean // false while a click on the scene only closes a menu
   points: ScenePoint[] // user points, drawn as markers
   api: RefObject<SceneApi | null>
-  onTopView?(on: boolean): void // unused since U14 removed the top view; App.tsx still passes it (diff in cam's report)
   canAddPoint: boolean // false when the list of user points is full
   onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
