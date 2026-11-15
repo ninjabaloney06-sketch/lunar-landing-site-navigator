@@ -15,6 +15,8 @@ import type { Page } from '@playwright/test'
 
 test.skip(!process.env.VISUAL_SWEEP, 'visual sweep: set VISUAL_SWEEP=1 to run')
 test.describe.configure({ mode: 'serial' })
+// A state that cannot be reached fails fast and is listed, instead of waiting for the test timeout.
+test.use({ actionTimeout: 10_000 })
 if (process.env.VISUAL_SWEEP_URL) test.use({ baseURL: process.env.VISUAL_SWEEP_URL })
 
 const OUT = join(process.cwd(), 'test-results', 'visual-baseline')
@@ -218,8 +220,12 @@ function sweep(vp: (typeof VIEWPORTS)[number]) {
         await page.waitForTimeout(500)
       })
       await shot(page, '43-search-no-results', async () => {
-        await page.getByTestId('search').locator('input[type="search"], input[type="text"]').first().fill('zzzzqqq')
-        await page.waitForTimeout(800)
+        // No text query exists: a 1 km radius and no point groups is the emptiest search a user can make.
+        const panel = page.getByTestId('search')
+        await panel.locator('input[type="number"]').first().fill('1')
+        const boxes = panel.locator('input[type="checkbox"]:checked')
+        for (let n = await boxes.count(); n > 0; n--) await boxes.first().uncheck()
+        await page.waitForTimeout(1500)
       })
       await shot(page, '44-docs', () => open(page, `${DEMO}&drawer=docs`, { scene: false }))
       await shot(page, '45-docs-scrolled', async () => {
