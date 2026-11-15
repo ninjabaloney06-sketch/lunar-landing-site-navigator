@@ -76,7 +76,7 @@ const RETURN_WINDOWS: { value: number; label: string }[] = [
   { value: 14, label: 'Cheapest departure within 14 days after' },
 ]
 
-export const STAY_DAYS = { min: 0.5, max: 30, step: 0.5 }
+const STAY_DAYS = { min: 0.5, max: 30, step: 0.5 }
 
 const MINUS = '−'
 

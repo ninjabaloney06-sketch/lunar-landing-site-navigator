@@ -1,11 +1,11 @@
 // The explanatory sections of the Flight plan panel: why the halo orbit looks the way it does and what it costs
-// and buys, how Apollo and Artemis land, how long crews stay on the surface, the theoretical minimum energy, and
-// the glossary. Plain text with its sources; where the plan computed a number, that number is shown beside the
+// and buys, how Apollo and Artemis land, how long crews stay on the surface, and the glossary.
+// Plain text with its sources; where the plan computed a number, that number is shown beside the
 // published one. Each export is the content of one collapsible section of FlightPanel.
 import type { ReactNode } from 'react'
 import type { ArchitectureSpec } from '../flight/hardware'
-import type { IdealEnergy, MissionPlan, SourceRef } from '../flight/types'
-import { burnName, fmtDays, fmtKms, fmtTonnes } from './flightFormat'
+import type { MissionPlan, SourceRef } from '../flight/types'
+import { burnName, fmtDays, fmtKms } from './flightFormat'
 import { Abbr, GLOSSARY, GLOSSARY_GROUPS, GLOSSARY_SOURCES } from './flightGlossary'
 
 type Rendezvous = ArchitectureSpec['rendezvous']
@@ -59,7 +59,7 @@ function PlanLine({ children }: { children: ReactNode }) {
 
 // ---------- what a plan spent, by craft ----------
 
-export interface PlanSums {
+interface PlanSums {
   design: string
   capsule: { name: string; dvKms: number }[] // the capsule's burns after the trans-lunar injection
   capsuleDvKms: number
@@ -69,7 +69,7 @@ export interface PlanSums {
   stayDays: number
 }
 
-export function sumsOf(plan: MissionPlan): PlanSums {
+function sumsOf(plan: MissionPlan): PlanSums {
   const burns = plan.events.filter((e) => e.kind === 'burn' && e.dvKms !== null)
   const capsule = burns
     .filter((e) => e.craft === 'capsule' && e.id !== 'ascent' && e.id !== 'tli' && e.dvKms! >= 0.0005)
@@ -358,78 +358,6 @@ export function SurfaceStay({ plan, rendezvous, askedDays, stay }: SurfaceStayPr
         </p>
       )}
       <Sources list={[...(stay?.sources ?? []), S.a11Lm, S.elm, S.a15, S.a11Summary, S.artemis3, S.mahajan]} />
-    </div>
-  )
-}
-
-// ---------- theoretical minimum energy ----------
-
-const KWH_MJ = 3.6
-
-const perKg = (mj: number) => `${mj.toFixed(1)} MJ/kg (${(mj / KWH_MJ).toFixed(1)} kWh/kg)`
-
-/** "640 MJ", "84.2 GJ", "1.92 TJ": thousands step up a unit. */
-function fmtEnergy(mj: number): string {
-  if (mj < 1e3) return `${mj.toFixed(0)} MJ`
-  if (mj < 1e6) return `${(mj / 1e3).toFixed(1)} GJ`
-  return `${(mj / 1e6).toFixed(2)} TJ`
-}
-
-export function IdealMinimum({ ideal }: { ideal: IdealEnergy }) {
-  const minimum = ideal.outboundMjPerKg + ideal.returnClimbMjPerKg
-  const times = ideal.ratio >= 100 ? Math.round(ideal.ratio).toLocaleString('en-US') : ideal.ratio.toFixed(1)
-  return (
-    <div className="flight-prose">
-      <p className="flight-caveat" data-testid="flight-ideal-caveat">
-        This is energy bookkeeping, not a flight path, and no machine can do it. A rocket has to carry and accelerate its own propellant, and nothing
-        recovers the energy that is released on the way down. The minimum ignores every practical limit. It is here only to compare.
-      </p>
-      <dl className="flight-facts" data-testid="flight-ideal">
-        <div>
-          <dt className="quiet">There, per kilogram</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{perKg(ideal.outboundMjPerKg)}</span>
-            <span className="flight-fact-note">from rest on the launchpad to rest on the landing point</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">Back, the climb</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{perKg(ideal.returnClimbMjPerKg)}</span>
-            <span className="flight-fact-note">from the landing point up to the saddle between Moon and Earth: the only part of the way home that costs energy</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">Back, the fall</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{perKg(ideal.returnReleasedMjPerKg)} released</span>
-            <span className="flight-fact-note">falling from there to Entry Interface; it has to be shed, it cannot be used</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">There and back at 100 % efficiency</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{perKg(minimum)}</span>
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">This mission’s engines</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{perKg(ideal.missionMjPerKg)}</span>
-            <span className="flight-fact-note">
-              {fmtEnergy(ideal.missionJetEnergyMj)} put into the exhaust in all, divided by the {fmtTonnes(ideal.referenceMassKg)} of capsule that
-              reach Entry Interface
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt className="quiet">Ratio</dt>
-          <dd className="mono">
-            <span className="flight-fact-line">{times} times the minimum</span>
-          </dd>
-        </div>
-      </dl>
-      <p className="quiet">1 kWh is 3.6 MJ.</p>
     </div>
   )
 }

@@ -6,11 +6,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import '../styles/flight.css'
 import type { MissionPlan } from '../flight/types'
-import type { FlightLayers } from '../scene3d'
+import type { FlightFocus, FlightLayers } from '../scene3d'
 import { DEFAULT_SPEED, SPEEDS, burnName, fmtDuration, fmtElapsed, fmtKms, fmtUtc } from './flightFormat'
 import { expand } from './flightGlossary'
-
-export type FlightFocus = 'overview' | 'earth' | 'moon' | 'capsule' | 'lander'
 
 export interface FlightTransportProps {
   plan: MissionPlan

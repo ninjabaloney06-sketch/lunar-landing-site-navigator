@@ -27,7 +27,7 @@ import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
 import type { RowEntry } from './useSiteRows'
 
-export const YEAR_DAYS = 365
+const YEAR_DAYS = 365
 
 type Columns = 'both' | 'light' | 'comms'
 type Span = 'mission' | 'year'
@@ -68,7 +68,7 @@ interface Props {
 }
 
 /** A whole year from the mission's first day; moved back when it would pass the last supported date. */
-export function yearSpan(startMs: number): { startMs: number; endMs: number } {
+function yearSpan(startMs: number): { startMs: number; endMs: number } {
   const a = Math.min(startMs, COVERAGE_END_MS - YEAR_DAYS * DAY_MS)
   return { startMs: a, endMs: a + YEAR_DAYS * DAY_MS }
 }

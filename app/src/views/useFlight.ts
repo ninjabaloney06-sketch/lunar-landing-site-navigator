@@ -56,7 +56,7 @@ function compute(req: Omit<PlanRequest, 'id'>): Promise<PlanReply> {
       }
     }
   } catch {
-    // no workers here (an old browser, a test page): compute on the page after it has painted "Computingâ€¦"
+    // no workers here (an old browser, a test page): compute on the page after it has painted "Computing…"
     return new Promise((resolve) => window.setTimeout(() => resolve(runPlan({ ...req, id })), 30))
   }
   return new Promise((resolve) => {
@@ -169,7 +169,7 @@ export function useFlight(input: FlightInput): Flight {
     const step = (now: number) => {
       const dt = Math.min(now - last, 100) // a background tab must not jump the flight ahead
       last = now
-      const t = Math.min(plan.endMs, clock.timeMs + dt * speed) // real ms Ã— (simulated s per real s) = simulated ms
+      const t = Math.min(plan.endMs, clock.timeMs + dt * speed) // real ms × (simulated s per real s) = simulated ms
       clock.timeMs = t
       if (t >= plan.endMs) {
         setTimeMs(t)
