@@ -1165,10 +1165,28 @@
     position: static;
     order: 2;
     width: auto;
+    min-width: 0;
+    max-width: 100%; /* a flex item sized to its content: without a cap the events table's min-content made it wider than the screen in full data mode */
     max-height: 40dvh; /* first paint; FlightPanel measures */
     border-left: 0;
     border-right: 0;
     border-radius: 0;
+  }
+
+  /* Full data tables: tighter cells so five columns fit 375 px; a wider one scrolls inside its section. */
+  .flight-panel .tbl th,
+  .flight-panel .tbl td {
+    padding-left: var(--s-1);
+    padding-right: var(--s-1);
+  }
+
+  .flight-sec-body {
+    overflow-x: auto;
+  }
+
+  /* A value and its unit may break here ("3,149" over "m/s") so the five event columns fit. */
+  .flight-burns td {
+    white-space: normal;
   }
 
   /* Collapsed it is a small box again, not a full-width sheet. */

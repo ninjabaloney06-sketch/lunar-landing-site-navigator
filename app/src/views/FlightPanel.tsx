@@ -70,12 +70,13 @@ export interface FlightPanelProps {
   onClose?(): void
 }
 
+// Worded as the Mission menu's flight line words a saved mission's cap ("transfer at most 3 days 12 h").
 const TRANSFER_LIMITS: { value: string; label: string }[] = [
-  { value: '4.5', label: 'At most 4.5 days' },
-  { value: '4', label: 'At most 4 days' },
-  { value: '3.5', label: 'At most 3.5 days' },
-  { value: '3', label: 'At most 3 days' },
-  { value: '2.5', label: 'At most 2.5 days' },
+  { value: '4.5', label: 'Transfer at most 4 days 12 h' },
+  { value: '4', label: 'Transfer at most 4 days' },
+  { value: '3.5', label: 'Transfer at most 3 days 12 h' },
+  { value: '3', label: 'Transfer at most 3 days' },
+  { value: '2.5', label: 'Transfer at most 2 days 12 h' },
 ]
 
 const RETURN_WINDOWS: { value: number; label: string }[] = [
@@ -461,7 +462,7 @@ export function FlightPanel(p: FlightPanelProps) {
               data-testid="flight-transfer"
               onChange={(e) => p.onMaxTransferDays(e.target.value === '' ? null : Number(e.target.value))}
             >
-              <option value="">Minimum energy (about 5 days)</option>
+              <option value="">Minimum-energy transfer (about 5 days)</option>
               {TRANSFER_LIMITS.map((x) => (
                 <option key={x.value} value={x.value}>
                   {x.label}

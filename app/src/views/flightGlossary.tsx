@@ -81,6 +81,10 @@ export const GLOSSARY: GlossaryEntry[] = [
   { term: 't', name: 'Tonne, 1,000 kg', meaning: 'Unit of the propellant masses.', group: 'unit', match: null },
   { term: 'MJ/kg', name: 'Megajoule per kilogram', meaning: 'Energy per mass. 3.6 MJ are 1 kWh.', group: 'unit', match: null },
   { term: 'DE440', name: 'Development Ephemeris 440', meaning: 'The Jet Propulsion Laboratory’s table of where the Moon, Earth and Sun are, used for every plan here.', group: 'unit' },
+  { term: 'NASA', name: 'National Aeronautics and Space Administration', meaning: 'The United States space agency.', group: 'unit' },
+  { term: 'DSN', name: 'NASA Deep Space Network', meaning: 'NASA’s antennas at Goldstone, Madrid and Canberra.', group: 'unit' },
+  { term: 'JAXA', name: 'Japan Aerospace Exploration Agency', meaning: 'Operates the Usuda and Uchinoura antennas.', group: 'unit' },
+  { term: 'LOLA', name: 'Lunar Orbiter Laser Altimeter', meaning: 'LRO instrument; source of the terrain.', group: 'unit' },
   { term: 'JPL', name: 'Jet Propulsion Laboratory', meaning: 'The NASA centre that publishes the ephemeris.', group: 'unit' },
   { term: 'J2000', name: 'The reference axes of 1 January 2000', meaning: 'Directions fixed to the stars: the 3D view does not turn with Earth or the Moon.', group: 'unit' },
 ]

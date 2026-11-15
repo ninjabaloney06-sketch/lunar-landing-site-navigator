@@ -7,9 +7,9 @@ import { useEffect, useId, useRef, useState } from 'react'
 import '../styles/flight.css'
 import type { MissionPlan } from '../flight/types'
 import type { FlightFocus, FlightLayers } from '../scene3d'
-import { DEFAULT_SPEED, SPEEDS, burnName, fmtDuration, fmtElapsed, fmtKms, fmtUtc } from './flightFormat'
+import { DEFAULT_SPEED, SPEEDS, burnName, fmtDuration, fmtDv, fmtElapsed, fmtUtc } from './flightFormat'
 import { useFlightAnalysis } from './flightAnalysis'
-import { expand } from './flightGlossary'
+import { Abbr, hoverOf } from './flightGlossary'
 
 export interface FlightTransportProps {
   plan: MissionPlan
@@ -104,7 +104,7 @@ const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'tra
   { key: 'burnNames', label: 'Burn names', hint: 'a name at each burn' },
   { key: 'stageNames', label: 'Stage names', hint: 'the stage or engine that fires, at each burn' },
   { key: 'trail', label: 'Trail only', hint: 'nothing is drawn ahead; the path fades out behind' },
-  { key: 'tube', label: 'Dispersion tube', hint: 'the 1σ and 3σ spread of 200 unguided descents around the planned one (not yet validated by the science lead)' },
+  { key: 'tube', label: 'Dispersion tube', hint: 'the 1σ and 3σ spread of 200 unguided descents around the planned one; every error size is an assumption (not yet validated by the science lead)' },
 ]
 
 /** The layer toggles, always in view: one plain checkbox per layer; the trail length appears while the trail is
@@ -207,19 +207,22 @@ export function FlightTransport(p: FlightTransportProps) {
 
         <div className="flight-readout" aria-live="off">
           <p className="flight-elapsed mono" data-testid="flight-elapsed">
-            {elapsed}
+            <abbr title={hoverOf('T+') ?? undefined}>T+</abbr>
+            {elapsed.slice(2)}
           </p>
-          <p className="flight-utc quiet mono">{fmtUtc(timeMs)}</p>
+          <p className="flight-utc quiet mono">
+            <Abbr>{fmtUtc(timeMs)}</Abbr>
+          </p>
           <p className="flight-phase" data-testid="flight-phase">
-            {phase}
+            <Abbr>{phase}</Abbr>
           </p>
         </div>
 
         <div className="flight-track">
           <div ref={ticksRef} className="flight-ticks">
             {ticks.map(({ event: e, burn, name, pct, widthPx, text }, i) => {
-              const long = expand(name)
-              const detail = [e.label, e.by, e.dvKms === null ? null : fmtKms(e.dvKms), burn && e.durationS !== null ? fmtDuration(e.durationS) : null]
+              const long = hoverOf(name)
+              const detail = [e.label, e.by, e.dvKms === null ? null : `Δv ${fmtDv(e.dvKms)}`, burn && e.durationS !== null ? fmtDuration(e.durationS) : null]
               return (
                 <button
                   key={`${i}-${e.id}`}
@@ -257,7 +260,7 @@ export function FlightTransport(p: FlightTransportProps) {
       </div>
 
       <div className="flight-row flight-controls">
-        <label className="flight-look-field">
+        <label className="flight-look-field" title="What the 3D view follows">
           <span className="quiet">Camera</span>
           <select className="field flight-look" value={focus} data-testid="flight-focus" onChange={(e) => onFocus(e.target.value as FlightFocus)}>
             {FOCUS.map((f) => (
@@ -270,7 +273,7 @@ export function FlightTransport(p: FlightTransportProps) {
 
         <LayersMenu layers={p.layers} onLayers={p.onLayers} />
 
-        <label className="flight-speed-field">
+        <label className="flight-speed-field" title="Simulated flight time per real second">
           <span className="quiet">Speed</span>
           <input
             type="range"
