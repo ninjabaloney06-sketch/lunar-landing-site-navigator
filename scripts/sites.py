@@ -6,7 +6,6 @@ Potential entries come from scripts/site_potential.json ({"<id>": [entries]}) wh
 import csv
 import json
 import sys
-from pathlib import Path
 
 from config import APP_DATA, REPO
 
