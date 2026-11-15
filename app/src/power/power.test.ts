@@ -89,7 +89,7 @@ describe('battery against the longest dark window (survives when battery ≥ loa
   it('52.5 h at 100 W = 5250 Wh against 1000 Wh: 4250 Wh short', () => {
     const e = estimatePower(steps, 52.5, BASE)!
     expect(e.marginWh).toBe(-4250)
-    expect(powerSentence(e)).toBe('The battery does not survive the longest dark window, 52.5 h: it is 4 250 Wh short.')
+    expect(powerSentence(e)).toBe('The battery does not survive the longest dark window, 52.5 h: it is 4 250 Wh short.')
   })
   it('no dark window: need 0 Wh, survives', () => {
     const e = estimatePower(steps, 0, BASE)!
@@ -133,7 +133,7 @@ describe('nonsense inputs never give NaN', () => {
   it('fmtNum never prints NaN', () => {
     expect(fmtNum(NaN, 1)).toBe('–')
     expect(fmtNum(-0.04, 1)).toBe('0.0')
-    expect(fmtNum(-1234.5, 1)).toBe('−1 234.5')
+    expect(fmtNum(-1234.5, 1)).toBe('−1 234.5')
   })
 })
 

@@ -154,12 +154,12 @@ export function powerCsvRows(inp: PowerInputs, est: PowerEstimate | null): strin
 
 const MINUS = '−'
 
-/** Fixed decimals with thin-space thousands groups and a true minus sign; never "NaN". */
+/** Fixed decimals with narrow no-break space thousands groups and a true minus sign; never "NaN". */
 export function fmtNum(v: number, digits: number): string {
   if (!Number.isFinite(v)) return '–'
   const s = Math.abs(v).toFixed(digits)
   const [int, dec] = s.split('.')
-  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
   const neg = v < 0 && Number(s) !== 0
   return `${neg ? MINUS : ''}${grouped}${dec ? `.${dec}` : ''}`
 }
