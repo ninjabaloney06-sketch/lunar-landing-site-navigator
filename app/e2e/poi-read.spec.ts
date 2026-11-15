@@ -147,8 +147,9 @@ test.describe('POI card, read at a glance, 1280 × 720', () => {
     await expect(here).toHaveAttribute('data-state', 'ready', { timeout: 30_000 })
     const method = here.getByTestId('poi-here-method')
     await expect(method).toContainText('Computed in this app from the point’s LOLA terrain horizon, as in the search')
-    await expect(method).toContainText('reported, no written sign-off')
-    await expect(method).toContainText('other checks open')
+    // the validation line as the record words it since the science lead's statement of 15 Nov 2026
+    await expect(method).toContainText('validated by the science lead')
+    await expect(method).toContainText('statement of 15 Nov 2026')
     const full = box.getByTestId('poi-full')
     expect(await full.evaluate((el) => el.lastElementChild?.classList.contains('poi-info-sources'))).toBe(true)
     const text = (await box.innerText()).replace(/\s+/g, ' ')
