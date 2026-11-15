@@ -257,13 +257,108 @@
   color: var(--muted);
 }
 
-/* Saved missions and "Add mission" close the panel. */
-.mp-bottom .mp-save {
-  padding-left: 0;
+/* One-line hints under a heading or legend (U17). */
+.mp-hint {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-small);
+}
+
+.mission-panel abbr[title] {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--faint);
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+/* The ranking's rule as short bullets; the method line only in full data mode. */
+.mp-bullets {
+  margin: 0 0 var(--s-2);
+  padding-left: var(--s-4);
+  font-size: var(--t-small);
+}
+
+.mp-bullets li + li {
+  margin-top: 2px;
+}
+
+/* Science goal: two columns where they fit, so the five choices take three rows. */
+.mp-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--s-4);
+}
+
+/* Full data switch: top right of the header, a 44 px tap target. */
+.mp-head .mp-full {
+  min-height: 44px;
+}
+
+/* Mission actions: every mission row (saved or on screen) has "Calculate flight" in the same column at its right,
+   then its remove or save control; Compare sits at the right of the saved list's heading. */
+.mp-act-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.mp-act-head .mp-h {
+  float: none;
+  width: auto;
+  margin: 0;
+}
+
+.mp-act {
+  min-height: 44px;
+  white-space: nowrap;
 }
 
 .mission-panel .ms-row {
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) auto 44px;
+  gap: 0 var(--s-3);
+}
+
+.mission-panel .ms-row .ms-flight {
+  grid-column: auto;
+  justify-self: end;
+  font-size: inherit;
+}
+
+.mission-panel .mp-this {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-3);
+}
+
+.mp-this .mp-h {
+  float: none;
+  margin: 0;
+}
+
+.mp-this .btn {
+  min-height: 44px;
+}
+
+.mp-save-note {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-small);
+}
+
+/* Per-site values against their thresholds: green meets, the error colour misses (and says by what in words). */
+.mission-panel {
+  --mp-pass: oklch(78% 0.13 150); /* the Site assessment's "Passes" green (assessment.css) */
+}
+
+.rank-facts .is-pass {
+  color: var(--mp-pass);
+}
+
+.rank-facts .is-fail {
+  color: var(--error);
+}
+
+.rank-facts .fact-extra {
+  color: var(--faint);
 }
 
 .drawer-note {
@@ -300,10 +395,6 @@
 .rank-facts > * {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.rank-facts .is-fail {
-  color: var(--fg);
 }
 
 .rank-facts a {
@@ -390,6 +481,16 @@
     max-height: none;
     border: 0;
     border-radius: 0;
+  }
+
+  /* Close, title, Play and Full data share one row at 375 px with tighter gaps; they wrap rather than overflow. */
+  .mp-head {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  .mp-goal-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
