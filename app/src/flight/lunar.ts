@@ -135,6 +135,48 @@ export interface DescentResult {
   crossRangeDvKms: number
   /** Impulsive lower bound for the same orbit: Hohmann transfer down to the surface and a stop there. */
   idealDvKms: number
+  /** The commands the solver found, for flying the same descent again open loop (replayDescent). */
+  controls: DescentControls
+}
+
+/** What the descent's burns were commanded to do: enough to fly them again without solving anything. */
+export interface DescentControls {
+  startMs: number // DOI ignition (or, without a DOI burn, the instant the descent orbit is taken from)
+  start: SimState // the lander's state then
+  doi: { throttle: number; seconds: number } | null // retrograde DOI burn; null: none was needed
+  toRefS: number // coast from DOI cut-off to the braking burn's reference state, s
+  /** Braking burn: steering x = [a, B, c, D, burn length as seconds at full flow, ignition seconds after the
+   *  reference state] at throttle setting `throttle`, linear tangent law about the plane normal `normal`. */
+  braking: { normal: Vec3; x: number[]; throttle: number; fullS: number }
+  gKms2: number // local gravity used to design the terminal descent
+  surfaceR: number // radius of the surface at the site, km
+  propellantKg: number // usable propellant at undocking
+}
+
+/** Errors of one flown descent against its commands (all 1 / 0 for the commanded flight). */
+export interface DescentPerturbation {
+  /** Factor on the engine's thrust in every burn ("burn magnitude"). */
+  thrustScale: number
+  /** Factor on the engine's specific impulse. */
+  ispScale: number
+  /** Pointing errors (rotation vectors, rad, J2000) of the DOI and the braking burn: the commanded thrust
+   *  direction is turned by these. The vertical terminal descent closes its own loop and has none. */
+  pointingDoi: Vec3
+  pointingBraking: Vec3
+}
+
+export const NO_PERTURBATION: DescentPerturbation = { thrustScale: 1, ispScale: 1, pointingDoi: [0, 0, 0], pointingBraking: [0, 0, 0] }
+
+export interface ReplayResult {
+  path: Path
+  touchdownMs: number
+  touchdown: SimState // Moon-centred inertial at touchdown
+  massAtTouchdownKg: number
+  usedKg: number // propellant used from DOI ignition to touchdown
+  touchdownSpeedMs: number // relative to the turning surface
+  /** The braking burn came down to the gate height (GATE_ALT_KM above the surface) before its commanded end
+   *  and was cut off there, as an altimeter-triggered switch to the terminal descent would do. */
+  brakingCutShort: boolean
 }
 
 export interface AscentInput {
@@ -584,13 +626,15 @@ interface DoiBurn {
   run: SimRun | null // null: the orbit already has this perilune, no burn
   end: SimState
   endMs: number
+  throttle: number // setting the burn was flown at (0 when there is no burn)
+  seconds: number // burn length (0 when there is no burn)
 }
 
 /** Descent orbit insertion at tMs: retrograde, as long as it takes to bring the perilune down to rPeri. */
 function flyDoi(field: Field, s: SimState, tMs: number, m: Motor, rPeri: number): DoiBurn {
   // impulsive estimate: the cut in speed along the velocity that gives this perilune
   const periAfter = (dv: number) => elements(s.r, scale(s.v, 1 - dv / norm(s.v))).rp
-  if (periAfter(0) - rPeri < 1e-4) return { run: null, end: s, endMs: tMs }
+  if (periAfter(0) - rPeri < 1e-4) return { run: null, end: s, endMs: tMs, throttle: 0, seconds: 0 }
   let lo = 0
   let hi = 0.5 * norm(s.v)
   for (let i = 0; i < 50; i++) {
@@ -619,7 +663,7 @@ function flyDoi(field: Field, s: SimState, tMs: number, m: Motor, rPeri: number)
     t1 = t2
   }
   const run = fly(t0)
-  return { run, end: run.end, endMs: tMs + run.endS * 1000 }
+  return { run, end: run.end, endMs: tMs + run.endS * 1000, throttle, seconds: t0 }
 }
 
 /** The braking burn as the solver flies it: coast from the reference state to the ignition, then the burn. */
@@ -740,7 +784,7 @@ export function planDescent(input: DescentInput): DescentResult {
       return [(norm(b.burn.end.r) - surfaceR - GATE_ALT_KM) / POS_TOL_KM, dot(w, along) / VEL_TOL_KMS, (dot(w, up) + plan.gateSpeedKms) / VEL_TOL_KMS]
     }
     const solveFree = (k: number, guess: number[]) => newton(gateMissFreeRange(k), guess, H3, [0.3, 0.5, 0.15 * fullS])
-    return { doi, ref, refMs, n, leadS, fullS, fly, gateMiss, solveFree }
+    return { atDoi, doi, ref, refMs, n, leadS, fullS, toRefS: periS - leadS, fly, gateMiss, solveFree }
   }
 
   // ---- Which throttle setting, and a first solution. The burn is solved with the range free; an engine far
@@ -877,7 +921,7 @@ export function planDescent(input: DescentInput): DescentResult {
     { utcMs: braking.endMs, id: 'terminal-descent', label: 'Terminal descent', durationS: (touchdownMs - braking.endMs) / 1000 },
     { utcMs: touchdownMs, id: 'touchdown', label: 'Touchdown', massAfterKg: down.m },
   )
-  return {
+  const result: DescentResult = {
     path: pb.finish(),
     events,
     touchdownMs,
@@ -890,7 +934,184 @@ export function planDescent(input: DescentInput): DescentResult {
     dvKms: { doi: dvDoi, powered: dvPowered },
     crossRangeDvKms: Math.max(0, dvOf(motor, inPlaneBurn.burn.end.m, atGate.m)),
     idealDvKms,
+    controls: {
+      startMs: tDoiMs,
+      start: d.atDoi,
+      doi: d.doi.run ? { throttle: d.doi.throttle, seconds: d.doi.seconds } : null,
+      toRefS: d.toRefS,
+      braking: { normal: d.n, x: x.slice(), throttle, fullS: d.fullS },
+      gKms2: g,
+      surfaceR,
+      propellantKg,
+    },
   }
+  descentRecorder?.(input, result)
+  return result
+}
+
+let descentRecorder: ((input: DescentInput, result: DescentResult) => void) | null = null
+
+/** Hands every descent planDescent returns, with its input, to cb (null: stop). The planning worker uses it to
+ *  keep the descent a mission plan was built with, for the dispersion analysis. Changes nothing in the plan. */
+export function recordDescents(cb: ((input: DescentInput, result: DescentResult) => void) | null): void {
+  descentRecorder = cb
+}
+
+/** d turned by the rotation vector w (Rodrigues); w = 0 returns d itself, bit for bit. */
+function turned(d: Vec3, w: Vec3): Vec3 {
+  const angle = norm(w)
+  if (angle === 0) return d
+  const k = scale(w, 1 / angle)
+  const c = Math.cos(angle)
+  return add(add(scale(d, c), scale(cross(k, d), Math.sin(angle))), scale(k, dot(k, d) * (1 - c)))
+}
+
+/** The terminal descent's loop for a replay off its plan (throttleable engines): the same commands as
+ *  terminalEngine, but the vertical channel is served first and the horizontal one gets what thrust is left, so
+ *  a lander that arrives at the gate with a sideways speed does not trade its sink-rate control for it. */
+function landingEngine(field: Field, target: (utcMs: number) => Vec3, m: Motor, t0Ms: number, plan: Terminal): Engine {
+  const targetVel = velocityOf(target)
+  const g: Vec3 = [0, 0, 0]
+  return (tS, s, out) => {
+    const utcMs = t0Ms + tS * 1000
+    const S = target(utcMs)
+    const up = unit(S)
+    const rho = sub(s.r, S)
+    const w = sub(s.v, targetVel(utcMs))
+    const h = dot(rho, up)
+    const wUp = dot(w, up)
+    const wRef = -Math.sqrt(TOUCHDOWN_SPEED_KMS ** 2 + 2 * plan.decelKms2 * Math.max(h, 0))
+    const aUp = plan.decelKms2 * (wUp / wRef) + KV * (wRef - wUp)
+    field.accel(s.r, utcMs, g)
+    const gUp = dot(g, up)
+    const gSide = sub(g, scale(up, gUp))
+    const aMax = m.thrustN / s.m / 1000
+    const tv = Math.min(aMax, Math.max(0, aUp - gUp))
+    let side = sub(add(scale(sub(rho, scale(up, h)), -KP), scale(sub(w, scale(up, wUp)), -KD)), gSide)
+    const room = Math.sqrt(Math.max(0, aMax * aMax - tv * tv))
+    const sideSize = norm(side)
+    if (sideSize > room) side = scale(side, room / sideSize)
+    // the engine cannot run below its minimum: what the commands leave of that goes up, never sideways
+    const aMin = m.throttleMin * aMax
+    const tvUp = Math.max(tv, Math.sqrt(Math.max(0, aMin * aMin - dot(side, side))))
+    const aCmd = add(scale(up, tvUp), side)
+    const aSize = norm(aCmd)
+    const thrustN = Math.min(m.thrustN, Math.max(m.throttleMin * m.thrustN, s.m * aSize * 1000))
+    out[0] = (thrustN * aCmd[0]) / aSize
+    out[1] = (thrustN * aCmd[1]) / aSize
+    out[2] = (thrustN * aCmd[2]) / aSize
+    return (m.flowKgS * thrustN) / m.thrustN
+  }
+}
+
+/** Height (km) at which a braking burn that is off its plan hands over to the terminal descent: the gate
+ *  height, or higher when the lander sinks faster than the terminal profile can stop from the gate (the height
+ *  of the profile for the present sink rate; throttleable engines only). Equal to the gate height at the
+ *  planned gate state, so a small error moves the switch a little. */
+function switchHeight(m: Motor, s: SimState, g: number): number {
+  if (fixedThrust(m)) return GATE_ALT_KM
+  const plan = designTerminal(m, s.m, g)
+  if (!plan) return GATE_ALT_KM
+  const sink = -dot(s.v, unit(s.r))
+  if (!(sink > plan.gateSpeedKms)) return GATE_ALT_KM
+  return (sink * sink - TOUCHDOWN_SPEED_KMS ** 2) / (2 * plan.decelKms2)
+}
+
+/** Flies a planned descent again from its commands (DescentResult.controls), open loop through the DOI and the
+ *  braking burn, with the engine and pointing errors of p. Used by the dispersion analysis (dispersion.ts).
+ *  `field` may differ from the one the descent was planned in (for example with the Moon's J2 switched on).
+ *
+ *  With NO_PERTURBATION and the planning field this repeats planDescent's own integrations step for step and
+ *  lands where the plan lands, to the last bit. With errors, the DOI and the braking burn keep their commanded
+ *  lengths and steering laws (they do not re-aim: the dispersion of an unguided flight), the braking burn is cut
+ *  off early if it comes down to the gate height before its commanded end, and the vertical terminal descent closes its loop on the point straight below
+ *  where the braking burn ended (it carries no knowledge of where the site is). */
+export function replayDescent(input: DescentInput, c: DescentControls, p: DescentPerturbation, field: Field = input.field): ReplayResult {
+  const { site, lander } = input
+  const stage = lander.modules[lander.modules.length - 1]
+  const nominal = motorOf(stage, lander)
+  const perturbed = field !== input.field || p.thrustScale !== 1 || p.ispScale !== 1 || norm(p.pointingDoi) !== 0 || norm(p.pointingBraking) !== 0
+  const thrustN = nominal.thrustN * p.thrustScale
+  const ispS = nominal.ispS * p.ispScale
+  const motor: Motor = { thrustN, ispS, flowKgS: thrustN / (G0 * ispS), veKms: (G0 * ispS) / 1000, throttleMin: nominal.throttleMin }
+  const siteVel = velocityOf(site)
+  const surfaceR = c.surfaceR
+  const pb = new PathBuilder()
+
+  // DOI
+  let s = c.start
+  let tMs = c.startMs
+  if (c.doi) {
+    const run = integrate(field, s, tMs, {
+      maxSeconds: c.doi.seconds,
+      maxStepS: BURN_STEP_S,
+      engine: burning(motor, c.doi.throttle, (_t, st) => turned(scale(st.v, -1 / norm(st.v)), p.pointingDoi)),
+    })
+    pb.add(run, tMs, true)
+    s = run.end
+    tMs += run.endS * 1000
+  }
+  // coast to the reference state, then on to the ignition
+  const toRef = coast(field, s, tMs, c.toRefS)
+  pb.add(toRef, tMs, false)
+  const refMs = tMs + toRef.endS * 1000
+  const [a, B, cc, D, flowS, waitS] = c.braking.x
+  const k = c.braking.throttle
+  const rate = k / c.braking.fullS
+  const wait = coast(field, toRef.end, refMs, waitS)
+  pb.add(wait, refMs, false)
+  const pdiMs = refMs + wait.endS * 1000
+  const law = tangentSteering(c.braking.normal, -1, a, B * rate, cc, D * rate)
+  const burn = integrate(field, wait.end, pdiMs, {
+    maxSeconds: flowS / k,
+    maxStepS: BURN_STEP_S,
+    engine: burning(motor, k, perturbed ? (tS, st) => turned(law(tS, st), p.pointingBraking) : law),
+    stop: perturbed ? (_t, st) => switchHeight(nominal, st, c.gKms2) - (norm(st.r) - surfaceR) : null,
+  })
+  pb.add(burn, pdiMs, true)
+  const gateMs = pdiMs + burn.endS * 1000
+  const finish = (end: SimState, utcMs: number): ReplayResult => ({
+    path: pb.finish(),
+    touchdownMs: utcMs,
+    touchdown: end,
+    massAtTouchdownKg: end.m,
+    usedKg: c.start.m - end.m,
+    touchdownSpeedMs: norm(sub(end.v, siteVel(utcMs))) * 1000,
+    brakingCutShort: burn.stopped,
+  })
+
+  // terminal descent: the loop's target is the site in the commanded flight, else the point below the gate
+  const atGate = burn.end
+  const plan = designTerminal(nominal, atGate.m, c.gKms2)
+  if (!plan) throw new LunarOpsError(`${lander.name}: the terminal descent cannot be flown from this gate.`)
+  let target = site
+  if (perturbed) {
+    const S0 = site(gateMs)
+    const offset = sub(scale(unit(atGate.r), norm(S0)), S0)
+    target = (utcMs: number) => {
+      const S = site(utcMs)
+      return scale(unit(add(S, offset)), norm(S))
+    }
+  }
+  const targetVel = velocityOf(target)
+  const up = (utcMs: number) => unit(target(utcMs))
+  const terminal = integrate(field, atGate, gateMs, {
+    maxSeconds: 20 * plan.seconds + 60,
+    maxStepS: Math.min(0.5, plan.seconds / 20),
+    // a loop with saturating commands is not smooth enough for 1e-10 steps; 1e-8 is a millimetre here
+    tol: perturbed ? 1e-8 : undefined,
+    engine: perturbed && !plan.fixedThrust ? landingEngine(field, target, motor, gateMs, plan) : terminalEngine(field, target, motor, gateMs, plan),
+    stop: plan.fixedThrust
+      ? (_t, st, utcMs) => Math.max(surfaceR - norm(st.r), dot(sub(st.v, targetVel(utcMs)), up(utcMs)) + CUTOFF_SINK_KMS)
+      : (_t, st) => surfaceR - norm(st.r),
+  })
+  pb.add(terminal, gateMs, true)
+  if (!terminal.stopped) throw new LunarOpsError(`${lander.name}: the terminal descent did not reach the surface.`)
+  const cutoffMs = gateMs + terminal.endS * 1000
+  const drop = norm(terminal.end.r) - surfaceR > 1e-9 ? integrate(field, terminal.end, cutoffMs, { maxSeconds: 600, maxStepS: 0.5, stop: (_t, st) => surfaceR - norm(st.r) }) : null
+  if (drop && !drop.stopped) throw new LunarOpsError(`${lander.name}: the terminal descent did not reach the surface.`)
+  if (drop) pb.add(drop, cutoffMs, false)
+  return drop ? finish(drop.end, cutoffMs + drop.endS * 1000) : finish(terminal.end, cutoffMs)
 }
 
 // ---------------------------------------------------------------------------------------------------------
