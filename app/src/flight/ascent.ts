@@ -80,6 +80,21 @@ export interface AscentProfile {
   boosterSeparationS?: number
   /** Official name of each stage's cut-off ("Main Engine Cutoff (MECO)"); default "<stage name> cut-off". */
   cutoffLabels?: (string | null)[]
+  /** The orbit flown before the Trans-Lunar Injection when it is not a circle at the planner's parking altitude
+   *  (SLS Block 1 on Artemis I). Read by missionNrho.ts only; every other planner ignores it. */
+  parkingEllipse?: ParkingEllipse
+  sources: SourceRef[]
+}
+
+/** The ascent inserts into insertionPerigeeKm × insertionApogeeKm (altitudes above R_EARTH_EQ, as AscentTarget);
+ *  the last stage raises the perigee at the first apogee to raisedPerigeeKm (Perigee Raise Maneuver, PRM) and
+ *  injects around the next perigee. ignitionTrueAnomalyDeg: the range of true anomaly in which the injection
+ *  burn may begin, for checking the plan. */
+export interface ParkingEllipse {
+  insertionPerigeeKm: number
+  insertionApogeeKm: number
+  raisedPerigeeKm: number
+  ignitionTrueAnomalyDeg: [number, number]
   sources: SourceRef[]
 }
 
