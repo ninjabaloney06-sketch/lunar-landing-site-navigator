@@ -294,8 +294,9 @@ export const DOC_INTRO = (
       <a href="/docs">/docs</a>.
     </p>
     <p className="docs-mark" data-testid="docs-si-marking">
-      SI (AI) use: this panel is a simplified version of <Path>docs/documentation.md</Path> and{' '}
-      <Path>docs/reference/data-sources.md</Path>. An AI tool, Claude Code, wrote both texts on 14 Nov 2026 and updated
+      {/* F23: no repository file paths in the reader's first paragraph; the full page names the files. */}
+      SI (AI) use: this panel is a simplified version of the project&apos;s full documentation and its data-source
+      register (both at <a href="/docs">/docs</a>). An AI tool, Claude Code, wrote both texts on 14 Nov 2026 and updated
       them on 15 Nov 2026 from the repository&apos;s code and records. The team reviewed this text as a whole on 15 Nov
       2026 (statement of a team member that day, no per-section record). Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check
       record of what was compared: see &quot;Validation status&quot; under Limits.
@@ -341,7 +342,7 @@ export const DOC_SECTIONS: DocSection[] = [
       <>
         <p>
           <strong>Summary and full data.</strong> One &quot;Full data&quot; switch, top right in each panel (Details
-          drawer, search, point card, Rocket flight menu), sets the mode everywhere. Summary, the default, shows the
+          drawer, search, point card, Flight plan panel), sets the mode everywhere. Summary, the default, shows the
           decision values; full data adds breakdowns, raw values, method and sources. The setting is kept in this
           browser.
         </p>
@@ -532,7 +533,7 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
         </ul>
         <p>
-          <strong>Rocket flight.</strong> There is no flight tab.
+          <strong>Flight plan.</strong> There is no flight tab.
         </p>
         <ul className="docs-list">
           <li>
@@ -865,7 +866,7 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>Scattered light, earthshine and heat from surrounding terrain, as inputs to any result.</li>
           <li>Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see &quot;Custom landing sites&quot; under &quot;How to read each view&quot;). North of 80° S only the listed sites can be analysed.</li>
           <li>
-            Launch, transfer and descent in the site analysis. The Rocket flight menu computes them separately; its
+            Launch, transfer and descent in the site analysis. The Flight plan panel computes them separately; its
             result does not enter any site value or ranking. Its flight plans leave out the Moon&apos;s uneven gravity
             (its J2 term is in the landing dispersion only).
           </li>

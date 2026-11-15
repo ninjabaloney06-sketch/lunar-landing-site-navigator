@@ -192,8 +192,9 @@ export function FlightPanel(p: FlightPanelProps) {
 
   const head = (
     <div className="mp-head flight-head">
+      {/* Named as the button that opens it (header action bar: "Flight plan"). */}
       <h2 id="flight-title" className="mp-title">
-        Rocket flight
+        Flight plan
       </h2>
       {!collapsed && <FullDataSwitch className="flight-full" />}
       <button
