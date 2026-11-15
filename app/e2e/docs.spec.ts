@@ -22,7 +22,8 @@ for (const vp of [
     await openApp(page)
     await page.getByTestId('docs-open').click()
     const docs = page.getByTestId('docs')
-    await expect(docs).toBeVisible()
+    // The view is a lazily loaded chunk; on a busy dev server its first compile can take longer than 5 s.
+    await expect(docs).toBeVisible({ timeout: 30_000 })
     await expect(docs.getByRole('heading', { level: 2, name: 'Documentation' })).toBeVisible()
     await expect(docs.getByRole('button', { name: 'Close' })).toBeFocused()
     await expect.poll(() => hash(page)).toContain('drawer=docs')
@@ -63,7 +64,7 @@ for (const vp of [
 test('a link with drawer=docs opens the documentation; Esc closes it and the scene stays at site level', async ({ page }) => {
   await openApp(page, `${DEMO}&drawer=docs`)
   const docs = page.getByTestId('docs')
-  await expect(docs).toBeVisible()
+  await expect(docs).toBeVisible({ timeout: 30_000 }) // lazily loaded chunk, as above
   await page.keyboard.press('Escape')
   await expect(docs).toHaveCount(0)
   await page.waitForTimeout(700)
@@ -73,7 +74,7 @@ test('a link with drawer=docs opens the documentation; Esc closes it and the sce
 test('wave 3: points of interest, the layer, the search and this view are described; nothing calls the pins a stub', async ({ page }) => {
   await openApp(page, `${DEMO}&drawer=docs`)
   const docs = page.getByTestId('docs')
-  await expect(docs.getByRole('heading', { level: 4, name: 'Points of interest', exact: true })).toHaveCount(1)
+  await expect(docs.getByRole('heading', { level: 4, name: 'Points of interest', exact: true })).toHaveCount(1, { timeout: 30_000 }) // lazy chunk
   for (const t of ['Points of interest layer.', 'Search sites.', 'Documentation view.']) await expect(docs.locator('strong', { hasText: t })).toHaveCount(1)
   await expect(docs).toContainText('206 records, of which 195 lie at or south of 80° S')
   await expect(docs).toContainText('A point row offers "Show" only')

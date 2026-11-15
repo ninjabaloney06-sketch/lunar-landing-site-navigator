@@ -58,7 +58,7 @@ npm test
 npx playwright test
 ```
 
-`npm test` runs the unit tests (vitest; 70 passed on 14 Nov 2026). `npx playwright test` starts its own dev server on port 5180 and runs the end-to-end tests in Chromium (40 passed, 1 skipped by design). It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download).
+`npm test` runs the unit tests (vitest; 70 passed on 14 Nov 2026). `npx playwright test` starts its own dev server on port 5180 and runs the end-to-end tests in Chromium (40 passed, 1 skipped by design). It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download). The 3D tests render with SwiftShader (software WebGL) by default; on a machine where that is too slow (a Windows laptop: the S3 fly test exceeded its 400 s timeout), `PW_GPU=1 npx playwright test` renders on the machine's own GPU instead (127 tests in about 2.6 min on a Radeon 860M, 15 Nov 2026).
 
 ## Data pipeline (Python)
 

@@ -212,6 +212,14 @@ export function SceneView(props: Props) {
     infoNow.current = v
     setInfo(v)
   }, [])
+  // A box closed on purpose (Close, Esc) stays closed while the same pin is still the one under the pointer. On a
+  // touch screen that is the last tapped pin, which the scene keeps reporting: without this the next frame would
+  // open the box again, unpinned, and Close would never stick.
+  const dismissed = useRef<string | null>(null)
+  const dismissInfo = useCallback(() => {
+    dismissed.current = infoNow.current?.id ?? null
+    showInfo(null)
+  }, [showInfo])
   const byId = useRef(poiById)
   byId.current = poiById
   const box = useRef<HTMLElement>(null)
@@ -437,7 +445,9 @@ export function SceneView(props: Props) {
       moonBox.current?.classList.toggle('is-below', near)
       place(site.current, h.project('site'), true)
       const n = namedNow()
-      const id = n && n.visible ? poiOf(n) : null
+      const named = n && n.visible ? poiOf(n) : null
+      if (named !== dismissed.current) dismissed.current = null // the pointer has left the dismissed pin
+      const id = named === dismissed.current ? null : named
       const cur = infoNow.current
       if (id) {
         lostAt.current = null
@@ -475,6 +485,7 @@ export function SceneView(props: Props) {
       const n = click ? namedNow() : null
       const id = poiOf(n)
       if (n && id) {
+        dismissed.current = null // a new tap on the pin opens it again
         anchor.current = { x: n.x, y: n.y }
         showInfo({ id, pinned: true })
       } else if (infoNow.current?.pinned) showInfo(null)
@@ -487,7 +498,7 @@ export function SceneView(props: Props) {
       if (e.key !== 'Escape' || !infoNow.current?.pinned) return
       e.preventDefault()
       e.stopPropagation() // capture phase: the app's Esc (globe view, close drawer) does not also run
-      showInfo(null)
+      dismissInfo()
     }
     stage.addEventListener('pointerdown', onDown)
     stage.addEventListener('pointerup', onUp)
@@ -615,7 +626,7 @@ export function SceneView(props: Props) {
           poi={poiById.get(info.id)!}
           pinned={info.pinned}
           boxRef={box}
-          onClose={() => showInfo(null)}
+          onClose={dismissInfo}
           onPointerEnter={() => {
             overBox.current = true
           }}
