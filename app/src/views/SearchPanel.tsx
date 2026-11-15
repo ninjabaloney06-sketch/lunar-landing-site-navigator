@@ -15,11 +15,12 @@ import type { Candidate, SearchRow, ShareBy } from '../geometry/poiSearch'
 import type { Summary } from '../geometry'
 import { useFullData } from './advanced'
 import type { ViewPeriod } from './Drawer'
-import { fmtCoords, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
+import { fmtCoords, fmtPct, fmtRange, fmtSpanH } from './format'
 import { FullDataSwitch } from './FullDataSwitch'
 import type { PoiData } from './poiLayer'
 import { groupInfo, REGION_TEXT } from './poiLayer'
 import { useSiteRows } from './useSiteRows'
+import { COMMS_HINT, SlopeValue } from './SiteTable'
 
 // UI defaults (not sourced values): the groups of scientific interest (hazards are something to avoid, sunlight is
 // measured by the app itself, landing records are other sites), and 20 km, the reach of the 20 m terrain model
@@ -38,11 +39,13 @@ const COUNT_NAME: Record<PoiGroup, string> = {
   science: 'science',
 }
 
+// "Both" = min(sunlit, coverage) (geometry/poiSearch): a place is as good as its weaker value.
 const BY: { id: ShareBy; label: string; rule: string }[] = [
   { id: 'both', label: 'Both', rule: 'the most sunlight and station coverage together (the lower of the two percentages)' },
-  { id: 'light', label: 'Light', rule: 'the most sunlight' },
-  { id: 'comms', label: 'Comms', rule: 'the most station coverage' },
+  { id: 'light', label: 'Sunlit', rule: 'the most sunlight' },
+  { id: 'comms', label: 'Comms', rule: 'the most comms time' },
 ]
+const BY_HINT = 'Both: the weaker of sunlit % and comms %.'
 
 interface Props {
   sites: Site[]
@@ -119,9 +122,11 @@ export function SearchPanel(p: Props) {
     groups.length === 0
       ? 'Choose at least one kind of point of interest above.'
       : results && !results.some((r) => r.groupsCovered > 0)
-        ? `No place has a chosen point of interest within ${radiusKm} km. Choose more kinds or a larger distance.`
+        ? `No place has a chosen point of interest within ${radiusKm} km; choose more kinds or a larger distance.`
         : null
   const list: SearchRow[] | null = empty ? null : results
+  // Summary: what "Best" means in one line. Full data: the whole order rule.
+  const bestHint = `Best: top ${BEST_COUNT} with a chosen point within ${radiusKm} km and a value above 0 %.`
   const rule = `${slopeRequired ? 'Places that pass the 5° slope limit first; then ' : 'Order: '}places with a value above 0 (lit and in contact for part of the dates, for "Both"); then most of the chosen groups within ${radiusKm} km, then ${(BY.find((b) => b.id === by) ?? BY[0]).rule} for the mission dates, then the flatter slope, then the most points nearby. The best ${BEST_COUNT} with a point nearby and a value above 0 are marked (more when tied); places without data follow.`
 
   return (
@@ -142,8 +147,9 @@ export function SearchPanel(p: Props) {
           <h2 id="search-title" className="drawer-title">
             Search sites
           </h2>
-          <p className="quiet">
-            Mission dates: {fmtRange(period.startMs, period.endMs)}, UTC. {ids.length} of {stations.length} stations selected.
+          <p className="quiet" data-testid="search-dates">
+            Sunlit and comms are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
+            {stations.length} stations.
           </p>
         </div>
         <div className="search-tools">
@@ -205,21 +211,26 @@ export function SearchPanel(p: Props) {
               <span>{b.label}</span>
             </label>
           ))}
+          <p className="quiet st-hint search-by-hint" data-testid="search-by-hint">
+            {BY_HINT}
+          </p>
         </fieldset>
       </form>
 
       <p className="quiet search-progress" aria-live="polite" data-testid="search-rule">
         {pois.status === 'error'
-          ? `Could not load the points of interest. ${pois.error}`
+          ? 'The points of interest could not be loaded; reload the page to try again.'
           : !ready
             ? 'Loading the points of interest…'
             : groups.length === 0
               ? ''
               : computing > 0
                 ? `Computing ${computeOrder.length - computing} of ${computeOrder.length} places for these dates…`
-                : rule}
+                : full
+                  ? rule
+                  : bestHint}
       </p>
-      {extraError && <p className="msg">The extra points could not be loaded ({extraError}); the {sites.length} sites are listed.</p>}
+      {extraError && <p className="msg">The extra points did not load; only the {sites.length} listed sites are searched.</p>}
       {empty && (
         <p className="search-empty" data-testid="search-empty">
           {empty}
@@ -249,20 +260,15 @@ export function SearchPanel(p: Props) {
                     <span className="mono search-rank">{ordered && r.rank !== null ? r.rank : ''}</span>
                     <span className="search-item-title">
                       {c.site.name}
-                      {ordered && r.best && <span className="search-best">Best</span>}
+                      {ordered && r.best && (
+                        <span className="search-best" title={bestHint}>
+                          Best
+                        </span>
+                      )}
                     </span>
                   </p>
-                  {poi ? (
-                    <button type="button" className="link" onClick={() => p.onShowPoi(poi, groups)}>
-                      Show
-                    </button>
-                  ) : (
-                    <button type="button" className="link" onClick={() => p.onSelectSite(r.siteId, groups)}>
-                      Select
-                    </button>
-                  )}
                 </div>
-                {poi && <p className="search-item-sub">{groupInfo(poi.group).label} point</p>}
+                <p className="search-item-sub">{poi ? `${groupInfo(poi.group).label} point` : 'Listed landing site'}</p>
                 <p className="search-item-facts search-item-near">
                   <span>Within {radiusKm} km:</span>{' '}
                   {chosenGroups.map((g, i) => (
@@ -277,13 +283,32 @@ export function SearchPanel(p: Props) {
                     Sunlit <span className="mono">{value(r.litPct)}</span>
                   </span>
                   <span className="search-num" data-col="comms">
-                    Coverage <span className="mono">{value(r.coveragePct)}</span>
+                    <span title={COMMS_HINT}>Comms</span> <span className="mono">{value(r.coveragePct)}</span>
                   </span>
                   <span className="search-num" data-col="slope">
-                    Slope{' '}
-                    <span className="mono">{r.slopeDeg === null ? 'no data' : fmtDeg(r.slopeDeg)}</span>
-                    {r.slope === 'fail' && ' — too steep'}
+                    Slope <SlopeValue site={c.site} />
                   </span>
+                </p>
+                <p className="search-item-act">
+                  {poi ? (
+                    <button
+                      type="button"
+                      className="link search-go"
+                      title="Makes this point the mission's landing site and opens it at eye level"
+                      onClick={() => p.onShowPoi(poi, groups)}
+                    >
+                      Show as landing site, eye level
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="link search-go"
+                      title="Makes this site the mission's landing site"
+                      onClick={() => p.onSelectSite(r.siteId, groups)}
+                    >
+                      Select as landing site
+                    </button>
+                  )}
                 </p>
                 {full && (
                   <div className="search-item-full" data-testid="search-item-full">
@@ -293,17 +318,17 @@ export function SearchPanel(p: Props) {
                       </span>
                       {sum && finite(sum.earthVisiblePct) && (
                         <span className="search-num" data-col="earth">
-                          Earth above horizon <span className="mono">{fmtPct(sum.earthVisiblePct)}</span>
+                          Earth in view <span className="mono">{fmtPct(sum.earthVisiblePct)}</span>
                         </span>
                       )}
                       {sum && finite(sum.longestDarkH) && (
                         <span className="search-num" data-col="dark">
-                          Longest dark <span className="mono">{fmtHours(sum.longestDarkH)}</span>
+                          Longest darkness <span className="mono">{fmtSpanH(sum.longestDarkH)}</span>
                         </span>
                       )}
                       {sum && finite(sum.longestGapH) && (
                         <span className="search-num" data-col="gap">
-                          Longest contact gap <span className="mono">{fmtHours(sum.longestGapH)}</span>
+                          Longest comms gap <span className="mono">{fmtSpanH(sum.longestGapH)}</span>
                         </span>
                       )}
                       <span className="search-num">

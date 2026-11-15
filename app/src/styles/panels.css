@@ -328,6 +328,29 @@
   white-space: normal;
 }
 
+.compare-pick label {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.compare-what,
+.compare-note {
+  margin: 0 0 var(--s-2);
+}
+
+.compare-note {
+  margin-top: var(--s-2);
+}
+
+.compare-tbl td.mono {
+  white-space: nowrap;
+}
+
+.compare-tbl .compare-better {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .potential li {
   padding: var(--s-2) 0;
   border-bottom: 1px solid var(--line);

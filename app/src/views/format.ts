@@ -81,6 +81,20 @@ export function fmtHours(v: number): string {
   return `${v.toFixed(1)} h`
 }
 
+/** A span given in hours, as a planner reads it: "5.2 h" under a day, "3 days 4 h" (whole hours) from a day on,
+ *  "1 day", "13 days". Not finite → "no data". */
+export function fmtSpanH(v: number): string {
+  if (!Number.isFinite(v)) return 'no data'
+  if (v < 23.95) return fmtHours(Math.max(0, v))
+  const total = Math.round(v)
+  const d = Math.floor(total / 24)
+  const h = total % 24
+  return `${d} ${d === 1 ? 'day' : 'days'}${h ? ` ${h} h` : ''}`
+}
+
+/** The Mission menu's name for the same formatter (hours in; not flightFormat's fmtDuration, which takes seconds). */
+export const fmtDuration = fmtSpanH
+
 export type CoordParse = { kind: 'none' } | { kind: 'ok'; lat: number; lon: number } | { kind: 'error'; message: string }
 
 /** Typed coordinates in the site search: "-89.3, -130", "89.3 S 130 W", "89.30° S · 130.00° W".
