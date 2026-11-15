@@ -422,6 +422,26 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   ro.observe(container)
   resize()
 
+  // A lost WebGL context takes the picture with it; three restores its own state and re-uploads on the next draw,
+  // but the loop draws only a dirty frame, so after a restore the canvas stayed black until the user moved.
+  const onContextRestored = () => markDirty()
+  canvas.addEventListener('webglcontextrestored', onContextRestored)
+
+  // Another screen (a window dragged between monitors, a browser zoom step) changes devicePixelRatio without
+  // changing the container's CSS size, so the ResizeObserver stays silent: the canvas kept the old buffer size.
+  let dprQuery: MediaQueryList | null = null
+  const onPixelRatio = () => {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
+    resize()
+    watchPixelRatio()
+  }
+  function watchPixelRatio() {
+    dprQuery?.removeEventListener('change', onPixelRatio)
+    dprQuery = typeof window.matchMedia === 'function' ? window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`) : null
+    dprQuery?.addEventListener('change', onPixelRatio)
+  }
+  watchPixelRatio()
+
   const inSpace = () => level === 'globe' || (fly !== null && fly.cam === globeCam)
   const activeCam = () => (level === 'flight' ? flightCam : inSpace() ? globeCam : siteCam)
   // Eye-level terrain (mask ring or crest strip) is built for the landing site's eye point only: after a walk
@@ -1985,6 +2005,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       disposed = true
       cancelAnimationFrame(raf)
       ro.disconnect()
+      dprQuery?.removeEventListener('change', onPixelRatio)
+      canvas.removeEventListener('webglcontextrestored', onContextRestored)
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointerdown', onTurnDown)
       canvas.removeEventListener('pointermove', onTurnMove)
