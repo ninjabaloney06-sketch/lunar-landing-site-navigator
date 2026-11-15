@@ -44,8 +44,13 @@ const cross = (a: Vec3, b: Vec3): Vec3 => [
 ]
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 const norm = (a: Vec3) => Math.sqrt(dot(a, a))
+/** Throws RangeError for a zero or non-finite length: such a vector has no direction. */
+const checkedNorm = (n: number): number => {
+  if (!(n > 0) || !Number.isFinite(n)) throw new RangeError('geometry: zero or non-finite vector or quaternion')
+  return n
+}
 const unit = (a: Vec3): Vec3 => {
-  const n = norm(a)
+  const n = checkedNorm(norm(a))
   return [a[0] / n, a[1] / n, a[2] / n]
 }
 /** Elevation (deg) of unit vector d above the plane normal to unit vector up; atan2 stays accurate at the zenith. */
@@ -55,7 +60,7 @@ type Mat3 = [Vec3, Vec3, Vec3] // rows
 
 /** (x, y, z, w) Hamilton unit quaternion -> M with M v = q v q*. Normalises first. */
 function quatToMatrix(q: Quat): Mat3 {
-  const n = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3])
+  const n = checkedNorm(Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]))
   const x = q[0] / n
   const y = q[1] / n
   const z = q[2] / n
@@ -125,7 +130,7 @@ function slerp(a: Quat, b: Quat, f: number): Quat {
     wa * a[2] + wb * bb[2],
     wa * a[3] + wb * bb[3],
   ]
-  const n = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3])
+  const n = checkedNorm(Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]))
   return [q[0] / n, q[1] / n, q[2] / n, q[3] / n]
 }
 
@@ -139,7 +144,7 @@ function stateBetween(m0: EphemMonth, i0: number, m1: EphemMonth, i1: number, f:
   const qe0 = qmul(qj0, m0.q_earth_to_me[i0])
   const qe1 = qmul(qj1, m1.q_earth_to_me[i1])
   const q = qmul(qconj(q_me_to_j2000), slerp(qe0, qe1, f))
-  const n = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3])
+  const n = checkedNorm(Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]))
   return {
     utcMs,
     sun_km: lerp3(m0.sun_km[i0], m1.sun_km[i1], f),
@@ -214,7 +219,7 @@ export interface AzEl {
 /** Topocentric direction: body − site (Earth parallax up to 0.26°), rotated into ENU. */
 export function azEl(body_km: Vec3, site_km: Vec3, enu: Enu): AzEl {
   const d = sub(body_km, site_km)
-  const dist_km = norm(d)
+  const dist_km = checkedNorm(norm(d))
   const u: Vec3 = [d[0] / dist_km, d[1] / dist_km, d[2] / dist_km]
   const e = dot(u, enu.east)
   const n = dot(u, enu.north)
@@ -515,8 +520,12 @@ export interface Summary {
   longestGapH: number
 }
 
+/** NaN when the period has no positive, finite length: the "unknown" value rankSites (finite()) already reads as
+ *  missing, instead of a share of a zero or negative span (Infinity, or a negative or >100 % figure). */
 const pctOf = (ws: Window[], state: Window['state'], total: number) =>
-  (100 * ws.filter((w) => w.state === state).reduce((a, w) => a + (w.endMs - w.startMs), 0)) / total
+  total > 0 && Number.isFinite(total)
+    ? (100 * ws.filter((w) => w.state === state).reduce((a, w) => a + (w.endMs - w.startMs), 0)) / total
+    : NaN
 const longestH = (ws: Window[], state: Window['state']) =>
   ws.filter((w) => w.state === state).reduce((a, w) => Math.max(a, (w.endMs - w.startMs) / HOUR_MS), 0)
 
