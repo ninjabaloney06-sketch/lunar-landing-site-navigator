@@ -1,7 +1,8 @@
 // Main screen (build-plan §5.1, Brief C2, Step 2-UI): the 3D scene with labels on its objects, the header controls
-// (mission, date, points of interest, Find better dates, Details), the answer sentence, the timeline and one footer line.
-// Two tabs share the stage: "Landing site" (the above) and "Flight plan" (the Earth-to-Moon trajectory for the
-// mission's site and start date, with its own panel and playback bar).
+// (mission, date, points of interest, Search, Details), the answer sentence, the timeline and one footer line.
+// The flight view shares the stage: the Earth-to-Moon trajectory for a mission's site and start date, with its own
+// panel and playback bar. It has no tab: "Calculate flight" on a mission opens it (U12); "Back to landing site" or
+// Esc leaves it.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
@@ -583,6 +584,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onAddMission={() => missions.add(missionNow)}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
+              onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
               onRemoveMission={missions.remove}
               onAddPoint={addUserPoint}
               onSetSite={(lat, lon) => {
@@ -686,33 +688,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         </div>
         <div className="actions-col">
           <div className="actions">
-            <div className="tabs" role="tablist" aria-label="View">
-              <button
-                type="button"
-                role="tab"
-                className="tab"
-                data-testid="tab-site"
-                aria-selected={!inFlight}
-                onClick={() => inFlight && patch({ view: 'site' })}
-              >
-                Landing site
+            {/* The flight view has no tab (U12): it opens from "Calculate flight" on a mission, and this link (or Esc)
+                goes back to the landing site. */}
+            {inFlight && (
+              <button type="button" className="find" data-testid="back-to-site" onClick={() => patch({ view: 'site' })}>
+                Back to landing site
               </button>
-              <button
-                type="button"
-                role="tab"
-                className="tab"
-                data-testid="tab-flight"
-                aria-selected={inFlight}
-                onClick={() => {
-                  setMenu(null)
-                  setPlaying(false)
-                  patch({ view: 'flight', drawer: null })
-                }}
-              >
-                Flight plan
-              </button>
-            </div>
-            {/* The points-of-interest layer and the search belong to the Landing site tab, like the two buttons after them. */}
+            )}
+            {/* The points-of-interest layer, the search and Details belong to the landing-site view. */}
             {!inFlight && <PoiToggle groups={hs.poi} onChange={(poi) => patch({ poi })} />}
             <button
               type="button"
@@ -725,22 +708,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             >
               Search
             </button>
-            <button type="button" className="find" hidden={inFlight} onClick={() => patch({ drawer: 'finder' })}>
-              Find better dates
-            </button>
-            {/* Opens the details panel the answer text used to open (ninja + Bene, 14 Nov). */}
+            {/* One entry point to the drawer, which starts with the date search (U4: "Find better dates" and the cog
+                were two ways to the same drawer). */}
             <button
               type="button"
               hidden={inFlight}
-              className="details-btn"
+              className="find details-btn"
               data-testid="details"
-              aria-label="Details"
-              title="Details"
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
               onClick={() => patch({ drawer: 'details' })}
             >
-              <Icon name="settings" />
+              <Icon name="info" />
+              <span>Details</span>
             </button>
           </div>
           {hs.poi && !inFlight && <PoiKey groups={hs.poi} data={poiData} counts={poiCounts} webgl={webgl} onChange={(poi) => patch({ poi })} />}

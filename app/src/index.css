@@ -260,27 +260,16 @@ a:hover {
 }
 
 .details-btn {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--bg-veil);
-  transition: border-color var(--dur-fast) var(--ease-out);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
 }
 
+/* the info icon sits on the label's line and takes its colour */
 .details-btn .icon {
   width: 18px;
   height: 18px;
-}
-
-.details-btn:hover {
-  border-color: var(--muted);
-}
-
-.details-btn:active {
-  border-color: var(--fg);
+  flex: none;
 }
 
 .find {
@@ -532,8 +521,7 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .find,
-  .details-btn {
+  .find {
     transition: none;
   }
 }

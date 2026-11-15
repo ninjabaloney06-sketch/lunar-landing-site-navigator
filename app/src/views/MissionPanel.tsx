@@ -89,6 +89,7 @@ interface Props {
   missionSaved: boolean // the mission on screen is one of them
   onAddMission(): void
   onCalculateFlight(m: MissionState): void
+  onCalculateCurrentFlight(): void // the mission on screen, saved or not: the flight view has no tab (U12)
   onLoadMission(m: MissionState): void
   onRemoveMission(key: string): void
   onAddPoint(lat: number, lon: number): void
@@ -620,6 +621,9 @@ export function MissionPanel(p: Props) {
                 ? `At most ${MAX_MISSIONS} saved missions.`
                 : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
           </span>
+          <button type="button" className="link" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
+            Calculate flight
+          </button>
         </div>
       </div>
     </div>

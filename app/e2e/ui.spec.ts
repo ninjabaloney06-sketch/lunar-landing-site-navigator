@@ -418,18 +418,18 @@ test('U7: the horizon chart draws each body\'s path over the mission, unbroken e
   await expect(strip).toContainText('lines: paths over the mission dates')
 })
 
-// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search ----------
+// ---------- D4, revised 14 Nov by ninja + Bene: four header controls (mission, date, Find better dates, Details); UI track 14 Nov: + Points of interest, Search; U4 (15 Nov): "Find better dates" goes, Details opens the drawer at the date search ----------
 
 for (const vp of VIEWPORTS) {
-  test(`D4: header has 6 controls, main screen 10, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
+  test(`D4: header has 5 controls, main screen 10, one slider, no horizontal scroll at ${vp.width} px`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     const header = page.locator('header.top')
-    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(6)
-    // 6 in the header (mission, date, Points of interest, Search, Find better dates, Details) + "View" and
-    // "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed" and "Docs"; the answer line is
-    // text, not a control.
+    await expect(header.getByRole('button').or(header.getByRole('link'))).toHaveCount(5)
+    // 5 in the header (mission, date, Points of interest, Search, Details; U4 removed "Find better dates", U12 the
+    // tabs) + "View" and "Simulate" beside the timeline (Brief C4) + the footer's "how this is computed", "Docs" and
+    // "Full documentation"; the answer line is text, not a control.
     await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
     await expect(page.getByTestId('details')).toHaveAccessibleName('Details')
     await expect(page.getByRole('slider')).toHaveCount(1)
@@ -459,7 +459,7 @@ test('answer sits in the timeline as text; Details opens the drawer; nothing on 
   const name = page.getByTestId('mission-panel').getByLabel('Name', { exact: true })
   expect(await name.evaluate((e) => getComputedStyle(e).userSelect)).toBe('text')
   await page.keyboard.press('Escape')
-  // The gear button top right opens the details drawer the answer used to open.
+  // The Details button top right (info icon + label, U4) opens the details drawer the answer used to open.
   const details = page.getByTestId('details')
   const box = (await details.boundingBox())!
   expect(box.x + box.width).toBeGreaterThan(page.viewportSize()!.width - 60)
@@ -770,7 +770,8 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
 
-  await page.getByRole('button', { name: 'Find better dates' }).click()
+  // U4: Details is the one entry point; the drawer starts with the date search.
+  await page.getByTestId('details').click()
   await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
   await expect(drawer.getByRole('spinbutton')).toHaveCount(5)
   await drawer.getByLabel('Sunlit at least, %').fill('150')
