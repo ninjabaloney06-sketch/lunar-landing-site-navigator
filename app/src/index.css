@@ -602,17 +602,18 @@ select {
 /* "How to use" card (App.tsx): three numbered steps under the header on the left, until "Got it"; Help reopens it. */
 .help-card {
   position: absolute;
-  z-index: 5;
+  z-index: 30;
   top: 152px;
   left: var(--s-10);
   box-sizing: border-box;
   width: min(330px, calc(100vw - var(--s-8)));
   padding: var(--s-3) var(--s-4);
   font-size: var(--t-small);
-  color: var(--muted);
-  background: var(--bg-veil);
-  border: 1px solid var(--line);
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--muted);
   border-radius: var(--radius);
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.5);
   animation: pop-in var(--dur-panel) var(--ease-out);
 }
 
