@@ -68,6 +68,13 @@ for (const vp of [
       await expect.poll(async () => (await hashOf(page)).get('view')).toBe('flight')
       expect((await hashOf(page)).get('name')).toBe('Top level')
       await expect(page.getByTestId('flight-panel')).toBeVisible({ timeout: 30_000 })
+      // A propellant shortfall (the default design at this site and date: "ICPS short by …") always comes with one
+      // plain line on what it means for the mission; a flight with enough propellant has none.
+      const glance = page.getByTestId('flight-glance-propellant')
+      await expect(glance).toBeVisible({ timeout: 90_000 })
+      if ((await glance.getAttribute('data-tone')) === 'short') {
+        await expect(page.getByTestId('flight-short-meaning')).toHaveText(/^What this means: as planned, this design does not carry enough propellant for this mission\./)
+      } else await expect(page.getByTestId('flight-short-meaning')).toHaveCount(0)
       await page.getByTestId('back-to-site').click()
       await expect.poll(async () => (await hashOf(page)).get('view')).toBeNull()
     })

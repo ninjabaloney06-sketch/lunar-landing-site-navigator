@@ -19,7 +19,7 @@ import { fmtDayTime, fmtDays, fmtDuration, fmtDv, fmtKm, fmtKms, fmtMetres, fmtT
 import { useFlightAnalysis } from './flightAnalysis'
 import { Abbr } from './flightGlossary'
 import { AnalysisActions, DispersionDetails, PayloadDetails, PayloadLine, RouteDetails, Unvalidated } from './flightResult'
-import { NOT_VALIDATED_TEXT, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus, shortElementsOf } from './flightResultText'
+import { NOT_VALIDATED_TEXT, SHORT_MEANING, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus, shortElementsOf } from './flightResultText'
 import { FullDataSwitch } from './FullDataSwitch'
 
 export type MissionStatus = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; plan: MissionPlan }
@@ -649,6 +649,11 @@ function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number)
             <Abbr>{status.text}</Abbr>
           </span>
           {status.tone !== 'enough' && !full && <span className="quiet"> Per stage: Propellant, below.</span>}
+          {status.tone === 'short' && (
+            <span className="flight-short-meaning" data-testid="flight-short-meaning">
+              {SHORT_MEANING}
+            </span>
+          )}
           {lb && (
             <span className="flight-lower-bound quiet" data-testid="flight-lower-bound">
               {full ? `${lb.note} ${NOT_VALIDATED_TEXT}` : lowerBoundShort(lb.kg)}

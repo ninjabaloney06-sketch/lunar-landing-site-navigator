@@ -334,6 +334,12 @@
 
 .mp-fold {
   gap: 0 var(--s-1);
+  text-decoration: none;
+}
+
+.mp-fold:hover .mp-sum-val,
+.mp-fold:focus-visible .mp-sum-val {
+  color: var(--fg);
 }
 
 .mp-fold::before {
