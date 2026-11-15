@@ -86,7 +86,10 @@ export function gaussian(seed: number): () => number {
       return s
     }
     let u1 = u()
-    while (u1 <= 0) u1 = u()
+    for (let tries = 0; u1 <= 0; tries++) {
+      if (tries >= 1000) throw new RangeError('gaussian: the uniform source keeps returning 0')
+      u1 = u()
+    }
     const u2 = u()
     const r = Math.sqrt(-2 * Math.log(u1))
     spare = r * Math.sin(2 * Math.PI * u2)

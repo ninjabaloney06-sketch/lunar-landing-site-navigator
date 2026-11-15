@@ -478,7 +478,8 @@ function computeWindows(series: Series, kind: Window['kind'], ids: string[]): Wi
     let lo = times[k - 1]
     let hi = times[k]
     const a = states[k - 1]
-    while (hi - lo > EDGE_TOL_MS) {
+    for (let it = 0; hi - lo > EDGE_TOL_MS; it++) {
+      if (it >= 200) throw new RangeError('windows: edge bisection did not converge')
       const mid = lo + (hi - lo) / 2
       if (f(mid) === a) lo = mid
       else hi = mid

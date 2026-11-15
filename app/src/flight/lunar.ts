@@ -473,7 +473,8 @@ function bestThrottle(massAt: (k: number) => number, kLo: number): number {
   let d = a + g * (b - a)
   let fc = massAt(Math.exp(c))
   let fd = massAt(Math.exp(d))
-  while (b - a > 0.05) {
+  for (let it = 0; b - a > 0.05; it++) {
+    if (it >= 200) throw new RangeError('throttle search: no convergence')
     if (fc > fd) {
       b = d
       d = c
@@ -571,7 +572,8 @@ function designTerminal(m: Motor, mGate: number, g: number): Terminal | null {
     const F = (t: number) => GATE_ALT_KM - CUTOFF_HEIGHT_KM - CUTOFF_SINK_KMS * t + 0.5 * g * t * t + m.veKms * t - (mGate / m.flowKgS) * L(t)
     let hi = Math.sqrt((2 * GATE_ALT_KM) / (aMax - g))
     const tEmpty = mGate / m.flowKgS
-    while (F(hi) > 0 && hi < 0.5 * tEmpty) hi *= 1.5
+    // 1.5^200 is beyond any range: the cap only ends a hi that cannot grow (0, NaN); F(hi) > 0 below then says no
+    for (let it = 0; it < 200 && F(hi) > 0 && hi < 0.5 * tEmpty; it++) hi *= 1.5
     if (F(hi) > 0) return null
     let lo = 0
     for (let i = 0; i < 60; i++) {
