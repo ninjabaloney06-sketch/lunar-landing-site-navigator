@@ -49,7 +49,7 @@ async function periodSpan(page: Page, id: string) {
 }
 
 async function openTable(page: Page, hash: string) {
-  await page.goto(`/#${hash}&drawer=details`)
+  await page.goto(`/#${hash}&drawer=compare`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const table = page.getByTestId('site-table')
   await table.scrollIntoViewIfNeeded()

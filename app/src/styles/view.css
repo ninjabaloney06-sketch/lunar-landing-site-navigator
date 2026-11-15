@@ -24,18 +24,23 @@
   position: relative;
 }
 
+/* View and Simulate: buttons with the same 1 px box as the header controls (team request, 15 Nov). */
 .tool {
-  color: var(--muted);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 5px;
-  text-decoration-color: var(--line);
+  color: var(--fg);
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--faint);
+  border-radius: var(--radius);
+  background: var(--bg-veil);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 .tool:hover,
-.tool[aria-expanded='true'] {
-  color: var(--fg);
-  text-decoration-color: var(--fg);
+.tool[aria-expanded='true'],
+.tool[aria-pressed='true'] {
+  border-color: var(--fg);
+  background: var(--surface-2);
 }
 
 .tool:active {

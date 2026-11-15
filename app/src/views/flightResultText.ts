@@ -127,7 +127,12 @@ export function errorText(what: 'mission' | 'payload' | 'route' | 'dispersion', 
     return { sentence: 'This browser did not start the background calculation. Reload the page or use a current browser.', detail: m }
   }
   if (what === 'mission') {
-    if (/ephemeris/i.test(m)) return { sentence: 'This build has no ephemeris (Moon, Earth and Sun positions) for these dates. Choose other mission dates in the Mission menu.', detail: m }
+    if (/ephemeris/i.test(m)) {
+      // useFlight states the touchdowns the build supports (from the months present); shown in every mode
+      const range = /With a [^]*? the flight calculator supports touchdowns from [^]*? UTC to [^]*? UTC\./.exec(m)?.[0]
+      const sentence = 'This build has no ephemeris (Moon, Earth and Sun positions) for these dates. Choose other mission dates in the Mission menu.'
+      return { sentence: range ? `${sentence} ${range}` : sentence, detail: m }
+    }
     if (/No launch opportunity/i.test(m)) return { sentence: `No launch opportunity was found for this landing time. ${TRY_INPUTS}`, detail: null }
     if (/shortest transfer/i.test(m)) return { sentence: 'The shortest transfer this planner supports is about 2.5 days. Choose a longer transfer limit.', detail: null }
     if (/not reachable from this orbit/i.test(m)) return { sentence: `The site is not reachable from the lunar orbit at this pass. ${TRY_INPUTS}`, detail: m }

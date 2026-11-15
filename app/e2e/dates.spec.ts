@@ -51,8 +51,11 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
     await open(page, `site=${RIDGE}&period=${AUG}`)
     await page.getByTestId('details').click()
     const drawer = page.getByTestId('drawer')
+    // 15 Nov, team request: the date search and the year timeline are the drawer's Dates tab (before: its first two
+    // sections, above Horizon).
+    await page.getByTestId('drawer-tab-dates').click()
     const headings = await drawer.locator('section.drawer-sec > h3').allInnerTexts()
-    expect(headings.slice(0, 3)).toEqual(['Find better dates', 'Year timeline', 'Horizon'])
+    expect(headings).toEqual(['Find better dates', 'Year timeline'])
     expect(headings).not.toContain('Simulation')
 
     const yt = drawer.getByTestId('year-timeline')
@@ -196,7 +199,7 @@ for (const vp of [
     test.setTimeout(120_000)
     await page.setViewportSize(vp)
     await seedMissions(page, [`site=${MASSIF}&period=shackleton-2027-09&name=Massif%20survey`])
-    await open(page, `site=${RIDGE}&period=${AUG}&drawer=details`)
+    await open(page, `site=${RIDGE}&period=${AUG}&drawer=finder`) // the Dates tab
     const yt = page.getByTestId('drawer').getByTestId('year-timeline')
     await expect(yt.getByTestId('year-row').nth(1)).toHaveAttribute('data-state', 'done', { timeout: 60_000 })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)

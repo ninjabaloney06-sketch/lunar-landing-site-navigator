@@ -37,7 +37,7 @@ async function shot(page: Page, el: Locator, name: string) {
 }
 
 async function openDrawer(page: Page) {
-  await page.goto(`${DEMO}&drawer=details`)
+  await page.goto(`${DEMO}&drawer=compare`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const table = page.getByTestId('site-table')
   await table.scrollIntoViewIfNeeded()

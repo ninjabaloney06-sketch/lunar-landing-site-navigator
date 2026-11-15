@@ -1,6 +1,7 @@
-// Details drawer: finder, year timeline, horizon strip, station states (chosen in the Mission panel), comparison,
-// site potential, export, how this is computed and the terms of use. Opened from the header's Details control or the
-// footer link. The Full data switch (top right, U8) adds method, raw values and sources to the summary.
+// Details drawer, in three tabs (team whiteboard, 15 Nov: "split Details into more menus"): Site details (what is
+// true of the landing site: horizon, stations, site potential, assessment, power, NASA tools, export, how this is
+// computed, terms), Dates (find better dates, year timeline) and Compare (this site against another, all sites,
+// saved missions). Opened from the header's Details control, the date menu, the Mission panel or the footer link. The Full data switch (top right, U8) adds method, raw values and sources to the summary.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sample, ScienceGoal, StationLos } from '../geometry'
 import type { MissionState } from '../missions'
@@ -55,8 +56,17 @@ interface Props {
   onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
   power?: PowerInputs // power estimate inputs (link keys panel, eff, load, batt)
   onPower?(next: PowerInputs): void
+  onSection(section: DrawerSection): void // a tab was chosen
   onClose(): void
 }
+
+type Tab = 'site' | 'dates' | 'compare'
+const TABS: { id: Tab; label: string; section: DrawerSection; hint: string }[] = [
+  { id: 'site', label: 'Site details', section: 'details', hint: 'Horizon, stations, site potential, assessment, power, export and sources for this landing site' },
+  { id: 'dates', label: 'Dates', section: 'finder', hint: 'Find better dates for this site and see the whole year' },
+  { id: 'compare', label: 'Compare', section: 'compare', hint: 'This site against another site or period, all sites and your saved missions' },
+]
+const tabOf = (s: DrawerSection): Tab => (s === 'finder' ? 'dates' : s === 'missions' || s === 'compare' ? 'compare' : 'site')
 
 // Whole-year mode of the table. Measured before shipping (14 Nov 2026, this build in Chromium on ninja's Mac):
 // one site for 365 days (17 520 samples) took 198 ms, all 18 sites 3.2 s; the limit set for shipping was 20 s.
@@ -155,6 +165,7 @@ function csv(site: Site, period: ViewPeriod, r: ResultsState, approx: string | n
 
 export function Drawer(p: Props) {
   const { section, site, period, results, atCursor } = p
+  const tab = tabOf(section)
   const panel = useRef<HTMLElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
   const finderRef = useRef<HTMLElement>(null)
@@ -210,7 +221,7 @@ export function Drawer(p: Props) {
       const timers = [150, 500, 1200, 2500].map((ms) => window.setTimeout(place, ms))
       return () => timers.forEach((t) => window.clearTimeout(t))
     }
-    const target = section === 'finder' ? finderRef.current : section === 'sources' ? sourcesRef.current : null
+    const target = section === 'sources' ? sourcesRef.current : null
     if (target) target.scrollIntoView({ block: 'start' })
     else panel.current?.scrollTo({ top: 0 })
   }, [section])
@@ -294,6 +305,25 @@ export function Drawer(p: Props) {
       {results.status === 'empty' && <p className="msg">{results.message}</p>}
       {results.status === 'error' && <p className="msg is-error">{results.error}</p>}
 
+      <div className="drawer-tabs" role="tablist" aria-label="Details" data-testid="drawer-tabs">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`drawer-tab-${t.id}`}
+            className="drawer-tab"
+            data-testid={`drawer-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            title={t.hint}
+            onClick={() => tab !== t.id && p.onSection(t.section)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'dates' && (<>
       <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
         <h3 id="sec-finder">Find better dates</h3>
         {/* keyed: a site, station or period change starts a fresh finder, so old results never show under a new site */}
@@ -311,23 +341,11 @@ export function Drawer(p: Props) {
         <h3 id="sec-year">Year timeline</h3>
         <YearTimeline rows={yearRows} stations={p.stations} ids={p.ids} initialYear={yearOf(period.startMs)} />
       </section>
+      </>)}
 
-      <section className="drawer-sec" aria-labelledby="sec-horizon">
-        <h3 id="sec-horizon">Horizon</h3>
-        {ready && atCursor && (
-          <p className="quiet sec-lead" data-testid="horizon-lead">
-            At <Marked text={fmtDateTime(p.cursorMs)} />: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
-            {atCursor.earth.visible ? 'above' : 'below'} it.
-          </p>
-        )}
-        <HorizonStrip
-          horizon={ready ? results.results.series.horizon : null}
-          sample={ready ? atCursor : null}
-          track={ready ? results.results.series.samples : null}
-          height={168}
-        />
-      </section>
-
+      {/* Site details, settings first and the graph last (team request, 15 Nov): stations and the power inputs, then
+          the site's facts, the links and the export, then the horizon graph and the method. */}
+      {tab === 'site' && (<>
       <section className="drawer-sec" aria-labelledby="sec-stations">
         <h3 id="sec-stations">Stations</h3>
         {ready && atCursor && (
@@ -386,7 +404,10 @@ export function Drawer(p: Props) {
           </button>
         </p>
       </section>
+      <PowerSection results={results} custom={custom} approx={approx} inputs={p.power} onChange={p.onPower} />
+      </>)}
 
+      {tab === 'compare' && (<>
       <section className="drawer-sec" aria-labelledby="sec-compare">
         <h3 id="sec-compare">Compare</h3>
         <Compare
@@ -417,13 +438,12 @@ export function Drawer(p: Props) {
           missions={p.missions}
           wholeYear={WHOLE_YEAR}
           onCalculateFlight={p.onCalculateFlight}
-          onFindDates={(id) => {
-            p.onFindDates(id)
-            finderRef.current?.scrollIntoView({ block: 'start' })
-          }}
+          onFindDates={p.onFindDates}
         />
       </section>
+      </>)}
 
+      {tab === 'site' && (<>
       <section className="drawer-sec" aria-labelledby="sec-potential">
         <h3 id="sec-potential">Site potential</h3>
         {site.potential.length === 0 && <p className="quiet">No sourced site potential for this site yet.</p>}
@@ -457,7 +477,6 @@ export function Drawer(p: Props) {
       </section>
 
       <SiteAssessment key={site.id} site={site} />
-      <PowerSection results={results} custom={custom} approx={approx} inputs={p.power} onChange={p.onPower} />
       <section className="drawer-sec" aria-labelledby="sec-nasa"><h3 id="sec-nasa">Open in NASA tools</h3><NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} /></section>
 
       <section className="drawer-sec" aria-labelledby="sec-export">
@@ -478,6 +497,22 @@ export function Drawer(p: Props) {
             </span>
           )}
         </div>
+      </section>
+
+      <section className="drawer-sec" aria-labelledby="sec-horizon">
+        <h3 id="sec-horizon">Horizon</h3>
+        {ready && atCursor && (
+          <p className="quiet sec-lead" data-testid="horizon-lead">
+            At <Marked text={fmtDateTime(p.cursorMs)} />: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
+            {atCursor.earth.visible ? 'above' : 'below'} it.
+          </p>
+        )}
+        <HorizonStrip
+          horizon={ready ? results.results.series.horizon : null}
+          sample={ready ? atCursor : null}
+          track={ready ? results.results.series.samples : null}
+          height={168}
+        />
       </section>
 
       <section ref={sourcesRef} className="drawer-sec" aria-labelledby={method ? 'sec-sources' : undefined}>
@@ -594,6 +629,7 @@ export function Drawer(p: Props) {
       </section>
 
       {terms && <Terms ref={termsRef} />}
+      </>)}
     </aside>
   )
 }

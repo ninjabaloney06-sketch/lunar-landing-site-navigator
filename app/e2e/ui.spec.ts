@@ -676,7 +676,7 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
-  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
+  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, above 15°')
   // The warning is text, not a control: the header still has 5 controls (U4: mission, date, Points of interest,
   // Search, Details) and the main screen 10 (+ View, Simulate, the footer's "how this is computed", "Documentation"
   // and the validation line's record link; read-header dropped the second documentation link).

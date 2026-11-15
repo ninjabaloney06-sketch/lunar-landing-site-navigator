@@ -31,14 +31,15 @@
 .btn {
   font-weight: 500;
   padding: var(--s-2) var(--s-4);
-  border: 1px solid var(--line);
+  border: 1px solid var(--faint);
   border-radius: var(--radius);
+  background: var(--surface-2);
   white-space: nowrap;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .btn:hover:not(:disabled) {
-  border-color: var(--muted);
+  border-color: var(--fg);
 }
 
 .btn:active:not(:disabled) {
@@ -47,6 +48,8 @@
 
 .btn:disabled {
   color: var(--faint);
+  border-color: var(--line);
+  background: none;
 }
 
 .msg {
@@ -792,5 +795,49 @@
     display: flex;
     align-items: center;
     min-height: 44px;
+  }
+}
+
+/* ---------- Details drawer: its three tabs (Site details, Dates, Compare) ---------- */
+
+.drawer-tabs {
+  display: flex;
+  gap: var(--s-1);
+  margin-top: var(--s-5);
+  border-bottom: 1px solid var(--faint);
+}
+
+.drawer-tab {
+  flex: 1 1 0;
+  min-height: 44px;
+  margin-bottom: -1px;
+  padding: var(--s-2) var(--s-3);
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-bottom-color: var(--faint);
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.drawer-tab:hover {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
+/* the chosen tab is open to the page under it */
+.drawer-tab[aria-selected='true'] {
+  color: var(--fg);
+  border-color: var(--faint);
+  border-bottom-color: var(--surface);
+  background: var(--surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-tab {
+    transition: none;
   }
 }

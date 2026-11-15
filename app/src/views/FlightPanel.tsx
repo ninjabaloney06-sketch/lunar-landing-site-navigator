@@ -4,6 +4,7 @@
 // propellant budget, the flight facts, the view and its legend, the explanations (FlightExplain) and how the
 // numbers are made. Summary mode shows the decision values; full data mode opens the breakdown and the long texts.
 // Presentational only: the mission is computed outside, and the status it is given drives the loading and error text.
+import { energyMultiplier, fmtFactor } from '../flight/energyBaseline'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import '../styles/flight.css'
@@ -593,6 +594,36 @@ function TimeLink({ ms, label, onSeek }: { ms: number; label: string; onSeek(utc
 /** The result, in the order a planner asks: how much can it carry (the payload line), is it feasible (propellant,
  *  coloured only when a stage is short: the plan's own threshold usedKg > capacityKg), when does it launch, land and
  *  return (buttons into the playback), and its Δv; then the two analyses the user can start. */
+/** The energy multiplier, on top of the result as it was until 15 Nov 06:35 (restored on the team's request the same
+ *  day): this mission's exhaust energy from the TLI on, over the same for the design's ideal landing point. */
+function EnergyFactor({ plan }: { plan: MissionPlan }) {
+  const m = energyMultiplier(plan)
+  return (
+    <div className="flight-energy" data-testid="flight-energy">
+      <div className="flight-factor">
+        <span className="quiet">Energy multiplier</span>
+        <span className="flight-factor-value mono" data-testid="flight-factor" data-factor={m ? m.factor.toFixed(4) : ''}>
+          {m ? fmtFactor(m.factor) : '–'}
+        </span>
+      </div>
+      <ul className="flight-bullets">
+        {m ? (
+          <li data-testid="flight-factor-note">
+            1.00× = this design's ideal landing point (<span className="mono">{fmtCoords(m.idealPoint.latDeg, m.idealPoint.lonDeg)}</span>); the
+            costliest point on the Moon: {fmtFactor(m.worstOnGrid)}
+          </li>
+        ) : (
+          <li>No baseline for this design in this build</li>
+        )}
+        <li className="quiet">
+          Exhaust energy of every burn from <Abbr>TLI</Abbr> on, divided by the same for this design's cheapest landing point (reference
+          mission: LC-39B, landing from 16 Aug 2027, the design's default stay, a grid of {m ? m.gridPoints : 108} points over the whole Moon).
+        </li>
+      </ul>
+    </div>
+  )
+}
+
 function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
   const [full] = useFullData()
   const f = plan.facts
@@ -600,6 +631,7 @@ function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number)
   const status = propellantStatus(plan.propellant, lb?.element ?? null)
   return (
     <section className="flight-result" aria-label="Result" data-testid="flight-result">
+      <EnergyFactor plan={plan} />
       <PayloadLine shortElements={shortElementsOf(plan.propellant, lb?.element ?? null)} />
       <ul className="flight-glance">
         <li data-testid="flight-glance-propellant" data-tone={status.tone}>

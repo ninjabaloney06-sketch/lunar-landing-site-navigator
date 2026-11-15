@@ -220,7 +220,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - Under it: the site name and its coordinates, and a caveat label where the site has one.
 - The date and time is the cursor time in UTC; it opens the date menu.
 
-**Header (top right).** "Points of interest", "Search" and "Details" (with an info icon; opens the Details drawer). In the flight view only "Back to landing site" is shown.
+**Header (top right).** Three buttons: "Points of interest", "Search" and "Details" (with an info icon; opens the Details drawer). Controls are drawn as buttons with a 1 px box (team request of 15 Nov 2026); the date in the header is a boxed control with a caret. In the flight view only "Back to landing site" is shown.
 
 **3D scene.**
 
@@ -277,7 +277,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - Five named periods: the team's test periods, not verified best windows; each says so.
 - A field for any UTC date and time in the supported range.
 
-**Details drawer.** One scrolling panel, top to bottom:
+**Details drawer.** Three tabs: *Site details* (what is true of the landing site: Horizon, Stations, Site potential, Landing site assessment, Power and battery estimate, Open in NASA tools, Export, How this is computed), *Dates* (Find better dates, Year timeline; also opened by "Find dates with your own limits" in the date menu and by "Find better dates" on a table row) and *Compare* (Compare, All sites with the saved missions; also opened by "Compare" in the Mission menu). `drawer=details`, `drawer=finder` and `drawer=compare` in the link open them. The parts:
 
 - *Find better dates*: the thresholds of calculation 11 and up to five landing windows with sunlit, coverage and longest gap. "Show" opens exactly the scored interval.
 - *Year timeline*: light or comms over a calendar year, one bar row for the current site and one per saved mission's site, with the mission spans outlined.
@@ -318,7 +318,8 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 "Search" opens the search panel (`app/src/views/SearchPanel.tsx`; `drawer=search` in the link). Candidates: the sites of `sites.json` and the points of interest with a horizon file (`search-sites.json`).
 
-- Defaults: groups Water and volatiles, Permanent shadow, Science features; within 20 km (1 to 200 km); "Must pass the 5° slope limit" on; rank by Both. The settings are not part of the link.
+- Defaults: groups Water and volatiles, Permanent shadow, Science features; within 20 km (1 to 200 km); "Must pass the 5° slope limit" on; "Sunlit at least, %" and "Comms at least, %" 0 (any amount); rank by Both. The settings are not part of the link.
+- "Sunlit at least" and "Comms at least" say how much sunlight and station coverage a place must have, as a share of the mission dates (0 to 100 %). Places below a minimum are not listed; one line says how many. A place without data does not meet a minimum above 0.
 - Records with the same place name within 5 km (1 km for illumination points) are one row.
 - Each row: rank, "Best" for up to the first 3 ranks, the nearby counts in words ("Within 20 km: 1 water 3 shadow 1 science"), Sunlit, Coverage and Slope ("— too steep" when it fails).
 - Every row offers "Show as landing site". On a site row it selects that site; on a point row it makes the point the landing site (a custom landing site) and opens the landing-site view with its group on. The point of interest card has the same action. A point outside the custom-site region offers "Show on the Moon" instead, which opens the Moon view.

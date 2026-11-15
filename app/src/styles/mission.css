@@ -506,3 +506,9 @@
     display: none;
   }
 }
+
+/* above 15 deg: the harsher warning */
+.slope-warning.is-severe {
+  color: var(--error);
+  font-weight: 500;
+}

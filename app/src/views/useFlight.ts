@@ -18,11 +18,66 @@ import type { MissionStatus } from './FlightPanel'
 import { getFlightAnalysis, patchFlightAnalysis, resetFlightAnalysis, setFlightActions } from './flightAnalysis'
 import { DEFAULT_SPEED } from './flightFormat'
 
-// Ephemeris loaded around the mission: it starts about a week before touchdown and ends about a week after
-// leaving the Moon.
-const LEAD_DAYS = 12
-const TAIL_DAYS = 16
+// Ephemeris loaded around the mission: from `lead` days before the earliest touchdown to `tail` days after the
+// stay and the return window. Low lunar orbit: the liftoff is about 5 days before touchdown and the plan ends
+// about 4.5 days after the stay (measured, Apollo at the edges of this build's months), so 12 / 16 leave ample
+// margin. Halo orbit: missionNrho.ts builds its reference NRHO over whole revolutions (6.56 days each) centred on
+// the span from half a revolution before the flyby to the latest departure, so it reaches about 13.2 days before
+// touchdown and 20 days after the stay (measured with no return window, where the planner searches one
+// revolution for the departure), up to half a revolution more from the rounding to whole revolutions: 17 / 24.
+const SPAN_DAYS: Record<'llo' | 'nrho', { lead: number; tail: number }> = { llo: { lead: 12, tail: 16 }, nrho: { lead: 17, tail: 24 } }
 const UI_INTERVAL_MS = 66
+
+const monthStart = (ms: number, add = 0) => {
+  const d = new Date(ms)
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + add, 1)
+}
+const monthKeyOf = (ms: number) => new Date(ms).toISOString().slice(0, 7)
+
+/** The touchdowns this build can plan for a stay and return window: the run of ephemeris months present around
+ *  the asked touchdown (found with `present`, never assumed), less the lead before touchdown and the stay, return
+ *  window and tail after it that useFlight loads. null when the month of the asked touchdown is itself missing
+ *  or the run is too short for any touchdown. */
+export async function supportedTouchdownRange(
+  present: (monthKey: string) => Promise<boolean>,
+  touchdownMs: number,
+  surfaceStayDays: number,
+  returnWindowDays: number,
+  span: { lead: number; tail: number },
+): Promise<{ firstMs: number; lastMs: number } | null> {
+  const anchor = monthStart(touchdownMs)
+  if (!(await present(monthKeyOf(anchor)))) return null
+  const walk = async (step: 1 | -1) => {
+    let k = anchor
+    for (let i = 0; i < 600 && (await present(monthKeyOf(monthStart(k, step)))); i++) k = monthStart(k, step)
+    return k
+  }
+  const [first, last] = await Promise.all([walk(-1), walk(1)])
+  const firstMs = first + span.lead * DAY_MS
+  const lastMs = monthStart(last, 1) - (surfaceStayDays + returnWindowDays + span.tail) * DAY_MS
+  return lastMs >= firstMs ? { firstMs, lastMs } : null
+}
+
+/** Whether the build serves the ephemeris file of a month (a HEAD request; a 404 or the SPA page means no). */
+const monthPresence = new Map<string, Promise<boolean>>()
+function ephemMonthPresent(key: string): Promise<boolean> {
+  let p = monthPresence.get(key)
+  if (!p) {
+    p = fetch(`${import.meta.env.BASE_URL}data/ephem/${key}.json`, { method: 'HEAD' })
+      .then((r) => r.ok && !(r.headers.get('content-type') ?? '').includes('text/html'))
+      .catch(() => false)
+    monthPresence.set(key, p)
+  }
+  return p
+}
+
+const utcMinute = (ms: number) => `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`
+
+/** The sentence of the missing-ephemeris error that states the touchdowns this build supports. */
+export function supportedRangeSentence(r: { firstMs: number; lastMs: number }, surfaceStayDays: number, returnWindowDays: number): string {
+  const rw = returnWindowDays > 0 ? ` and a ${returnWindowDays}-day return window` : ''
+  return `With a ${surfaceStayDays}-day stay${rw} the flight calculator supports touchdowns from ${utcMinute(r.firstMs)} to ${utcMinute(r.lastMs)}.`
+}
 
 /** The surface stay a design starts with: its documented one, else three days for a design that meets in low
  *  lunar orbit (Apollo's longest stays) and one revolution of the halo orbit for a design that meets there. */
@@ -223,7 +278,8 @@ function startRouteSearch() {
   const opts = routeOptions({ earliestTouchdownMs: i.earliestTouchdownMs, architectureId: i.architecture.id }, routeChoices(base.rendezvous))
   const lastDayMs = Math.max(...opts.map((o) => o.earliestTouchdownMs))
   patchFlightAnalysis(key, { route: { state: 'running', done: 0, total: opts.length } })
-  void loadMonthsFor(i.earliestTouchdownMs - LEAD_DAYS * DAY_MS, lastDayMs + (i.surfaceStayDays + i.returnWindowDays + TAIL_DAYS) * DAY_MS)
+  const span = SPAN_DAYS[base.rendezvous]
+  void loadMonthsFor(i.earliestTouchdownMs - span.lead * DAY_MS, lastDayMs + (i.surfaceStayDays + i.returnWindowDays + span.tail) * DAY_MS)
     .then(async (months) => {
       if (!months) throw new Error('no ephemeris for the days the search covers')
       const replies: PlanReply[] = []
@@ -330,11 +386,18 @@ export function useFlight(input: FlightInput): Flight {
     if (!active) return
     let alive = true
     const key = settledKey
-    const endMs = earliestTouchdownMs + (surfaceStayDays + returnWindowDays + TAIL_DAYS) * DAY_MS
-    loadMonthsFor(earliestTouchdownMs - LEAD_DAYS * DAY_MS, endMs)
+    const span = SPAN_DAYS[latest.current.architecture.rendezvous]
+    const endMs = earliestTouchdownMs + (surfaceStayDays + returnWindowDays + span.tail) * DAY_MS
+    loadMonthsFor(earliestTouchdownMs - span.lead * DAY_MS, endMs)
       .then(async (months): Promise<MissionStatus> => {
         if (!months) {
-          return { state: 'error', message: 'No ephemeris for these dates in this build. A mission needs the months from a week before touchdown to a week after leaving the Moon.' }
+          const range = await supportedTouchdownRange(ephemMonthPresent, earliestTouchdownMs, surfaceStayDays, returnWindowDays, span).catch(() => null)
+          return {
+            state: 'error',
+            message:
+              `No ephemeris for these dates in this build. A mission needs the months from ${span.lead} days before touchdown to ${span.tail} days after the stay and return window.` +
+              (range ? ` ${supportedRangeSentence(range, surfaceStayDays, returnWindowDays)}` : ''),
+          }
         }
         const i = latest.current
         const req: Omit<PlanRequest, 'id'> = {

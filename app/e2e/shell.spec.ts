@@ -34,6 +34,10 @@ test('U4: one Details control with an info icon and a visible label; it opens th
   await details.click()
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
+  // 15 Nov, team request: Details opens at its Site details tab; the date search is the Dates tab beside it (before:
+  // the drawer's first section).
+  await expect(page.getByTestId('drawer-tab-site')).toHaveAttribute('aria-selected', 'true')
+  await page.getByTestId('drawer-tab-dates').click()
   await expect(drawer.getByRole('heading', { level: 3 }).first()).toHaveText('Find better dates')
 })
 

@@ -475,7 +475,10 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>A field for any UTC date and time in the supported range.</li>
         </ul>
         <p>
-          <strong>Details drawer.</strong> One scrolling panel, top to bottom:
+          <strong>Details drawer.</strong> Three tabs. Site details: what is true of the landing site (Horizon,
+          Stations, Site potential, Landing site assessment, Power and battery estimate, Open in NASA tools, Export, How
+          this is computed). Dates: Find better dates and the Year timeline; &quot;Find dates with your own
+          limits&quot; in the date menu opens it too. Compare: Compare and All sites, with the saved missions. The parts:
         </p>
         <ul className="docs-list">
           <li>
@@ -578,6 +581,11 @@ export const DOC_SECTIONS: DocSection[] = [
             Defaults: Water and volatiles, Permanent shadow and Science features; within 20 km (1 to 200 km); &quot;Must
             pass the 5° slope limit&quot; on; rank by Both. The settings are not part of the link; only{' '}
             <Path>drawer=search</Path> is.
+          </li>
+          <li>
+            &quot;Sunlit at least, %&quot; and &quot;Comms at least, %&quot; say how much sunlight and station coverage a
+            place must have, as a share of the mission dates (0 = any amount). Places below a minimum are not listed;
+            one line says how many.
           </li>
           <li>Records with the same place name within 5 km (1 km for illumination points) are one row.</li>
           <li>

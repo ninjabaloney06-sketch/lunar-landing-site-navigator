@@ -33,6 +33,7 @@ import type {
 } from '../scene3d'
 import { inPinRegion } from '../scene3d/region'
 import type { Poi } from '../data/pois'
+import { parseCustomSiteId } from '../data/customSite'
 import { PoiInfo } from './PoiInfo'
 import { REGION_TEXT } from './poiLayer'
 import { SITE_REGION_TEXT } from './custom'
@@ -55,6 +56,8 @@ export interface FlightScene {
 /** What the View button needs from the mounted scene. */
 export interface SceneApi {
   goTo(v: Viewpoint): boolean
+  /** The Moon view, turned to a point (planetocentric degrees): "Show on the Moon" for a point of interest. */
+  goToPoint(lat: number, lon: number): boolean
   setLevel(level: SceneLevel): void
 }
 
@@ -83,6 +86,8 @@ interface Props {
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
   pois: ScenePoi[] // points of interest to draw ([] = layer off)
   poiById: Map<string, Poi> | null // records for the info box; null until pois.json is loaded
+  /** The text at the mast top: "Landing site", or the mission's own name with it once the user named the mission. */
+  siteLabel?: string
   onGoToPoi?(poi: Poi): void // the info box's "Show as landing site" (App.tsx showPoi, as the search's "Show")
 }
 
@@ -404,7 +409,7 @@ export function SceneView(props: Props) {
     })
     // A press that closes the right-click menu is not also a click on the scene.
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
-    api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
+    api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l), goToPoint: (lat, lon) => h.goToPoint(lat, lon) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
       // U11: only the point under the pointer, not the selected one elsewhere (that sent "Set … as landing site" to the old point).
@@ -594,6 +599,15 @@ export function SceneView(props: Props) {
     if (info && !pois.some((p) => p.id === info.id)) showInfo(null)
   }, [pois, info, showInfo])
 
+  // Another landing site: the scene is told before the level change below and before the site's frame is loaded, so no
+  // fly goes down to the site that is still loaded (15 Nov: "it zoomed in to the wrong point"). This effect stays
+  // above the level effect: effects run in this order.
+  useEffect(() => {
+    const at = deps.sites.find((s) => s.id === siteId) ?? null
+    const custom = at ? null : parseCustomSiteId(siteId)
+    handle.current?.expectSite(siteId, at?.lat ?? custom?.lat, at?.lon ?? custom?.lon)
+  }, [deps, siteId])
+
   useEffect(() => {
     const own = ownLevel.current
     ownLevel.current = null
@@ -630,7 +644,9 @@ export function SceneView(props: Props) {
       })
       .catch(() => {
         // The results panel reports data errors; the scene keeps its last frame, so mark it as not this site.
-        if (alive) setFailedFor(siteId)
+        if (!alive) return
+        setFailedFor(siteId)
+        handle.current?.expectSite(null)
       })
     return () => {
       alive = false
@@ -713,7 +729,7 @@ export function SceneView(props: Props) {
         </div>
         <div ref={site} className="obj" hidden>
           <div className="obj-site" data-testid="label-site">
-            Landing site
+            {props.siteLabel ?? 'Landing site'}
           </div>
         </div>
         <div ref={name} className="obj" hidden>

@@ -21,7 +21,7 @@ async function save(page: Page, m: M) {
 
 async function openTable(page: Page) {
   await page.goto('about:blank')
-  await page.goto('/#site=connecting-ridge&period=shackleton-2027-08&drawer=details')
+  await page.goto('/#site=connecting-ridge&period=shackleton-2027-08&drawer=compare') // the Compare tab of the Details drawer
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const table = page.getByTestId('site-table')
   await table.scrollIntoViewIfNeeded()

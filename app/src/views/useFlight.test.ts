@@ -105,3 +105,34 @@ describe('worker plumbing', () => {
     await expect(first.reply).resolves.toMatchObject({ ok: false, message: 'superseded' })
   })
 })
+
+// The touchdowns the flight calculator can plan, from the ephemeris months present (here those of this build:
+// 2026-11 to 2030-12), less the days the design needs before touchdown and after the stay and return window.
+describe('supported touchdown range', () => {
+  const months = new Set<string>()
+  for (let y = 2026, m = 10; y < 2031; m === 11 ? ((m = 0), y++) : m++) {
+    if (y === 2026 && m < 10) continue
+    months.add(`${y}-${String(m + 1).padStart(2, '0')}`)
+  }
+  const present = async (k: string) => months.has(k)
+  const LLO = { lead: 12, tail: 16 }
+  it('is computed from the months present, across the year boundaries', async () => {
+    const { supportedTouchdownRange, supportedRangeSentence } = await import('./useFlight')
+    const r = await supportedTouchdownRange(present, Date.UTC(2026, 10, 5), 6.5, 0, LLO)
+    expect(r).toEqual({ firstMs: Date.UTC(2026, 10, 13), lastMs: Date.UTC(2030, 11, 9, 12) })
+    const r2 = await supportedTouchdownRange(present, Date.UTC(2030, 11, 20), 3, 14, LLO)
+    expect(r2).toEqual({ firstMs: Date.UTC(2026, 10, 13), lastMs: Date.UTC(2030, 10, 29) })
+    expect(supportedRangeSentence(r2!, 3, 14)).toBe(
+      'With a 3-day stay and a 14-day return window the flight calculator supports touchdowns from 2026-11-13 00:00 UTC to 2030-11-29 00:00 UTC.',
+    )
+    expect(await supportedTouchdownRange(present, Date.UTC(2031, 0, 5), 3, 0, LLO)).toBeNull()
+    // halo orbit: 17 days before, 24 after
+    expect(await supportedTouchdownRange(present, Date.UTC(2026, 10, 15), 6.5, 0, { lead: 17, tail: 24 })).toEqual({ firstMs: Date.UTC(2026, 10, 18), lastMs: Date.UTC(2030, 11, 1, 12) })
+    const { errorText } = await import('./flightResultText')
+    const e = errorText('mission', `No ephemeris for these dates in this build. A mission needs the months … ${supportedRangeSentence(r!, 6.5, 0)}`)
+    expect(e.sentence).toBe(
+      'This build has no ephemeris (Moon, Earth and Sun positions) for these dates. Choose other mission dates in the Mission menu. ' +
+        'With a 6.5-day stay the flight calculator supports touchdowns from 2026-11-13 00:00 UTC to 2030-12-09 12:00 UTC.',
+    )
+  })
+})
