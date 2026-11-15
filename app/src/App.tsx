@@ -192,6 +192,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (wasPlaying.current && !playing) flushHash()
     wasPlaying.current = playing
   }, [playing, flushHash])
+  const [slopeWhy, setSlopeWhy] = useState(false) // the slope warning's "Why?" (NASA requirement and source)
   const [webgl, setWebgl] = useState(() => webglAvailable())
   // "How to use" card (feedback of 15 Nov: "not clear what the user can do"; science lead: "make the UI more
   // intuitive"): three numbered steps, shown until "Got it" and reopened from Help. Only the dismissal is kept, in
@@ -515,9 +516,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   // The View button: the two levels on the surface first (what E and Esc do on a keyboard; "Moon" is the
   // globe), then the Moon viewpoint of the right-click menu.
-  const viewpointAt = useRef(-Infinity) // when the scene last accepted a viewpoint (the Moon)
-  const viewpointRetry = useRef<number | undefined>(undefined)
-  useEffect(() => () => window.clearInterval(viewpointRetry.current), [])
   const goLevel = (view: SceneLevel) => {
     if (hs.view === view) scene.current?.setLevel(view)
     else patch({ view })
@@ -528,20 +526,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
     // Only for the scene's regression tests (?test=1): the app itself has no eye-level view.
     ...(ENGINE_TEST ? [{ id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') }] : []),
-    // A viewpoint is refused while the camera flies (goTo false, e.g. just after choosing a site): the same request
-    // is tried again every 100 ms for up to 6 s, so it runs as soon as the fly ends (feature review: "Moon" in this
-    // menu did nothing in that moment). A refusal right after an accepted request is that request's own fly (a tap
-    // can select twice): left alone.
-    ...viewpointItems((v: Viewpoint) => {
-      window.clearInterval(viewpointRetry.current)
-      if (scene.current?.goTo(v)) viewpointAt.current = performance.now()
-      else if (performance.now() - viewpointAt.current > 2000) {
-        let tries = 0
-        viewpointRetry.current = window.setInterval(() => {
-          if (++tries > 60 || scene.current?.goTo(v)) window.clearInterval(viewpointRetry.current)
-        }, 100)
-      }
-    }).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
+    ...viewpointItems((v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
   // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
@@ -1053,15 +1038,34 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             depends on the vehicle; above 15° the harsher one. The 5° project criterion of the ranking and the search
             is unchanged and stated there. */}
         {slope.deg !== null && slope.deg > SLOPE_WARN_DEG && (
+          // Compact (3D audit, 15 Nov: the banner covered site pins and, on a phone, the lower third of the scene): the
+          // verdict and the number on one line; NASA's requirement, the lander note and the source behind "Why?".
           <p className={`slope-warning${slope.deg > SLOPE_SEVERE_DEG ? ' is-severe' : ''}`} data-testid="slope-warning" data-level={slope.deg > SLOPE_SEVERE_DEG ? 'severe' : 'caution'}>
             <Icon name="warning" />
             <span>
               {slope.deg > SLOPE_SEVERE_DEG
-                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}. NASA's Artemis III landing requirement is under ${SLOPE_SEVERE_DEG}° over 100 m. `
-                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above the ${SLOPE_WARN_DEG}° contour of NASA's site maps (requirement: under ${SLOPE_SEVERE_DEG}°). Whether a landing is possible depends on the lander. `}
-              <a href={SLOPE_SOURCE} target="_blank" rel="noopener noreferrer" data-testid="slope-source">
-                Source
-              </a>
+                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}.`
+                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}`}{' '}
+              {slopeWhy && (
+                <span id="slope-why" data-testid="slope-why-text">
+                  {slope.deg > SLOPE_SEVERE_DEG
+                    ? `NASA's Artemis III landing requirement is under ${SLOPE_SEVERE_DEG}° over 100 m. `
+                    : `, above the ${SLOPE_WARN_DEG}° contour of NASA's site maps (requirement: under ${SLOPE_SEVERE_DEG}°). Whether a landing is possible depends on the lander. `}
+                  <a href={SLOPE_SOURCE} target="_blank" rel="noopener noreferrer" data-testid="slope-source">
+                    Source
+                  </a>{' '}
+                </span>
+              )}
+              <button
+                type="button"
+                className="link slope-why"
+                data-testid="slope-why"
+                aria-expanded={slopeWhy}
+                aria-controls="slope-why"
+                onClick={() => setSlopeWhy((v) => !v)}
+              >
+                {slopeWhy ? 'Less' : 'Why?'}
+              </button>
             </span>
           </p>
         )}
