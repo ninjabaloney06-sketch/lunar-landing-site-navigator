@@ -3,6 +3,7 @@
 // Run: PW_GPU=1 PW_PORT=5187 npx playwright test e2e/shell.spec.ts
 import { expect, test } from '@playwright/test'
 import type { Locator } from '@playwright/test'
+import { headerAction } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -22,8 +23,8 @@ test('U4: one Details control with an info icon and a visible label; it opens th
   const header = page.locator('header.top')
   await expect(header.getByRole('button', { name: 'Find better dates' })).toHaveCount(0)
   const details = page.getByTestId('details')
-  await expect(details).toHaveText('Details')
-  await expect(details).toHaveAccessibleName('Details')
+  await expect(details).toHaveText('Site details')
+  await expect(details).toHaveAccessibleName('Site details')
   await expect(details.locator('.icon')).toHaveCount(1)
   // where the two buttons were: last in the row, top right, on the row of Search
   const d = (await details.boundingBox())!
@@ -43,11 +44,20 @@ test('U4: one Details control with an info icon and a visible label; it opens th
 
 test.use({ viewport: { width: 1280, height: 720 } })
 
-test('U12: no Flight plan tab; the current mission reaches the flight view in two clicks; back to the landing site; old flight links still open', async ({ page }) => {
+test("U12: no Flight plan tab; Flight plan in the action bar opens the current mission's flight in one click, as Calculate flight in Edit mission does; back to the landing site; old flight links still open", async ({ page }) => {
   await open(page, `${DEMO}&name=Ridge+one&tmax=3`)
   await expect(page.getByRole('tab')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Flight plan' })).toHaveCount(0)
-  // two clicks: the Mission control, then "Calculate flight" for the mission on screen (not saved)
+  // science lead, 15 Nov: the flight plan is reachable from the top level, not only from inside the mission menu
+  const top = page.locator('header.top').getByRole('button', { name: 'Flight plan', exact: true })
+  await expect(top).toHaveCount(1)
+  await top.click()
+  await expect.poll(() => viewOf(page)).toBe('flight')
+  const h0 = await hashOf(page)
+  expect([h0.get('site'), h0.get('name'), h0.get('tmax')]).toEqual([RIDGE, 'Ridge one', '3'])
+  await expect(page.getByTestId('flight-panel')).toBeVisible()
+  await page.getByTestId('back-to-site').click()
+  await expect.poll(() => viewOf(page)).toBeNull()
+  // two clicks the other way: Edit mission, then "Calculate flight" for the mission on screen (not saved)
   await page.getByTestId('mission').click()
   await page.getByTestId('current-calculate-flight').scrollIntoViewIfNeeded()
   await page.screenshot({ path: `${SHOTS}/1280-mission-calculate-flight.png` })
@@ -124,15 +134,25 @@ test.describe('header at 375 px (visual sweep 8, 26, 29) and the drawer beside t
     for (const url of [DEMO, `/#site=haworth&period=${AUG}`, `${DEMO}&view=globe`]) {
       await open(page, url)
       await page.evaluate(() => document.fonts.ready)
+      // The header's controls on a phone: Edit mission and Menu on the title's row, Landing site and Dates under it.
       const tops = new Set<number>()
-      for (const id of ['poi-toggle', 'search-open', 'details']) {
+      for (const id of ['mission', 'menu-open', 'site-open', 'date']) {
         const b = (await page.getByTestId(id).boundingBox())!
         expect(b.height, id).toBeGreaterThanOrEqual(44 - 0.01)
         expect(b.x + b.width, id).toBeLessThanOrEqual(375)
         tops.add(Math.round(b.y))
       }
       expect(tops.size).toBeLessThanOrEqual(2)
-      for (const id of ['view', 'simulate', 'date']) expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(44 - 0.01)
+      // The Menu opens the action bar as a list: every entry a 44 px target on the screen.
+      await page.getByTestId('menu-open').click()
+      for (const id of ['search-open', 'details', 'poi-toggle', 'flight-open', 'help-open']) {
+        const b = (await page.getByTestId(id).boundingBox())!
+        expect(b.height, id).toBeGreaterThanOrEqual(44 - 0.01)
+        expect(b.x + b.width, id).toBeLessThanOrEqual(375)
+      }
+      await page.getByTestId('menu-open').click()
+      await expect(page.getByTestId('search-open')).toBeHidden()
+      for (const id of ['view', 'simulate']) expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(44 - 0.01)
       const coords = page.getByTestId('coords')
       const lineH = await coords.evaluate((e) => parseFloat(getComputedStyle(e).lineHeight) || 20)
       expect((await coords.boundingBox())!.height).toBeLessThan(lineH * 1.5)
@@ -140,7 +160,7 @@ test.describe('header at 375 px (visual sweep 8, 26, 29) and the drawer beside t
     await page.screenshot({ path: `${SHOTS}/375-globe.png` })
     await open(page, DEMO)
     await page.screenshot({ path: `${SHOTS}/375-site.png` })
-    await page.getByTestId('details').click()
+    await (await headerAction(page, 'details')).click()
     await page.screenshot({ path: `${SHOTS}/375-drawer.png` })
   })
 

@@ -253,9 +253,11 @@ a:hover {
   margin: 0;
 }
 
+/* The action bar wraps onto a second row (right-aligned) when the header is narrow, e.g. beside an open drawer. */
 .actions {
-  flex: none;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: stretch;
   gap: var(--s-2);
 }
@@ -713,6 +715,10 @@ select {
     top: 150px;
     left: var(--s-4);
     width: calc(100vw - var(--s-8));
+  }
+
+  .help-foot .btn {
+    min-height: 44px;
   }
 }
 

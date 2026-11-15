@@ -127,6 +127,6 @@ test('the landing-site label in the scene carries the mission name once the miss
   await open(page, `${DEMO}&view=site`)
   await expect(page.getByTestId('label-site')).toHaveText('Landing site')
   await open(page, `${DEMO}&view=site&name=Aurora`)
-  await expect(page.getByTestId('mission')).toContainText('Aurora')
+  await expect(page.getByTestId('mission-name')).toContainText('Aurora')
   await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
 })

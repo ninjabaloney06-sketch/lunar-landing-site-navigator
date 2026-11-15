@@ -2,6 +2,7 @@
 // Camera tests run on the scene harness, the rest on the app. Run: PW_PORT=5184 npx playwright test e2e/c4.spec.ts
 import { expect, test, type Page } from '@playwright/test'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
+import { headerAction } from './header'
 
 interface Cam {
   level: string
@@ -271,7 +272,7 @@ test.describe('C4 part 2: viewpoints', () => {
     await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&st=goldstone,madrid`)
     const before = await selection(page)
     const view = page.getByTestId('view')
-    await expect(view).toHaveText('View')
+    await expect(view).toHaveText('View: Landing site') // names the camera shown (science lead, 15 Nov)
     // Keyboard only: focus the button, open with Enter, walk the list with the arrow keys.
     await view.focus()
     await page.keyboard.press('Enter')
@@ -593,7 +594,7 @@ const sky = (page: Page) =>
 async function shown(page: Page) {
   const label = async (id: string) => ((await page.getByTestId(id).isVisible()) ? page.getByTestId(id).innerText() : null)
   return {
-    date: await page.getByTestId('date').innerText(),
+    date: await page.getByTestId('cursor-time').innerText(),
     answer: await page.getByTestId('answer').innerText(),
     // the timeline, by name: a paused simulation also shows the speed slider (U18)
     value: await page.getByRole('slider', { name: 'Time in the selected period' }).getAttribute('aria-valuetext'),
@@ -608,14 +609,14 @@ test.describe('C4 part 4: Simulate', () => {
   test('Simulate reaches a time T; a fresh page opened at T shows the same answer, labels and Sun/Earth az/el', async ({ page }) => {
     await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-17T00:00Z&view=eye`)
     const sim = page.getByTestId('simulate')
-    await expect(sim).toHaveText('Simulate')
+    await expect(sim).toHaveText('Play')
     await expect(sim).toHaveAttribute('aria-pressed', 'false')
     await sim.click()
     await expect(sim).toHaveText('Pause')
-    await expect(page.getByTestId('date')).not.toHaveText('17 August 2027, 00:00 UTC')
+    await expect(page.getByTestId('cursor-time')).not.toHaveText('17 August 2027, 00:00 UTC')
     await page.waitForTimeout(1500)
     await sim.click()
-    await expect(sim).toHaveText('Simulate')
+    await expect(sim).toHaveText('Play')
     // Paused: the link is written once the cursor rests.
     const linkT = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('t'))
     await expect.poll(linkT, { timeout: 5000 }).not.toBe('2027-08-17T00:00Z')
@@ -669,7 +670,7 @@ test.describe('C4 part 4: Simulate', () => {
     await sim.click()
     await expect(speed).toBeVisible()
     await sim.click()
-    await expect(sim).toHaveText('Simulate')
+    await expect(sim).toHaveText('Play')
     await expect(speed).toBeVisible()
     await expect(speed).toHaveAttribute('aria-valuetext', '10 hours per second')
     await speed.focus()
@@ -701,7 +702,7 @@ test.describe('C4 part 4: Simulate', () => {
     await expect(sim).toHaveText('Pause')
     await expect.poll(cursorMs).toBeGreaterThan(paused)
     await page.keyboard.press('Space')
-    await expect(sim).toHaveText('Simulate')
+    await expect(sim).toHaveText('Play')
     // Three days per second from near the end: stops on the last step, the control reads Simulate again and the
     // simulation is over, so the slider goes.
     await page.goto(`/?test=1#site=${RIDGE}&period=${AUG}&t=2027-08-29T00:00Z`)
@@ -712,14 +713,14 @@ test.describe('C4 part 4: Simulate', () => {
     await speed.focus()
     await page.keyboard.press('End')
     await expect(speed).toHaveAttribute('aria-valuetext', '3 days per second')
-    await expect(page.getByTestId('simulate')).toHaveText('Simulate', { timeout: 15_000 })
+    await expect(page.getByTestId('simulate')).toHaveText('Play', { timeout: 15_000 })
     expect(await cursorMs()).toBe(lastStep)
     await expect(speed).toHaveCount(0)
     // At the end, Simulate starts over from the first step; "Reset to start" goes back and stops.
     await page.getByTestId('simulate').click()
     await expect.poll(cursorMs).toBeLessThan(lastStep)
     await reset.click()
-    await expect(page.getByTestId('simulate')).toHaveText('Simulate')
+    await expect(page.getByTestId('simulate')).toHaveText('Play')
     expect(await cursorMs()).toBe(start)
     // Esc leaves the simulation: the slider goes.
     await page.getByTestId('simulate').focus()
@@ -779,7 +780,7 @@ for (const vp of [
     await expect(page.getByTestId('sim-speed')).toBeVisible()
     await noScroll('simulation paused')
     await shot('simulation-paused')
-    await page.getByTestId('details').click()
+    await (await headerAction(page, 'details')).click()
     await noScroll('drawer')
     await shot('drawer')
   })

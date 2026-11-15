@@ -5,6 +5,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import type { Poi } from '../src/data/pois'
 import { PIN_REGION_NORTH_LAT } from '../src/scene3d/region'
+import { headerAction } from './header'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
@@ -20,7 +21,7 @@ async function openSearch(page: Page, hash = DEMO) {
   await page.goto(`/#${hash}`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const t0 = Date.now()
-  await page.getByTestId('search-open').click()
+  await (await headerAction(page, 'search-open')).click()
   const panel = page.getByTestId('search')
   await expect(panel).toBeVisible()
   await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 120_000 })

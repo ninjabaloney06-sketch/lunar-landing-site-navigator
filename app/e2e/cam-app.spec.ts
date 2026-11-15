@@ -50,7 +50,7 @@ test('U6: Esc while the simulation plays returns to the landing site, not to the
   await expect.poll(async () => await viewOf(page)).not.toBe('globe')
   await expect.poll(() => scene(page, (s) => s.level())).toBe('site')
   // Esc also ended the simulation (U18). Not playing: Esc keeps today's behaviour (the Moon view).
-  await expect(page.getByTestId('simulate')).toHaveText('Simulate')
+  await expect(page.getByTestId('simulate')).toHaveText('Play')
   await page.locator('body').press('Escape')
   await expect.poll(async () => await viewOf(page)).toBe('globe')
 })

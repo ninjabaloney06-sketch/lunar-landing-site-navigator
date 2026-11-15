@@ -4,6 +4,7 @@
 // Run: PW_GPU=1 PW_PORT=5184 npx playwright test e2e/read-tables.spec.ts
 // SHOT_DIR=<folder> also writes the 1280 / 375 px screenshots of each screen in both modes.
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { headerAction } from './header'
 
 const DEMO = '/#site=connecting-ridge&period=shackleton-2027-08'
 const INTERNALS = ['Access not assessed', 'ESTABLISHED', 'not retrieved', '.json', 'NaN', 'undefined']
@@ -109,7 +110,7 @@ for (const vp of [
       test.setTimeout(180_000)
       await page.goto(DEMO)
       await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
-      await page.getByTestId('search-open').click()
+      await (await headerAction(page, 'search-open')).click()
       const panel = page.getByTestId('search')
       await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 150_000 })
       await expect(panel.getByTestId('search-dates')).toContainText('Sunlit and station contact are % of the mission dates, 16–29 Aug 2027')
