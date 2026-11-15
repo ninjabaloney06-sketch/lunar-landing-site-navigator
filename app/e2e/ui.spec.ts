@@ -700,13 +700,19 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
-  await expect(page.getByTestId('slope-warning')).toHaveText("Landing not recommended: slope 31.8° over 100 m. NASA's Artemis III landing requirement is under 10° over 100 m. Source")
+  // Compact (3D audit, 15 Nov): the verdict and the number; NASA's requirement and the source behind "Why?".
+  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m. Why?')
+  await expect(page.getByTestId('slope-source')).toHaveCount(0)
+  await page.getByTestId('slope-why').click()
+  await expect(page.getByTestId('slope-warning')).toHaveText("Landing not recommended: slope 31.8° over 100 m. NASA's Artemis III landing requirement is under 10° over 100 m. Source Less")
+  await expect(page.getByTestId('slope-source')).toHaveAttribute('href', /ntrs\.nasa\.gov\/api\/citations\/20250009323/)
   // The warning is text, not a control: the header still has 8 controls (Edit mission, Landing site, Dates, Find the
   // best site, Site details, Points of interest, Flight plan, Help) and the main screen 13 (+ View, Play, the footer's
   // "how this is computed", "Documentation" and the validation line's record link).
   await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(8)
-  // 15 Nov: the warning names NASA's requirement and links its source, one more link while it shows.
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(14)
+  // 15 Nov: the warning names NASA's requirement and links its source: with "Why?" open, its Source link and the
+  // Less button are two more controls while it shows.
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(15)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)

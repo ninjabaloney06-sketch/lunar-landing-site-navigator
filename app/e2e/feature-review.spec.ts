@@ -233,3 +233,56 @@ test('prefers-reduced-motion: no control animates its transition, the View and P
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   expect(parseFloat(await page.getByTestId('view').evaluate((el) => getComputedStyle(el).transitionDuration))).toBeGreaterThan(0.05)
 })
+
+test('Sun and Earth labels never lie on each other, also when the two are a few degrees apart low over the horizon', async ({ page }) => {
+  test.setTimeout(240_000)
+  await open(page)
+  const boxes = () =>
+    page.evaluate(() => {
+      const r = (id: string) => {
+        const el = document.querySelector(`[data-testid="${id}"]`) as HTMLElement | null
+        if (!el || el.closest('[hidden]') || !el.getClientRects().length) return null
+        const b = el.getBoundingClientRect()
+        return b.width ? { x0: b.left, y0: b.top, x1: b.right, y1: b.bottom } : null
+      }
+      return { sun: r('label-sun'), earth: r('label-earth') }
+    })
+  let close = 0
+  // Full Moon of August 2027 lies in the mission: from the Moon, the Sun and Earth stand close together then.
+  for (let h = 0; h < 14 * 24; h += 3) {
+    const t = new Date(Date.UTC(2027, 7, 16) + h * 3_600_000).toISOString().slice(0, 16) + 'Z'
+    await page.evaluate((tt) => (location.hash = `site=connecting-ridge&period=shackleton-2027-08&t=${tt}`), t)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready')
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    const { sun, earth } = await boxes()
+    if (!sun || !earth) continue
+    const dx = Math.abs((sun.x0 + sun.x1) / 2 - (earth.x0 + earth.x1) / 2)
+    const dy = Math.abs((sun.y0 + sun.y1) / 2 - (earth.y0 + earth.y1) / 2)
+    if (dx < 200 && dy < 60) close++
+    const overlap = sun.x0 < earth.x1 && earth.x0 < sun.x1 && sun.y0 < earth.y1 && earth.y0 < sun.y1
+    expect(overlap, `labels overlap at ${t}`).toBe(false)
+  }
+  console.log(`Sun/Earth labels: ${close} times close together, none overlapping`)
+})
+
+test.describe('375 px slope warning', () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  test('the slope warning on a steep site is at most two lines, keeps off the timeline and the landing marker, and opens its source', async ({ page }) => {
+    await open(page, '/#site=shackleton-rim-site04&period=shackleton-2027-08')
+    const warn = page.getByTestId('slope-warning')
+    await expect(warn).toBeVisible()
+    const w = (await warn.boundingBox())!
+    expect(w.height).toBeLessThanOrEqual(2 * 22)
+    const answer = (await page.getByTestId('answer').boundingBox())!
+    expect(w.y + w.height).toBeLessThanOrEqual(answer.y + 1)
+    const marker = page.getByTestId('label-site')
+    if (await marker.isVisible()) {
+      const m = (await marker.boundingBox())!
+      expect(m.y + m.height <= w.y || m.y >= w.y + w.height).toBe(true)
+    }
+    await page.getByTestId('slope-why').click()
+    await expect(page.getByTestId('slope-why-text')).toContainText("NASA's Artemis III landing requirement is under 10° over 100 m.")
+    await expect(page.getByTestId('slope-source')).toBeVisible()
+  })
+})
