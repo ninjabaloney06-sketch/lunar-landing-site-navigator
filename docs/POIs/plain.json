@@ -1,0 +1,1400 @@
+{
+ "hazard:scarp_de_gerlache": {
+  "type": "Lobate thrust scarp",
+  "bullets": [
+   "Lobate scarp ~4 km long, relief ~60-80 m, on <10° slope",
+   "Within de Gerlache Rim 2 candidate region, ~60 km from pole"
+  ]
+ },
+ "hazard:scarp_wiechert_cluster": {
+  "type": "Scarp cluster",
+  "bullets": [
+   "Cluster of at least 5 scarps",
+   "Relief ~10 m; scarp evidence established"
+  ]
+ },
+ "hazard:scarp_ibn_bajja_cluster": {
+  "type": "Scarp cluster",
+  "bullets": [
+   "Cluster of 3 scarps",
+   "Relief ~20 m; scarp evidence established"
+  ]
+ },
+ "hazard:scarp_shoemaker": {
+  "type": "Lobate scarp",
+  "bullets": [
+   "Relief ~80 m, length ~4 km",
+   "~30 km from Nobile Rim 1",
+   "PSR on Nobile rim within 20 km of scarp is landslide-susceptible"
+  ]
+ },
+ "hazard:scarp_newton_e": {
+  "type": "Lobate scarp",
+  "bullets": []
+ },
+ "hazard:seismic_n9": {
+  "type": "Shallow moonquake",
+  "bullets": [
+   "Shallow moonquake, mb ~5-5.6, dated 1973-03-13",
+   "Event established; epicentre location uncertain, approximate",
+   "Strongest Apollo-era; context 28 shallow moonquakes recorded 1969-1977"
+  ]
+ },
+ "hazard:terrain_landing_outcomes": {
+  "type": "Demonstrated landing outcomes",
+  "bullets": [
+   "IM-2 altimeter failed; came to rest on its side in ~20 m shadowed crater",
+   "IM-1 broke a leg on 12° slope, ~30° tilt",
+   "Common cause: altimetry or navigation sensors, not slope or lighting (inference)"
+  ]
+ },
+ "water:lcross_targeted_impact_point": {
+  "type": "Impact point",
+  "bullets": []
+ },
+ "water:lcross_shepherding_spacecraft_target": {
+  "type": "Impact target",
+  "bullets": []
+ },
+ "water:lcross_reconstructed_impact_point": {
+  "type": "Impact point",
+  "bullets": [
+   "1-sigma 115 m in latitude, 44 m in longitude; 146 m from target",
+   "Reconstruction by LRO, 4 methods",
+   "Position evidence is direct"
+  ]
+ },
+ "water:lcross_measurements": {
+  "type": "Impact measurements",
+  "bullets": [
+   "Measured in one impact's ejecta plume; not valid for whole crater",
+   "Centaur impact 2009-10-09 11:31:19.506 UTC",
+   "Shepherding spacecraft time ~11:37 UTC"
+  ]
+ },
+ "water:lend_cabeus_1": {
+  "type": "Hydrogen maximum (LEND)",
+  "bullets": [
+   "Anomalously enhanced; at least two hydrogen sources",
+   "Collimated WEH 0.39 wt%, suppression 0.82; indirect evidence",
+   "Diviner max temperature 78 K"
+  ]
+ },
+ "water:lend_haworth": {
+  "type": "Hydrogen maximum (LEND)",
+  "bullets": [
+   "Maximum at base of poleward-facing slope, T_max 60.3 K",
+   "Collimated WEH 0.27 wt%, suppression 0.87; indirect evidence",
+   "Haworth PSR ~35 km"
+  ]
+ },
+ "water:lend_shoemaker": {
+  "type": "Hydrogen maximum (LEND)",
+  "bullets": [
+   "Largest PSR, ~37 km equivalent diameter, most detectable",
+   "Collimated WEH 0.37 wt%, suppression 0.83; indirect evidence",
+   "Diviner max temperature 59 K"
+  ]
+ },
+ "water:lend_faustini": {
+  "type": "Hydrogen maximum (LEND)",
+  "bullets": [
+   "Collimated WEH 0.26 wt%, suppression 0.87; indirect evidence",
+   "Diviner max temperature 73 K",
+   "Reduced early-mission LEND coverage"
+  ]
+ },
+ "cold-trap:atlas_01": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 1075.518 km², perimeter 166.2 km",
+   "High-reflectance south-facing wall",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_02": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 1017.932 km², perimeter 173.9 km",
+   "Smooth crater with high reflectance",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_03": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 663.93 km², perimeter 133.4 km",
+   "Heavily cratered floor",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_04": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 548.791 km², perimeter 177.4 km",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_05": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 439.222 km², perimeter 413.3 km",
+   "Wall terracing",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_06": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 376.916 km², perimeter 197.4 km",
+   "Cluster of craters",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_07": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 371.549 km², perimeter 133.3 km",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_08": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 326.779 km², perimeter 102.0 km",
+   "Smooth dark floor, central peak",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_09": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 315.029 km², perimeter 340.9 km",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_10": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 300.589 km², perimeter 109.0 km",
+   "High-reflectance streaks",
+   "Atlas centre point only; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_11": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 243.292 km²",
+   "Perimeter 111.1 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_12": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 237.287 km²",
+   "Perimeter 170.6 km"
+  ]
+ },
+ "cold-trap:atlas_13": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 233.698 km²",
+   "Perimeter 70.3 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_14": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 194.702 km²",
+   "Perimeter 104.4 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_15": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 194.479 km²",
+   "Perimeter 139.2 km"
+  ]
+ },
+ "cold-trap:atlas_16": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 183.172 km²",
+   "Perimeter 106.9 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_17": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 182.268 km²",
+   "Perimeter 114.1 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_18": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 166.374 km²",
+   "Perimeter 98.6 km"
+  ]
+ },
+ "cold-trap:atlas_19": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 155.074 km²",
+   "Perimeter 171.8 km"
+  ]
+ },
+ "cold-trap:atlas_20": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 142.949 km²",
+   "Perimeter 76.4 km"
+  ]
+ },
+ "cold-trap:atlas_21": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 138.251 km²",
+   "Perimeter 158.5 km"
+  ]
+ },
+ "cold-trap:atlas_22": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 132.347 km²",
+   "Perimeter 98.5 km"
+  ]
+ },
+ "cold-trap:atlas_23": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 129.557 km²",
+   "Perimeter 172.0 km"
+  ]
+ },
+ "cold-trap:atlas_24": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 127.296 km²",
+   "Perimeter 87.4 km"
+  ]
+ },
+ "cold-trap:atlas_25": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 124.33 km²",
+   "Perimeter 100.3 km"
+  ]
+ },
+ "cold-trap:atlas_26": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 120.575 km²",
+   "Perimeter 55.4 km"
+  ]
+ },
+ "cold-trap:atlas_27": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 119.171 km²",
+   "Perimeter 115.3 km"
+  ]
+ },
+ "cold-trap:atlas_28": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 114.437 km²",
+   "Perimeter 144.8 km"
+  ]
+ },
+ "cold-trap:atlas_29": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 113.414 km²",
+   "Perimeter 76.1 km"
+  ]
+ },
+ "cold-trap:atlas_30": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 103.727 km²",
+   "Perimeter 88.7 km",
+   "Atlas marks centre point; the PSR is an area"
+  ]
+ },
+ "cold-trap:atlas_31": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 101.833 km²",
+   "Perimeter 55.7 km"
+  ]
+ },
+ "cold-trap:atlas_32": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 101.758 km²",
+   "Perimeter 125.2 km"
+  ]
+ },
+ "cold-trap:atlas_33": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 99.558 km²",
+   "Perimeter 121.1 km"
+  ]
+ },
+ "cold-trap:atlas_34": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 98.23 km²",
+   "Perimeter 85.6 km"
+  ]
+ },
+ "cold-trap:atlas_35": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 97.967 km²",
+   "Perimeter 60.5 km"
+  ]
+ },
+ "cold-trap:atlas_36": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 95.083 km², perimeter 80.0 km",
+   "Atlas centre point; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_37": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 88.607 km², perimeter 45.8 km",
+   "Atlas centre point; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_38": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 85.18 km², perimeter 109.1 km",
+   "Atlas centre point; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_39": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 79.788 km², perimeter 35.9 km",
+   "Atlas centre point; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:atlas_40": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "PSR area 79.142 km², perimeter 46.9 km",
+   "Atlas centre point; the PSR is an area, not a point"
+  ]
+ },
+ "cold-trap:lem21_shoemaker": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.24 wt%, 134 M3 ice detections (0.13 per km²)",
+   "Illumination 2% within 1 km, 24% within 5 km, 47% within 10 km"
+  ]
+ },
+ "cold-trap:lem21_haworth": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.31 wt%, 80 M3 ice detections (0.08 per km²)",
+   "PSR area 1009 km², access slope class 5-10°",
+   "Model age 4.18 Ga; min temperature 14 K looks like a data artefact"
+  ]
+ },
+ "cold-trap:lem21_faustini": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.37 wt%, 34 M3 ice detections (0.05 per km²)",
+   "Illumination 5% within 1 km, 65% within 5 km, 68% within 10 km",
+   "Traverse 10433 m at 15°, 4784 m at 20° slope limit"
+  ]
+ },
+ "cold-trap:lem21_sverdrup_1": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Access slope class 0-5°, traverse 20741 m at 10°",
+   "Illumination 29% within 1 km, 55% within 5 km, 77% within 10 km",
+   "Max WEH 0.12 wt%, 93 M3 ice detections (0.17 per km²)"
+  ]
+ },
+ "cold-trap:lem21_cabeus_1": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.9 wt%, 9 M3 ice detections (0.03 per km²)",
+   "PSR area 285 km², access slope class 5-10°",
+   "H₂O stability depth 0.00-0.11 m, model age 3.5 Ga"
+  ]
+ },
+ "cold-trap:lem21_wiechert_j": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.06 wt%, 17 M3 ice detections (0.05 per km²)",
+   "Illumination 41% within 1 km, 45% within 5 km, 50% within 10 km",
+   "Longitude conflicts with LROC atlas; sources disagree"
+  ]
+ },
+ "cold-trap:lem21_malapert": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Access slope class 0-5°, traverse 15413 m at 10°",
+   "Illumination 43% within 1 km, 55% within 5 and 10 km",
+   "Max WEH 0.05 wt%, 17 M3 ice detections (0.09 per km²)"
+  ]
+ },
+ "cold-trap:lem21_nobile_2": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Fastest-access target, ~4 km from a landing site on 0-10° slopes",
+   "About 2 km if slopes up to 15° are allowed",
+   "Max WEH 0.13 wt%, 15 M3 ice detections (0.08 per km²)"
+  ]
+ },
+ "cold-trap:lem21_psr_120": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Highest M3 detection density, 36 ice detections (0.41 per km²)",
+   "Max WEH 0.15 wt%, PSR area 87 km²",
+   "Illumination 6% within 1 km, 44% within 5 km, 64% within 10 km"
+  ]
+ },
+ "cold-trap:lem21_psr_89": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Traverse case study: 20-50 km mission",
+   "Max WEH 0.84 wt%, 10 M3 ice detections (0.24 per km²)",
+   "PSR area 42 km², access slope class 0-5°"
+  ]
+ },
+ "cold-trap:lem21_psr_57": {
+  "type": "Permanently shadowed region",
+  "bullets": [
+   "Max WEH 0.08 wt%, 10 M3 ice detections (0.31 per km²)",
+   "Illumination 9% within 1 km, 37% within 5 km, 62% within 10 km",
+   "Access slope class 5-10°, traverse 7549 m at 10°"
+  ]
+ },
+ "cold-trap:host_shackleton": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 20.92 km, depth 4.2 km",
+   "Floor 6.6 km wide, walls ~30°"
+  ]
+ },
+ "cold-trap:host_haworth": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 51.42 km, host crater centre",
+   "Older notice gives a different centre position"
+  ]
+ },
+ "cold-trap:host_shoemaker": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 51.82 km, depth 3.81 km",
+   "Another reference uses 52 km diameter"
+  ]
+ },
+ "cold-trap:host_faustini": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 42.48 km, host crater centre",
+   "Another reference uses 41 km; older centre about 10 km off"
+  ]
+ },
+ "cold-trap:host_cabeus": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 100.58 km, depth ~4 km",
+   "Floor ~60 km across, walls 10-15°",
+   "Sunlit ~25% per lunar day; shaded region below 100 K"
+  ]
+ },
+ "cold-trap:host_cabeus_a": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 40.88 km, host crater centre"
+  ]
+ },
+ "cold-trap:host_cabeus_b": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 59.62 km, host crater centre"
+  ]
+ },
+ "cold-trap:host_de_gerlache": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 32.71 km; depth unconfirmed, 7.5 km value implausible"
+  ]
+ },
+ "cold-trap:host_sverdrup": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 32.83 km, host crater centre"
+  ]
+ },
+ "cold-trap:host_slater": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_nobile": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_amundsen": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_wiechert": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_wiechert_j": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_idelson": {
+  "type": "Host crater",
+  "bullets": [
+   "Diameter 59.82 km, depth 2.83 km",
+   "Depth from a secondary source only"
+  ]
+ },
+ "cold-trap:host_idelson_l": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_malapert": {
+  "type": "Host crater",
+  "bullets": []
+ },
+ "cold-trap:host_mons_mouton": {
+  "type": "Mountain",
+  "bullets": [
+   "Flat-topped mountain, ~6 km base-to-peak",
+   "Just under 100 km wide, host crater centre"
+  ]
+ },
+ "light:gl18_c1_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 76.0%, solar visibility 81.3%, modelled",
+   "Longest dark 268 h, 20 m DEM"
+  ]
+ },
+ "light:maz11_c1_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 89.0%, solar visibility 92.7%, modelled",
+   "Coarse DEM overestimates illumination, 240 m resolution"
+  ]
+ },
+ "light:sr13_c1_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 64.2%, image-based values underestimate",
+   "Longest dark 308 h, 100 m image resolution, not a DEM"
+  ]
+ },
+ "light:gl18_c2_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 75.6%, solar visibility 80.6%, modelled",
+   "Longest dark 166 h, 20 m DEM"
+  ]
+ },
+ "light:gl18_s_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 81.0%, solar visibility 85.5%, modelled",
+   "Longest dark 221 h, 20 m DEM"
+  ]
+ },
+ "light:maz11_s_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 86.7%, solar visibility 90.5%, modelled",
+   "Based on a 240 m DEM"
+  ]
+ },
+ "light:sr13_s_surface": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 71.6%, image-based",
+   "Longest dark 145 h, 100 m resolution"
+  ]
+ },
+ "light:gl18_c1_2m": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 88.0% at 2 m height, modelled",
+   "Solar visibility 92.1%, longest dark 112 h"
+  ]
+ },
+ "light:gl18_c2_2m": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 78.1% at 2 m height, modelled",
+   "Longest dark 165 h, no gain in darkness from height"
+  ]
+ },
+ "light:gl18_s_2m_max_illum": {
+  "type": "Illumination peak",
+  "bullets": [
+   "Maximum illumination 85.5% at 2 m height, modelled",
+   "Solar visibility 89.4%, longest dark 66 h"
+  ]
+ },
+ "light:gl18_s_2m_max_vis": {
+  "type": "Illumination point",
+  "bullets": [
+   "Maximum solar visibility 89.8%, illumination 82.1%, modelled",
+   "Longest dark 65 h at 2 m height"
+  ]
+ },
+ "light:bus10_a": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 81%, modelled, upper bound from coarse DEM",
+   "A and B together lit ~94% of the year, less than 10 km apart",
+   "Lit 98% at midsummer, 44% at midwinter"
+  ]
+ },
+ "light:bus10_b": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 82%, modelled, over 4.5 continuous months lit",
+   "Eclipses only 12-24 h, 4.5 days total in 8 months centred on midsummer",
+   "Lit 100% at midsummer, 56% at midwinter"
+  ]
+ },
+ "light:bus10_c": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 85%, modelled",
+   "Shortest maximum single eclipse of all points, ~6 days",
+   "Lit 98% at midsummer, 64% at midwinter"
+  ]
+ },
+ "light:bus10_d": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 86%, modelled, highest of the study",
+   "Longest lit over 5 continuous months, centred on midsummer",
+   "Study sources disagree on latitude"
+  ]
+ },
+ "light:bus10_m1": {
+  "type": "Illumination point",
+  "bullets": [
+   "Illumination 74%, modelled",
+   "Lit 95% at midsummer, 54% at midwinter",
+   "Based on a 474 m DEM"
+  ]
+ },
+ "light:bus10_m2": {
+  "type": "Illumination point",
+  "bullets": [
+   "Modelled illumination 74% average, 90% at midsummer, 58% at midwinter"
+  ]
+ },
+ "light:petro21_malapert_summit_earth": {
+  "type": "Illumination point",
+  "bullets": [
+   "Modelled Earth visibility 100%, permanent line of sight",
+   "A 5 m summit mast would widen line of sight toward the pole",
+   "Slopes under 15° in places"
+  ]
+ },
+ "landing:faustini_rim_a": {
+  "type": "Artemis region",
+  "bullets": [
+   "Among the largest suitable fractional areas, after Slater Plain and Nobile Rim 2",
+   "Size ~15 × 15 km, image mosaic ~20 km north-south",
+   "Dropped in 2024; best of 80 candidate points at rank 16"
+  ]
+ },
+ "landing:peak_near_shackleton": {
+  "type": "Artemis region",
+  "bullets": [
+   "SPA material fraction 47%, rank 2 of 13",
+   "Size ~15 × 15 km, image mosaic ~22 km north-south",
+   "Dropped in 2024"
+  ]
+ },
+ "landing:connecting_ridge": {
+  "type": "Artemis region",
+  "bullets": [
+   "Ranked first for average illumination in a 2011 study",
+   "SPA material fraction 46%, rank 3 of 13",
+   "Dropped from the Artemis III list in 2024, first Moon Base robotic target"
+  ]
+ },
+ "landing:connecting_ridge_extension": {
+  "type": "Artemis region",
+  "bullets": [
+   "Among the smallest suitable fractional areas",
+   "Size ~15 × 15 km",
+   "Dropped in 2024; none of its 36 points in the top 100"
+  ]
+ },
+ "landing:de_gerlache_rim_1": {
+  "type": "Artemis region",
+  "bullets": [
+   "Among the smallest suitable fractional areas",
+   "Size ~15 × 15 km",
+   "Dropped in 2024"
+  ]
+ },
+ "landing:de_gerlache_rim_2": {
+  "type": "Artemis region",
+  "bullets": [
+   "Hazard: de Gerlache thrust scarp lies within this region",
+   "Unstable slope of a permanently shadowed region lies to its north",
+   "Kept in 2024; best of 104 points at rank 19"
+  ]
+ },
+ "landing:de_gerlache_kocher_massif": {
+  "type": "Artemis region",
+  "bullets": []
+ },
+ "landing:haworth": {
+  "type": "Artemis region",
+  "bullets": [
+   "Two Haworth sites exceed 25 days of simultaneous Sun and Earth visibility at midsummer",
+   "Size ~15 × 15 km, image mosaic ~39 km north-south",
+   "Kept in 2024; none of its 20 points in the top 100"
+  ]
+ },
+ "landing:malapert_massif": {
+  "type": "Artemis region",
+  "bullets": [
+   "Summit rises more than 5,000 m above its base; nearside slope faces Earth",
+   "A 2030 mission targets Mons Malapert"
+  ]
+ },
+ "landing:leibnitz_beta_plateau": {
+  "type": "Artemis region",
+  "bullets": [
+   "Chang'e-8 planned for the Leibnitz Beta plateau",
+   "Name dropped in 2024; the area is now called Mons Mouton",
+   "Size ~15 × 15 km"
+  ]
+ },
+ "landing:nobile_rim_1": {
+  "type": "Artemis region",
+  "bullets": [
+   "Hazard: ~30 km from the Shoemaker scarp",
+   "Landslide-susceptible interior walls",
+   "Kept in 2024; size ~15 × 15 km"
+  ]
+ },
+ "landing:nobile_rim_2": {
+  "type": "Artemis region",
+  "bullets": [
+   "Second-largest suitable fractional area",
+   "Kept in 2024; best of its 473 points at rank 1; 36% of the top 100",
+   "Size ~15 × 15 km, image mosaic ~27 km north-south"
+  ]
+ },
+ "landing:amundsen_rim": {
+  "type": "Artemis region",
+  "bullets": [
+   "Dropped in 2024; best of 149 points at rank 10",
+   "13% of the top 100 points lie here",
+   "Size ~15 × 15 km, image mosaic ~26 km north-south"
+  ]
+ },
+ "landing:peak_near_cabeus_b": {
+  "type": "Artemis region",
+  "bullets": [
+   "Among the smallest suitable fractional areas",
+   "New region in 2024; image mosaic ~26 km north-south"
+  ]
+ },
+ "landing:mons_mouton_plateau": {
+  "type": "Artemis region",
+  "bullets": [
+   "Region average Sun 0.45 ± 0.14; Earth 74 ± 19% of lunar year"
+  ]
+ },
+ "landing:mons_mouton_region": {
+  "type": "Artemis region",
+  "bullets": [
+   "2024 name for the area formerly called Leibnitz Beta Plateau",
+   "Among the smallest suitable fractional areas"
+  ]
+ },
+ "landing:connecting_ridge_shackleton_junction": {
+  "type": "Ridge junction",
+  "bullets": [
+   "Flat spot with line of sight into Shackleton permanently shadowed region",
+   "Blocks of ~8 m near the junction are primary sampling targets",
+   "Ridge ~14 km long"
+  ]
+ },
+ "landing:malapert_scan_site_hls_md": {
+  "type": "Analysis site",
+  "bullets": [
+   "557 HLS opportunities in a 10-year scan from 3 Sep 2024",
+   "Based on the legacy NRHO design"
+  ]
+ },
+ "landing:mons_mouton_feature": {
+  "type": "Named feature",
+  "bullets": [
+   "Flat-topped mountain just under 100 km wide, about 6 km high",
+   "Possibly an SPA rim remnant",
+   "Formerly Leibnitz Beta; named 13 May 2022"
+  ]
+ },
+ "landing:im2_intended_site": {
+  "type": "Intended landing site",
+  "bullets": [
+   "Central portion of one of the Artemis 3 potential landing regions",
+   "160 km from the pole"
+  ]
+ },
+ "landing:viper_planned_landing_2021": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Average slope 5°; chosen for high WEH",
+   "Variety of ice-stability depths and survivable shadow durations",
+   "2021 values may be superseded for the 2027 Blue Moon MK1 delivery"
+  ]
+ },
+ "landing:gracy_lee_connecting_ridge": {
+  "type": "Proposed landing site",
+  "bullets": [
+   "Screened for slope ≤ 5° over ≥ 25% of a 2 km-radius exploration zone",
+   "Screened for solar illumination ≥ 33% of time; DTE visibility ≥ 50% of time",
+   "Near rim of a crater holding an H₂O-ice permanently shadowed region"
+  ]
+ },
+ "landing:gracy_lee_peak_near_shackleton": {
+  "type": "Proposed landing site",
+  "bullets": [
+   "Near rim of a crater holding an H₂O-ice permanently shadowed region",
+   "SPA fraction 47%"
+  ]
+ },
+ "landing:topsis_dm2_nobile_rim_2": {
+  "type": "Ranked landing point",
+  "bullets": [
+   "Rank 1 of 1,247 points in a modelled TOPSIS ranking",
+   "Ri = 0.6916, or 0.8453 in the sensitivity case",
+   "First under TOPSIS, MABAC, CoCoSo and VIKOR"
+  ]
+ },
+ "landing:topsis_dm1_amundsen_rim": {
+  "type": "Ranked landing point",
+  "bullets": []
+ },
+ "landing:topsis_site07_peak_near_shackleton": {
+  "type": "Ranked landing point",
+  "bullets": []
+ },
+ "landing:topsis_lm7_faustini_rim_a": {
+  "type": "Ranked landing point",
+  "bullets": []
+ },
+ "landing:topsis_sl2_de_gerlache_rim_2": {
+  "type": "Ranked landing point",
+  "bullets": []
+ },
+ "landing:topsis_site04_point": {
+  "type": "Ranked landing point",
+  "bullets": []
+ },
+ "landing:faustini_rim_a_unnamed_crater": {
+  "type": "Crater",
+  "bullets": [
+   "Point from a 2023 Artemis III workshop abstract",
+   "Location from a search-result snippet only, not the abstract"
+  ]
+ },
+ "landing:lcross_actual": {
+  "type": "Impact site",
+  "bullets": [
+   "Water: 5.6 ± 2.9 wt% H₂O in impact ejecta",
+   "Impact 9 Oct 2009, Cabeus PSR (permanently shadowed region)"
+  ]
+ },
+ "landing:lcross_intended": {
+  "type": "Impact site",
+  "bullets": [
+   "Intended impact target, Cabeus PSR (permanently shadowed region)",
+   "Water: 5.6 ± 2.9 wt% H₂O in impact ejecta"
+  ]
+ },
+ "landing:luna_25_actual": {
+  "type": "Crash site",
+  "bullets": [
+   "Crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+   "New crater about 10 m, about 400 km from target",
+   "Failure after an orbit-lowering burn"
+  ]
+ },
+ "landing:luna_25_intended": {
+  "type": "Intended landing site",
+  "bullets": [
+   "Intended main site, north of Boguslawsky",
+   "Crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+   "New crater about 10 m, about 400 km from target"
+  ]
+ },
+ "landing:luna_25_reserve": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Reserve site; mission crashed 19 Aug 2023 on SW rim of Pontecoulant G",
+   "New crater about 10 m, about 400 km from target"
+  ]
+ },
+ "landing:chandrayaan_3_actual": {
+  "type": "Landing site",
+  "bullets": [
+   "First soft landing near the south pole, 23 Aug 2023",
+   "Lander and rover worked one lunar day; rover 12 days",
+   "No response to wake-up calls on 22 Sep 2023"
+  ]
+ },
+ "landing:chandrayaan_3_actual_alt": {
+  "type": "Landing site",
+  "bullets": [
+   "First soft landing near the south pole, 23 Aug 2023",
+   "Lander and rover worked one lunar day; rover 12 days",
+   "No response to wake-up calls on 22 Sep 2023"
+  ]
+ },
+ "landing:im_1_actual": {
+  "type": "Landing site",
+  "bullets": [
+   "Partial: within about 1.5 km of target; 100 m precision goal missed",
+   "Rested ~30 deg tilted after breaking a leg; degraded ~1 km crater",
+   "About seven days of data; power lost 28/29 Feb, sources differ"
+  ]
+ },
+ "landing:im_2_actual": {
+  "type": "Landing site",
+  "bullets": [
+   "Failure: on its side in a shadowed crater about 20 m wide",
+   "Southernmost landing to date; ~12 h of operations, over 400 MB returned"
+  ]
+ },
+ "landing:im_2_actual_alt": {
+  "type": "Landing site",
+  "bullets": [
+   "Failure: on its side in a shadowed crater about 20 m wide",
+   "Southernmost landing to date; ~12 h of operations, over 400 MB returned"
+  ]
+ },
+ "landing:im_2_intended": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Intended site at Mons Mouton; lander ended on its side",
+   "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+   "Southernmost landing to date; over 400 MB returned"
+  ]
+ },
+ "landing:im_2_intended_alt": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Intended site at Mons Mouton; lander ended on its side",
+   "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+   "Southernmost landing to date; over 400 MB returned"
+  ]
+ },
+ "landing:change_6_actual": {
+  "type": "Sample return site",
+  "bullets": [
+   "Not a polar site; SPA basin on the far side",
+   "SPA basin dated 4247 ± 5 Ma from norite clasts",
+   "Samples returned 2024; papers 2025"
+  ]
+ },
+ "landing:viper_intended_2021_plan": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Revived by CLPS task order Sep 2025, up to ~$190M",
+   "Delivery late 2027; June 2026 newsletter says 2H 2028 more likely",
+   "2021 coordinates may be superseded; updated site not published"
+  ]
+ },
+ "landing:change_7_intended": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Illuminated rim of Shackleton, southeast ridge or rim",
+   "Launch scrubbed 23 Aug 2026; 2027 at the earliest",
+   "Target coordinates from secondary reports, not official"
+  ]
+ },
+ "landing:pgda78_dm1_centre": {
+  "type": "PGDA study site",
+  "bullets": [
+   "Centre of PGDA DEM polygon, not a landing point",
+   "Centre points accurate to 5 to 10 meters"
+  ]
+ },
+ "landing:pgda78_dm2_centre": {
+  "type": "PGDA study site",
+  "bullets": [
+   "Centre of PGDA DEM polygon, not a landing point",
+   "Centre points accurate to 5 to 10 meters"
+  ]
+ },
+ "landing:pgda78_haworth_centre": {
+  "type": "PGDA study site",
+  "bullets": [
+   "Centre of PGDA DEM polygon, not a landing point",
+   "Centre points accurate to 5 to 10 meters"
+  ]
+ },
+ "landing:pgda78_lm1_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm2_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm3_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm4_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm5_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm6_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm7_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_lm8_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_npa_centre": {
+  "type": "Exterior wall",
+  "bullets": []
+ },
+ "landing:pgda78_npb_centre": {
+  "type": "Study site",
+  "bullets": []
+ },
+ "landing:pgda78_npc_centre": {
+  "type": "Crater",
+  "bullets": []
+ },
+ "landing:pgda78_npd_centre": {
+  "type": "Crater",
+  "bullets": []
+ },
+ "landing:pgda78_site01_centre": {
+  "type": "Ridge",
+  "bullets": []
+ },
+ "landing:pgda78_site06_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_site07_centre": {
+  "type": "Peak",
+  "bullets": []
+ },
+ "landing:pgda78_site11_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_site20_centre": {
+  "type": "Plateau",
+  "bullets": []
+ },
+ "landing:pgda78_site20v2_centre": {
+  "type": "Plateau, extended boundaries",
+  "bullets": []
+ },
+ "landing:pgda78_site42_centre": {
+  "type": "Massif",
+  "bullets": []
+ },
+ "landing:pgda78_shoemaker_centre": {
+  "type": "Study site",
+  "bullets": []
+ },
+ "landing:pgda78_sl2_centre": {
+  "type": "Rim",
+  "bullets": []
+ },
+ "landing:pgda78_sl3_centre": {
+  "type": "Ridge",
+  "bullets": []
+ },
+ "landing:derosa12_cr1": {
+  "type": "Region of interest",
+  "bullets": [
+   "Connecting Ridge region, studied for ESA's Lunar Lander project",
+   "Candidate site, not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_gr1": {
+  "type": "Region of interest",
+  "bullets": [
+   "de Gerlache Rim region, studied for ESA's Lunar Lander project",
+   "Candidate site, not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_lp1": {
+  "type": "Region of interest",
+  "bullets": [
+   "Leibnitz beta Plateau region, studied for ESA's Lunar Lander project",
+   "Candidate site, not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_mp1": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Among six LUPEX candidate sites; not a landing decision"
+  ]
+ },
+ "landing:derosa12_mp2": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Among six LUPEX candidate sites; not a landing decision"
+  ]
+ },
+ "landing:derosa12_sr1": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_sr2": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_gr2": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Among six LUPEX candidate sites; not a landing decision"
+  ]
+ },
+ "landing:derosa12_sr3": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_sv1": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_lp2": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:derosa12_lp3": {
+  "type": "Region of interest centre",
+  "bullets": [
+   "Region of interest centre from the ESA Lunar Lander study, cancelled 2012",
+   "Not a selected or flown landing point"
+  ]
+ },
+ "landing:chandrayaan_1_mip_impact_stooke2021": {
+  "type": "Impact site",
+  "bullets": [
+   "Approximate point on the Earth-facing slope of the Connecting Ridge",
+   "Crater not yet found in LROC NAC images"
+  ]
+ },
+ "landing:lunar_prospector_impact_nssdca": {
+  "type": "Impact site",
+  "bullets": [
+   "Approximate targeted impact point; no crater named",
+   "Impact 31 July 1999 at 9:52:02 UT"
+  ]
+ },
+ "landing:chandrayaan_2_vikram_impact": {
+  "type": "Impact site",
+  "bullets": [
+   "Crash site found by LROC, not a soft landing",
+   "Elevation 834 m at the impact site"
+  ]
+ },
+ "landing:chandrayaan_2_vikram_intended": {
+  "type": "Planned landing site",
+  "bullets": [
+   "Planned target stated by LROC, rounded to 0.1 degree",
+   "Not reached, so a planned target only"
+  ]
+ },
+ "landing:kaguya_impact": {
+  "type": "Impact site",
+  "bullets": [
+   "Controlled impact near GILL crater",
+   "Release does not say planned or confirmed point"
+  ]
+ },
+ "landing:kumari22_site011_l1": {
+  "type": "Landing site",
+  "bullets": [
+   "Suggested landing point inside candidate site 011, not a NASA selection",
+   "Safer landing point away from boulder-rich hazard, at highest illumination"
+  ]
+ },
+ "science:feat_shackleton": {
+  "type": "Crater",
+  "bullets": [
+   "PSR floor ~88-90 K; rim peaks sunlit ~80-90% of the time",
+   "Pole lies on its rim; D 21.0 km, depth 4.2 km"
+  ]
+ },
+ "science:feat_connecting_ridge_junction": {
+  "type": "Ridge junction",
+  "bullets": [
+   "Illumination 92.27-95.65% at 2-10 m; line of sight into Shackleton PSR",
+   "Longest darkness 3-5 days; ~8 m blocks near junction are primary sampling targets"
+  ]
+ },
+ "science:feat_de_gerlache": {
+  "type": "Crater",
+  "bullets": [
+   "PSR pocket incl. possible CO2 cold trap",
+   "D 32.4 km, depth 7.5 km",
+   "2022 study of 'slope exposed ice'"
+  ]
+ },
+ "science:feat_haworth": {
+  "type": "Crater · PSR",
+  "bullets": [
+   "Large PSR; coldest areas never exceed ~40 K",
+   "D 51.4 km (52 km in a second estimate)",
+   "Pre-Nectarian age 4.18 ± 0.02 Ga (model age)"
+  ]
+ },
+ "science:feat_shoemaker": {
+  "type": "Crater",
+  "bullets": [
+   "Strongest, most uniform LAMP water-band signal of the four",
+   "Hydrogen ~146 ppm (LP) or 220-245 ppm (LEND interpretation)",
+   "Possibly ~5%+ subsurface ice"
+  ]
+ },
+ "science:feat_faustini": {
+  "type": "Crater · PSR",
+  "bullets": [
+   "664 km² PSR, third largest",
+   "Floor may hold ejecta from Imbrium, Orientale and Schrodinger",
+   "Radar-bright signal probably rocks, per ShadowCam"
+  ]
+ },
+ "science:feat_nobile": {
+  "type": "Crater",
+  "bullets": [
+   "Former VIPER site on the west rim, Mons Mouton side",
+   "Griffin Mission One planned to land nearby with Astrolab FLIP rover",
+   "D 79.27 km"
+  ]
+ },
+ "science:feat_mons_mouton": {
+  "type": "Massif",
+  "bullets": [
+   "Near PSRs and extended illumination",
+   "~100 km wide, ~6 km base-to-peak, flat-topped",
+   "IM-4 and Chang'e-8 planned for the plateau"
+  ]
+ },
+ "science:feat_malapert_massif": {
+  "type": "Massif",
+  "bullets": [
+   "Flat area at the heart of the candidate region",
+   "Summit >5,000 m above base; ~3,500 m cliff",
+   "Thought to be an SPA rim remnant (>4 Ga)"
+  ]
+ },
+ "science:feat_cabeus": {
+  "type": "Crater · PSR",
+  "bullets": [
+   "LCROSS ground truth: 5.6 ± 2.9 wt% H₂O, plus other volatiles",
+   "D 100.58 km, depth ~4 km"
+  ]
+ },
+ "science:feat_schrodinger": {
+  "type": "Impact basin",
+  "bullets": [
+   "Volcanic vent and lava flows; target of the Farside Seismic Suite",
+   "D 312 km, depth 4.8 km",
+   "Early Imbrian peak-ring basin"
+  ]
+ },
+ "science:feat_southernmost_pit": {
+  "type": "Lunar pit",
+  "bullets": [
+   "No catalogued pit lies poleward of 80 S",
+   "Catalogue: 281 impact-melt, 15 mare, 5 highland pits",
+   "Polar imaging hampered by lighting"
+  ]
+ },
+ "science:age_haworth": {
+  "type": "Crater age",
+  "bullets": [
+   "Modelled formation age 4.18 +0.02/-0.02 Ga, pre-Nectarian",
+   "Floor retention age 3.55 +0.01/-0.02 Ga",
+   "Pre-Nectarian absolute ages particularly uncertain"
+  ]
+ },
+ "science:age_shoemaker": {
+  "type": "Crater age",
+  "bullets": [
+   "Modelled formation age 4.15 +0.02/-0.02 Ga, pre-Nectarian",
+   "Floor retention age 3.46 +0.02/-0.02 Ga"
+  ]
+ },
+ "science:age_faustini": {
+  "type": "Crater age",
+  "bullets": [
+   "Modelled formation age 4.10 +0.03/-0.03 Ga, pre-Nectarian",
+   "Floor retention age 3.50 +0.03/-0.03 Ga"
+  ]
+ },
+ "science:age_shackleton": {
+  "type": "Crater age",
+  "bullets": [
+   "Modelled rim formation age 3.51 +0.05/-0.08 Ga, Late Imbrian",
+   "Other values 3.60 and 3.69 Ga; sources disagree",
+   "Floor retention 2.63 +0.54/-0.76 Ga, slope-limited, not a formation age"
+  ]
+ }
+}

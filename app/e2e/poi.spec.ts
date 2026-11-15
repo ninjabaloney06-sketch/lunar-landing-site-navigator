@@ -90,7 +90,8 @@ test.describe('POI layer at 1440 × 900', () => {
       expect(hex).toBe(g.color)
       await expect(items.nth(i).getByRole('checkbox')).toBeChecked()
     }
-    await expect(page.getByTestId('poi-key-note')).toContainText('not validated by the science lead')
+    // U7: no per-point science-lead marker in the key (one statement on the docs page instead).
+    await expect(page.getByTestId('poi-key-note')).not.toContainText('science lead')
     await expect(page.getByTestId('poi-key-note')).toContainText(`south of ${Math.abs(PIN_REGION_NORTH_LAT)}° S`)
 
     const all = POI_GROUPS.map((g) => g.id)
@@ -130,7 +131,7 @@ test.describe('POI layer at 1440 × 900', () => {
     await expect.poll(() => hash(page)).toContain(`poi=${rest.join(',')}`)
   })
 
-  test('info box: a POI under the pointer shows its name, facts, evidence, caveat and source links; a click keeps it, Esc closes it', async ({ page }) => {
+  test('info box: a POI under the pointer shows its name, type and plain bullets (full data: facts, evidence, source links); a click keeps it, Esc closes it', async ({ page }) => {
     const pois = await data<Poi[]>(page, 'pois.json')
     const scarp = pois.find((p) => p.id === SCARP)!
     expect(scarp.facts.length).toBeGreaterThan(0)
@@ -147,17 +148,13 @@ test.describe('POI layer at 1440 × 900', () => {
     await expect(box).toHaveAttribute('data-poi-id', SCARP)
     await expect(box).toHaveAttribute('data-pinned', 'false')
     await expect(box.getByRole('heading', { name: scarp.name })).toBeVisible()
-    await expect(box).toContainText('Hazards')
-    await expect(box).toContainText(scarp.summary)
-    await expect(box.locator('.poi-fact').first()).toHaveText(`${scarp.facts[0].label}${scarp.facts[0].value}`)
-    await expect(box).toContainText(`Evidence ${scarp.evidence}`)
-    await expect(box).toContainText('From research notes, not validated by the science lead.')
-    const links = box.getByRole('link')
-    await expect(links).toHaveCount(scarp.sources.length)
-    for (const [i, u] of scarp.sources.entries()) {
-      await expect(links.nth(i)).toHaveAttribute('href', u)
-      await expect(links.nth(i)).toHaveAttribute('target', '_blank')
-    }
+    // Summary mode (U8, the default): plain type and bullets, no sources, no science-lead marker (U7), no hint.
+    await expect(box).toHaveAttribute('data-mode', 'summary')
+    await expect(box.getByTestId('poi-type')).toHaveText(scarp.plain!.type)
+    await expect(box.getByTestId('poi-bullets').locator('li:not(.poi-distance)')).toHaveText(scarp.plain!.bullets)
+    await expect(box.getByRole('link')).toHaveCount(0)
+    await expect(box).not.toContainText('science lead')
+    await expect(box).not.toContainText('Click the pin')
     // The box sits beside the pin (above it, or below when there is no room), inside the stage, never over it;
     // the plain name label is not shown for it.
     const b = (await box.boundingBox())!
@@ -185,6 +182,20 @@ test.describe('POI layer at 1440 × 900', () => {
     await page.waitForTimeout(600)
     await expect(box).toBeVisible()
     await expect(box.getByRole('button', { name: 'Close' })).toBeVisible()
+    // Full data mode (U8) in the kept box: the record's facts, evidence and source links.
+    await box.getByRole('switch', { name: 'Full data' }).click()
+    await expect(box).toHaveAttribute('data-mode', 'full')
+    await expect(box).toContainText('Hazards')
+    await expect(box.locator('.poi-fact').first()).toHaveText(`${scarp.facts[0].label}${scarp.facts[0].value}`)
+    await expect(box.getByTestId('poi-evidence')).toContainText('Evidence')
+    const links = box.getByRole('link')
+    await expect(links).toHaveCount(scarp.sources.length)
+    for (const [i, u] of scarp.sources.entries()) {
+      await expect(links.nth(i)).toHaveAttribute('href', u)
+      await expect(links.nth(i)).toHaveAttribute('target', '_blank')
+    }
+    await box.getByRole('switch', { name: 'Full data' }).click()
+    await expect(box).toHaveAttribute('data-mode', 'summary')
     await page.keyboard.press('Escape')
     await expect(box).toBeHidden()
     await page.waitForTimeout(600)
@@ -272,6 +283,10 @@ test.describe('real POI pins at 1440 × 900 (wave 3, E4: the scene draws them; n
     await expect(box).toHaveAttribute('data-poi-id', poi.id)
     await expect(box).toHaveAttribute('data-pinned', 'false')
     await expect(box.getByRole('heading', { name: poi.name })).toBeVisible()
+    await expect(box.getByTestId('poi-type')).toHaveText(poi.plain!.type)
+    // Sources are in full data mode (U8): switch it on from the box (the pointer moves onto it within the grace time).
+    await box.getByRole('switch', { name: 'Full data' }).click()
+    await expect(box).toHaveAttribute('data-mode', 'full')
     await expect(box.getByRole('link').first()).toHaveAttribute('href', poi.sources[0])
     await expect(box.getByRole('link').first()).toHaveAttribute('target', '_blank')
     await page.evaluate(() => document.fonts.ready)
@@ -306,6 +321,9 @@ test.describe('POI layer at 375 × 812, touch only', () => {
     const b = (await box.boundingBox())!
     expect(b.x).toBeGreaterThanOrEqual(0)
     expect(b.x + b.width).toBeLessThanOrEqual(375)
+    // The Full data switch shows its label at phone width; in full data mode the source links fit on screen.
+    await expect(box.getByRole('switch', { name: 'Full data' })).toBeInViewport()
+    await box.getByRole('switch', { name: 'Full data' }).tap()
     await expect(box.getByRole('link').first()).toBeInViewport()
     await box.getByRole('button', { name: 'Close' }).tap()
     await expect(box).toBeHidden()
@@ -328,7 +346,7 @@ for (const vp of [
     const pois = await data<Poi[]>(page, 'pois.json')
     const scarp = pois.find((p) => p.id === SCARP)!
     await openApp(page, `${DEMO}&poi=all`)
-    await expect(page.getByTestId('poi-key-note')).toContainText('not validated')
+    await expect(page.getByTestId('poi-key-note')).toHaveAttribute('data-state', 'ready')
     await page.evaluate(() => document.fonts.ready)
     await page.screenshot({ path: `test-results/poi-topbar-${vp.tag}.png`, animations: 'disabled' })
     await setNamed(page, { name: scarp.name, poiId: SCARP, x: vp.width / 2, y: vp.height * 0.62, visible: true })

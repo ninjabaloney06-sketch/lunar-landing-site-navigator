@@ -70,6 +70,76 @@
   color: var(--muted);
 }
 
+/* ---------- "Full data" switch (views/FullDataSwitch.tsx), for every card with two modes ----------
+   Label always visible; state = knob position (left off, right on), the filled track only repeats it. */
+
+.full-switch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--t-small);
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.full-switch:hover,
+.full-switch[aria-checked='true'] {
+  color: var(--fg);
+}
+
+.full-switch:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.full-switch-track {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--muted);
+  border-radius: 7px;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.full-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.full-switch[aria-checked='true'] .full-switch-track {
+  border-color: var(--fg);
+  background: var(--fg);
+}
+
+.full-switch[aria-checked='true'] .full-switch-knob {
+  transform: translateX(10px);
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .full-switch-track,
+  .full-switch-knob {
+    transition: none;
+  }
+}
+
 /* ---------- info box at a pin (placed by SceneView with a transform) ---------- */
 
 .poi-info {
@@ -95,7 +165,15 @@
 .poi-info-head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+
+/* Top-right corner: the Full data switch, then Close when the card is kept open. */
+.poi-info-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
   gap: var(--s-3);
 }
 
@@ -110,6 +188,7 @@
 
 .poi-info-close {
   flex: none;
+  font-size: var(--t-small);
 }
 
 .poi-info-name {
@@ -119,6 +198,31 @@
 
 .poi-info-summary {
   margin: var(--s-2) 0 0;
+}
+
+.poi-bullets {
+  display: grid;
+  gap: var(--s-1);
+  margin: var(--s-2) 0 0;
+  padding-left: 1.1em;
+}
+
+.poi-bullets li::marker {
+  color: var(--faint);
+}
+
+.poi-distance {
+  color: var(--muted);
+}
+
+.poi-info-where {
+  margin: var(--s-1) 0 0;
+  color: var(--muted);
+}
+
+.poi-info-meaning {
+  display: block;
+  color: var(--muted);
 }
 
 .poi-facts {
@@ -149,15 +253,6 @@
 
 .poi-info-key {
   color: var(--muted);
-}
-
-.poi-info-caveat {
-  color: var(--muted);
-}
-
-.poi-info-hint {
-  margin: var(--s-2) 0 0;
-  color: var(--faint);
 }
 
 /* ---------- site search: a panel of its own, laid out like the details drawer ---------- */
@@ -287,12 +382,36 @@
     flex-wrap: wrap;
   }
 
-  .poi-key-list {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: var(--s-4);
+  /* Visual sweep item 7: at phone width the key was a two-column block over the landing site. Now one row under
+     the buttons that scrolls sideways (names stay readable, no counts, no note), and it steps aside while a
+     point's card is open, so the card never stacks on top of it. */
+  .poi-key {
+    width: 100%;
+    padding: var(--s-1) var(--s-2);
   }
 
-  .poi-key-note {
-    max-width: none;
+  .poi-key-list {
+    display: flex;
+    gap: var(--s-4);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .poi-key-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .poi-key-item {
+    white-space: nowrap;
+  }
+
+  .poi-key-n,
+  .poi-key-note:not([data-state='error']) {
+    display: none;
+  }
+
+  body:has(.poi-info) .poi-key {
+    visibility: hidden;
   }
 }

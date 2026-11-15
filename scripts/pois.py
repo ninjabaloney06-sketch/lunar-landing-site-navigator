@@ -40,6 +40,11 @@ Fields of one Poi:
     limitations record.limitations (string or null), verbatim.
     sources     the http(s) strings of record.sources, in source order, duplicates removed.
     siteId      record.app_site_id when it is an id in app/public/data/sites.json, else null.
+    plain       {type, bullets} from docs/POIs/plain.json under the Poi's id (U8, the summary card): type a non-empty
+                string, bullets a list of 0-3 non-empty strings, copied verbatim. Only when plain.json exists and has
+                an entry for that id (a missing file adds no plain field anywhere). plain.json is not a group file: it
+                is excluded from the file -> group check. An entry whose id is not a shipped Poi raises (a typo or a
+                dropped record must not pass silently); a malformed entry raises.
 
 Output: json.dumps(pois, ensure_ascii=False, indent=1) + "\\n", UTF-8. Two runs give identical bytes.
 
@@ -54,6 +59,7 @@ from pathlib import Path
 from config import APP_DATA, REPO
 
 POI_DIR = REPO / "docs" / "POIs"
+PLAIN_STEM = "plain"  # docs/POIs/plain.json: plain summary texts keyed by output id, not a group file
 OUT_PATH = APP_DATA / "pois.json"
 SITES_PATH = APP_DATA / "sites.json"
 
@@ -296,15 +302,55 @@ def load_docs(poi_dir=POI_DIR):
     poi_dir = Path(poi_dir)
     if not poi_dir.is_dir():
         raise SystemExit(f"POI folder not found: {poi_dir}")
-    return {p.stem: parse_doc(p.read_text(encoding="utf-8")) for p in sorted(poi_dir.glob("*.json"))}
+    return {p.stem: parse_doc(p.read_text(encoding="utf-8")) for p in sorted(poi_dir.glob("*.json")) if p.stem != PLAIN_STEM}
+
+
+def load_plain(poi_dir=POI_DIR):
+    """docs/POIs/plain.json -> {output id: {type, bullets}}, or None when the file does not exist."""
+    path = Path(poi_dir) / f"{PLAIN_STEM}.json"
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def check_plain(pid, entry):
+    """One plain.json entry -> {type, bullets} in that key order; raises when it is malformed."""
+    if not isinstance(entry, dict) or set(entry) != {"type", "bullets"}:
+        raise PoiError(f"plain.json {pid}: expected exactly the keys type and bullets")
+    t, bullets = entry["type"], entry["bullets"]
+    if not isinstance(t, str) or not t.strip():
+        raise PoiError(f"plain.json {pid}: type is not a non-empty string")
+    if not isinstance(bullets, list) or len(bullets) > 3 or not all(isinstance(b, str) and b.strip() for b in bullets):
+        raise PoiError(f"plain.json {pid}: bullets must be a list of 0-3 non-empty strings")
+    return {"type": t, "bullets": list(bullets)}
+
+
+def merge_plain(pois, plain):
+    """Adds poi['plain'] from plain.json (None = no file: nothing added). Returns the number of Pois without an entry."""
+    if plain is None:
+        return 0
+    if not isinstance(plain, dict):
+        raise PoiError("plain.json is not an object keyed by POI id")
+    ids = {p["id"] for p in pois}
+    unknown = sorted(set(plain) - ids)
+    if unknown:
+        raise PoiError(f"plain.json: id(s) that are not shipped POIs: {unknown}")
+    missing = 0
+    for p in pois:
+        if p["id"] in plain:
+            p["plain"] = check_plain(p["id"], plain[p["id"]])
+        else:
+            missing += 1
+    return missing
 
 
 def load_site_ids(path=SITES_PATH):
     return {s["id"] for s in json.loads(Path(path).read_text(encoding="utf-8"))}
 
 
-def build(docs, site_ids):
-    """docs: {file stem: (default load, token load)} -> (pois, skipped for lack of a source, unknown app_site_ids)."""
+def build(docs, site_ids, plain=None):
+    """docs: {file stem: (default load, token load)}; plain: load_plain() (None = no plain.json) ->
+    (pois, skipped for lack of a source, unknown app_site_ids)."""
     unknown_files = sorted(set(docs) - set(FILE_GROUPS) - set(OPTIONAL_FILES) - NO_POINT_FILES)
     if unknown_files:
         raise PoiError(f"unknown file(s) in docs/POIs: {unknown_files} (map them to a group in scripts/pois.py)")
@@ -335,6 +381,7 @@ def build(docs, site_ids):
             pois.append(poi)
             if unknown is not None:
                 unknown_sites.append(unknown)
+    merge_plain(pois, plain)
     return pois, skipped, unknown_sites
 
 
@@ -346,10 +393,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--check", action="store_true", help="exit 1 if the file on disk differs from a fresh build")
     args = ap.parse_args(argv)
-    pois, skipped, unknown_sites = build(load_docs(), load_site_ids())
+    plain = load_plain()
+    pois, skipped, unknown_sites = build(load_docs(), load_site_ids(), plain)
     data = render(pois)
     counts = ", ".join(f"{g} {sum(p['group'] == g for p in pois)}" for g in GROUP_ORDER)
     print(f"{len(pois)} POIs ({counts}); skipped for lack of a source: {skipped}")
+    if plain is None:
+        print("docs/POIs/plain.json not found: no plain field")
+    else:
+        print(f"plain texts: {sum('plain' in p for p in pois)} of {len(pois)} POIs")
     for s in unknown_sites:
         print(f"app_site_id not in sites.json (siteId null): {s}")
     if args.check:
