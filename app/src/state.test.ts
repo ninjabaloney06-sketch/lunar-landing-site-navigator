@@ -1,31 +1,31 @@
-// User points in the link (Brief C4 part 3): old links still parse, names and roles survive a copied link,
-// and editing the list never renames another point.
+// User points in the link (Brief C4 part 3): old links still parse, names survive a copied link, editing the list
+// never renames another point, and points have no role (U10): a role in an old link is ignored.
 import { describe, expect, it } from 'vitest'
-import { EMPTY_STATE, MAX_POINTS, addPoint, parseHash, pointName, removePoint, renamePoint, serializeHash, setPointRole } from './state'
+import { EMPTY_STATE, MAX_POINTS, addPoint, parseHash, pointName, removePoint, renamePoint, serializeHash } from './state'
 import type { UserPoint } from './state'
-import { customSiteId, parseCustomSiteId } from './data/customSite'
+import { CUSTOM_SITE_NAME, customSiteBase, customSiteId, customSiteName, parseCustomSiteId } from './data/customSite'
 import { capSiteId } from './data/southcap'
 
 const link = (pts: UserPoint[]) => serializeHash({ ...EMPTY_STATE, pts })
 const roundTrip = (pts: UserPoint[]) => parseHash(link(pts)).pts
 
 describe('user points in the link', () => {
-  it('parses the old format lat,lon;lat,lon, with letter names and no roles', () => {
+  it('parses the old format lat,lon;lat,lon, with letter names', () => {
     const pts = parseHash('#pts=-89.3000,-130.0000;-85.5,12.25').pts
     expect(pts).toEqual([
-      { lat: -89.3, lon: -130, name: null, role: null },
-      { lat: -85.5, lon: 12.25, name: null, role: null },
+      { lat: -89.3, lon: -130, name: null },
+      { lat: -85.5, lon: 12.25, name: null },
     ])
     expect(pts.map(pointName)).toEqual(['Point A', 'Point B'])
     // Written back unchanged: a reload neither drops nor renames a point.
     expect(link(pts)).toBe('pts=-89.3000,-130.0000;-85.5000,12.2500')
   })
 
-  it('keeps name and role through a copied link, including separators and percent signs in a name', () => {
+  it('keeps the name through a copied link, including separators and percent signs in a name', () => {
     const pts: UserPoint[] = [
-      { lat: -89.3, lon: -130, name: 'Rim, north; 50% lit', role: 'start' },
-      { lat: -85.5, lon: 12.25, name: null, role: 'end' },
-      { lat: 10, lon: 179.9999, name: 'Crater %2C', role: null },
+      { lat: -89.3, lon: -130, name: 'Rim, north; 50% lit' },
+      { lat: -85.5, lon: 12.25, name: null },
+      { lat: 10, lon: 179.9999, name: 'Crater %2C' },
     ]
     expect(roundTrip(pts)).toEqual(pts)
     expect(roundTrip(roundTrip(pts))).toEqual(pts)
@@ -33,18 +33,22 @@ describe('user points in the link', () => {
 
   it('drops invalid entries and never yields NaN', () => {
     const pts = parseHash('#pts=999,1;abc,2;-80,;,5;-80,400;-70,200,s,X').pts
-    expect(pts).toEqual([{ lat: -70, lon: -160, name: 'X', role: 'start' }])
+    expect(pts).toEqual([{ lat: -70, lon: -160, name: 'X' }])
   })
 
-  it('allows one Start and one End: a second in a link is ignored, a second set by the user replaces the first', () => {
-    expect(parseHash('#pts=1,1,s;2,2,s;3,3,e').pts.map((p) => p.role)).toEqual(['start', null, 'end'])
-    let pts = addPoint(addPoint([], 1, 1)!, 2, 2)!
-    pts = setPointRole(pts, 0, 'start')
-    pts = setPointRole(pts, 1, 'start')
-    expect(pts.map((p) => p.role)).toEqual([null, 'start'])
-    pts = setPointRole(pts, 0, 'end')
-    expect(pts.map((p) => p.role)).toEqual(['end', 'start'])
-    expect(setPointRole(pts, 1, null).map((p) => p.role)).toEqual(['end', null])
+  it('ignores a role in an old link (Start, End, or any unknown value) and keeps the point and its name', () => {
+    const pts = parseHash('#pts=1,1,s;2,2,s,Rim;3,3,e;4,4,x,Odd%2C name;5,5,start,,extra').pts
+    expect(pts).toEqual([
+      { lat: 1, lon: 1, name: null },
+      { lat: 2, lon: 2, name: 'Rim' },
+      { lat: 3, lon: 3, name: null },
+      { lat: 4, lon: 4, name: 'Odd, name' },
+      { lat: 5, lon: 5, name: ',extra' },
+    ])
+    for (const p of pts) expect(p).not.toHaveProperty('role')
+    // Written back without the role: the third field stays empty, so the name keeps its place.
+    expect(link(pts)).toBe('pts=1.0000,1.0000;2.0000,2.0000,,Rim;3.0000,3.0000;4.0000,4.0000,,Odd%252C+name;5.0000,5.0000,,%252Cextra')
+    expect(roundTrip(pts)).toEqual(pts)
   })
 
   it('names new points with the first free letter and never renames the others', () => {
@@ -95,6 +99,17 @@ describe('points-of-interest layer in the link', () => {
     expect(parseHash('#drawer=search').drawer).toBe('search')
     expect(parseHash('#drawer=docs').drawer).toBe('docs')
     expect(parseHash('#drawer=other').drawer).toBeNull()
+  })
+})
+
+describe('a custom landing site carries the mission name (U10)', () => {
+  it('is called by the mission name; "Custom site" only without one; the id and the place stay the same', () => {
+    expect(customSiteName('Ridge survey')).toBe('Ridge survey')
+    expect(customSiteName('  ')).toBe(CUSTOM_SITE_NAME)
+    expect(customSiteName(null)).toBe(CUSTOM_SITE_NAME)
+    expect(customSiteName(undefined)).toBe(CUSTOM_SITE_NAME)
+    const id = customSiteId(-89.47, -136.78)!
+    expect(customSiteBase(id)).toMatchObject({ id, name: CUSTOM_SITE_NAME, lat: -89.47, lon: -136.78 })
   })
 })
 

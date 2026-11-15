@@ -36,6 +36,16 @@ describe('saved missions', () => {
     expect(parseMissions(JSON.stringify([missionKey(m)]))).toEqual([m])
   })
 
+  it('a mission saved before U10 removed point roles still loads: its points and their roles are ignored', () => {
+    const old = 'site=cap:-89.47000,-136.78000&period=shackleton-2027-08&pts=-89.4700,-136.7800,s,Ridge+camp;-89.4,-130,e;-89.3,-120,zz&name=Ridge'
+    const [m] = parseMissions(JSON.stringify([old, 'name=Other&pts=1,1,q,']))
+    expect(m).toEqual({ ...missionOf(parseHash('#site=cap:-89.47000,-136.78000&period=shackleton-2027-08&name=Ridge')) })
+    expect(m.site).toBe('cap:-89.47000,-136.78000')
+    expect(m).not.toHaveProperty('pts')
+    expect(missionKey(m)).not.toContain('pts')
+    expect(parseMissions(JSON.stringify([old, 'name=Other&pts=1,1,q,'])).map((x) => x.name)).toEqual(['Ridge', 'Other'])
+  })
+
   it('a surface stay outside 0.5 to 30 days is dropped, never NaN', () => {
     for (const bad of ['0', '31', 'abc', '', '-2']) expect(missionOf(parseHash(`#stay=${bad}`)).stay).toBeNull()
     expect(missionOf(parseHash('#stay=0.9')).stay).toBe(0.9)

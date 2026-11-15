@@ -81,7 +81,8 @@ test.describe('custom landing site at 1440 × 900', () => {
     await panel.getByTestId('set-site').click()
     await expect(panel).toHaveCount(0)
     await expect.poll(() => hashSite(page)).toBe(PLACE.id)
-    await expect(page.getByTestId('site-name')).toHaveText('Custom site')
+    // U10: a custom landing site carries the mission name (here the default, "Mission 1").
+    await expect(page.getByTestId('site-name')).toHaveText('Mission 1')
     await expect(page.getByTestId('coords')).toHaveText(PLACE.shown)
 
     // Answer and timeline: ready for this site, with values.
@@ -126,7 +127,7 @@ test.describe('custom landing site at 1440 × 900', () => {
     // Details: the horizon chart and the computed values, the approximate line, the terrain text from computed.
     await page.getByTestId('details').click()
     const drawer = page.getByTestId('drawer')
-    await expect(drawer.getByRole('heading', { level: 2 })).toHaveText('Custom site')
+    await expect(drawer.getByRole('heading', { level: 2 })).toHaveText('Mission 1')
     await expect(drawer.getByTestId('drawer-approx-note')).toHaveText(approx)
     await expect(drawer.getByTestId('horizon-strip').locator('svg')).toBeVisible()
     await expect(drawer.getByTestId('compare-table').locator('tbody tr').first().locator('td').first()).toHaveText(`${f.litPct.toFixed(1)} %`)
@@ -146,7 +147,7 @@ test.describe('custom landing site at 1440 × 900', () => {
     await page.goto(link)
     await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', PLACE.id)
-    await expect(page.getByTestId('site-name')).toHaveText('Custom site')
+    await expect(page.getByTestId('site-name')).toHaveText('Mission 1')
     await expect(page.getByTestId('coords')).toHaveText(PLACE.shown)
     await expect(page.getByTestId('approx-note')).toHaveText(approx)
     expect(errors).toEqual([])
@@ -176,7 +177,7 @@ test.describe('custom landing site at 1440 × 900', () => {
     await expect(row.locator('[data-fact=none]')).toHaveText('No terrain data for this point')
     await row.getByRole('button', { name: 'Set as landing site: Ridge camp' }).click()
     await expect.poll(() => hashSite(page)).toBe(PLACE.id)
-    await expect(page.getByTestId('site-name')).toHaveText('Custom site')
+    await expect(page.getByTestId('site-name')).toHaveText('Mission 1')
   })
 
   test('outside the cap no such action is offered, with the reason; a prepared site keeps its texts', async ({ page }) => {

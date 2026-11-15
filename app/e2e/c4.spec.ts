@@ -345,7 +345,7 @@ test.describe('C4 part 2: viewpoints', () => {
     await expect(page.getByTestId('not-to-scale')).toHaveCount(0)
     expect(Math.hypot(...v.bodies[0].camera)).toBeCloseTo(6500, 3)
 
-    // Point start and Point end wait for a point that holds the role.
+    // Point start and Point end stay disabled: points have no role (U10).
     await view.click()
     await expect(menu.getByRole('menuitem', { name: 'Point start' })).toBeDisabled()
     await expect(menu.getByRole('menuitem', { name: 'Point end' })).toBeDisabled()
@@ -550,7 +550,7 @@ test.describe('C4 part 3: user points', () => {
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
   })
 
-  test('typed coordinates add a point; rename, role and delete work; a second Start replaces the first; a point shows "No terrain data for this point" and no number', async ({ page }) => {
+  test('typed coordinates add a point; rename and delete work, no role control (U10); a point shows "No terrain data for this point" and no number', async ({ page }) => {
     await openApp(page, `site=${RIDGE}&period=${AUG}`)
     const panel = await openPanel(page)
     await expect(panel.getByTestId('point')).toHaveCount(0)
@@ -585,14 +585,10 @@ test.describe('C4 part 3: user points', () => {
     await rows.nth(1).getByRole('textbox').fill('x'.repeat(45))
     await expect(rows.nth(1).getByRole('textbox')).toHaveValue('x'.repeat(40))
     await rows.nth(1).getByRole('textbox').fill('Far, east; 50%')
-    // Roles: one Start, one End; a second Start takes the role from the first.
-    await rows.nth(0).getByRole('combobox').selectOption('start')
-    await expect(rows.nth(0)).toHaveAttribute('data-role', 'start')
-    await rows.nth(1).getByRole('combobox').selectOption('start')
-    await expect(rows.nth(1)).toHaveAttribute('data-role', 'start')
-    await expect(rows.nth(0)).toHaveAttribute('data-role', '')
-    await rows.nth(0).getByRole('combobox').selectOption('end')
-    await expect.poll(() => hashPts(page)).toBe('-89.3000,-130.0000,e,Ridge camp;-85.5000,12.2500,s,Far%2C east%3B 50%25')
+    // No role (U10): a point row has no role control.
+    await expect(rows.getByRole('combobox')).toHaveCount(0)
+    await expect(panel.getByRole('combobox', { name: /^Role of/ })).toHaveCount(0)
+    await expect.poll(() => hashPts(page)).toBe('-89.3000,-130.0000,,Ridge camp;-85.5000,12.2500,,Far%2C east%3B 50%25')
     // Select: the coordinates are the control. The point added last is selected; choosing another moves it.
     await expect(rows.nth(1).getByRole('button', { name: /^Select Far, east; 50%/ })).toHaveAttribute('aria-pressed', 'true')
     await rows.nth(0).getByRole('button', { name: /^Select Ridge camp/ }).click()
@@ -602,7 +598,7 @@ test.describe('C4 part 3: user points', () => {
     await expect(panel.getByRole('button', { name: /Add a point/ })).toBeDisabled()
     await expect(page.locator('body')).not.toContainText('NaN')
 
-    // A copied link restores both points with name and role.
+    // A copied link restores both points with their names.
     const link = await page.evaluate(() => location.href)
     await page.goto('about:blank')
     await page.goto(link)
@@ -611,14 +607,12 @@ test.describe('C4 part 3: user points', () => {
     const rows2 = panel2.getByTestId('point')
     await expect(rows2).toHaveCount(2)
     await expect(rows2.nth(0).getByRole('textbox')).toHaveValue('Ridge camp')
-    await expect(rows2.nth(0)).toHaveAttribute('data-role', 'end')
     await expect(rows2.nth(1).getByRole('textbox')).toHaveValue('Far, east; 50%')
-    await expect(rows2.nth(1)).toHaveAttribute('data-role', 'start')
-    // Delete the first: the second keeps its name and role.
+    // Delete the first: the second keeps its name.
     await rows2.nth(0).getByRole('button', { name: 'Delete Ridge camp' }).click()
     await expect(rows2).toHaveCount(1)
     await expect(rows2.nth(0).getByRole('textbox')).toHaveValue('Far, east; 50%')
-    await expect.poll(() => hashPts(page)).toBe('-85.5000,12.2500,s,Far%2C east%3B 50%25')
+    await expect.poll(() => hashPts(page)).toBe('-85.5000,12.2500,,Far%2C east%3B 50%25')
     await page.evaluate(() => document.fonts.ready)
     await page.screenshot({ path: 'test-results/c4-panel-one-point-1440.png', animations: 'disabled' })
   })
@@ -639,39 +633,26 @@ test.describe('C4 part 3: user points', () => {
     await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Point B')
   })
 
-  test('Point start and Point end viewpoints: on the terrain tile the camera stands 1.75 m above the point, elsewhere it looks at the point from above the globe; outside every body', async ({ page }) => {
-    // Start: 3 km from Connecting Ridge (inside its 80 m tile). End: Malapert, far outside it.
-    const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; lat: number; lon: number }[]
-    const ridge = sites.find((s) => s.id === RIDGE)!
-    const start = { lat: ridge.lat + 0.1, lon: ridge.lon }
-    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&pts=${start.lat.toFixed(4)},${start.lon.toFixed(4)},s,Near;-85.9900,0.5000,e,Far`)
+  test('Point start and Point end viewpoints stay disabled (U10: points have no role), also for an old link that gave points the roles s and e', async ({ page }) => {
+    // An old link: the third field of each point was its role (Start, End). It is ignored; both points load with their names.
+    await openApp(page, `site=${RIDGE}&period=${AUG}&t=2027-08-20T06:00Z&pts=-89.3600,-136.6800,s,Near;-85.9900,0.5000,e,Far`)
     const before = await selection(page)
-    const view = page.getByTestId('view')
-    await view.click()
+    await page.getByTestId('view').click()
     const menu = page.getByTestId('view-menu')
-    await expect(menu.getByRole('menuitem', { name: 'Point start' })).toBeEnabled()
-    await expect(menu.getByRole('menuitem', { name: 'Point end' })).toBeEnabled()
-    await menu.getByRole('menuitem', { name: 'Point start' }).click()
-    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
-    expect(await scene(page, (s) => s.surfaceDist()), '1.75 m above the terrain at the point').toBeCloseTo(1.75, 6)
-    await expectOutsideBodies(page, 'Point start')
-    const cam = await camera(page)
-    // 0.1° of latitude on the Moon is 3.03 km: the camera stands that far from the landing site.
-    expect(Math.hypot(cam.position[0], cam.position[1])).toBeGreaterThan(2900)
-    expect(Math.hypot(cam.position[0], cam.position[1])).toBeLessThan(3150)
-    // The same entry from the right-click menu.
-    await chooseView(page, 'Point end')
-    await expect.poll(() => scene(page, (s) => s.level())).toBe('globe')
-    const v = await expectOutsideBodies(page, 'Point end')
-    const p = v.bodies[0].camera
-    const r = Math.hypot(...p)
-    expect(r).toBeCloseTo(3000, 3)
-    expect((Math.asin(p[2] / r) * 180) / Math.PI, 'above the point: latitude').toBeCloseTo(-85.99, 3)
-    expect((Math.atan2(p[1], p[0]) * 180) / Math.PI, 'above the point: longitude').toBeCloseTo(0.5, 2)
+    await expect(menu.getByRole('menuitem', { name: 'Point start' })).toBeDisabled()
+    await expect(menu.getByRole('menuitem', { name: 'Point end' })).toBeDisabled()
+    await page.keyboard.press('Escape')
     await page.mouse.click(720, 300, { button: 'right' })
-    await page.getByTestId('scene-menu').getByRole('menuitem', { name: 'Point start' }).click()
-    await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
-    expect(await scene(page, (s) => s.surfaceDist())).toBeCloseTo(1.75, 6)
+    const ctx = page.getByTestId('scene-menu')
+    await expect(ctx.getByRole('menuitem', { name: 'Point start' })).toBeDisabled()
+    await expect(ctx.getByRole('menuitem', { name: 'Point end' })).toBeDisabled()
+    await page.keyboard.press('Escape')
+    const panel = await openPanel(page)
+    const rows = panel.getByTestId('point')
+    await expect(rows).toHaveCount(2)
+    await expect(rows.nth(0).getByRole('textbox')).toHaveValue('Near')
+    await expect(rows.nth(1).getByRole('textbox')).toHaveValue('Far')
+    await expect(rows.getByRole('combobox')).toHaveCount(0)
     expect(await selection(page)).toBe(before)
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', RIDGE)
   })
@@ -813,7 +794,7 @@ for (const vp of [
   { width: 1440, height: 900 },
   { width: 375, height: 812 },
 ]) {
-  test(`no horizontal scroll and screenshots at ${vp.width} × ${vp.height}: main view, Mission panel with two points, top view, Point start`, async ({ page }) => {
+  test(`no horizontal scroll and screenshots at ${vp.width} × ${vp.height}: main view, Mission panel with two points, top view, Eye level`, async ({ page }) => {
     test.setTimeout(180_000)
     await page.setViewportSize(vp)
     const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; lat: number; lon: number }[]
@@ -846,11 +827,11 @@ for (const vp of [
     await page.waitForTimeout(300)
     await noScroll('top view')
     await shot('top-view')
-    await chooseView(page, 'Point start')
+    await chooseView(page, 'Eye level') // was 'Point start': points have no role since U10
     await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
     await page.waitForTimeout(300)
-    await noScroll('Point start')
-    await shot('point-start')
+    await noScroll('Eye level')
+    await shot('eye-level')
     await page.getByTestId('simulate').click()
     await expect(page.getByTestId('simulate')).toHaveText('Pause')
     await noScroll('simulating')
@@ -903,7 +884,8 @@ test('app: middle-drag, wheel, eye-level zoom and every viewpoint leave site, pe
   })
   expect((await camera(page)).fov).toBeLessThan(54)
   await act('a middle-drag at eye level', drag)
-  for (const label of VIEW_LABELS) await act(label, () => chooseView(page, label))
+  // Point start and Point end are disabled since U10 (points have no role).
+  for (const label of VIEW_LABELS.filter((l) => !l.startsWith('Point '))) await act(label, () => chooseView(page, label))
   await act('a middle-drag in the top view (ignored)', drag)
   await act('Moon', () => chooseView(page, 'Moon'))
   await act('the wheel on the globe', async () => {
@@ -939,10 +921,10 @@ test('without test mode: the walk and the viewpoint flights finish, with no page
   await expect(page.getByTestId('label-sun')).toBeVisible()
   await view('Solar system — top view')
   await expect(page.getByTestId('not-to-scale')).toBeVisible()
-  await view('Point end')
+  // Point start and Point end are disabled since U10 (points have no role): Eye level leaves the top view instead.
+  await view('Eye level')
   await page.waitForTimeout(1800)
   await expect(page.getByTestId('not-to-scale')).toHaveCount(0)
-  await view('Point start')
   await expect.poll(hashView, { timeout: 10_000 }).toBe('eye')
   await page.waitForTimeout(1800)
   await view('Moon')

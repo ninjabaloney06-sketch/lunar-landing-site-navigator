@@ -401,8 +401,10 @@ export function SceneView(props: Props) {
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
+      // U11: only the point under the pointer, not the selected one elsewhere (that sent "Set … as landing site" to the old point).
       const n = namedNow()
-      const i = n && !n.poiId ? pointsNow.current.findIndex((q) => q.name === n.name) : -1
+      const under = n && !n.poiId && Math.hypot(n.x - m.x, n.y - m.y) <= 24
+      const i = under ? pointsNow.current.findIndex((q) => q.name === n.name) : -1
       setCtx({ ...m, point: i >= 0 ? i : null })
     })
     const poiOf = (n: SceneName | null) => (n && n.poiId && byId.current?.has(n.poiId) ? n.poiId : null)
