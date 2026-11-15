@@ -746,3 +746,16 @@ select {
 .nowrap {
   white-space: nowrap;
 }
+
+/* Reduced motion everywhere (polish pass): the per-file rules cover the named transitions; this one also covers the
+   ones a file forgot (the View and Play tools, the POI pins' hover). The 3D camera has its own easing in scene3d. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

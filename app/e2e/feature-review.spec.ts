@@ -220,3 +220,25 @@ test('the link follows the cursor while Play runs (at most every 400 ms), and ho
   const [d, hm] = [Number(t.slice(8, 10)), t.slice(11, 16)]
   expect(shown).toBe(`${d} August 2027, ${hm} UTC`)
 })
+
+test('F08: "days asked for" sits beside the surface stay field, on the same line', async ({ page }) => {
+  await open(page)
+  await page.getByTestId('flight-open').click()
+  const stay = page.getByTestId('flight-stay')
+  await stay.scrollIntoViewIfNeeded()
+  const unit = page.locator('.flight-stay span', { hasText: 'days asked for' })
+  const [a, b] = [(await stay.boundingBox())!, (await unit.boundingBox())!]
+  expect(b.x).toBeGreaterThan(a.x + a.width - 1)
+  expect(Math.abs(b.y + b.height / 2 - (a.y + a.height / 2))).toBeLessThan(8)
+})
+
+test('prefers-reduced-motion: no control animates its transition, the View and Play tools included', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await open(page)
+  for (const id of ['view', 'simulate', 'details']) {
+    const d = await page.getByTestId(id).evaluate((el) => getComputedStyle(el).transitionDuration)
+    expect(d.split(',').every((x) => parseFloat(x) < 0.001)).toBe(true)
+  }
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  expect(parseFloat(await page.getByTestId('view').evaluate((el) => getComputedStyle(el).transitionDuration))).toBeGreaterThan(0.05)
+})

@@ -729,6 +729,16 @@
   width: 100%;
 }
 
+/* F08: the stay field keeps its own width, so "days asked for" sits beside the number as its unit, not on a line
+   of its own under a full-width field. */
+.flight-control .flight-stay .field {
+  width: var(--s-16);
+}
+
+.flight-control .flight-stay span {
+  color: var(--muted);
+}
+
 .flight-line {
   margin: 0;
   padding-top: var(--s-2);
