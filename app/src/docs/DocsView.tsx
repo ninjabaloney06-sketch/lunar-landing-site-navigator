@@ -36,6 +36,9 @@ export function DocsView({ onClose }: { onClose(): void }): JSX.Element {
         <h2 id="docs-title" className="docs-title">
           Documentation
         </h2>
+        <a className="link" href="/docs" data-testid="docs-page-link">
+          Full documentation
+        </a>
         <button ref={closeBtn} className="btn" type="button" onClick={onClose}>
           Close
         </button>
