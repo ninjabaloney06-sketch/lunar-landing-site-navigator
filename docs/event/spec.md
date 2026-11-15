@@ -11,7 +11,7 @@ These are **must-do requirements, not bonuses**. This scope decision supersedes 
 - **Thermal stability:** assess site-specific temperature variation and extremes over the relevant period using sourced observations or a documented model. Illumination alone is not a validated temperature or thermal-stability result; S must define and validate the interpretation.
 - **Scientific value, PSRs and accessibility:** explain site-specific scientific opportunities, identify relevant permanently shadowed regions (PSRs), and assess access from the site using terrain, slope and obstacles. Proximity alone does not establish reachability; PSR presence does not prove usable ice. Use the evidence rules in [lunar-interest-points.md](../reference/lunar-interest-points.md).
 
-For each assessment, show evidence/provenance and limitations, with explicit unknowns when data is missing. An unknown is honest reporting, not completion of the assessment. S reviews the methods and results; Q checks calculations and boundary cases; D integrates the results. Track completion in [TASKS.md](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026). Full automated route optimisation is not implied by the accessibility requirement.
+For each assessment, show evidence/provenance and limitations, with explicit unknowns when data is missing. An unknown is honest reporting, not completion of the assessment. S reviews the methods and results; Q checks calculations and boundary cases; D integrates the results. Track completion in TASKS.md. Full automated route optimisation is not implied by the accessibility requirement.
 
 ## User and answer
 

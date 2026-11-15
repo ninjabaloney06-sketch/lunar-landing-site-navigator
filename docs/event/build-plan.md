@@ -1,6 +1,6 @@
 # Build plan — Lunar Landing Site Navigator
 
-What we build, how every part works, in which order, and how we know each part is right. Written 11 Nov 2026 on ninja's decision (see [decisions.md](../reference/decisions.md#build-plan-before-the-event-11-nov-2026)). Updated 13 Nov after the fact check in [plan-review-13nov.md](plan-review-13nov.md) (2024 site list, light-time size, 300 km rays, landing window finder, objective coverage). **No code in here, and no code before Sat 09:00.** Schedule and checkpoints: [event-plan.md](event-plan.md). Physics background: [primer.md](../reference/primer.md).
+What we build, how every part works, in which order, and how we know each part is right. Written 11 Nov 2026 on ninja's decision (see [decisions.md](../reference/decisions.md#build-plan-before-the-event-11-nov-2026)). Updated 13 Nov after the fact check in plan-review-13nov.md (2024 site list, light-time size, 300 km rays, landing window finder, objective coverage). **No code in here, and no code before Sat 09:00.** Schedule and checkpoints: event-plan.md. Physics background: [primer.md](../reference/primer.md).
 
 Numbers marked **(derived)** are our own arithmetic from sourced constants; everything else links to a source.
 
@@ -12,7 +12,7 @@ A static web app. Pick a landing site (curated list, map click, or typed lat/lon
 
 **Demo question** (from ninja's timed tool run, [existing-tools.md](../reference/existing-tools.md)): *"At Shackleton Connecting Ridge, 14–28 Nov 2026 UTC: when do we have sunlight, when can we talk to Earth, and when both?"* The app answers it in under 60 s, and switching site or date updates the answer in under 10 s (UX-01–05).
 
-**Mandatory scope update (ninja, 14 Nov):** terrain slope (**≤ 5° for landing; < 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility are required, not bonuses. See [spec.md](spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and the [owned checklist](../../TASKS.md#mandatory-site-assessments--confirmed-14-nov-2026) for evidence and acceptance requirements. The slope thresholds are project criteria from ninja. Landing-site slope above 5° fails; exactly 5° passes only the slope criterion; missing slope data leaves landing suitability unknown. Earlier thermal/access exclusions and optional PSR treatment do not remove these assessments. Selected-ground-station geometry is also required by spec.md.
+**Mandatory scope update (ninja, 14 Nov):** terrain slope (**≤ 5° for landing; < 20° for exploration**), surface roughness and surrounding obstacles, thermal stability, and scientific value including PSRs and accessibility are required, not bonuses. See [spec.md](spec.md#mandatory-site-assessments--confirmed-by-ninja-14-nov-2026) and the owned checklist for evidence and acceptance requirements. The slope thresholds are project criteria from ninja. Landing-site slope above 5° fails; exactly 5° passes only the slope criterion; missing slope data leaves landing suitability unknown. Earlier thermal/access exclusions and optional PSR treatment do not remove these assessments. Selected-ground-station geometry is also required by spec.md.
 
 **What the app does not do:** landing trajectories or full automated traverse optimisation. Accessibility assessment is required; its extent and limits must be explicit. Thermal assessment is required using sourced observations or a documented model; a full thermal simulator is not prescribed.
 
@@ -265,7 +265,7 @@ All angles in degrees, distances in km unless named `_m`, times in UTC ISO 8601 
 | `state` | Selected sites (1–3), period, cursor time, view tab, explain mode, all in the URL hash | Shareable link reproduces the exact view |
 | `views/Numbers` | The four big values + lit/Earth indicators | Values as text, not colour only |
 | `views/HorizonStrip` | D3 SVG panorama strip under the 3D view, hover/tap shows exact az/el | Touch and mouse both expose values (UX-04); full fallback without WebGL |
-| `views/Timeline` | Window bars + scrubber; keyboard ←/→ = 30 min, shift = 1 day; play speeds | Scrubber form from [inspiration](../reference/inspiration.md) #19 |
+| `views/Timeline` | Window bars + scrubber; keyboard ←/→ = 30 min, shift = 1 day; play speeds | Scrubber form from inspiration #19 |
 | `views/Compare` | Columns per site/period, synced cursor | Same scales across columns |
 | (map) | Replaced by the 3D globe: site pins, click on the surface = custom site (raycast → lat/lon) | The site list still works if WebGL fails (UX-03/04) |
 | `scene3d/` | The main 3D view, spec in §5.4: system, globe and site levels, camera, assets, debug API | Only consumes MOON_ME vectors from `geometry/`; no hand-written matrices; ≥ 30 fps on the team laptop |
@@ -430,7 +430,7 @@ Ships strictly in this order. A step is done only when its bugs are fixed and Le
 
 **Fallback for step 1 (added 13 Nov):** step 1 has one chain that can sink the demo: ephemeris → horizon → TypeScript geometry → fixture parity (T9) → views. If T9 is not green by **Sat 18:00**, switch to *step 1-lite*: `windows.py` writes per-site time series (az/el, lit, Earth, both, every 30 min) for the preset periods, and the views draw those directly. The TS geometry then becomes the upgrade that unlocks custom sites (7) and the in-browser finder (2b; the finder can also run in Python over presets). Track C builds against the same JSON shape either way.
 
-**Honest note on speed:** steps 5–7 fit only if steps 1–4 pass their gates on time. If a gate fails, the remaining steps drop. They do not ship half-checked (cut list, [event-plan.md](event-plan.md#cut-list-in-order--cut-top-down-one-checkpoint-at-a-time)).
+**Honest note on speed:** steps 5–7 fit only if steps 1–4 pass their gates on time. If a gate fails, the remaining steps drop. They do not ship half-checked (cut list, event-plan.md).
 
 ### 8.1 Agent brief template (one per step and track; fill at the event)
 
@@ -464,4 +464,4 @@ Model: Opus for pipeline and geometry, Haiku for mechanical UI chores. Two agent
 
 - **Leo:** collect sourced coordinates for the Apollo landing sites (NASA NSSDC pages), for the international and commercial landers in §4.3 (ISRO, CNSA, JAXA, Roscosmos, Firefly/NASA pages or peer-reviewed papers) and for the four 2024-only Artemis regions; add them to [sources.md](../reference/sources.md). This is source collection, needed for steps 1 and 5.
 - **Bene:** check that every team laptop opens a WebGL page smoothly (Arc 140V: expected fine).
-- **Isaac:** 13 Nov submission-form check ([submission-check-13nov.md](submission-check-13nov.md)); read the Resources tab when it opens.
+- **Isaac:** 13 Nov submission-form check (submission-check-13nov.md); read the Resources tab when it opens.

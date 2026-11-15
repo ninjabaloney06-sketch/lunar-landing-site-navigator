@@ -181,7 +181,7 @@ Added after this text was written: see [BUILD_LOG.md](BUILD_LOG.md).
 | `docs/reference/` | Data register, sources, background, decisions |
 | `docs/archive/` | Finished audits and checklists |
 
-Working files of the team: [TASKS.md](TASKS.md) (task list), [BUILD_LOG.md](BUILD_LOG.md) (what was done, with times and commits), [AGENTS.md](AGENTS.md) (rules for AI agents in this repository), [docs/event/spec.md](docs/event/spec.md), [docs/event/build-plan.md](docs/event/build-plan.md), [docs/reference/decisions.md](docs/reference/decisions.md).
+Working files of the team: [BUILD_LOG.md](BUILD_LOG.md) (what was done, with times and commits), [AGENTS.md](AGENTS.md) (rules for AI agents in this repository), [docs/event/spec.md](docs/event/spec.md), [docs/event/build-plan.md](docs/event/build-plan.md), [docs/reference/decisions.md](docs/reference/decisions.md).
 
 ## Licence
 

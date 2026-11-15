@@ -4,11 +4,11 @@ Drafted 13 Nov before the event on ninja's decision (exception to the pre-event 
 
 `python3 scripts/tools/make_pitch_pdf.py` turns the slide section below into `docs/event/pitch-backup-slides.pdf`. Edit this file, not the PDF. Format the script reads: `## Slide N · Title`, then `- ` bullets, then an optional `Say:` line (speaker notes, not printed on slides).
 
-Rules: at most 7 slides (2022 demo limit, until the 2026 guide says otherwise; [submission-check-13nov.md](submission-check-13nov.md)). No names, photos or voices of team members (all under 18). Every number below has its source in the repo; do not add numbers that have none.
+Rules: at most 7 slides (2022 demo limit, until the 2026 guide says otherwise; submission-check-13nov.md). No names, photos or voices of team members (all under 18). Every number below has its source in the repo; do not add numbers that have none.
 
 ## 30-second spoken version (demo video and pitch opening)
 
-Order from the 2022 "30 Seconds of Glory" template ([past-winners.md](../reference/past-winners.md), P6): challenge → problem → live app answering the question → why it matters.
+Order from the 2022 "30 Seconds of Glory" template (past-winners.md, P6): challenge → problem → live app answering the question → why it matters.
 
 1. (0–5 s) "Landing at the lunar south pole, a mission needs two things: sunlight for power and a line of sight to Earth for radio."
 2. (5–12 s) "We asked three NASA tools one question: at Connecting Ridge, 14 to 28 November, when do we get both? Fourteen minutes later: one wrong answer, two dead ends."

@@ -199,7 +199,7 @@ npm install -g @anthropic-ai/claude-code    # 2.1.310 on 2026-10-25
 claude            # log in with the account you will use at the event
 ```
 
-### 4 — Save the tutorial pages offline (per role, from [learning.md](learning.md))
+### 4 — Save the tutorial pages offline (per role, from learning.md)
 
 Same URLs on every OS. macOS/Linux: one wget per page, all small (single page + assets).
 Windows 11: no wget — open each URL and "Save as → Webpage, Complete" (Ctrl+S). react.dev
