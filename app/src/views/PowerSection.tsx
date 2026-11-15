@@ -21,6 +21,7 @@ import {
 } from '../power/power'
 import type { PowerInputs, PowerKey } from '../power/power'
 import { Marked } from './SiteAssessment'
+import { Fold } from './Fold'
 import '../styles/power.css'
 
 export type { PowerInputs }
@@ -143,8 +144,7 @@ export function PowerSection(props: Props) {
     )
 
   return (
-    <section className="drawer-sec power" aria-labelledby={`${uid}-h`} data-testid="power-section">
-      <h3 id={`${uid}-h`}>Power and battery estimate</h3>
+    <Fold id={`${uid}-h`} title="Power and battery estimate" className="power" testId="power-section" summary="First estimate for an example panel and battery">
       <p className="msg sample-note power-status">First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).</p>
       {examples.length > 0 && (
         <p className="quiet power-example" data-testid="power-example">
@@ -200,6 +200,6 @@ export function PowerSection(props: Props) {
           efficiency up to 100 %.
         </p>
       </details>
-    </section>
+    </Fold>
   )
 }

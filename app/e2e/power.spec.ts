@@ -3,12 +3,14 @@
 // the estimate marked approximate or "Not computed for this place". Run: PW_GPU=1 PW_PORT=5192 npx playwright test e2e/power.spec.ts
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 const DEMO = 'site=connecting-ridge&period=shackleton-2027-08'
 const CUSTOM = 'site=cap:-89.47000,-136.78000&period=shackleton-2027-08' // 1 km from Connecting Ridge (custom-site.spec)
 
 async function openDrawer(page: Page, hash: string) {
   await page.goto(`/?test=1#${hash}&drawer=details`)
+  await openDrawerFolds(page) // the sections are folded to one line each
   const sec = page.getByTestId('power-section')
   await sec.scrollIntoViewIfNeeded()
   return sec

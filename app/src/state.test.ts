@@ -214,3 +214,15 @@ describe('a custom site opened from a point of interest carries the point name (
     expect(poiNameAt(null, pois)).toBeNull()
   })
 })
+
+describe('custom dates: the link carries the end (to=)', () => {
+  it('writes from= and to=, and reads them back', () => {
+    const s = parseHash('#period=custom&from=2027-08-16T00:00Z&to=2027-09-06T00:00Z')
+    expect(s.days).toBe(21)
+    expect(serializeHash(s)).toBe('period=custom&from=2027-08-16T00:00Z&to=2027-09-06T00:00Z')
+  })
+  it('an old link with days= (or neither) still reads', () => {
+    expect(parseHash('#period=custom&from=2027-08-16T00:00Z&days=21').days).toBe(21)
+    expect(parseHash('#period=custom&from=2027-08-16T00:00Z').days).toBe(14)
+  })
+})

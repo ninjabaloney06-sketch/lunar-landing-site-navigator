@@ -137,6 +137,7 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
       <div className="tl-names" aria-hidden="true">
         <span title="Sunlight: yellow while any part of the Sun is above the terrain">Light</span>
         <span title="Station contact: blue while a selected station has line of sight; hatched = unknown">Contact</span>
+        <span className="tl-names-utc" title="The dates on the axis are UTC">UTC</span>
       </div>
       <div
         ref={body}
@@ -277,7 +278,7 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
           const share = e.status === 'done' && endMs > startMs ? (100 * spans.reduce((t, [a, b]) => t + (b - a), 0)) / (endMs - startMs) : null
           const label =
             e.status === 'done'
-              ? `${r.site.name}: ${what} ${share!.toFixed(0)} % of ${of}`
+              ? `${r.site.name}: ${what} ${share!.toFixed(1)} % of ${of}`
               : e.status === 'none'
                 ? `${r.site.name}: ${e.reason}`
                 : `${r.site.name}: computing`
@@ -297,8 +298,8 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
                     <span key={`${m.name}|${m.startMs}`} className="yt-mission" title={m.name} style={{ left: pct(m.startMs), width: width(m.startMs, m.endMs) }} />
                   ))}
               </div>
-              <span className="yt-val mono" title={share !== null ? `${what} ${share.toFixed(0)} % of ${of}` : undefined}>
-                {share !== null ? `${share.toFixed(0)} %` : e.status === 'none' ? 'no data' : '…'}
+              <span className="yt-val mono" title={share !== null ? `${what} ${share.toFixed(1)} % of ${of}` : undefined}>
+                {share !== null ? `${share.toFixed(1)} %` : e.status === 'none' ? 'no data' : '…'}
               </span>
             </div>
           )

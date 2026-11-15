@@ -44,6 +44,21 @@
   display: none;
 }
 
+/* The verdict leads the result: one size up from the body text. */
+.flight-verdict {
+  font-size: var(--t-ui);
+  font-weight: 500;
+}
+
+.flight-verdict .flight-short-meaning,
+.flight-verdict .flight-lower-bound {
+  font-weight: 400;
+}
+
+.flight-dates-line {
+  margin: 0 0 var(--s-1);
+}
+
 /* What a propellant shortfall means for the mission: its own line under the verdict. */
 .flight-short-meaning {
   display: block;
@@ -273,9 +288,8 @@
 }
 
 .flight-payload {
-  margin: 0;
-  font-family: var(--font-serif, inherit);
-  font-size: 1.05rem;
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-ui);
   line-height: 1.4;
   color: var(--fg);
   overflow-wrap: anywhere;
@@ -1164,8 +1178,17 @@
     display: contents;
   }
 
+  /* Phone audit (15 Nov): "Back to landing site" sits beside the Landing site control (Dates is not shown in the flight
+     view) instead of a row of its own, and the coordinates line goes, so the panel gets two more rows. */
   .top:has(> .place > .flight-panel) > .actions-col {
-    order: 1;
+    position: absolute;
+    top: calc(var(--s-2) + 44px + var(--s-1) + 17px);
+    right: var(--s-4);
+    width: auto;
+  }
+
+  .top:has(> .place > .flight-panel) .site-meta {
+    display: none;
   }
 
   .flight-panel {
@@ -1269,8 +1292,18 @@
 }
 
 /* The energy multiplier on top of the result (as before 15 Nov 06:35): the factor large, then what 1.00x means. */
+/* Folded: the value in its summary line, the explanation on a press. */
+.flight-energy > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.flight-energy > summary::-webkit-details-marker {
+  display: none;
+}
+
 .flight-energy {
-  margin: 0 0 var(--s-3);
+  margin: var(--s-3) 0;
   padding: var(--s-3);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1285,7 +1318,7 @@
 }
 
 .flight-factor-value {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   line-height: 1.1;
   color: var(--fg);
 }

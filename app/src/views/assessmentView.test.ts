@@ -49,10 +49,10 @@ describe('mapAssessment: Haworth from the shipped file', () => {
     expect(b.columns).toEqual(['Landing disk, 100 m radius', 'Exploration disk, 2 km radius'])
     expect(row(b, 'Median slope')).toEqual(['9.96°', '7.42°'])
     expect(row(b, 'Maximum slope')).toEqual(['14.07°', '21.11°'])
-    expect(row(b, 'Share of pixels ≤ 5°')).toEqual(['0 %', '24.79 %'])
-    expect(row(b, 'Share of pixels < 20°')).toEqual(['100 %', '99.99 %'])
+    expect(row(b, 'Share of pixels ≤ 5°')).toEqual(['0.0 %', '24.8 %']) // one decimal for every percentage (values audit)
+    expect(row(b, 'Share of pixels < 20°')).toEqual(['100.0 %', '> 99.9 %']) // never rounded up to all pixels
     expect(row(b, 'Elevation model')).toEqual(['LDEM_80S_20MPP_ADJ.TIF, 20 m per pixel', 'LDEM_80S_20MPP_ADJ.TIF, 20 m per pixel'])
-    expect(row(b, 'Pixels in the disk')).toEqual(['79', '31465'])
+    expect(row(b, 'Pixels in the disk')).toEqual(['79', '31,465']) // thousands separator (values audit)
     expect(b.verdict).toEqual({
       label: 'Fails',
       tone: 'fail',
@@ -76,14 +76,14 @@ describe('mapAssessment: Haworth from the shipped file', () => {
 
   it('nearest permanent shadow: distance, bearing with compass point, straight-line slope check', () => {
     const b = block(v, 'psr')
-    expect(row(b, 'Distance')).toEqual(['1.866 km'])
+    expect(row(b, 'Distance')).toEqual(['1.866 km']) // km as recorded: the validation record compares it with the file
     expect(row(b, 'Bearing')).toEqual(['ENE, 63.9°'])
-    expect(row(b, 'Cluster area')).toEqual(['3.774 km²'])
+    expect(row(b, 'Cluster area')).toEqual(['3.8 km²']) // areas with one decimal (values audit)
     expect(row(b, 'Straight line: maximum slope')).toEqual(['14.13°'])
-    expect(row(b, 'Straight line: share < 20°')).toEqual(['100 %'])
+    expect(row(b, 'Straight line: share < 20°')).toEqual(['100.0 %'])
     expect(row(b, 'Catalogue PSR')).toEqual(['no catalogue PSR coordinate in this cluster'])
     expect(row(b, 'Cluster point')).toEqual(['86.72246° S, 22.70366° W'])
-    expect(row(b, 'Shadow area within')).toEqual(['5 km: 3.9 km² · 10 km: 4.787 km² · 15 km: 9.809 km²'])
+    expect(row(b, 'Shadow area within')).toEqual(['5 km: 3.9 km² · 10 km: 4.8 km² · 15 km: 9.8 km²'])
     expect(b.notes[0].text).toBe('Straight line: straight-line terrain check, not a route.')
     expect(b.extra[0]).toMatch(/^Map projection: The 60 m and 240 m map labels/)
     expect(b.extra[0]).toMatch(/The science lead to confirm\.$/)

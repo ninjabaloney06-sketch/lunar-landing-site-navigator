@@ -60,7 +60,7 @@ import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import { approxText, footTerrain, useCustomSite } from './views/custom'
 import { customSiteId, poiNameAt } from './data/customSite'
 import type { Poi, PoiGroup } from './data/pois'
-import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
+import { missionStay, useFlight } from './views/useFlight'
 import './styles/mission.css'
 import './styles/view.css'
 import './styles/poi.css'
@@ -298,7 +298,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const architecture = ARCHITECTURES.find((a) => a.id === hs.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
   // The surface stay asked for belongs to a design: another design starts with its own default again.
   // It is part of the link and of a saved mission; choosing another design clears it (onArchitecture).
-  const stayDays = hs.stay ?? defaultSurfaceStayDays(architecture)
+  // The flight starts from the mission: landing not before its first day, a stay of its length (reported bug, 15 Nov).
+  const fromMission = missionStay(Math.round((period.endMs - period.startMs) / DAY_MS))
+  const stayDays = hs.stay ?? fromMission.days
   const flight = useFlight({
     active: inFlight,
     pad,
@@ -607,8 +609,23 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         )}
       </div>
 
-      {help && !inFlight && hs.drawer === null && menu === null && (
-        <section id="help-card" className="help-card" data-testid="help-card" aria-labelledby="help-title">
+      {/* A small start card in the middle of a dimmed screen (it no longer lies over the Sun and Earth labels or the
+          site marker of some sites): Got it, Esc or a press beside it closes it. */}
+      {help && !inFlight && (
+        <div
+          className="help-backdrop"
+          data-testid="help-backdrop"
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) setHelpShown(false)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation()
+              setHelpShown(false)
+            }
+          }}
+        >
+        <section id="help-card" className="help-card" role="dialog" aria-modal="true" data-testid="help-card" aria-labelledby="help-title">
           <h2 id="help-title" className="help-title">
             How to use
           </h2>
@@ -625,11 +642,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </ol>
           <p className="help-foot">
             <span className="quiet">Drag to turn the view, scroll to zoom.</span>
-            <button type="button" className="btn" data-testid="help-dismiss" onClick={() => setHelpShown(false)}>
+            <button type="button" className="btn btn-primary" data-testid="help-dismiss" autoFocus onClick={() => setHelpShown(false)}>
               Got it
             </button>
           </p>
         </section>
+        </div>
       )}
 
       <header className="top">
@@ -869,6 +887,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               onSurfaceStayDays={(days) => patch({ stay: days })}
               surfaceStay={architecture.surfaceStay}
               missionDays={missionDays}
+              stayFromMission={hs.stay === null ? fromMission : null}
               returnWindowDays={returnWindowDays}
               onReturnWindowDays={setReturnWindowDays}
               maxTransferDays={hs.tmax}
