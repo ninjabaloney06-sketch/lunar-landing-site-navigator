@@ -601,7 +601,8 @@ export function MissionPanel(p: Props) {
           })}
         </ul>
         <button className="menu-add" type="button" disabled>
-          Add a point: type coordinates in Landing site, or right-click the Moon
+          {/* the right-click half only where there is a mouse: a phone cannot right-click (F8) */}
+          Add a point: type coordinates in Landing site<span className="mp-fine-only">, or right-click the Moon</span>
         </button>
       </section>
 

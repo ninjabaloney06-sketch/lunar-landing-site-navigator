@@ -499,3 +499,10 @@
     transition: none;
   }
 }
+
+/* A hint that needs a mouse (right-click): hidden on touch-only screens (MissionPanel "Add a point"). */
+@media not (pointer: fine) {
+  .mp-fine-only {
+    display: none;
+  }
+}
