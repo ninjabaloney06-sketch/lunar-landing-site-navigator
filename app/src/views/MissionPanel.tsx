@@ -71,7 +71,7 @@ export function fmtDuration(hours: number): string {
 
 // Status thresholds for the per-site values: the "Find better dates" defaults (FINDER_DEFAULTS in geometry/index.ts,
 // docs/event/spec.md "Finder"; proposed defaults, the science lead reviews them) and the 5° landing-slope criterion
-// (geometry/rankSites.ts SLOPE_LIMIT_DEG). Shown in words, not in colour (science lead, 15 Nov).
+// (geometry/rankSites.ts SLOPE_LIMIT_DEG). Values without a stated threshold get no colour.
 const TH = FINDER_DEFAULTS
 const SLOPE_LIMIT = '5°'
 
@@ -730,11 +730,11 @@ interface RowProps {
 
 type Status = 'pass' | 'fail'
 
-/** One value of a site row: label, value with unit, and, when it misses its stated threshold, the threshold in
- *  words; the hint on hover names the threshold. No colour (science lead, 15 Nov: no colour-coding). */
+/** One value of a site row: label, value with unit, status against a stated threshold (colour plus, when it misses,
+ *  the threshold in words), and the hint on hover. */
 function Fact({ fact, label, value, status, miss, hint, extra }: { fact: string; label: string; value: string; status?: Status; miss?: string; hint: string; extra?: string }) {
   return (
-    <span data-fact={fact} data-status={status} title={hint}>
+    <span data-fact={fact} data-status={status} className={status ? `is-${status}` : undefined} title={hint}>
       {label} {value}
       {extra && <span className="fact-extra"> {extra}</span>}
       {status === 'fail' && miss && <span className="fact-miss">, {miss}</span>}
@@ -822,6 +822,7 @@ function SiteRow({ row, goal, days, full, current, active, orderedByCoverage, ti
           <span
             data-fact="slope"
             data-status={slope.slope === 'unknown' || slope.slopeDeg === null ? undefined : slope.slope}
+            className={slope.slope === 'fail' ? 'is-fail' : slope.slope === 'pass' && slope.slopeDeg !== null ? 'is-pass' : undefined}
             title={`Terrain slope over ${SLOPE_BASELINE} (LOLA). Limit: at most ${SLOPE_LIMIT}; passing it alone does not establish landing safety.`}
           >
             {slope.slope === 'unknown' || slope.slopeDeg === null

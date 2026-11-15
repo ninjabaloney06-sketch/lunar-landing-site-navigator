@@ -317,6 +317,15 @@
   margin-top: var(--s-2);
 }
 
+/* Slope against the 5° landing-slope criterion (geometry/rankSites): the only status threshold on these screens.
+   The words "(≤ 5°)" / "too steep" always stand beside the colour. Green as in assessment.css "Passes". */
+.slope-pass {
+  color: oklch(78% 0.13 150);
+}
+
+.slope-fail {
+  color: var(--error);
+}
 
 .st-tbl .st-group {
   padding-top: var(--s-5);
