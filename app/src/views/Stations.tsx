@@ -2,7 +2,7 @@
 // default; at least one stays selected. The details drawer shows their state and links here.
 // Each row: complex, antenna, network and the minimum elevation the coverage uses (stations.json min_elev_deg,
 // with its source on hover). Coverage is geometric line of sight, not a link budget (the caveat sits above the
-// list in the Mission panel and in the hint below).
+// list in the Mission panel).
 import type { Station } from '../data/types'
 import { fmtDeg } from './format'
 
@@ -55,10 +55,10 @@ export function StationChecklist({ stations, ids, onToggle }: Props) {
           )
         })}
       </ul>
-      <ul className="quiet st-hint" data-testid="station-hint">
-        <li>Station coverage: geometric line of sight, not a link budget.</li>
-        <li>Min. elevation: lowest Moon elevation above the station's horizon that counts.</li>
-      </ul>
+      {/* The line-of-sight caveat ("not a guaranteed radio link") sits above the list in the Mission panel. */}
+      <p className="quiet st-hint" data-testid="station-hint">
+        Min. elevation: lowest Moon elevation above the station's horizon that counts.
+      </p>
       {ids.length === 1 && <p className="quiet">At least one station stays selected.</p>}
     </>
   )

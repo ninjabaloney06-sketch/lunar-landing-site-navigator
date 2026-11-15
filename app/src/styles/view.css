@@ -313,9 +313,8 @@
   margin: 0;
 }
 
-ul.st-hint {
-  margin: var(--s-2) 0 0;
-  padding-left: var(--s-4);
+[data-testid='station-hint'] {
+  margin-top: var(--s-2);
 }
 
 /* Slope against the 5° landing-slope criterion (geometry/rankSites): the only status threshold on these screens.

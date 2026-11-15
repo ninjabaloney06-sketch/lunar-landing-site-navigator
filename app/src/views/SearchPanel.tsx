@@ -195,7 +195,7 @@ export function SearchPanel(p: Props) {
           </label>
           <label className="check search-slope">
             <input type="checkbox" checked={slopeRequired} onChange={(e) => setSlopeRequired(e.target.checked)} />
-            <span>Slope 5° or less first</span>
+            <span>Must pass the 5° slope limit</span>
           </label>
         </div>
         {radiusError && (
