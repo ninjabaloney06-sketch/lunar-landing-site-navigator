@@ -215,7 +215,7 @@ const EYE_FOV_MIN = 4 // narrowest lens at eye level, vertical degrees; the wide
 const EYE_ROTATE_SPEED = -0.3 // drag the view, not the camera
 const MOON_FLOOR_KM = 1 // the space camera stays this far above the 1737.4 km sphere (its near plane is 0.5 km)
 const BODY_FLOOR = 1.05 // and outside 1.05 radii of Earth and the Sun
-const ZOOM_SWITCH_MOON_KM = 100 // the zoom-in that opens the site view counts within this height above the Moon's sphere
+const ZOOM_SWITCH_MOON_KM = 500 // a continued zoom-in below this height above the Moon's sphere opens the site view (the floor is not needed: it is about 55 notches from the default view)
 const FREE_MIN_DIST = 1e-4 // orbit distance limit once the wheel or a look-around has moved the camera
 const BODY_OUTER = GLOBE_DIST_KM.max / MOON_RADIUS_KM // outer zoom limit around a body, in its radii: the Moon's 20 000 km
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
@@ -1730,7 +1730,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     // On the Moon view only the Moon's own floor counts (not Earth's or the Sun's); at eye level nothing does.
     const here =
       level === 'globe' ? dir === 'in' && globeCam.position.length() < MOON_RADIUS_KM + ZOOM_SWITCH_MOON_KM : level === 'site' && dir === 'out'
-    const at = zoomSwitchOn && atLimit && here && !fly && !!frame?.site
+    const at = zoomSwitchOn && (atLimit || (level === 'globe' && dir === 'in')) && here && !fly && !!frame?.site
     if (!zoomSwitch.feed(dir, Math.abs(lnFactor), at, performance.now())) return false
     const next = level === 'globe' ? 'site' : 'globe'
     setLevel(next)
