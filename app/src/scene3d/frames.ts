@@ -9,7 +9,6 @@ import { azEl, siteVector, type Enu } from '../geometry'
 export { EARTH_RADIUS_KM, SUN_RADIUS_KM } from '../geometry' // one source for the disc radii (Track A)
 
 export const v3 = (a: Vec3) => new Vector3(a[0], a[1], a[2])
-export const arr = (v: Vector3): Vec3 => [v.x, v.y, v.z]
 
 /**
  * Unit vector in local ENU (x east, y north, z up) for azimuth az (0 = north, clockwise) and elevation el,

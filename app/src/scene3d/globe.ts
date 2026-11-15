@@ -141,7 +141,6 @@ export class GlobeWorld {
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly raycaster = new Raycaster()
   private selected: string | null = null
-  private pinLenKm = 100
 
   constructor(tex: TextureSet) {
     // Diffuse only, as the site terrain (site.ts: no GGX glare at the limb and terminator).
@@ -369,7 +368,13 @@ export class GlobeWorld {
     if (sites === this.sitesDrawn) return
     this.sitesDrawn = sites
     this.sitesList = sites
-    for (const p of this.pins) this.pinGroup.remove(p.group)
+    for (const p of this.pins) {
+      this.pinGroup.remove(p.group)
+      p.stem.geometry.dispose()
+      p.head.geometry.dispose()
+    }
+    // One stem and one head material for all the pins.
+    if (this.pins[0]) for (const m of [this.pins[0].stem.material, this.pins[0].head.material] as MeshBasicMaterial[]) m.dispose()
     this.pins.length = 0
     const stemMat = new MeshBasicMaterial({ color: 0xd9d6cf, toneMapped: false })
     const headMat = new MeshBasicMaterial({ color: 0xf2efe8, toneMapped: false })
@@ -389,7 +394,12 @@ export class GlobeWorld {
   /** User points: a thin stem with a square head, so they are not mistaken for a site pin (round head). */
   setMarkers(markers: GlobeMarker[]) {
     this.markList = markers
-    for (const k of this.marks) this.markGroup.remove(k.group)
+    for (const k of this.marks) {
+      this.markGroup.remove(k.group)
+      k.stem.geometry.dispose()
+      k.head.geometry.dispose()
+    }
+    ;(this.marks[0]?.stem.material as MeshBasicMaterial | undefined)?.dispose() // one material for all of them
     this.marks.length = 0
     const mat = new MeshBasicMaterial({ color: 0xf2efe8, toneMapped: false })
     for (const m of markers) {
@@ -459,7 +469,6 @@ export class GlobeWorld {
       p.stem.scale.set(PIN_W_PX * perPx, PIN_W_PX * perPx, len)
       p.head.position.set(0, 0, len)
       p.head.scale.setScalar(HEAD_PX * perPx * (sel ? 1.3 : 1))
-      if (sel) this.pinLenKm = len
     }
   }
 
@@ -471,10 +480,6 @@ export class GlobeWorld {
 
   pinSurface(siteId: string): Vector3 | null {
     return this.pins.find((q) => q.site.id === siteId)?.surface.clone() ?? null
-  }
-
-  get selectedPinLength() {
-    return this.pinLenKm
   }
 
   get pinsVisible() {

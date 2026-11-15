@@ -12,15 +12,18 @@ import {
   ACESFilmicToneMapping,
   MathUtils,
   MOUSE,
+  Object3D,
   PerspectiveCamera,
   Quaternion,
   Ray,
   SRGBColorSpace,
   Sphere,
   TOUCH,
+  Texture,
   Vector2,
   Vector3,
   WebGLRenderer,
+  type Material,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Horizon, Site, TerrainTile } from '../data/types'
@@ -260,6 +263,18 @@ const ORBIT_REST = 1e-9
 // The space camera's floor (MOON_FLOOR_KM) is restored only when it is this far below it, km: setLength() itself
 // may land a unit in the last place under the floor, which must not count as a new violation every frame.
 const FLOOR_TOLERANCE_KM = 1e-9
+
+/** Frees the GPU resources of everything under root: geometries, materials and the textures they use. */
+function disposeTree(root: Object3D) {
+  root.traverse((o) => {
+    const { geometry, material } = o as Object3D & { geometry?: { dispose(): void }; material?: Material | Material[] }
+    geometry?.dispose()
+    for (const m of Array.isArray(material) ? material : material ? [material] : []) {
+      for (const v of Object.values(m)) if (v instanceof Texture) v.dispose()
+      m.dispose()
+    }
+  })
+}
 
 /** Throws when WebGL is unavailable; C2 then shows the horizon strip and the sentence. */
 export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle {
@@ -1915,6 +1930,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       dissolve.dispose()
       flightControls?.dispose()
       flight?.dispose()
+      // The other scenes: their meshes, materials and the shared texture set (the flight scene's are freed above).
+      for (const s of [site.scene, sky?.scene, globe?.scene, topView?.scene]) if (s) disposeTree(s)
       renderer.dispose()
       canvas.remove()
       fpsEl?.remove()
