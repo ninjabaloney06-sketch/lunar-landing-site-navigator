@@ -465,14 +465,26 @@ export function SceneView(props: Props) {
       if (el.dataset.side !== side) el.dataset.side = side
     }
 
-    // Sun, Earth and Moon labels that would lie on the page's own text (the header over the sky, visual sweep 1 and
-    // 2) are not drawn: the body is behind that text too.
+    // A Sun, Earth or Landing site label that would lie on the page's own text (the header over the sky, visual sweep
+    // 1 and 2) hangs below its point instead (.obj-box.is-below); if that is covered too, it is not drawn.
     const clearOfText = (el: HTMLDivElement | null) => {
-      const b = el?.firstElementChild?.getBoundingClientRect()
-      if (!el || el.hidden || !b) return
+      const box = el?.firstElementChild
+      if (!el || el.hidden || !box) return
       const o = host.current!.getBoundingClientRect()
-      const me: Box = { x0: b.left - o.left, y0: b.top - o.top, x1: b.right - o.left, y1: b.bottom - o.top }
-      if (overlayBoxes(host.current!).some((x) => overlaps(me, x))) el.hidden = true
+      const blocked = overlayBoxes(host.current!)
+      const covered = () => {
+        const b = box.getBoundingClientRect()
+        const me: Box = { x0: b.left - o.left, y0: b.top - o.top, x1: b.right - o.left, y1: b.bottom - o.top }
+        return blocked.some((x) => overlaps(me, x))
+      }
+      box.classList.remove('is-below')
+      if (!covered()) return
+      if (box.classList.contains('obj-box')) {
+        box.classList.add('is-below')
+        if (!covered()) return
+        box.classList.remove('is-below')
+      }
+      el.hidden = true
     }
 
     let raf = 0

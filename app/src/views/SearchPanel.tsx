@@ -252,8 +252,8 @@ export function SearchPanel(p: Props) {
         </ol>
       )}
       <p className="quiet drawer-note">
-        Points of interest: only {REGION_TEXT}, from research notes, not validated by the science lead. Distances are
-        measured along the surface of a 1737.4 km sphere, not along a drivable route.
+        Points of interest: only {REGION_TEXT}. Distances are measured along the surface of a 1737.4 km sphere, not
+        along a drivable route.
       </p>
     </aside>
   )

@@ -90,3 +90,12 @@ for (const vp of [
     })
   })
 }
+
+test('U7: the search panel no longer says per point that it waits for the science lead', async ({ page }) => {
+  await open(page, `${DEMO}&view=site`)
+  await page.getByTestId('search-open').click()
+  const panel = page.getByTestId('search')
+  await expect(panel).toBeVisible()
+  await expect(panel).toContainText('Distances are measured along the surface of a 1737.4 km sphere')
+  await expect(panel).not.toContainText('science lead')
+})
