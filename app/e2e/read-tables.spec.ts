@@ -96,7 +96,7 @@ for (const vp of [
       for (const w of words) expect(['', 'equal', '16–29 Aug 2027', '12–26 Sep 2027']).toContain(w.trim())
       expect(words.filter((w) => w.trim() !== '').length).toBeGreaterThan(0)
       await page.getByLabel('Compare with site').selectOption('malapert-massif')
-      await page.getByLabel('and dates').selectOption('shackleton-2027-08')
+      await page.getByLabel('Compare with period').selectOption('shackleton-2027-08')
       await expect(page.getByTestId('compare-what')).toContainText('Two sites over the same dates')
       await expect(better.first()).toHaveText(/^(Connecting Ridge|Malapert Massif|equal)$/, { timeout: 30_000 })
       const box = page.locator('.compare')

@@ -81,7 +81,7 @@ export function Compare({ site, periodId, periodLabel, sites, periods, stations,
           </select>
         </label>
         <label>
-          <span className="quiet">and dates</span>
+          <span className="quiet">Compare with period</span>
           <select className="field" value={otherPeriod} onChange={(e) => setOtherPeriod(e.target.value)}>
             {periods.map((p) => (
               <option key={p.id} value={p.id}>
