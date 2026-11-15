@@ -133,7 +133,7 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
           </>,
           <>Earth always in view; under 10 m/s per year to hold.</>,
           <>
-            NASA dropped the <Abbr>NRHO</Abbr> meeting in October 2026; shown as planned before.
+            <Abbr>NASA</Abbr> dropped the <Abbr>NRHO</Abbr> meeting in October 2026; shown as planned before.
           </>,
         ]}
       />
@@ -261,7 +261,9 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
           <>
             Artemis as shown: the lander waits in the <Abbr>NRHO</Abbr>, lands, returns whole.
           </>,
-          <>NASA changed the meeting orbit in 2026; first landing now Artemis IV.</>,
+          <>
+            <Abbr>NASA</Abbr> changed the meeting orbit in 2026; first landing now Artemis IV.
+          </>,
         ]}
       />
     )
