@@ -22,18 +22,19 @@ leave main untouched, and report what is left.
 
 ## Target user (applies to every UI and docs task)
 
-**Lunar landing site mission coordinators** (ninja, 15 Nov): people who plan where and when a lander touches
-down. They know the field — Δv, line of sight, permanently shadowed regions, illumination, slope, landing
-ellipse are their everyday words — but they use this app to decide fast. Write for them:
-- Use the field's standard terms, spelled out once where they first appear (hover or hint), with units.
-  Do not replace them with invented layman's wording ("fuel needed (speed change)" is wrong; "Δv" with
-  unit m/s is right).
-- Lead with the decision: every screen answers "is this site / date / route good for my mission, and why?"
-  before it shows detail.
-- Remove what no coordinator needs: research-note internals (evidence grades in capitals, "not retrieved",
+NASA's challenge statement names three users: **mission planners, educators and the public** ("intuitive tool
+for mission planners, educators and the public", `docs/reference/decisions.md` l. 128 and 188). One app
+serves all three through the two modes of the global toggle (U8):
+- **Simple mode (default) — educators and the public, and a planner's first glance.** Plain language a
+  teacher can read aloud to a class, but never wrong. Each field term appears next to the plain words the
+  first time, so people learn it: "Speed change needed (Δv): 2.3 km/s", "Line of sight to Earth: 62 % of
+  the time", "Permanently shadowed crater (PSR)". Abbreviations expand on hover.
+- **Advanced mode — mission planners.** Field terms first, full numbers with units and ε, breakdown per
+  phase, method and sources. Nothing dumbed down.
+- **Both modes:** every screen first answers "is this site / date / route good for the mission, and why?",
+  then shows detail. Obvious controls, sensible defaults, short labels, bullets instead of paragraphs.
+- **Remove in both modes:** research-note internals (evidence grades in capitals, "not retrieved",
   internal file names, raw signed decimal coordinates, unformatted numbers, process notes about the team).
-- Intuitive also means: obvious controls, sensible defaults, short labels, bullets instead of paragraphs,
-  detail one click away (the global advanced toggle, U8) — even for an expert.
 
 ## State at start (verify, do not trust)
 
@@ -215,7 +216,7 @@ orchestrator reviews every diff before merging, and `final-review` checks the wh
 U1. **Landing-site dropdown** (Mission 1 menu, top left, `views/MissionPanel.tsx` ~l. 373–530): the site list
     shows nothing until the user types in the text box; then matching sites. Keep the current site visible
     as the field value. Empty field + focus → at most a one-line hint, no list.
-U2. **Compact the Mission menu**: remove from the first view what a coordinator does not need to decide. Concretely, propose
+U2. **Compact the Mission menu**: remove from the first view what a user does not need to decide (Target user). Concretely, propose
     in your report and implement: ground stations as one summary row ("3 of 5 stations ▸") expanding on
     click; "Play mission" as one compact button; per-site numbers behind a disclosure; "Add mission" moved to
     the bottom of the menu. Do not remove a function, only fold it.
@@ -247,10 +248,10 @@ U8. **POI info card: plain by default, advanced on demand** (ninja, 15 Nov, on t
     retrieved", "Evidence ESTABLISHED", "Limitations: Centre conflict ... (see psr_and_ice.json)", the
     science-lead marker, sources, "Click the pin to keep this open."
     - **Simple mode (default):** name, feature type, and 2–3 bullets on what matters for landing-site
-      planning, written for a lunar mission coordinator (see Target user). Example of the target (check
-      every fact against the record before using it): "Cabeus crater · permanently shadowed crater ·
-      • Water ice confirmed: LCROSS impact 2009, 5.6 ± 2.9 wt% water · • ~100 km across, ~4 km deep ·
-      • <computed distance> km from your site". Field terms (PSR, wt%, Δv) are fine with units; no evidence grades in
+      planning, readable by the public and educators (see Target user). Example of the target (check
+      every fact against the record before using it): "Cabeus crater · permanently shadowed crater (PSR) ·
+      • Water ice found here: NASA's LCROSS probe hit it in 2009, about 5–6 % water by weight ·
+      • About 100 km across, 4 km deep · • <computed distance> km from your site". No evidence grades in
       capitals, no file names, no "not retrieved" rows, no raw signed decimal coordinates, no sources.
     - **Advanced mode:** the full record, cleaned: coordinates as `84.90° S, 35.50° W`; rows with no value
       are hidden (never "not retrieved"); evidence level explained in a short phrase; conflicts written as
@@ -293,21 +294,21 @@ U16. **Bug: search → "Show" does not land in eye-level view.** Searching for a
     must bring the camera to that site in the same eye-level view as opening a landing site (1.75 m above
     terrain, same angle as U5). Reproduce with a Playwright test first; share the camera code path with U5
     rather than adding a second one.
-U17. **Inputs and values a lunar mission coordinator reads at a glance** (ninja, 15 Nov: it must be intuitive
-    for landing-site mission coordinators, experienced ones included; see Target user). Applies to every screen with inputs or result
+U17. **Inputs and values all three users read at a glance** (ninja, 15 Nov: intuitive for mission planners,
+    educators and the public; see Target user). Applies to every screen with inputs or result
     values: Mission menu, Find better dates, the info/settings drawer (`views/Drawer.tsx`), Rocket flight
     menu, saved-missions table, compare view, POI and site cards. Rules:
-    - **Every input** has a short label in the field's terms, its unit, and a one-line hint (e.g. "Ground
-      stations — DSN / ESTRACK antennas used for line-of-sight contact"). Sensible default preselected. A
-      disabled option says why in one short phrase.
+    - **Every input** has a short plain label, its unit, and a one-line hint that names the field term
+      (e.g. "Ground stations — antennas on Earth that talk to the lander (DSN, ESTRACK)"). Sensible default
+      preselected. A disabled option says why in one short phrase.
     - **Every value** answers "is this good for my mission?": plain unit and rounding ("62 % of the time —
       about 18 of 29 days", not "0.6214"), and a status colour (green / yellow / red) against a stated
       threshold, with the threshold in the hint. Dates as `16 Aug 2027`, durations as `3 days 4 h`.
-    - **Field terms yes, internals no**: keep standard terms (Δv, TLI, line of sight, PSR, illumination,
-      slope, landing ellipse) with units, and spell out each abbreviation once on hover. Remove
-      app-internal or research-note wording ("Access not assessed", evidence grades in capitals, "not
-      retrieved", file names, unexplained codes). Simple mode shows the decision value and its status;
-      advanced mode (the global toggle from U8) adds the breakdown, raw values, method and ε.
+    - **Plain words plus the field term, internals never**: simple mode writes plain words with the
+      standard term beside them ("Speed change needed (Δv)", "Line of sight to Earth"), each abbreviation
+      expanded on hover; advanced mode leads with the field term and adds breakdown, raw values, method
+      and ε. Remove app-internal or research-note wording in both modes ("Access not assessed", evidence
+      grades in capitals, "not retrieved", file names, unexplained codes).
     - **Long texts become bullet points**: any explanatory paragraph longer than ~2 lines turns into at most
       3–4 bullets of ≤ 12 words each; the full text moves to advanced mode or the docs page. Applies to panel
       intros, method notes (`FlightExplain.tsx`), drawer sections, empty states and error messages.
