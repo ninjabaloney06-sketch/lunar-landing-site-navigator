@@ -20,6 +20,21 @@ from 15:00. Everything you merge must be on `main`, green and deployable by **12
 fixes to things you broke. If an agent is not green by its wave's cut-off (Orchestration), drop its work,
 leave main untouched, and report what is left.
 
+## Target user (applies to every UI and docs task)
+
+**Lunar landing site mission coordinators** (ninja, 15 Nov): people who plan where and when a lander touches
+down. They know the field — Δv, line of sight, permanently shadowed regions, illumination, slope, landing
+ellipse are their everyday words — but they use this app to decide fast. Write for them:
+- Use the field's standard terms, spelled out once where they first appear (hover or hint), with units.
+  Do not replace them with invented layman's wording ("fuel needed (speed change)" is wrong; "Δv" with
+  unit m/s is right).
+- Lead with the decision: every screen answers "is this site / date / route good for my mission, and why?"
+  before it shows detail.
+- Remove what no coordinator needs: research-note internals (evidence grades in capitals, "not retrieved",
+  internal file names, raw signed decimal coordinates, unformatted numbers, process notes about the team).
+- Intuitive also means: obvious controls, sensible defaults, short labels, bullets instead of paragraphs,
+  detail one click away (the global advanced toggle, U8) — even for an expert.
+
 ## State at start (verify, do not trust)
 
 - `main` = `c0a09b0` plus the commit that added this file (notebook page 2 + two bug lists already merged through `integration`, deployed
@@ -200,7 +215,7 @@ orchestrator reviews every diff before merging, and `final-review` checks the wh
 U1. **Landing-site dropdown** (Mission 1 menu, top left, `views/MissionPanel.tsx` ~l. 373–530): the site list
     shows nothing until the user types in the text box; then matching sites. Keep the current site visible
     as the field value. Empty field + focus → at most a one-line hint, no list.
-U2. **Compact the Mission menu**: remove what a first-time user does not need on screen. Concretely, propose
+U2. **Compact the Mission menu**: remove from the first view what a coordinator does not need to decide. Concretely, propose
     in your report and implement: ground stations as one summary row ("3 of 5 stations ▸") expanding on
     click; "Play mission" as one compact button; per-site numbers behind a disclosure; "Add mission" moved to
     the bottom of the menu. Do not remove a function, only fold it.
@@ -231,13 +246,12 @@ U8. **POI info card: plain by default, advanced on demand** (ninja, 15 Nov, on t
     ground truth (5.6 +/- 2.9 wt% water + other volatiles); impact at -84.6796, -48.7093", "Age: not
     retrieved", "Evidence ESTABLISHED", "Limitations: Centre conflict ... (see psr_and_ice.json)", the
     science-lead marker, sources, "Click the pin to keep this open."
-    - **Plain mode (default):** name, type in everyday words, and 1–2 short sentences on what it is and why
-      it matters for a mission, written for a mission coordinator with no planetary-science background.
-      Example of the target tone (check every fact against the record before using it): "Cabeus crater —
-      a deep crater whose floor never sees sunlight. In 2009 NASA crashed the LCROSS probe into it and
-      found water ice, about 5–6 % of the soil by weight." Plus at most 2 facts in plain units (size
-      "about 100 km across, 4 km deep"; distance from the current landing site). No raw coordinates,
-      no wt%, no evidence grades, no file names, no "not retrieved" rows, no sources.
+    - **Simple mode (default):** name, feature type, and 2–3 bullets on what matters for landing-site
+      planning, written for a lunar mission coordinator (see Target user). Example of the target (check
+      every fact against the record before using it): "Cabeus crater · permanently shadowed crater ·
+      • Water ice confirmed: LCROSS impact 2009, 5.6 ± 2.9 wt% water · • ~100 km across, ~4 km deep ·
+      • <computed distance> km from your site". Field terms (PSR, wt%, Δv) are fine with units; no evidence grades in
+      capitals, no file names, no "not retrieved" rows, no raw signed decimal coordinates, no sources.
     - **Advanced mode:** the full record, cleaned: coordinates as `84.90° S, 35.50° W`; rows with no value
       are hidden (never "not retrieved"); evidence level explained in a short phrase; conflicts written as
       a sentence ("Centre position differs between sources: Wikipedia 84.9° S 35.5° W, USGS Gazetteer
@@ -251,14 +265,14 @@ U8. **POI info card: plain by default, advanced on demand** (ninja, 15 Nov, on t
       of every card that has both modes.
     - **Plain texts for all ~206 points:** add a `plain` field per record, from a new
       `docs/POIs/plain.json` keyed by POI id, merged by `scripts/pois.py` into `pois.json`. Haiku writes
-      them in batches of 25 under one rule: every fact in a plain sentence must appear in that record's
+      them in batches of 25 under one rule: every fact in a simple-mode bullet must appear in that record's
       fields — no outside knowledge, no new numbers. An Opus reviewer checks 25 random entries against
       their records; any invented fact → that batch is redone. Records too thin for a useful sentence get
       just the plain type ("Crater", "Planned landing site").
     - Delete "Click the pin to keep this open." The card must not cover its pin (place beside it, flip at
       screen edges). Sources leave the plain card; they stay in advanced mode and on the docs page (D2).
-    - Tests: toggle persists across cards and reload; plain card for Cabeus contains no "wt%", no
-      "ESTABLISHED", no ".json"; advanced card hides empty rows.
+    - Tests: toggle persists across cards and reload; simple card for Cabeus contains no "ESTABLISHED",
+      no ".json", no "not retrieved", no "-84."; advanced card hides empty rows.
 U9. **Click outside closes**: every open menu, card or panel closes on a click outside it (same mechanism as
     `FlightTransport.tsx` l. 100). The 3D canvas counts as outside.
 U10. **Custom point naming**: adding your own point and assigning it to a mission renames the location to the
@@ -279,26 +293,29 @@ U16. **Bug: search → "Show" does not land in eye-level view.** Searching for a
     must bring the camera to that site in the same eye-level view as opening a landing site (1.75 m above
     terrain, same angle as U5). Reproduce with a Playwright test first; share the camera code path with U5
     rather than adding a second one.
-U17. **Inputs and values a new mission coordinator understands** (ninja, 15 Nov: "might be cool for an
-    experienced user, but not for a new mission coordinator"). Applies to every screen with inputs or result
+U17. **Inputs and values a lunar mission coordinator reads at a glance** (ninja, 15 Nov: it must be intuitive
+    for landing-site mission coordinators, experienced ones included; see Target user). Applies to every screen with inputs or result
     values: Mission menu, Find better dates, the info/settings drawer (`views/Drawer.tsx`), Rocket flight
     menu, saved-missions table, compare view, POI and site cards. Rules:
-    - **Every input** has a plain label, its unit, and a one-line hint in everyday words (e.g. "Ground
-      stations — antennas on Earth that can talk to your lander"). Sensible default preselected. A disabled
-      option says why in one short phrase.
+    - **Every input** has a short label in the field's terms, its unit, and a one-line hint (e.g. "Ground
+      stations — DSN / ESTRACK antennas used for line-of-sight contact"). Sensible default preselected. A
+      disabled option says why in one short phrase.
     - **Every value** answers "is this good for my mission?": plain unit and rounding ("62 % of the time —
       about 18 of 29 days", not "0.6214"), and a status colour (green / yellow / red) against a stated
       threshold, with the threshold in the hint. Dates as `16 Aug 2027`, durations as `3 days 4 h`.
-    - **No jargon in simple mode**: replace terms such as LOS, elevation mask, Δv, TLI, wt%, evidence grades,
-      "Access not assessed" with plain wording ("line of sight to Earth", "fuel needed (speed change)").
-      The technical term and raw number appear only in advanced mode (the global toggle from U8).
+    - **Field terms yes, internals no**: keep standard terms (Δv, TLI, line of sight, PSR, illumination,
+      slope, landing ellipse) with units, and spell out each abbreviation once on hover. Remove
+      app-internal or research-note wording ("Access not assessed", evidence grades in capitals, "not
+      retrieved", file names, unexplained codes). Simple mode shows the decision value and its status;
+      advanced mode (the global toggle from U8) adds the breakdown, raw values, method and ε.
     - **Long texts become bullet points**: any explanatory paragraph longer than ~2 lines turns into at most
       3–4 bullets of ≤ 12 words each; the full text moves to advanced mode or the docs page. Applies to panel
       intros, method notes (`FlightExplain.tsx`), drawer sections, empty states and error messages.
     - Before you build: list every input and value per screen with its current and proposed wording in a
       table in your report, then implement. Do not change what is computed, only how it is labelled and shown.
-    - Check: a 375 px screenshot of each screen; `grep` the simple-mode render output for the jargon list
-      above returns nothing.
+    - Check: a 375 px screenshot of each screen; `grep` the simple-mode render output for the internals list
+      above ("Access not assessed", "ESTABLISHED", "not retrieved", ".json") returns nothing; every
+      abbreviation shown has a hover/hint expansion.
 U18. **Simulation speed slider** (ninja, 15 Nov). Today the speed is a `<select>` in the drawer's
     "Simulation" section (`views/Drawer.tsx` ~l. 330–350, values `SPEEDS_H_PER_S = [3, 10, 24, 72]` in
     `state.ts`, labels from `speedLabel`). Replace it with a slider like the Flight plan's
