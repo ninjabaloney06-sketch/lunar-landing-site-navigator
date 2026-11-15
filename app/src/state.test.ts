@@ -5,6 +5,7 @@ import { EMPTY_STATE, MAX_POINTS, addPoint, parseHash, pointName, removePoint, r
 import type { UserPoint } from './state'
 import { CUSTOM_SITE_NAME, customSiteBase, customSiteId, customSiteName, parseCustomSiteId } from './data/customSite'
 import { capSiteId } from './data/southcap'
+import { POWER_DEFAULTS } from './power/power'
 
 const link = (pts: UserPoint[]) => serializeHash({ ...EMPTY_STATE, pts })
 const roundTrip = (pts: UserPoint[]) => parseHash(link(pts)).pts
@@ -166,5 +167,36 @@ describe('a malformed link never throws and never yields NaN', () => {
     expect(s.name === null || s.name.length <= 40).toBe(true)
     expect(() => parseHash(serializeHash(s))).not.toThrow()
     expect(serializeHash(parseHash(serializeHash(s)))).toBe(serializeHash(s))
+  })
+})
+
+// P1 power estimate inputs (link keys panel, eff, load, batt): a link without them behaves as before; anything
+// malformed or out of range falls back to that input's example value, never NaN.
+describe('power estimate inputs in the link', () => {
+  it('a link without the keys gets the example values and writes nothing', () => {
+    const s = parseHash('#site=connecting-ridge&stay=3')
+    expect(s.power).toEqual(POWER_DEFAULTS)
+    expect(serializeHash(s)).toBe('site=connecting-ridge&stay=3')
+    expect(serializeHash(EMPTY_STATE)).toBe('')
+  })
+  it('round-trips changed values; a default value is not written', () => {
+    const power = { panelM2: 2.5, effPct: POWER_DEFAULTS.effPct, loadW: 40, battWh: 2400 }
+    const h = serializeHash({ ...EMPTY_STATE, power })
+    expect(h).toBe('panel=2.5&load=40&batt=2400')
+    expect(parseHash(h).power).toEqual(power)
+  })
+  it.each(['#panel=0&eff=-5&load=&batt=abc', '#panel=NaN&eff=101&load=Infinity&batt=1e999', '#panel=1e-9&eff=0.0001&load=-0&batt=%ZZ'])(
+    '%s falls back to the example values',
+    (h) => {
+      expect(parseHash(h).power).toEqual(POWER_DEFAULTS)
+    },
+  )
+  it('a junk link: never NaN, never throws, serialises stably', () => {
+    const s = parseHash('#panel=&eff=NaN&load=-1&batt=1e999&%ZZ')
+    for (const v of Object.values(s.power)) expect(Number.isFinite(v)).toBe(true)
+    expect(serializeHash(parseHash(serializeHash(s)))).toBe(serializeHash(s))
+  })
+  it('one bad key does not touch the others', () => {
+    expect(parseHash('#panel=3&eff=x&load=55.5&batt=0').power).toEqual({ ...POWER_DEFAULTS, panelM2: 3, loadW: 55.5 })
   })
 })

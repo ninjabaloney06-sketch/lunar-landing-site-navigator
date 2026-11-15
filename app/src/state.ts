@@ -8,6 +8,8 @@ import { POI_GROUPS } from './data/pois'
 import type { PoiGroup } from './data/pois'
 import type { ScienceGoal } from './geometry'
 import type { SceneLevel } from './scene3d'
+import { POWER_DEFAULTS, validPower } from './power/power'
+import type { PowerInputs, PowerKey } from './power/power'
 
 // 'search' (site search by nearby POIs) and 'docs' (documentation) are panels of their own, opened from the top bar
 // and the footer; the other three are sections of the details drawer.
@@ -40,6 +42,7 @@ export interface HashState {
   rocket: string | null // flight plan: vehicle id; null = the default vehicle
   tmax: number | null // flight plan: longest transfer in days; null = minimum energy
   stay: number | null // flight plan: surface stay in days; null = the chosen design's default
+  power: PowerInputs // power estimate inputs (link keys panel, eff, load, batt); absent or invalid = POWER_DEFAULTS
 }
 
 // Supported coverage (spec.md "Dates"): [2026-11-01, 2031-01-01) UTC.
@@ -92,6 +95,7 @@ export const EMPTY_STATE: HashState = {
   rocket: null,
   tmax: null,
   stay: null,
+  power: POWER_DEFAULTS,
 }
 
 /** Mission name as plain text: control characters dropped, runs of white space collapsed, at most 40
@@ -218,6 +222,9 @@ export function removePoint(pts: UserPoint[], i: number): UserPoint[] {
   return named(pts).filter((_, j) => j !== i)
 }
 
+// Power estimate inputs: link key per input; a default value is not written.
+const POWER_LINK: [PowerKey, string][] = [['panelM2', 'panel'], ['effPct', 'eff'], ['loadW', 'load'], ['battWh', 'batt']]
+
 export function parseHash(hash: string): HashState {
   const p = new URLSearchParams(hash.replace(/^#/, ''))
   const s: HashState = { ...EMPTY_STATE, pts: [] }
@@ -250,6 +257,12 @@ export function parseHash(hash: string): HashState {
   if (TRANSFER_CAPS.includes(tmax)) s.tmax = tmax
   const stayRaw = p.get('stay')
   if (stayRaw !== null && stayRaw !== '' && validStay(Number(stayRaw))) s.stay = Math.round(Number(stayRaw) * 100) / 100
+  s.power = { ...POWER_DEFAULTS }
+  for (const [k, key] of POWER_LINK) {
+    const raw = p.get(key)
+    const v = raw === null || raw.trim() === '' ? NaN : Math.round(Number(raw) * 1000) / 1000
+    if (validPower(k, v)) s.power[k] = v
+  }
   if (s.period === 'custom' && s.from === null) s.period = null
   return s
 }
@@ -274,6 +287,7 @@ export function serializeHash(s: HashState): string {
   if (s.rocket) p.set('rocket', s.rocket)
   if (s.tmax !== null) p.set('tmax', String(s.tmax))
   if (s.stay !== null) p.set('stay', String(s.stay))
+  for (const [k, key] of POWER_LINK) if (s.power[k] !== POWER_DEFAULTS[k] && validPower(k, s.power[k])) p.set(key, String(s.power[k]))
   // URLSearchParams escapes ',' ':' and ';'; keep the link readable.
   return p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':').replace(/%3B/g, ';')
 }
