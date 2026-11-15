@@ -70,6 +70,10 @@ describe('nearestSite', () => {
     expect(nearestSite(here, [here, custom])).toBeNull()
     expect(nearestSite(here, [])).toBeNull()
   })
+
+  it('skips reference sites (not a landing site)', () => {
+    expect(nearestSite(here, [{ ...near, group: 'reference' }])).toBeNull()
+  })
 })
 
 describe('fmtPointsDelta', () => {

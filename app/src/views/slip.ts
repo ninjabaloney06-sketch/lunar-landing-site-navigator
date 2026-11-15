@@ -37,12 +37,13 @@ interface Located {
   group: string
 }
 
-/** The prepared site with the smallest great-circle distance to `site`: never `site` itself, never a custom site.
+/** The prepared site with the smallest great-circle distance to `site`: never `site` itself, never a custom site, never a
+ *  reference site (group 'reference': sites.json marks those as not a landing site).
  *  Equal distances go to the smaller id, so the answer does not depend on the list order. null when none is left. */
 export function nearestSite<T extends Located>(site: Pick<Located, 'id' | 'lat' | 'lon'>, sites: readonly T[]): { site: T; km: number } | null {
   let best: { site: T; km: number } | null = null
   for (const s of sites) {
-    if (s.id === site.id || s.group === 'custom') continue
+    if (s.id === site.id || s.group === 'custom' || s.group === 'reference') continue
     const km = distanceKm(site.lat, site.lon, s.lat, s.lon)
     if (!Number.isFinite(km)) continue
     if (!best || km < best.km || (km === best.km && s.id < best.site.id)) best = { site: s, km }
