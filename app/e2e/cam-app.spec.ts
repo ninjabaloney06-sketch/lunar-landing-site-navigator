@@ -37,7 +37,8 @@ test('search → "Show" makes the point the landing site and opens the landing-s
   const row = panel.getByTestId('search-results').locator('li[data-site-id="poi-science-feat-shackleton"]')
   await expect(row.getByTestId('search-show')).toHaveText('Show as landing site')
   await row.getByTestId('search-show').click()
-  await expect.poll(async () => (await page.evaluate(() => location.hash)).includes('view=site'), { timeout: 15_000 }).toBe(true)
+  await expect.poll(async () => (await page.evaluate(() => location.hash)).includes('site=cap:'), { timeout: 15_000 }).toBe(true)
+  expect((await viewOf(page)) ?? 'site').toBe('site') // the landing-site view is the default: the link leaves `view` out
   const site = (await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('site')))!
   expect(site).toMatch(/^cap:/)
   await page.waitForFunction((id) => (window as unknown as { __scene: Scene }).__scene.siteId() === id, site, { timeout: 60_000 })

@@ -156,7 +156,8 @@ test.describe('search at 1440 × 900', () => {
     // "Show" turns the layer on with the chosen groups and that point's group, makes the point the (custom) landing
     // site and opens the landing-site view, as "Select" does (science lead, 15 Nov; replaces U16's eye level).
     await own.getByTestId('search-show').click()
-    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=site')
+    // The landing-site view is the default view, so the link leaves `view` out.
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('view') ?? 'site')).toBe('site')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('site=cap:')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('poi=water,cold-trap,science')
   })
