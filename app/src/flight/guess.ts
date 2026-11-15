@@ -32,6 +32,14 @@ export interface GuessInput {
   earliestTouchdownMs: number
   /** Seconds from the lunar orbit insertion to touchdown: the shortest stay in orbit plus the descent. */
   orbitToTouchdownS: number
+  /** Elliptical parking orbit (ParkingEllipse in ascent.ts; new, not yet validated by the science lead). The
+   *  ascent inserts at true anomaly insertionTrueAnomalyRad on `insertion`, the perigee is raised at the first
+   *  apogee (orbit `raised`, whose perigee radius is R_EARTH_EQ + parkingAltKm) and the injection comes around
+   *  the next perigee, its (impulsive) point at a true anomaly within injectionBandRad on the raised orbit. The
+   *  line of apsides, and so where the injection can come, is fixed by where the ascent inserted: the liftoff is
+   *  searched among the instants at which the point where the injection has to happen lies in that band.
+   *  Absent: a circular parking orbit at parkingAltKm, injection anywhere on it. */
+  ellipse?: { insertionTrueAnomalyRad: number; insertion: Ellipse; raised: Ellipse; injectionBandRad: [number, number] }
 }
 
 export interface Guess {
@@ -53,6 +61,9 @@ export interface Guess {
   touchdownMs: number
   moonDistKm: number
   cost: number // km/s, what the search minimises
+  /** Elliptical parking orbit only: true anomaly of the injection point (tliPoint) on the raised orbit, in
+   *  (−π, π]: the angle from its perigee about planeNormal. */
+  injectionTrueAnomalyRad?: number
 }
 
 /** Shortest coast in the parking orbit before the injection: one revolution, so that the crew and the ground can
@@ -85,12 +96,27 @@ function transferFor(rPark: number, d: number, maxDays: number | null) {
   return { el, nuA, T: timeFromPeriapsis(MU_EARTH, el, nuA) }
 }
 
+const wrapPi = (x: number) => {
+  const y = mod2pi(x)
+  return y > Math.PI ? y - TWO_PI : y
+}
+
+/** Coast of an elliptical parking orbit, insertion to injection: angle and seconds. From the insertion to the first
+ *  apogee on the insertion orbit, then half a revolution of the raised orbit to its perigee (the perigee raise at
+ *  apogee leaves the line of apsides where it is). */
+function ellipseCoast(el: NonNullable<GuessInput['ellipse']>): { angle: number; seconds: number } {
+  const nu = wrapPi(el.insertionTrueAnomalyRad)
+  const half = (o: Ellipse) => Math.PI * Math.sqrt(o.a ** 3 / MU_EARTH)
+  return { angle: TWO_PI - nu, seconds: half(el.insertion) - timeFromPeriapsis(MU_EARTH, el.insertion, nu) + half(el.raised) }
+}
+
 function evaluate(g: GuessInput, tL: number): Guess | null {
   const { ephem } = g
   const rPark = R_EARTH_EQ + g.parkingAltKm
   const rLlo = R_MOON + g.lunarOrbitAltKm
   const vc = circularSpeed(MU_EARTH, rPark)
   const nPark = vc / rPark
+  const ell = g.ellipse ? ellipseCoast(g.ellipse) : null
   const qEarth = ephem.earthFixedToInertial(tL)
   const padHat = qrot(qEarth, latLonUnit(g.padLatDeg, g.padLonDeg))
   const pole = qrot(qEarth, [0, 0, 1])
@@ -104,6 +130,12 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
   let P: Vec3 = [1, 0, 0]
   let coastAngle = 0
   let tTli = tL
+  // Elliptical parking orbit: the injection point (Pinj) and the transfer's perigee (P) differ. Off the parking
+  // orbit's perigee the flight-path angle is not zero, so the transfer leaving there is at the true anomaly with
+  // the same flight-path angle (thetaInj, < 0 before its perigee) and its perigee comes after the injection.
+  let Pinj: Vec3 = P
+  let nuInj: number | undefined
+  let tPeri = tL // instant of the transfer's perigee passage
   for (let pass = 0; pass < 5; pass++) {
     const mPos = ephem.moonPos(tA)
     d = norm(mPos)
@@ -114,10 +146,38 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     h = unit(cr)
     if (dot(h, pole) < 0) h = scale(h, -1) // prograde launch
     P = rotateAbout(mHat, h, -tr.nuA)
-    coastAngle = angleAbout(padHat, P, h) - g.ascentArcRad
-    while (coastAngle < MIN_PARKING_COAST_RAD) coastAngle += TWO_PI
-    tTli = Math.round(tL + ascentMs + (coastAngle / nPark) * 1000)
-    tA = tTli + tr.T * 1000
+    if (ell && g.ellipse) {
+      const park = g.ellipse.raised
+      const et = tr.el.e
+      let thetaInj = 0
+      let nuP = 0
+      for (let k = 0; k < 4; k++) {
+        Pinj = rotateAbout(P, h, thetaInj)
+        // to the perigee of the raised orbit and on (or back) to the injection point
+        nuP = wrapPi(angleAbout(padHat, Pinj, h) - g.ascentArcRad - ell.angle)
+        const tanGamma = (park.e * Math.sin(nuP)) / (1 + park.e * Math.cos(nuP))
+        // tan γ = e sin θ / (1 + e cos θ) on the transfer, for θ near 0: θ = γ-matching root by Newton
+        let th = 0
+        for (let j = 0; j < 6; j++) {
+          const f = (et * Math.sin(th)) / (1 + et * Math.cos(th)) - tanGamma
+          const df = (et * (et + Math.cos(th))) / (1 + et * Math.cos(th)) ** 2
+          th -= f / df
+        }
+        thetaInj = th
+      }
+      nuInj = nuP
+      coastAngle = ell.angle + nuP
+      tTli = Math.round(tL + ascentMs + (ell.seconds + timeFromPeriapsis(MU_EARTH, park, nuP)) * 1000)
+      tPeri = tTli - timeFromPeriapsis(MU_EARTH, tr.el, thetaInj) * 1000
+      tA = tPeri + tr.T * 1000
+    } else {
+      coastAngle = angleAbout(padHat, P, h) - g.ascentArcRad
+      while (coastAngle < MIN_PARKING_COAST_RAD) coastAngle += TWO_PI
+      tTli = Math.round(tL + ascentMs + (coastAngle / nPark) * 1000)
+      Pinj = P
+      tPeri = tTli
+      tA = tTli + tr.T * 1000
+    }
   }
   const el = tr.el
   const Q = cross(h, P)
@@ -128,11 +188,19 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
   const vHat = cross(h, padHat)
   const az = mod2pi(Math.atan2(dot(vHat, east), dot(vHat, north)))
   const ve = OMEGA_EARTH * R_EARTH_EQ * Math.cos(g.padLatDeg * DEG)
-  const ascentCost = Math.sqrt(vc * vc + ve * ve - 2 * vc * ve * Math.sin(az))
-  const dvTli = visViva(MU_EARTH, rPark, el.a) - vc
+  // elliptical parking orbit: the ascent reaches the insertion orbit's speed where it inserts; the injection
+  // starts from the raised orbit at its true anomaly (speeds only: what an injection off the perigee costs more)
+  const radiusOn = (o: Ellipse, nu: number) => o.p / (1 + o.e * Math.cos(nu))
+  const vIns = g.ellipse ? visViva(MU_EARTH, radiusOn(g.ellipse.insertion, g.ellipse.insertionTrueAnomalyRad), g.ellipse.insertion.a) : vc
+  const ascentCost = Math.sqrt(vIns * vIns + ve * ve - 2 * vIns * ve * Math.sin(az))
+  let dvTli = visViva(MU_EARTH, rPark, el.a) - vc
+  if (g.ellipse && nuInj !== undefined) {
+    const rInj = radiusOn(g.ellipse.raised, nuInj)
+    dvTli = visViva(MU_EARTH, rInj, el.a) - visViva(MU_EARTH, rInj, g.ellipse.raised.a)
+  }
 
   // Sphere-of-influence entry and the approach hyperbola.
-  const tAt = (E: number) => tTli + Math.sqrt(el.a ** 3 / MU_EARTH) * (E - el.e * Math.sin(E)) * 1000
+  const tAt = (E: number) => tPeri + Math.sqrt(el.a ** 3 / MU_EARTH) * (E - el.e * Math.sin(E)) * 1000
   const posAt = (E: number) => perifocal(el, MU_EARTH, eccentricToTrue(el.e, E), P, Q)
   const gap = (E: number) => norm(sub(posAt(E).r, ephem.moonPos(tAt(E)))) - SOI_MOON
   const EA = trueToEccentric(el.e, tr.nuA)
@@ -168,7 +236,7 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     inclinationRad: Math.acos(clamp(dot(h, pole), -1, 1)),
     coastAngleRad: coastAngle,
     tliMs: tTli,
-    tliPoint: P,
+    tliPoint: Pinj,
     dvTliKms: dvTli,
     transfer: el,
     loiMs: tLoi,
@@ -178,13 +246,14 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     touchdownMs,
     moonDistKm: d,
     cost: ascentCost + dvTli + dvLoi,
+    ...(nuInj === undefined ? {} : { injectionTrueAnomalyRad: nuInj }),
   }
 }
 
 /** The liftoff with the smallest delta-v whose touchdown falls in [earliest, earliest + 25 h).
  *  shiftMin moves the result off the optimum by that many minutes (mission.ts uses it when the optimum has
  *  no leverage for aiming: the launchpad on the line to the arrival point). */
-export function firstGuess(g: GuessInput, shiftMin = 0): Guess {
+export function firstGuess(g: GuessInput, shiftMin = 0, rank = 0): Guess {
   if (g.earliestTouchdownMs > g.ephem.endMs) throw new FlightPlanError('The ephemeris does not cover this flight.')
   const candidate = (tL: number): Guess | null => {
     let s: Guess | null
@@ -198,6 +267,7 @@ export function firstGuess(g: GuessInput, shiftMin = 0): Guess {
   }
   const tNominal = transferFor(R_EARTH_EQ + g.parkingAltKm, 384400, g.maxTransferDays).T
   const tGuess = g.earliestTouchdownMs + 12 * HOUR_MS - g.orbitToTouchdownS * 1000 - (tNominal - 0.1 * DAY_S) * 1000 - 1.5 * HOUR_MS
+  if (g.ellipse) return ellipseGuess(g, tGuess, candidate, rank)
   let best: Guess | null = null
   for (let k = -200; k <= 200; k++) {
     const s = candidate(Math.round(tGuess + k * 10 * MIN_MS))
@@ -214,4 +284,64 @@ export function firstGuess(g: GuessInput, shiftMin = 0): Guess {
   const shifted = candidate(opt.liftoffMs + shiftMin * MIN_MS) ?? evaluate(g, opt.liftoffMs + shiftMin * MIN_MS)
   if (!shifted) throw new FlightPlanError('No launch opportunity found for this landing time.')
   return shifted
+}
+
+/** Elliptical parking orbit (GuessInput.ellipse): the liftoffs at which the injection point lies in the band of
+ *  true anomaly on the raised orbit. Each 10-minute sample around tGuess is compared with seven true anomalies
+ *  spread over the band; where the injection point passes one, the instant is found by bisection. Of these, the
+ *  ones whose touchdown falls in the window are ranked by cost (which includes what an injection off the
+ *  perigee costs more); rank picks the rank-th (missionNrho.ts asks for the next when the aiming has no
+ *  leverage at the first). */
+function ellipseGuess(g: GuessInput, tGuess: number, candidate: (tL: number) => Guess | null, rank: number): Guess {
+  const [lo, hi] = g.ellipse!.injectionBandRad
+  const at = (tL: number): Guess | null => {
+    try {
+      return evaluate(g, Math.round(tL))
+    } catch (err) {
+      if (err instanceof RangeError) return null
+      throw err
+    }
+  }
+  const TARGETS = 7
+  const found: Guess[] = []
+  let prev: Guess | null = null
+  for (let k = -200; k <= 200; k++) {
+    const s = at(tGuess + k * 10 * MIN_MS)
+    const a = prev?.injectionTrueAnomalyRad
+    const b = s?.injectionTrueAnomalyRad
+    // not across the jump from +π to −π
+    if (prev && s && a !== undefined && b !== undefined && Math.abs(a - b) < Math.PI / 2) {
+      for (let j = 0; j < TARGETS; j++) {
+        const want = lo + ((hi - lo) * j) / (TARGETS - 1)
+        if ((a - want) * (b - want) > 0) continue
+        let tLo = prev.liftoffMs
+        let tHi = s.liftoffMs
+        let fLo = a - want
+        for (let i = 0; i < 30 && tHi - tLo > 1; i++) {
+          const mid = Math.round(0.5 * (tLo + tHi))
+          const m = at(mid)?.injectionTrueAnomalyRad
+          if (m === undefined) break
+          if ((m - want) * fLo <= 0) tHi = mid
+          else {
+            tLo = mid
+            fLo = m - want
+          }
+        }
+        const root = candidate(tHi)
+        if (root) found.push(root)
+      }
+    }
+    prev = s
+  }
+  found.sort((x, y) => x.cost - y.cost)
+  const pick = found[rank]
+  if (!pick) {
+    if (tGuess - 34 * HOUR_MS < g.ephem.startMs) throw new FlightPlanError('The ephemeris does not cover this flight (launch is about a week before touchdown).')
+    throw new FlightPlanError(
+      found.length === 0
+        ? 'No launch opportunity found for this landing time: on no day does the perigee of the parking orbit come where the injection has to be.'
+        : 'The translunar flight could not be aimed from any launch opportunity for this landing time.',
+    )
+  }
+  return pick
 }

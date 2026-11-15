@@ -19,7 +19,7 @@ import { LunarOpsError, recordDescents } from './lunar'
 import type { DescentInput, DescentResult } from './lunar'
 import { planMission } from './mission'
 import type { MissionInput } from './mission'
-import { planMissionNrho } from './missionNrho'
+import { PARKING_ELLIPSE_MARKER, planMissionNrho } from './missionNrho'
 import { ascentSensitivity, maxPayload } from './payload'
 import type { PayloadResult } from './payload'
 import { NrhoError } from './nrho'
@@ -109,9 +109,13 @@ export function runPlan(req: PlanRequest): PlanReply {
       const pushed = tli?.massAfterKg != null
         ? ` It pushes ${req.rendezvous === 'nrho' ? req.input.capsule.name : `${req.input.capsule.name} and ${req.input.lander.name}`} (${kg(tli.massAfterKg)}) and ${kg(extras)} of adapters on the stage, and is ${kg(upper.usedKg - upper.capacityKg)} short of the ${kg(upper.capacityKg)} it loads.`
         : ''
+      const flown = plan.unvalidated?.find((m) => m === PARKING_ELLIPSE_MARKER)
       plan.notes.push(
-        `${upper.element}:${pushed} Every plan here parks in a circular ${req.input.parkingAltKm ?? 185} km orbit and injects from there. ` +
-          'A real flight can let the lower stages carry the upper stage to a higher orbit first (Artemis I: about 30 × 1,806 km), which leaves the upper stage less to do. That profile is not searched.',
+        flown
+          ? `${upper.element}:${pushed} The plan injects from the parking orbit flown on Artemis I (insertion by the lower stages, Perigee Raise ` +
+              `Maneuver, injection around the next perigee; ${flown.text}); with Artemis I's hardware figures the stage still comes out short here.`
+          : `${upper.element}:${pushed} Every plan here parks in a circular ${req.input.parkingAltKm ?? 185} km orbit and injects from there. ` +
+              'A real flight can let the lower stages carry the upper stage to a higher orbit first (Artemis I: about 30 × 1,806 km), which leaves the upper stage less to do. That profile is not searched.',
       )
     }
     return { id: req.id, ok: true, plan }
