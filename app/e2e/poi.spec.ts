@@ -155,20 +155,6 @@ test.describe('POI layer at 1440 × 900', () => {
     await expect(box.getByRole('link')).toHaveCount(0)
     await expect(box).not.toContainText('science lead')
     await expect(box).not.toContainText('Click the pin')
-    // Full data mode: the record's facts, evidence and source links.
-    await box.getByRole('switch', { name: 'Full data' }).click()
-    await expect(box).toHaveAttribute('data-mode', 'full')
-    await expect(box).toContainText('Hazards')
-    await expect(box.locator('.poi-fact').first()).toHaveText(`${scarp.facts[0].label}${scarp.facts[0].value}`)
-    await expect(box.getByTestId('poi-evidence')).toContainText('Evidence')
-    const links = box.getByRole('link')
-    await expect(links).toHaveCount(scarp.sources.length)
-    for (const [i, u] of scarp.sources.entries()) {
-      await expect(links.nth(i)).toHaveAttribute('href', u)
-      await expect(links.nth(i)).toHaveAttribute('target', '_blank')
-    }
-    await box.getByRole('switch', { name: 'Full data' }).click()
-    await expect(box).toHaveAttribute('data-mode', 'summary')
     // The box sits beside the pin (above it, or below when there is no room), inside the stage, never over it;
     // the plain name label is not shown for it.
     const b = (await box.boundingBox())!
@@ -196,6 +182,20 @@ test.describe('POI layer at 1440 × 900', () => {
     await page.waitForTimeout(600)
     await expect(box).toBeVisible()
     await expect(box.getByRole('button', { name: 'Close' })).toBeVisible()
+    // Full data mode (U8) in the kept box: the record's facts, evidence and source links.
+    await box.getByRole('switch', { name: 'Full data' }).click()
+    await expect(box).toHaveAttribute('data-mode', 'full')
+    await expect(box).toContainText('Hazards')
+    await expect(box.locator('.poi-fact').first()).toHaveText(`${scarp.facts[0].label}${scarp.facts[0].value}`)
+    await expect(box.getByTestId('poi-evidence')).toContainText('Evidence')
+    const links = box.getByRole('link')
+    await expect(links).toHaveCount(scarp.sources.length)
+    for (const [i, u] of scarp.sources.entries()) {
+      await expect(links.nth(i)).toHaveAttribute('href', u)
+      await expect(links.nth(i)).toHaveAttribute('target', '_blank')
+    }
+    await box.getByRole('switch', { name: 'Full data' }).click()
+    await expect(box).toHaveAttribute('data-mode', 'summary')
     await page.keyboard.press('Escape')
     await expect(box).toBeHidden()
     await page.waitForTimeout(600)
