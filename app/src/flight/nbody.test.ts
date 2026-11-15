@@ -23,4 +23,21 @@ describe('propagate', () => {
     }
     expect(() => propagate(g, { r: [7000, 0, 0], v: [0, 7.5, 0] }, 0, { maxSeconds: 3600 })).toThrow(RangeError)
   })
+
+  const still = (): Gravity => ({
+    moon: makeBodyTable(() => [384400, 0, 0] as Vec3, 0, 86400_000),
+    sun: null,
+    accel: (_r, _t, out) => out.fill(0),
+    moonState: () => ({ r: [384400, 0, 0], v: [0, 0, 0] }),
+  })
+
+  it('throws a RangeError for a non-finite maxSeconds instead of returning an empty or endless run', () => {
+    for (const maxSeconds of [NaN, Infinity, -Infinity]) {
+      expect(() => propagate(still(), { r: [7000, 0, 0], v: [0, 7.5, 0] }, 0, { maxSeconds })).toThrow(RangeError)
+    }
+  })
+
+  it('throws a RangeError when the step guard runs out before maxSeconds', () => {
+    expect(() => propagate(still(), { r: [7000, 0, 0], v: [0, 7.5, 0] }, 0, { maxSeconds: 20000, maxStepS: 0.01 })).toThrow(/step limit/)
+  })
 })
