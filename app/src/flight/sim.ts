@@ -80,8 +80,12 @@ const A = [
 const C = [0, 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1, 1]
 const E = [71 / 57600, 0, -71 / 16695, 71 / 1920, -17253 / 339200, 22 / 525, -1 / 40]
 
+const MAX_STEPS = 2_000_000
+
 /** Integrates one continuous phase (one engine setting) from s0 at t0Ms. */
 export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOptions): SimRun {
+  // NaN would skip the loop and return an empty run, ±Infinity would burn the whole step guard: say so instead
+  if (!Number.isFinite(opt.maxSeconds)) throw new RangeError('integrate: maxSeconds must be finite')
   const hMax = opt.maxStepS ?? 900
   const tol = opt.tol ?? 1e-10
   const k = Array.from({ length: 7 }, () => new Float64Array(7))
@@ -173,7 +177,8 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
   let tS = 0
   let h = Math.min(1, hMax, opt.maxSeconds)
   let g0 = opt.stop ? stopAt(0, y) : -1
-  for (let guard = 0; guard < 2_000_000 && tS < opt.maxSeconds - 1e-9; guard++) {
+  let guard = 0
+  for (; guard < MAX_STEPS && tS < opt.maxSeconds - 1e-9; guard++) {
     h = Math.min(h, hMax, opt.maxSeconds - tS)
     const err = step(tS, y, h, yNew)
     if (!(err <= 1)) {
@@ -214,6 +219,8 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
     push(tS, y)
     h *= Math.min(5, Math.max(0.2, 0.9 * Math.pow(Math.max(err, 1e-10), -0.2)))
   }
+  // the step guard ran out before the span was covered: a run that stops short must not pass for a complete one
+  if (guard >= MAX_STEPS && tS < opt.maxSeconds - 1e-9) throw new RangeError('integrate: step limit reached before maxSeconds')
   run.end = snap(y)
   run.endS = tS
   return run

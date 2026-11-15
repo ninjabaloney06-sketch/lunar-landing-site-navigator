@@ -15,7 +15,13 @@ export const cross = (a: Vec3, b: Vec3): Vec3 => [
   a[0] * b[1] - a[1] * b[0],
 ]
 export const norm = (a: Vec3) => Math.sqrt(dot(a, a))
-export const unit = (a: Vec3): Vec3 => scale(a, 1 / norm(a))
+/** a / |a|. A zero or non-finite length has no direction: RangeError (the planners catch it as "cannot be flown")
+ *  rather than a NaN vector that runs on silently. Any other vector gives the same bits as before. */
+export const unit = (a: Vec3): Vec3 => {
+  const n = norm(a)
+  if (!(n > 0) || !Number.isFinite(n)) throw new RangeError('unit: zero or non-finite vector')
+  return scale(a, 1 / n)
+}
 export const lerp = (a: Vec3, b: Vec3, f: number): Vec3 => [
   a[0] + (b[0] - a[0]) * f,
   a[1] + (b[1] - a[1]) * f,
@@ -70,4 +76,16 @@ export function latLonUnit(latDeg: number, lonDeg: number): Vec3 {
   const la = latDeg * DEG
   const lo = lonDeg * DEG
   return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)]
+}
+
+/** x plus whole periods until it is no longer below min: the repeated addition the planners always used, so every
+ *  finite result is bit-identical to it. NaN, ±Infinity and angles so far away that adding a period no longer moves
+ *  them (or would take more than 100 000 turns) throw RangeError instead of looping for ever. */
+export function angleWrapUp(x: number, min: number, period: number = TWO_PI): number {
+  if (!Number.isFinite(x) || !(period > 0)) throw new RangeError('angleWrapUp: non-finite angle or period')
+  for (let turns = 0; x < min; turns++) {
+    if (turns >= 100_000) throw new RangeError('angleWrapUp: angle too far from the target range')
+    x += period
+  }
+  return x
 }

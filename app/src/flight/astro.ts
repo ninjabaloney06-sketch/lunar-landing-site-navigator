@@ -126,7 +126,9 @@ export function goldenMin(f: (x: number) => number, lo: number, hi: number, tol:
   let d = a + g * (b - a)
   let fc = f(c)
   let fd = f(d)
-  while (b - a > tol) {
+  // 0.618^200 ≈ 1e-42 of the interval: only a tol below the rounding of a and b can need more
+  for (let it = 0; b - a > tol; it++) {
+    if (it >= 200) throw new RangeError('goldenMin: no convergence to the tolerance')
     if (fc < fd) {
       b = d
       d = c

@@ -171,6 +171,8 @@ export interface PropagateOptions {
   nearKm?: number
 }
 
+const MAX_STEPS = 200000
+
 /** Integrates from s0 at t0Ms. With stopAtPerilune the last stored point is the perilune itself. */
 export function propagate(g: Gravity, s0: State, t0Ms: number, opt: PropagateOptions): Propagation {
   const hMax = opt.maxStepS ?? 900
@@ -189,10 +191,12 @@ export function propagate(g: Gravity, s0: State, t0Ms: number, opt: PropagateOpt
     const dz = yy[2] - mr[2]
     return { rr: dx * (yy[3] - mv[0]) + dy * (yy[4] - mv[1]) + dz * (yy[5] - mv[2]), dist: Math.hypot(dx, dy, dz) }
   }
+  if (!Number.isFinite(opt.maxSeconds)) throw new RangeError('propagate: maxSeconds must be finite')
   let tS = 0
   let h = 10
   let prev = rangeRate(y, t0Ms)
-  for (let guard = 0; guard < 200000 && tS < opt.maxSeconds; guard++) {
+  let guard = 0
+  for (; guard < MAX_STEPS && tS < opt.maxSeconds; guard++) {
     h = Math.min(h, hMax, opt.maxSeconds - tS)
     const err = dpStep(g, t0Ms + tS * 1000, y, h, k, yNew)
     // !(err <= 1) also rejects a step whose error is NaN (sim.ts does the same); for any number the
@@ -243,5 +247,6 @@ export function propagate(g: Gravity, s0: State, t0Ms: number, opt: PropagateOpt
     out.v.push([y[3], y[4], y[5]])
     h *= Math.min(5, Math.max(0.2, 0.9 * Math.pow(Math.max(err, 1e-10), -0.2)))
   }
+  if (guard >= MAX_STEPS && tS < opt.maxSeconds) throw new RangeError('propagate: step limit reached before maxSeconds')
   return out
 }
