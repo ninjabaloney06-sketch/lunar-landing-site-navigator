@@ -309,7 +309,7 @@ describe('searchSites: slope filter', () => {
   })
 })
 
-describe('searchSites: minimum sunlight and coverage (how much, not only whether)', () => {
+describe('searchSites: minimum sunlight and station contact (how much, not only whether)', () => {
   const a = site('a', 0)
   const b = site('b', 30)
   const c = site('c', 60)

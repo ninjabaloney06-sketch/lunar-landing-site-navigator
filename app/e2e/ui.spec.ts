@@ -168,17 +168,17 @@ test('UX-01: screen numbers agree with the integrator preview run (wiring check,
   await page.getByTestId('drawer-tab-compare').click() // 15 Nov: tabs in the Details drawer
   const drawer = page.getByTestId('drawer')
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 0)) - 91)).toBeLessThan(4)
-  expect(Math.abs((await compareValue(drawer, 'Station coverage', 0)) - 98)).toBeLessThan(3)
+  expect(Math.abs((await compareValue(drawer, 'Station contact', 0)) - 98)).toBeLessThan(3)
   await drawer.getByLabel('Compare with period').selectOption(SEP)
   expect(await compareValue(drawer, 'Sunlit', 1)).toBeGreaterThan(96)
-  expect(Math.abs((await compareValue(drawer, 'Station coverage', 1)) - 96)).toBeLessThan(3)
+  expect(Math.abs((await compareValue(drawer, 'Station contact', 1)) - 96)).toBeLessThan(3)
   await drawer.getByLabel('Compare with site').selectOption(MASSIF)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 1)) - 46)).toBeLessThan(4)
-  expect(await compareValue(drawer, 'Station coverage', 1)).toBeGreaterThan(97)
+  expect(await compareValue(drawer, 'Station contact', 1)).toBeGreaterThan(97)
   await drawer.getByLabel('Compare with site').selectOption(SHACK)
   expect(await compareValue(drawer, 'Sunlit', 1)).toBe(0)
-  expect(await compareValue(drawer, 'Station coverage', 1)).toBe(0)
+  expect(await compareValue(drawer, 'Station contact', 1)).toBe(0)
   // The sentence for a site that stays dark says so.
   await page.keyboard.press('Escape')
   await chooseSite(page, SHACK)
@@ -592,7 +592,7 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   await expectAnswer(page, RIDGE, SEP)
   await panel.getByRole('radio', { name: 'Consistent light' }).check()
   await panel.getByTestId('site-ranking').click()
-  await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station coverage')
+  await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station contact')
 
   await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
   const listed = await panel.locator('[data-group] [role=option]').evaluateAll((els) => els.map((e) => e.id.replace('site-opt-', '')))
@@ -605,14 +605,14 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   const id = (await first.getAttribute('id'))!.replace('site-opt-', '')
   const ref = await summarizeInPage(page, id, SEP)
   await expect(first.locator('[data-fact=lit]')).toHaveText(new RegExp(`^sunlit ${ref.litPct.toFixed(1)} %`))
-  await expect(first.locator('[data-fact=comms]')).toHaveText(new RegExp(`^comms ${ref.coveragePct.toFixed(1)} %`))
+  await expect(first.locator('[data-fact=comms]')).toHaveText(new RegExp(`^station contact ${ref.coveragePct.toFixed(1)} %`)) // 15 Nov: one term, "station contact"
   // A site above the slope limit says so and is never ranked.
   await expect(panel.locator(`#site-opt-${SHACK} [data-fact=slope]`)).toHaveText('slope 31.8° — too steep')
   await expect(panel.locator(`#site-opt-${SHACK}`)).toHaveAttribute('data-rank', '')
   await expect(panel).not.toContainText(/optimal|safe to land/i)
 })
 
-test('panel: evidence goals show the evidence and say when station coverage decides', async ({ page }) => {
+test('panel: evidence goals show the evidence and say when station contact decides', async ({ page }) => {
   await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=water-ice`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
@@ -622,7 +622,7 @@ test('panel: evidence goals show the evidence and say when station coverage deci
   const ranked = panel.locator('[data-group=ranked] [role=option]')
   await expect(ranked.first().locator('[data-fact=evidence]')).toContainText(/^water ice: /)
   // With today's data every site that passes the slope limit shares one water-ice tier: coverage orders them.
-  await expect(ranked.first().locator('[data-fact=then]')).toHaveText('then by station coverage')
+  await expect(ranked.first().locator('[data-fact=then]')).toHaveText('then by station contact')
   await expect(panel).not.toContainText('NaN')
 })
 

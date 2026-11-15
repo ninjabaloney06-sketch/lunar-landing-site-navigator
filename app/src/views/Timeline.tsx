@@ -136,7 +136,7 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
       <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
         <span title="Sunlight: yellow while any part of the Sun is above the terrain">Light</span>
-        <span title="Communications: blue while a selected station has line of sight; hatched = unknown">Comms</span>
+        <span title="Station contact: blue while a selected station has line of sight; hatched = unknown">Contact</span>
       </div>
       <div
         ref={body}

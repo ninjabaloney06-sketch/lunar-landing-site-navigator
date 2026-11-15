@@ -9,7 +9,7 @@ Technical and product documentation for the app as it is on 15 Nov 2026. Team SF
 - **What it is.** A web app for choosing a landing site near the Moon's south pole. For a site and a set of mission dates it shows when the site is in sunlight, given the real terrain around it, and when it has line of sight to a ground station on Earth.
 - **Why it matters.** Near the pole the Sun stays within a few degrees of the horizon, so a ridge a few kilometres away decides whether a lander has power, and the same holds for the radio path to Earth. A site that is good in one week can be dark in the next. A planner needs the answer per site and per date, and again when a date slips.
 - **What you can do with it.** Read the answer for one site in one sentence and on a timeline; compare sites and periods side by side; search for better dates; search for sites near water ice, permanent shadow or science targets; stand at the site and see its horizon; estimate power; plan the flight from Earth.
-- **What it is not.** It is a planning aid built in one weekend, not a certified mission tool; "comms" means geometric line of sight, not a radio link budget. The limits are listed under [Limits](#limits) and [What is not covered](#what-is-not-covered).
+- **What it is not.** It is a planning aid built in one weekend, not a certified mission tool; "station contact" means geometric line of sight, not a radio link budget. The limits are listed under [Limits](#limits) and [What is not covered](#what-is-not-covered).
 - **How it compares.** [How this app compares with the NASA tools](why-ours.md): what we observed in JPL Horizons, Moon Trek and QuickMap, what this app adds, and what those tools do better.
 
 Contents: [Part 1, technical](#part-1--technical) (data flow, frames and units, calculations, points of interest, validation results, limits) · [Part 2, product](#part-2--product) (who it is for, the question, how to read each view, what is not covered).
@@ -85,19 +85,19 @@ Each calculation has its own file with equations, inputs, assumptions, uncertain
 
 The minimum elevation is one value per antenna for all azimuths: 6.0° for the three DSN antennas (the generic receive limit of [DSN 810-005, module 301](https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301P.pdf), section 2.2.3), and the highest value of JAXA's own horizon mask for the two JAXA antennas (12.5° and 6.22°; [JAXA Station Coordinates](https://ddor.nav.isas.jaxa.jp/station_coordinates/)). When both conditions fail, terrain is reported as the reason.
 
-**7. Coverage (`coverage`).** For each moment: "covered" if at least one selected station is geometrically visible, counted once however many stations are; "none" if no selected station is; "unknown" only when an input is missing. Unknown is never counted as covered.
+**7. Station contact (`coverage`).** For each moment: "covered" if at least one selected station is geometrically visible, counted once however many stations are; "none" if no selected station is; "unknown" only when an input is missing. Unknown is never counted as covered.
 
 **8. Windows (`windows`).** The state (lit or dark; covered, none or unknown) is evaluated every minute on the interpolated ephemeris (every 5 minutes for periods longer than 31 days). Each change is then narrowed by bisection to ±10 seconds. Consecutive equal states form one window.
 
-**9. Summary (`summarize`).** Percent of the period sunlit, with Earth visible, covered, unknown; the longest dark window and the longest window without coverage, in hours. All are time-weighted over the windows of step 8.
+**9. Summary (`summarize`).** Percent of the period sunlit, with Earth visible, covered, unknown; the longest dark window and the longest window without station contact, in hours. All are time-weighted over the windows of step 8.
 
 **10. Answer sentences (`answerState`, `answerSentence`).** For the time under the cursor: the current state and the time to the next change. Durations of 48 hours or more are given in whole days, shorter ones in whole hours. Remaining good time (sunlight, contact) is rounded down and waiting time is rounded up, so a sentence never promises more than the data. "Earth never rises here" is only said when no part of Earth's disc clears the terrain for any libration state in a box derived from the shipped ephemeris.
 
-**11. Find better dates (`finder`).** Candidate landing times every 30 minutes, from the mission start to 60 days later (never past the end of the ephemeris; `app/src/views/finderSpan.ts`). The step was 6 hours until 15 Nov 2026; an AI recheck found a qualifying Haworth window that the 6-hour grid missed ([validation.md](event/validation.md), V8). Each candidate mission is scored on 30-minute samples against four thresholds: minimum percent sunlit, minimum percent coverage, longest coverage gap, longest darkness. Defaults: 14 days, 70 %, 50 %, 48 h, 72 h; these are proposed defaults, all editable ([spec.md](event/spec.md), "Finder"). Neighbouring candidates that qualify are merged into one landing window. Windows are ranked by coverage, then percent sunlit, then date. If nothing qualifies, the nearest miss and the thresholds it fails are shown. The date menu's "Best periods" run the same finder with the default thresholds over the mission's calendar year and list up to five.
+**11. Find better dates (`finder`).** Candidate landing times every 30 minutes, from the mission start to 60 days later (never past the end of the ephemeris; `app/src/views/finderSpan.ts`). The step was 6 hours until 15 Nov 2026; an AI recheck found a qualifying Haworth window that the 6-hour grid missed ([validation.md](event/validation.md), V8). Each candidate mission is scored on 30-minute samples against four thresholds: minimum percent sunlit, minimum percent coverage, longest contact gap, longest darkness. Defaults: 14 days, 70 %, 50 %, 48 h, 72 h; these are proposed defaults, all editable ([spec.md](event/spec.md), "Finder"). Neighbouring candidates that qualify are merged into one landing window. Windows are ranked by coverage, then percent sunlit, then date. If nothing qualifies, the nearest miss and the thresholds it fails are shown. The date menu's "Best periods" run the same finder with the default thresholds over the mission's calendar year and list up to five.
 
 **12. Site slope and the 5° limit (`scripts/horizon.py`, `app/src/geometry/rankSites.ts`).** The slope of a site is taken over a 100 m baseline (heights 50 m east, west, north and south of the site on the 20 m model). A site passes the 5° slope limit at 5.0° or less; above it fails; without a value it is unknown. The 5° is the team's project criterion, not a sourced NASA or vehicle limit ([spec.md](event/spec.md), "Terrain slope").
 
-**13. Site ranking (`rankSites`).** First the slope filter of step 12. Sites that pass are ordered by the rule of the chosen science goal, then by coverage, then by percent sunlit. The goal rules: "Consistent light" = percent sunlit, then the shortest longest darkness; "Water ice", "Cold traps" and "Science targets" = the best evidence label among the site's sourced entries for that goal (direct measurement, remote observation, modeled condition, hypothesis, unknown); "Any" = coverage. There is no weighted score: keys are compared one after another, so each row's place can be checked by hand. Ties share a rank and are named.
+**13. Site ranking (`rankSites`).** First the slope filter of step 12. Sites that pass are ordered by the rule of the chosen science goal, then by station contact, then by percent sunlit. The goal rules: "Consistent light" = percent sunlit, then the shortest longest darkness; "Water ice", "Cold traps" and "Science targets" = the best evidence label among the site's sourced entries for that goal (direct measurement, remote observation, modeled condition, hypothesis, unknown); "Any" = coverage. There is no weighted score: keys are compared one after another, so each row's place can be checked by hand. Ties share a rank and are named.
 
 **14. Site assessments (`scripts/assessments.py`).** Computed for all 18 sites and shipped as `assessments.json`; shown in the Details drawer, section *Site assessment*. Method, data and limits are in [validation.md, "Mandatory site assessments"](event/validation.md#mandatory-site-assessments--method-and-evidence-ai-not-validated). In short: per-pixel slope statistics over a 100 m landing disk and a 2 km exploration disk; RMS height deviation from a plane over the 100 m disk as roughness; clusters of zero average Sun visibility in the Mazarico et al. maps with distance, bearing and a straight-line slope check; annual mean and annual maximum temperature from the Diviner Polar Resource Product. The thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria set by the team, not NASA or vehicle limits ([decisions.md, "Mandatory site assessments — 14 Nov 2026"](reference/decisions.md#mandatory-site-assessments--14-nov-2026)).
 
@@ -161,7 +161,7 @@ Automated tests: on 14 Nov 2026, 18:01, 206 Python tests, 76 unit tests and 63 e
 
 **Not modelled**
 
-- A radio link. No link budget, frequency, antenna schedule or availability, weather, or equipment. "Comms" is geometric visibility of the selected stations only.
+- A radio link. No link budget, frequency, antenna schedule or availability, weather, or equipment. "Station contact" is geometric visibility of the selected stations only.
 - Relay satellites and stations other than the five listed. ESA ESTRACK antennas are not included: no sourced minimum elevation was found ([spec.md](event/spec.md)).
 - Per-azimuth horizon masks of the stations. One minimum elevation per antenna is used.
 - Precise Earth orientation. `IAU_EARTH` is an approximation.
@@ -258,7 +258,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 **Timeline.**
 
 - Two tracks over the mission, plus three dimmed days before and after.
-- *Light*: yellow = sunlit, dark = not. *Comms*: blue = at least one selected station geometrically visible, dark = none, hatched = unknown.
+- *Light*: yellow = sunlit, dark = not. *Station contact*: blue = at least one selected station geometrically visible, dark = none, hatched = unknown.
 - The bracket marks the mission with its name and length.
 - Drag to move the cursor; click a date to jump to 12:00 UTC that day. Space plays and pauses; arrow keys step 30 minutes, with Shift one day.
 
@@ -287,18 +287,18 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 **Details drawer.** Three tabs: *Site details* (what is true of the landing site: Horizon, Stations, Site potential, Landing site assessment, Power and battery estimate, Open in NASA tools, Export, How this is computed), *Dates* (Find better dates, Year timeline; also opened by "Find dates with your own limits" in the date menu and by "Find better dates" on a table row) and *Compare* (Compare, All sites with the saved missions; also opened by "Compare" in the Mission menu). `drawer=details`, `drawer=finder` and `drawer=compare` in the link open them. The parts:
 
-- *Find better dates*: the thresholds of calculation 11 and up to five landing windows with sunlit, coverage and longest gap. "Show" opens exactly the scored interval.
-- *Year timeline*: light or comms over a calendar year, one bar row for the current site and one per saved mission's site, with the mission spans outlined.
+- *Find better dates*: the thresholds of calculation 11 and up to five landing windows with sunlit, station contact and longest gap. "Show" opens exactly the scored interval.
+- *Year timeline*: light or station contact over a calendar year, one bar row for the current site and one per saved mission's site, with the mission spans outlined.
 - *Horizon*: the terrain horizon over all azimuths with the Sun and Earth at the cursor time. Pointing at an azimuth shows the terrain angle, the distance of the blocking terrain, and whether the data ends before 300 km.
 - *Stations*: per selected station its state at the cursor time ("line of sight", "blocked by terrain", "Moon below station mask"), its elevation seen from the site and the Moon's elevation at the station.
 - *Compare*: the current view next to one other site or named period, same stations. "Switch" makes it the main view.
-- *All sites*: every site once, for the mission's dates or 365 days from its first day; light, comms or both. "Find better location" orders the rows by calculation 13. "Find better dates" on another site's row opens the finder for it. Saved missions follow as rows, with "Calculate flight".
+- *All sites*: every site once, for the mission's dates or 365 days from its first day; light, station contact or both. "Find better location" orders the rows by calculation 13. "Find better dates" on another site's row opens the finder for it. Saved missions follow as rows, with "Calculate flight".
 - *Site potential*: sourced statements about the site, each with a category; evidence and source in full data.
 - *Landing site assessment* (collapsed; data fetched when first opened): calculation 14 for the selected site, labelled "Validated by the science lead (statement of 15 Nov 2026; see record)". Slope over the 100 m landing disk and the 2 km exploration disk, roughness, the nearest zero-Sun-visibility cluster, Diviner temperatures. Thresholds are project criteria, not NASA limits. A custom site shows "Not computed for this place".
 - *Power and battery estimate*: four inputs (panel area, cell efficiency, constant load, battery; example values, kept in the link) and one sentence: does the battery last through the longest dark window. Marked "First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record)."
 - *Open in NASA tools*: the site in NASA Moon Trek and LROC QuickMap, and JPL Horizons Sun and Earth tables for the site over the mission dates. The link formats were read from the tools on 15 Nov 2026 ([validation.md](event/validation.md), "NASA-tools link check").
 - *Export*: windows and summary as CSV, and a link that reproduces the view.
-- *How this is computed*: the site's source and frame, the terrain and ephemeris sources, the comms definition, and the Terms of use.
+- *How this is computed*: the site's source and frame, the terrain and ephemeris sources, the station contact definition, and the Terms of use.
 
 **Rocket flight.** There is no flight tab.
 
@@ -326,10 +326,10 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 "Search" opens the search panel (`app/src/views/SearchPanel.tsx`; `drawer=search` in the link). Candidates: the sites of `sites.json` and the points of interest with a horizon file (`search-sites.json`).
 
-- Defaults: groups Water and volatiles, Permanent shadow, Science features; within 20 km (1 to 200 km); "Must pass the 5° slope limit" on; "Sunlit at least, %" and "Comms at least, %" 0 (any amount); rank by Both. The settings are not part of the link.
-- "Sunlit at least" and "Comms at least" say how much sunlight and station coverage a place must have, as a share of the mission dates (0 to 100 %). Places below a minimum are not listed; one line says how many. A place without data does not meet a minimum above 0.
+- Defaults: groups Water and volatiles, Permanent shadow, Science features; within 20 km (1 to 200 km); "Must pass the 5° slope limit" on; "Sunlit at least, %" and "Station contact at least, %" 0 (any amount); rank by Both. The settings are not part of the link.
+- "Sunlit at least" and "Station contact at least" say how much sunlight and station contact a place must have, as a share of the mission dates (0 to 100 %). Places below a minimum are not listed; one line says how many. A place without data does not meet a minimum above 0.
 - Records with the same place name within 5 km (1 km for illumination points) are one row.
-- Each row: rank, "Best" for up to the first 3 ranks, the nearby counts in words ("Within 20 km: 1 water 3 shadow 1 science"), Sunlit, Coverage and Slope ("— too steep" when it fails).
+- Each row: rank, "Best" for up to the first 3 ranks, the nearby counts in words ("Within 20 km: 1 water 3 shadow 1 science"), Sunlit, Station contact and Slope ("— too steep" when it fails).
 - Every row offers "Show as landing site". On a site row it selects that site; on a point row it makes the point the landing site (a custom landing site) and opens the landing-site view with its group on. The point of interest card has the same action. A point outside the custom-site region offers "Show on the Moon" instead, which opens the Moon view.
 - No group chosen, or nothing within the distance: one plain sentence.
 
@@ -339,7 +339,7 @@ Order (`app/src/geometry/poiSearch.ts`, header comment):
 2. Rows that pass but have no data.
 3. Rows that fail the slope filter.
 
-"Best" needs a value above 0 and at least one chosen point nearby. Sunlit and Coverage are the comparison table's values for the mission dates.
+"Best" needs a value above 0 and at least one chosen point nearby. Sunlit and Station contact are the comparison table's values for the mission dates.
 
 ### Documentation view
 

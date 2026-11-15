@@ -154,7 +154,7 @@ Not quantified at all, and not estimated here:
 | `app/src/geometry/geometry.test.ts` | "T4: due north has az 0, due east az 90" | azimuth convention at several sites |
 | `app/src/geometry/fixtures.test.ts` | "Sun, Earth and station angles match within 1e-6 deg; visibility matches" | browser = Python reference on 200 cases |
 | `app/src/geometry/windows.test.ts` | "refined edges are within ±1 min of the true change, and no edge is missed at 1-min sampling" | edges against a 1-minute scan at two sites, with and without a horizon |
-| `app/src/geometry/windows.test.ts` | "summary is consistent with the windows" | lit, Earth and coverage % between 0 and 100; union rules hold |
+| `app/src/geometry/windows.test.ts` | "summary is consistent with the windows" | lit, Earth and station contact % between 0 and 100; union rules hold |
 | `scripts/tests/test_windows.py` | `test_windows_tile_the_period_and_edges_are_real` | Python reference: windows tile the period and each edge is a real change within ±10 s |
 | `scripts/tests/test_ephemeris.py` | `test_interpolation_vs_direct_spice` | interpolated ephemeris within 0.001° of direct SPICE |
 

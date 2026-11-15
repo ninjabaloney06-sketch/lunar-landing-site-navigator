@@ -157,7 +157,7 @@ export function DateMenu(p: Props) {
           </div>
           <p className="menu-msg is-quiet" data-testid="best-defaults">
             {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
-            coverage ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
+            station contact ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
           </p>
           {best.status === 'computing' && (
             <p className="menu-msg is-quiet" role="status">
@@ -191,7 +191,7 @@ export function DateMenu(p: Props) {
                         <Marked text={spanLabel(s, e)} />
                       </span>
                       <span className="opt-label mono">
-                        sunlit {w.best.litPct.toFixed(0)} % · coverage {w.best.coveragePct.toFixed(0)} %
+                        sunlit {w.best.litPct.toFixed(0)} % · station contact {w.best.coveragePct.toFixed(0)} %
                       </span>
                     </button>
                   </li>

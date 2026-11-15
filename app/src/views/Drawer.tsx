@@ -355,7 +355,7 @@ export function Drawer(p: Props) {
         )}
         {full && (
           <p className="quiet">
-            Comms means geometric line of sight between the site and at least one selected station, not a guaranteed radio
+            Station contact means geometric line of sight between the site and at least one selected station, not a guaranteed radio
             link. Schedules, equipment and weather are unknown.
           </p>
         )}
@@ -536,7 +536,7 @@ export function Drawer(p: Props) {
                 Sun and Earth: <abbr title={ABBR.JPL}>JPL</abbr> <abbr title={ABBR.DE440}>DE440</abbr> ephemeris, every 30
                 minutes, <abbr title={ABBR.UTC}>UTC</abbr>.
               </li>
-              <li>Comms: line of sight at both ends, not a guaranteed radio link.</li>
+              <li>Station contact: line of sight at both ends, not a radio link.</li>
               <li data-testid="views-note">Views move the camera only; every value describes the landing site.</li>
             </ul>
             {approx && <p className="quiet">{approx}.</p>}
@@ -611,7 +611,7 @@ export function Drawer(p: Props) {
                 interpolation finds the change, to within about 10 seconds.
               </li>
               <li>
-                Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
+                Station contact: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
                 station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
               </li>
               <li data-testid="views-note">

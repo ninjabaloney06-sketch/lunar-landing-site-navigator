@@ -165,12 +165,12 @@ test.describe('U17: Details drawer, own sections', () => {
     await expect(drawer.locator('.finder-results')).toBeVisible({ timeout: 60_000 })
     const table = drawer.getByTestId('finder-table')
     if (await table.count()) {
-      await expect(table.locator('thead th')).toHaveText(['Land between', 'Sunlit', 'Station coverage', 'Longest gap', 'Show'])
+      await expect(table.locator('thead th')).toHaveText(['Land between', 'Sunlit', 'Station contact', 'Longest gap', 'Show'])
       await expect(table.locator('tbody td').nth(0)).toContainText('UTC')
     }
     // impossible thresholds: no window, and the closest candidate says what it misses in plain words
     await drawer.getByLabel('Sunlit at least (%)').fill('100')
-    await drawer.getByLabel('Station coverage at least (%)').fill('100')
+    await drawer.getByLabel('Station contact at least (%)').fill('100')
     await drawer.getByRole('button', { name: 'Find dates' }).click()
     const none = drawer.getByTestId('finder-none')
     await expect(none).toBeVisible({ timeout: 60_000 })
@@ -190,7 +190,7 @@ test.describe('U17: Details drawer, own sections', () => {
       await expect(page.getByTestId('best-period').first()).toBeVisible({ timeout: 60_000 })
       const defaults = (await page.evaluate(`import('/src/geometry/index.ts').then((g) => g.FINDER_DEFAULTS)`)) as Record<string, number>
       await expect(page.getByTestId('best-defaults')).toHaveText(
-        `14-day stays, proposed finder defaults: sunlit ≥ ${defaults.minLitPct} %, coverage ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
+        `14-day stays, proposed finder defaults: sunlit ≥ ${defaults.minLitPct} %, station contact ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
       )
       const menu = page.locator('.date-menu')
       expect(await unmarked(menu, false)).toEqual([])

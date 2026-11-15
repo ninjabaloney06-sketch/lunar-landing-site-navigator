@@ -79,7 +79,7 @@ test('header and timeline controls are drawn as buttons: a 1 px box, no underlin
   }
 })
 
-test('search: "at least" minimums say how much sunlight and comms a place must have', async ({ page }) => {
+test('search: "at least" minimums say how much sunlight and station contact a place must have', async ({ page }) => {
   await open(page)
   await page.getByTestId('search-open').click()
   const panel = page.getByTestId('search')

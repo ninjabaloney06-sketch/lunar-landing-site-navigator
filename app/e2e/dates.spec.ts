@@ -158,7 +158,7 @@ test.describe('U3: Time periods show the current mission and the best computed p
     })()`)) as number[]
     expect(ref.length).toBeGreaterThan(0)
     expect(await rows.evaluateAll((bs) => bs.map((b) => Number(b.getAttribute('data-start'))))).toEqual(ref)
-    await expect(rows.first()).toContainText(/sunlit \d+ % · coverage \d+ %/)
+    await expect(rows.first()).toContainText(/sunlit \d+ % · station contact \d+ %/)
 
     const pick = ref[ref.length > 1 ? 1 : 0]
     await rows.nth(ref.length > 1 ? 1 : 0).click()

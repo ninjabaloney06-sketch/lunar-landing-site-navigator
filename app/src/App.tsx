@@ -527,7 +527,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (atCursor && ready) {
       parts.push(atCursor.sun.lit ? 'sunlit' : 'dark')
       const c = results.results.coverage[idx]
-      parts.push(c === 'covered' ? 'a selected station in line of sight' : c === 'unknown' ? 'comms unknown' : 'no selected station in line of sight')
+      parts.push(c === 'covered' ? 'a selected station in line of sight' : c === 'unknown' ? 'station contact unknown' : 'no selected station in line of sight')
     }
     return parts.join(', ')
   })()
@@ -798,7 +798,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
-              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station coverage"
+              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station contact"
               onClick={() => patch({ drawer: 'search' })}
             >
               Search

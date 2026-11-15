@@ -320,7 +320,7 @@ export const DOC_SECTIONS: DocSection[] = [
           is best for this mission, and which dates would be better.
         </p>
         <p>
-          "Comms" and "station contact" in the app mean geometric visibility only: seen from the site, the station is
+          "Station contact" in the app means geometric visibility only: seen from the site, the station is
           above the terrain; seen from the station, the site is at or above the station's minimum elevation. It is not a
           radio link. There is no link budget, frequency, antenna schedule or availability, weather or equipment in
           the model.
@@ -427,7 +427,7 @@ export const DOC_SECTIONS: DocSection[] = [
         <ul className="docs-list">
           <li>Two tracks over the mission, plus three dimmed days before and after for context.</li>
           <li>
-            Light: <span className="docs-sun">yellow</span> is sunlit, dark is not. Comms:{' '}
+            Light: <span className="docs-sun">yellow</span> is sunlit, dark is not. Station contact:{' '}
             <span className="docs-comms">blue</span> is at least one selected station geometrically visible, dark is
             none, hatched is unknown.
           </li>
@@ -486,9 +486,9 @@ export const DOC_SECTIONS: DocSection[] = [
         <ul className="docs-list">
           <li>
             Find better dates: the thresholds of the date search and up to five landing windows with percent sunlit,
-            coverage and longest gap. &quot;Show&quot; opens exactly the interval that was scored.
+            station contact and longest gap. &quot;Show&quot; opens exactly the interval that was scored.
           </li>
-          <li>Year timeline: light or comms over a calendar year, for the current site and each saved mission&apos;s site.</li>
+          <li>Year timeline: light or station contact over a calendar year, for the current site and each saved mission&apos;s site.</li>
           <li>
             Horizon: the terrain horizon in every direction with the Sun and Earth at the cursor time. Pointing at a
             direction shows the terrain angle, how far away the blocking terrain is, and whether the data ends before
@@ -504,7 +504,7 @@ export const DOC_SECTIONS: DocSection[] = [
             makes it the main view.
           </li>
           <li>
-            All sites: every site once, for the mission&apos;s dates or 365 days from its first day; light, comms or
+            All sites: every site once, for the mission&apos;s dates or 365 days from its first day; light, station contact or
             both. &quot;Find better location&quot; orders the rows by the site ranking. &quot;Find better dates&quot; on
             another site&apos;s row opens the date search for it. Saved missions follow as rows.
           </li>
@@ -527,7 +527,7 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
           <li>Export: the windows and the summary as CSV, and a link that reproduces the view.</li>
           <li>
-            How this is computed: the site&apos;s source and frame, the terrain and ephemeris sources, the comms
+            How this is computed: the site&apos;s source and frame, the terrain and ephemeris sources, the station contact
             definition, and the Terms of use.
           </li>
         </ul>
@@ -586,13 +586,13 @@ export const DOC_SECTIONS: DocSection[] = [
             <Path>drawer=search</Path> is.
           </li>
           <li>
-            &quot;Sunlit at least, %&quot; and &quot;Comms at least, %&quot; say how much sunlight and station coverage a
+            &quot;Sunlit at least, %&quot; and &quot;Station contact at least, %&quot; say how much sunlight and station contact a
             place must have, as a share of the mission dates (0 = any amount). Places below a minimum are not listed;
             one line says how many.
           </li>
           <li>Records with the same place name within 5 km (1 km for illumination points) are one row.</li>
           <li>
-            Each row: rank, &quot;Best&quot; for up to the first 3 ranks, the nearby counts in words, Sunlit, Coverage
+            Each row: rank, &quot;Best&quot; for up to the first 3 ranks, the nearby counts in words, Sunlit, Station contact
             and Slope (&quot;— too steep&quot; when it fails).
           </li>
           <li>
@@ -777,7 +777,7 @@ export const DOC_SECTIONS: DocSection[] = [
           conditions fail, terrain is reported as the reason.
         </p>
         <p>
-          <strong>Coverage.</strong> At each moment the state is "covered" if at least one selected station is visible
+          <strong>Station contact.</strong> At each moment the state is "covered" if at least one selected station is visible
           (counted once, however many are), "none" if no selected station is, and "unknown" only when an input is
           missing. Unknown is never counted as covered.
         </p>
@@ -790,8 +790,8 @@ export const DOC_SECTIONS: DocSection[] = [
         <p>
           <strong>Find better dates.</strong> Landing times are tried every 30 minutes, from the mission start to 60 days
           later. Each candidate mission is scored on 30-minute samples against four thresholds: minimum percent sunlit,
-          minimum percent coverage, longest coverage gap and longest darkness. The defaults are a 14-day mission, 70 %
-          sunlit, 50 % coverage, a longest coverage gap of 48 h and a longest darkness of 72 h. They are proposed defaults, and
+          minimum percent coverage, longest contact gap and longest darkness. The defaults are a 14-day mission, 70 %
+          sunlit, 50 % coverage, a longest contact gap of 48 h and a longest darkness of 72 h. They are proposed defaults, and
           all can be edited. Neighbouring candidates that qualify are merged into one landing window. Windows are
           ranked by coverage, then percent sunlit, then date. If nothing qualifies, the app shows the nearest miss and
           the thresholds it fails.

@@ -37,15 +37,15 @@ type Columns = 'both' | 'light' | 'comms'
 type Span = 'mission' | 'year'
 
 const COLUMNS: { id: Columns; label: string; hint: string }[] = [
-  { id: 'both', label: 'Both', hint: 'sunlit and comms' },
+  { id: 'both', label: 'Both', hint: 'sunlit and station contact' },
   { id: 'light', label: 'Light', hint: 'sunlit and longest darkness' },
-  { id: 'comms', label: 'Comms', hint: 'comms and longest comms gap' },
+  { id: 'comms', label: 'Station contact', hint: 'station contact and longest contact gap' },
 ]
 
 // Column heads carry the unit; durations carry theirs in the value ("3 days 4 h").
 const H_LIT = 'Sunlit, % of time'
-// Shared wording with the Mission menu (read-mission): "sunlit", "comms", "longest comms gap", "Earth in view".
-const H_COV = 'Comms, % of time'
+// Shared wording with the Mission menu (read-mission): "sunlit", "comms", "longest contact gap", "Earth in view".
+const H_COV = 'Station contact, % of time'
 export const COMMS_HINT = 'Line of sight to at least one selected ground station, not a guaranteed radio link.'
 
 const VALUES: Record<Columns, { key: string; head: string; get: (s: Summary) => string }[]> = {
@@ -59,7 +59,7 @@ const VALUES: Record<Columns, { key: string; head: string; get: (s: Summary) => 
   ],
   comms: [
     { key: 'comms', head: H_COV, get: (s) => fmtPct(s.coveragePct) },
-    { key: 'gap', head: 'Longest comms gap', get: (s) => fmtSpanH(s.longestGapH) },
+    { key: 'gap', head: 'Longest contact gap', get: (s) => fmtSpanH(s.longestGapH) },
   ],
 }
 
@@ -86,9 +86,9 @@ function yearSpan(startMs: number): { startMs: number; endMs: number } {
 // Full data mode (U8): every value summarize() gives, beside the decision values the chosen columns show.
 const ALL_VALUES: { key: string; head: string; get: (s: Summary) => string; v: (s: Summary) => number }[] = [
   { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct), v: (s) => s.litPct },
-  { key: 'comms', head: 'Comms', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
+  { key: 'comms', head: 'Station contact', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
   { key: 'dark', head: 'Longest darkness', get: (s) => fmtSpanH(s.longestDarkH), v: (s) => s.longestDarkH },
-  { key: 'gap', head: 'Longest comms gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH },
+  { key: 'gap', head: 'Longest contact gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH },
   { key: 'earth', head: 'Earth in view', get: (s) => fmtPct(s.earthVisiblePct), v: (s) => s.earthVisiblePct },
 ]
 

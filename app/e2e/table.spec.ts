@@ -71,7 +71,7 @@ const hours = (v: number) => {
 test.describe('comparison table for all sites', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('lists every site in sites.json once; light and comms values equal summarize() for that site and the mission dates', async ({ page }) => {
+  test('lists every site in sites.json once; light and station contact values equal summarize() for that site and the mission dates', async ({ page }) => {
     const sites = await data<SiteRef[]>(page, 'sites.json')
     const table = await openTable(page, `site=${RIDGE}&period=${AUG}`)
     await expect(table).toHaveAttribute('data-span', 'mission')
@@ -85,9 +85,9 @@ test.describe('comparison table for all sites', () => {
     // Both (the default): every site.
     for (const s of sites) {
       await expect(cell(s.id, 'lit'), `${s.id} sunlit`).toHaveText(pct(ref.summaries[s.id].litPct))
-      await expect(cell(s.id, 'comms'), `${s.id} station coverage`).toHaveText(pct(ref.summaries[s.id].coveragePct))
+      await expect(cell(s.id, 'comms'), `${s.id} station contact`).toHaveText(pct(ref.summaries[s.id].coveragePct))
     }
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Comms, % of time', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Station contact, % of time', 'Graph'])
     // Light only, then comms only.
     await table.getByRole('radio', { name: 'Light' }).check()
     await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Longest darkness', 'Graph'])
@@ -96,8 +96,8 @@ test.describe('comparison table for all sites', () => {
       await expect(cell(s.id, 'dark')).toHaveText(hours(ref.summaries[s.id].longestDarkH))
       await expect(cell(s.id, 'comms')).toHaveCount(0)
     }
-    await table.getByRole('radio', { name: 'Comms' }).check()
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Comms, % of time', 'Longest comms gap', 'Graph'])
+    await table.getByRole('radio', { name: 'Station contact' }).check()
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Station contact, % of time', 'Longest contact gap', 'Graph'])
     for (const s of sites) {
       await expect(cell(s.id, 'comms')).toHaveText(pct(ref.summaries[s.id].coveragePct))
       await expect(cell(s.id, 'gap')).toHaveText(hours(ref.summaries[s.id].longestGapH))
@@ -352,7 +352,7 @@ for (const vp of [
     await page.getByRole('heading', { name: 'All sites' }).evaluate((e) => e.scrollIntoView({ block: 'start' }))
     await inside('table, both columns')
     await page.screenshot({ path: `test-results/table-both-${tag}.png`, animations: 'disabled' })
-    await table.getByRole('radio', { name: 'Comms' }).check()
+    await table.getByRole('radio', { name: 'Station contact' }).check()
     await inside('table, comms columns')
     await table.getByRole('radio', { name: 'Light' }).check()
     await table.getByRole('button', { name: 'Find better location' }).click()
