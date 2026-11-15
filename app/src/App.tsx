@@ -101,6 +101,13 @@ export default function App() {
   return <Main sites={boot.sites} periods={boot.periods} stations={boot.stations} />
 }
 
+// The line under the site name: the site's caveat ("Blue Moon MK1 target", "intended landing site, not
+// touchdown"). A label that only records the site's history in NASA's candidate lists ("dropped in 2024") is a
+// research note, not something to decide on, so the line is left out (visual sweep 21); sites.json has no region.
+function siteSubtitle(site: Site): string | null {
+  return site.label && !/^dropped in \d{4}$/i.test(site.label.trim()) ? site.label : null
+}
+
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
 // Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
@@ -563,7 +570,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               {fmtCoords(site.lat, site.lon)}
             </span>
           </p>
-          {site.label && <p className="site-label">{site.label}</p>}
+          {siteSubtitle(site) && <p className="site-label">{siteSubtitle(site)}</p>}
           <button
             ref={dateBtn}
             type="button"

@@ -333,5 +333,13 @@
 
   .tl-tools {
     gap: var(--s-4);
+    align-items: center;
+  }
+
+  /* View and Simulate: 44 px tall targets on a phone (visual sweep 8), the text stays a quiet link */
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }

@@ -235,6 +235,7 @@ a:hover {
 .coords {
   margin: var(--s-2) 0 0;
   color: var(--muted);
+  white-space: nowrap; /* "104.47° W" never leaves the W alone on a line (visual sweep 29) */
 }
 
 .date {
@@ -288,6 +289,14 @@ a:hover {
 
 .find:active {
   border-color: var(--fg);
+}
+
+/* While the drawer or the search is open (desktop), the header ends where the panel starts, so the panel never cuts
+   a control mid-word (visual sweep 11). On phones the panel covers the whole screen. */
+@media (min-width: 641px) {
+  .app:has(.drawer-host > .drawer) > .top {
+    padding-right: calc(min(520px, 100vw) + var(--s-6));
+  }
 }
 
 /* the drawer, search and docs panels' common parent: no box of its own (App.tsx, click outside closes) */
@@ -505,8 +514,17 @@ a:hover {
     font-size: 28px;
   }
 
+  /* Header controls on one row under the title, each a 44 px target (visual sweep 8). */
   .find {
+    min-height: 44px;
     padding: var(--s-1) var(--s-3);
+  }
+
+  .date {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 0;
   }
 
   .bottom {

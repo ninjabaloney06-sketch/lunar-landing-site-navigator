@@ -105,3 +105,59 @@ test.describe('U9: a press outside closes every open menu and panel; the 3D canv
     await expect(page.getByTestId('drawer')).toHaveCount(0)
   })
 })
+
+const SHOTS = 'test-results/shell' // copied to the run's reports folder by hand
+
+test.describe('header at 375 px (visual sweep 8, 26, 29) and the drawer beside the header (11), the site subtitle (21)', () => {
+  test('375 px: header controls on at most two rows, each at least 44 px tall; coordinates on one line; View and Simulate 44 px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    // Haworth's longitude has three digits before the point: the longest coordinate text
+    for (const url of [DEMO, `/#site=haworth&period=${AUG}`, `${DEMO}&view=globe`]) {
+      await open(page, url)
+      await page.evaluate(() => document.fonts.ready)
+      const tops = new Set<number>()
+      for (const id of ['poi-toggle', 'search-open', 'details']) {
+        const b = (await page.getByTestId(id).boundingBox())!
+        expect(b.height, id).toBeGreaterThanOrEqual(44 - 0.01)
+        expect(b.x + b.width, id).toBeLessThanOrEqual(375)
+        tops.add(Math.round(b.y))
+      }
+      expect(tops.size).toBeLessThanOrEqual(2)
+      for (const id of ['view', 'simulate', 'date']) expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(44 - 0.01)
+      const coords = page.getByTestId('coords')
+      const lineH = await coords.evaluate((e) => parseFloat(getComputedStyle(e).lineHeight) || 20)
+      expect((await coords.boundingBox())!.height).toBeLessThan(lineH * 1.5)
+    }
+    await page.screenshot({ path: `${SHOTS}/375-globe.png` })
+    await open(page, DEMO)
+    await page.screenshot({ path: `${SHOTS}/375-site.png` })
+    await page.getByTestId('details').click()
+    await page.screenshot({ path: `${SHOTS}/375-drawer.png` })
+  })
+
+  test('1280 px: an open drawer or search never lies over a header control', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
+    await open(page)
+    await page.screenshot({ path: `${SHOTS}/1280-site.png` })
+    for (const [btn, id] of [['details', 'drawer'], ['search-open', 'search']]) {
+      await page.getByTestId(btn).click()
+      const left = (await page.getByTestId(id).boundingBox())!.x
+      for (const c of await page.locator('header.top').getByRole('button').all()) {
+        if (!(await c.isVisible())) continue
+        const b = (await c.boundingBox())!
+        expect(b.x + b.width, `${await c.innerText()} with the ${id} open`).toBeLessThanOrEqual(left)
+      }
+      await page.screenshot({ path: `${SHOTS}/1280-${id}.png` })
+      await page.keyboard.press('Escape')
+      await expect(page.getByTestId(id)).toHaveCount(0)
+    }
+  })
+
+  test('a site whose label only says it was dropped from a candidate list shows no subtitle; a real caveat stays', async ({ page }) => {
+    await open(page, `/#site=connecting-ridge-extension&period=${AUG}`)
+    await expect(page.locator('.site-label')).toHaveCount(0)
+    await expect(page.locator('header.top')).not.toContainText('dropped in')
+    await open(page, DEMO)
+    await expect(page.locator('.site-label')).toHaveText('Blue Moon MK1 target')
+  })
+})
