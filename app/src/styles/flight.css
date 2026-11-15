@@ -360,6 +360,30 @@
   color: var(--error);
 }
 
+/* The answer under the payload: feasibility, the three times, the Δv. No bullets: each line is labelled. */
+.flight-glance {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+
+.flight-glance-times {
+  display: grid;
+  gap: 2px;
+}
+
+.flight-glance-row .quiet:first-child {
+  display: inline-block;
+  min-width: 6.5em;
+}
+
+.flight-glance-time {
+  text-align: left;
+}
+
 /* Rocket and lander: two cards side by side, the chosen one outlined. */
 .flight-designs {
   display: grid;
@@ -731,6 +755,18 @@
 
 .flight-hint {
   margin: 0;
+}
+
+/* The one-line hint under an input: small and quiet, under the control it explains. */
+.flight-control .flight-hint,
+.flight-designs-hint,
+.flight-job-hint {
+  font-size: var(--t-small);
+  line-height: 1.4;
+}
+
+.flight-designs-hint {
+  grid-column: 1 / -1;
 }
 
 /* The coordinates in use, under the choice that produced them. */

@@ -1,11 +1,13 @@
-// The explanatory sections of the Flight plan panel: why the halo orbit looks the way it does and what it costs
+// The explanatory sections of the Rocket flight menu: why the halo orbit looks the way it does and what it costs
 // and buys, how Apollo and Artemis land, how long crews stay on the surface, and the glossary.
-// Plain text with its sources; where the plan computed a number, that number is shown beside the
-// published one. Each export is the content of one collapsible section of FlightPanel.
+// Summary mode: at most four bullets of twelve words or fewer per section, with the sources. Full data mode: the
+// full text, and where the plan computed a number, that number beside the published one. Each export is the
+// content of one collapsible section of FlightPanel.
 import type { ReactNode } from 'react'
 import type { ArchitectureSpec } from '../flight/hardware'
 import type { MissionPlan, SourceRef } from '../flight/types'
-import { burnName, fmtDays, fmtKms } from './flightFormat'
+import { useFullData } from './advanced'
+import { burnName, fmtDays, fmtDv } from './flightFormat'
 import { Abbr, GLOSSARY, GLOSSARY_GROUPS, GLOSSARY_SOURCES } from './flightGlossary'
 
 type Rendezvous = ArchitectureSpec['rendezvous']
@@ -44,6 +46,21 @@ function Sources({ list }: { list: SourceRef[] }) {
         </li>
       ))}
     </ul>
+  )
+}
+
+/** Summary mode: the section in at most four short bullets (each ≤ 12 words; the test counts them). */
+export function Brief({ items, sources }: { items: ReactNode[]; sources: SourceRef[] }) {
+  return (
+    <div className="flight-prose" data-testid="flight-brief">
+      <ul className="flight-bullets">
+        {items.map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
+      </ul>
+      <p className="quiet flight-brief-more">Full data shows the whole text.</p>
+      <Sources list={sources} />
+    </div>
   )
 }
 
@@ -95,11 +112,33 @@ export function rememberPlan(rendezvous: Rendezvous, plan: MissionPlan): void {
   lastSums.set(rendezvous, sumsOf(plan))
 }
 
-const capsuleLine = (s: PlanSums) => `${s.capsule.map((b) => `${b.name} ${b.dvKms.toFixed(2)}`).join(' + ')} = ${fmtKms(s.capsuleDvKms)}`
+const capsuleLine = (s: PlanSums) => `${s.capsule.map((b) => `${b.name} ${Math.round(b.dvKms * 1000)}`).join(' + ')} = ${fmtDv(s.capsuleDvKms)}`
 
 // ---------- the halo orbit ----------
 
+const HALO_SOURCES = [S.capstone, S.lee, S.whitley, S.justRight, S.mahajan, S.moonFacts, S.a11Orbit, S.a11Home, S.pause, S.landers2028]
+
 export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rendezvous: Rendezvous }) {
+  const [full] = useFullData()
+  if (!full) {
+    return (
+      <Brief
+        sources={HALO_SOURCES}
+        items={[
+          <>
+            <Abbr>NRHO</Abbr>: a week-long loop over the poles, balanced Earth–Moon.
+          </>,
+          <>
+            Orion’s engine can leave it, but not a 100 km <Abbr>LLO</Abbr>.
+          </>,
+          <>Earth always in view; under 10 m/s per year to hold.</>,
+          <>
+            NASA dropped the <Abbr>NRHO</Abbr> meeting in October 2026; shown as planned before.
+          </>,
+        ]}
+      />
+    )
+  }
   const own = plan && rendezvous === 'nrho' ? sumsOf(plan) : null
   const low = rendezvous === 'nrho' ? lastSums.get('llo') : plan ? sumsOf(plan) : lastSums.get('llo')
   const f = plan?.facts
@@ -135,9 +174,9 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
       <h4>What it buys</h4>
       <ul>
         <li>
-          <strong>Orion can get in and out.</strong> Orion’s service module was built for about 1.25 km/s of <Abbr>Δv</Abbr> in total. A 100 km low lunar
-          orbit costs about 0.9 km/s to enter and about 0.9 km/s to leave: Orion could enter it but not come home. The halo orbit costs about
-          0.84 km/s for both (Whitley and Martinez).
+          <strong>Orion can get in and out.</strong> Orion’s service module was built for about 1,250 m/s of <Abbr>Δv</Abbr> in total. A 100 km low lunar
+          orbit costs about 900 m/s to enter and about 900 m/s to leave: Orion could enter it but not come home. The halo orbit costs about
+          840 m/s for both (Whitley and Martinez).
         </li>
         <li>
           <strong>Constant contact.</strong> From the halo orbit Earth is always in view. A craft in low lunar orbit is behind the Moon about half of
@@ -169,7 +208,7 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
       <h4>What it costs</h4>
       <ul>
         <li>
-          <strong>The lander does the work instead.</strong> It has to fly from the halo orbit down to a low orbit and back up, about 0.73 km/s and half
+          <strong>The lander does the work instead.</strong> It has to fly from the halo orbit down to a low orbit and back up, about 730 m/s and half
           a day each way, on top of the landing and the ascent.
         </li>
         <li>
@@ -182,33 +221,55 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
       </ul>
       {own?.transfer && (
         <PlanLine>
-          The lander’s burns between the two orbits: {fmtKms(own.transfer.downKms)} down, {fmtKms(own.transfer.upKms)} up. All lander burns:{' '}
-          {fmtKms(own.landerDvKms)}.
+          The lander’s burns between the two orbits: {fmtDv(own.transfer.downKms)} down, {fmtDv(own.transfer.upKms)} up. All lander burns:{' '}
+          {fmtDv(own.landerDvKms)}.
         </PlanLine>
       )}
       <h4>So is it the best way?</h4>
       <p>
         It is the best orbit for a capsule with Orion’s engine and for a station that is to stay for years: the cheapest place near the Moon that
-        Orion can reach and leave, always in contact with Earth. It is not the cheapest way to land. Counted in <Abbr>Δv</Abbr>, 0.84 km/s for the
-        capsule and about 0.73 km/s each way for the lander is more than the 1.8 km/s of a low orbit, and the larger share falls on the lander.
+        Orion can reach and leave, always in contact with Earth. It is not the cheapest way to land. Counted in <Abbr>Δv</Abbr>, 840 m/s for the
+        capsule and about 730 m/s each way for the lander is more than the 1,800 m/s of a low orbit, and the larger share falls on the lander.
       </p>
       <p>
         NASA has since changed the plan. In March 2026 it paused the Gateway, and in October 2026 it said that Orion and the landers will no longer
         meet in the halo orbit: Starship is to take Orion along to low lunar orbit, and Blue Moon is to meet Orion in an elliptical polar orbit. The
-        Artemis designs in this tab show the plan as it stood before.
+        Artemis designs in this menu show the plan as it stood before.
       </p>
-      <Sources list={[S.capstone, S.lee, S.whitley, S.justRight, S.mahajan, S.moonFacts, S.a11Orbit, S.a11Home, S.pause, S.landers2028]} />
+      <Sources list={HALO_SOURCES} />
     </div>
   )
 }
 
 // ---------- Apollo and Artemis: two ways to land ----------
 
+const LANDING_SOURCES = [S.houbolt, S.a11Lm, S.a11Orbit, S.a11Home, S.artemis3, S.whitley, S.pause, S.landers2028]
+
 export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; rendezvous: Rendezvous }) {
+  const [full] = useFullData()
+  if (!full) {
+    return (
+      <Brief
+        sources={LANDING_SOURCES}
+        items={[
+          <>
+            Apollo: one Saturn V; <Abbr>CSM</Abbr> and <Abbr>LM</Abbr> meet in <Abbr>LLO</Abbr>.
+          </>,
+          <>
+            Only the <Abbr>LM</Abbr> ascent stage lifts off; the descent stage stays.
+          </>,
+          <>
+            Artemis as shown: the lander waits in the <Abbr>NRHO</Abbr>, lands, returns whole.
+          </>,
+          <>NASA changed the meeting orbit in 2026; first landing now Artemis IV.</>,
+        ]}
+      />
+    )
+  }
   const own = plan ? sumsOf(plan) : null
   const other = lastSums.get(rendezvous === 'nrho' ? 'llo' : 'nrho')
   const line = (s: PlanSums) =>
-    `${s.design}: capsule after TLI ${fmtKms(s.capsuleDvKms)}, lander ${fmtKms(s.landerDvKms)}, ${fmtDays(s.stayDays, 1)} on the surface.`
+    `${s.design}: capsule after TLI ${fmtDv(s.capsuleDvKms)} Δv, lander ${fmtDv(s.landerDvKms)}, ${fmtDays(s.stayDays, 1)} on the surface.`
   return (
     <div className="flight-prose">
       <h4>Apollo: one launch, a small lander in two stages</h4>
@@ -280,7 +341,7 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
         In 2026 NASA changed how Orion and the landers meet (see “The halo orbit”): the first landing is now planned for Artemis IV, with a meeting in
         Earth orbit or in an elliptical lunar orbit, depending on the lander.
       </p>
-      <Sources list={[S.houbolt, S.a11Lm, S.a11Orbit, S.a11Home, S.artemis3, S.whitley, S.pause, S.landers2028]} />
+      <Sources list={LANDING_SOURCES} />
     </div>
   )
 }
@@ -290,7 +351,7 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
 const NSSDCA = 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id='
 
 // Touchdown to liftoff. NASA NSSDCA, the page of each Lunar Module; Apollo 17 to the second from Apollo by the
-// Numbers (NASA SP-2000-4029), the figure the Apollo design in this tab takes as its longest stay.
+// Numbers (NASA SP-2000-4029), the figure the Apollo design in this menu takes as its longest stay.
 const APOLLO_STAYS: [mission: string, stay: string, url: string][] = [
   ['Apollo 11', '21 h 36 min', `${NSSDCA}1969-059C`],
   ['Apollo 12', '31 h 31 min', `${NSSDCA}1969-099C`],
@@ -308,6 +369,23 @@ export interface SurfaceStayProps {
 }
 
 export function SurfaceStay({ plan, rendezvous, askedDays, stay }: SurfaceStayProps) {
+  const [full] = useFullData()
+  const sources = [...(stay?.sources ?? []), S.a11Lm, S.elm, S.a15, S.a11Summary, S.artemis3, S.mahajan]
+  if (!full) {
+    return (
+      <Brief
+        sources={sources}
+        items={[
+          <>Apollo: 21 h 36 min (Apollo 11) to 75 h (Apollo 17).</>,
+          <>
+            Artemis <Abbr>NRHO</Abbr> plan: about 6.5 days, one orbit revolution.
+          </>,
+          <>A halo-orbit stay comes in whole revolutions of 6.56 days.</>,
+          ...(plan ? [<>This plan stays {fmtDays(plan.facts.surfaceStayDays, 2)} on the surface.</>] : []),
+        ]}
+      />
+    )
+  }
   return (
     <div className="flight-prose">
       <h4>How long Apollo stayed</h4>
@@ -357,14 +435,16 @@ export function SurfaceStay({ plan, rendezvous, askedDays, stay }: SurfaceStayPr
           {stay.maxDays !== null && ` (longest: ${fmtDays(Number(stay.maxDays.toFixed(2)))})`}. <Abbr>{stay.basis}</Abbr>
         </p>
       )}
-      <Sources list={[...(stay?.sources ?? []), S.a11Lm, S.elm, S.a15, S.a11Summary, S.artemis3, S.mahajan]} />
+      <Sources list={sources} />
     </div>
   )
 }
 
 // ---------- glossary ----------
 
+/** The abbreviations: term and long form in summary mode, with one line on what it means in full data mode. */
 export function Glossary() {
+  const [full] = useFullData()
   return (
     <div className="flight-prose" data-testid="flight-glossary">
       {GLOSSARY_GROUPS.map((group) => (
@@ -375,7 +455,8 @@ export function Glossary() {
               <div key={g.term}>
                 <dt className="mono">{g.term}</dt>
                 <dd>
-                  <strong>{g.name}.</strong> {g.meaning}
+                  <strong>{g.name}.</strong>
+                  {full && ` ${g.meaning}`}
                 </dd>
               </div>
             ))}
