@@ -88,6 +88,31 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
     for (const l of lefts) expect(l).toBeGreaterThanOrEqual(nov1 - 1e-9)
   })
 
+  test('horizon chart: each elevation shown once; the Sun and Earth labels clear the terrain and each other', async ({ page }) => {
+    // Sweep item 22: at this time the chart showed "Sun −0.2°" over the skyline, the caption "el −0.15°" again.
+    for (const [site, t] of [
+      [RIDGE, '2027-08-16T00:00Z'],
+      [MASSIF, '2027-08-20T06:00Z'],
+      ['haworth', '2027-08-18T12:00Z'],
+    ] as const) {
+      await open(page, `site=${site}&period=${AUG}&t=${t}&drawer=details`)
+      const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
+      await expect(strip.getByTestId('strip-sun')).toContainText(/Sun −?\d+\.\d°/)
+      await expect(strip.locator('figcaption')).not.toContainText('el ')
+      const r = await strip.locator('svg').evaluate((svg) => {
+        const terrain = svg.querySelector('.strip-terrain') as SVGPathElement
+        const box = (k: string) => (svg.querySelector(`[data-testid="strip-${k}"] text`) as SVGTextElement).getBBox()
+        const sun = box('sun')
+        const earth = box('earth')
+        const inTerrain = (b: DOMRect) =>
+          [b.x + 1, b.x + b.width / 2, b.x + b.width - 1].some((px) => terrain.isPointInFill(new DOMPoint(px, b.y + b.height - 3)))
+        const overlap = sun.x < earth.x + earth.width && earth.x < sun.x + sun.width && sun.y < earth.y + earth.height && earth.y < sun.y + sun.height
+        return { sunIn: inTerrain(sun), earthIn: inTerrain(earth), overlap }
+      })
+      expect(r, `${site} at ${t}`).toEqual({ sunIn: false, earthIn: false, overlap: false })
+    }
+  })
+
   test('the "How this is computed" figures for a prepared site come from its horizon file', async ({ page }) => {
     await open(page, `site=${RIDGE}&period=${AUG}&drawer=sources`)
     const h = (await (await page.request.get('/data/horizons/connecting-ridge.json')).json()) as { ray_max_km: number; observer_height_m: number; mask: number[] }
@@ -175,5 +200,7 @@ for (const vp of [
     await page.screenshot({ path: `test-results/dates-drawer-top-${vp.width}.png` })
     await yt.scrollIntoViewIfNeeded()
     await page.screenshot({ path: `test-results/dates-year-timeline-${vp.width}.png` })
+    await page.getByTestId('drawer').getByTestId('horizon-strip').evaluate((e) => e.scrollIntoView({ block: 'center' }))
+    await page.screenshot({ path: `test-results/dates-horizon-${vp.width}.png` })
   })
 }

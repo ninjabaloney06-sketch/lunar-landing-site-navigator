@@ -578,6 +578,11 @@
   fill: var(--muted);
 }
 
+.strip-leader {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
 .strip-guide {
   stroke: var(--fg);
   stroke-width: 1;

@@ -130,12 +130,38 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
     }
     return parts.join(', ')
   }
+  // The elevations are on the chart labels (one rounding, one place); the caption adds the azimuths.
   const readout =
     hoverAz !== null
       ? `Azimuth ${hoverAz.toFixed(1)}° · ${terrainAt(hoverAz)}`
       : sample
-        ? `Sun az ${sample.sun.az.toFixed(1)}°, el ${fmtDeg(sample.sun.el, 2)} · Earth az ${sample.earth.az.toFixed(1)}°, el ${fmtDeg(sample.earth.el, 2)}`
+        ? `Sun azimuth ${sample.sun.az.toFixed(1)}° · Earth azimuth ${sample.earth.az.toFixed(1)}°`
         : ''
+  const spoken = sample
+    ? `Sun azimuth ${sample.sun.az.toFixed(1)}°, elevation ${fmtDeg(sample.sun.el)}; Earth azimuth ${sample.earth.az.toFixed(1)}°, elevation ${fmtDeg(sample.earth.el)}`
+    : ''
+
+  // Labels: beside the dot, raised above the terrain line under them and above the other body's label, so
+  // neither crosses the skyline or the other; a thin leader joins a raised label to its dot.
+  const LINE_H = 17 // a label's height with a gap (12 px text)
+  const TOP = m.t + 10 // highest baseline
+  const labels: { x: number; y: number; right: boolean; raised: boolean; x0: number; x1: number }[] = []
+  for (const b of bodies) {
+    const cx = x(b.az)
+    const cy = y(b.el)
+    const w = (b.name.length + 1 + fmtDeg(b.el).length) * 7 // generous width estimate of "Earth −1.0°"
+    const right = cx > width - 96
+    const x0 = right ? cx - 8 - w : cx + 8
+    const x1 = x0 + w
+    let skyline = Infinity // smallest y (highest terrain) under the label
+    for (let px = x0; px <= x1; px += 2) skyline = Math.min(skyline, y(maskAt(horizon, Math.min(360, Math.max(0, x.invert(px))))))
+    const base = Math.max(TOP, Math.min(cy - 8, skyline - 4))
+    const clear = (ly: number) => ly >= TOP && ly <= skyline - 4 && labels.every((o) => !(x0 < o.x1 && o.x0 < x1 && Math.abs(o.y - ly) < LINE_H))
+    // the natural place, then above or below each placed label, then stacked under the top edge
+    const tries = [base, ...labels.flatMap((o) => [o.y - LINE_H, o.y + LINE_H]), TOP, TOP + LINE_H]
+    const ly = tries.find(clear) ?? base
+    labels.push({ x: right ? cx - 8 : cx + 8, y: ly, right, raised: Math.abs(cy - 8 - ly) > 4, x0, x1 })
+  }
 
   return (
     <figure className={`strip ${className ?? ''}`} data-testid="horizon-strip">
@@ -145,7 +171,7 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
             width={width}
             height={height}
             role="img"
-            aria-label={`Horizon by azimuth. ${readout}`}
+            aria-label={`Horizon by azimuth. ${hoverAz !== null ? readout : spoken}`}
             onPointerMove={onPointer}
             onPointerDown={onPointer}
             onPointerLeave={() => setHoverAz(null)}
@@ -174,18 +200,16 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
             {bodies.map((b, i) => {
               const cx = x(b.az)
               const cy = y(b.el)
-              const right = cx > width - 96
-              // Sun and Earth close together: the second label goes below its dot so the two never overlap.
-              const o = i > 0 ? bodies[0] : null
-              const below = !!o && Math.abs(x(o.az) - cx) < 96 && Math.abs(y(o.el) - cy) < 24
+              const l = labels[i]
               return (
                 <g
                   key={b.key}
                   className={`strip-body strip-${b.key}${b.el < EL_MIN ? ' is-below' : ''}`}
                   data-testid={`strip-${b.key}`}
                 >
+                  {l.raised && <line className="strip-leader" x1={cx} y1={cy - 5} x2={l.right ? l.x + 4 : l.x - 4} y2={l.y - 4} />}
                   <circle cx={cx} cy={cy} r={4} />
-                  <text x={right ? cx - 8 : cx + 8} y={below ? cy + 16 : cy - 8} textAnchor={right ? 'end' : 'start'}>
+                  <text x={l.x} y={l.y} textAnchor={l.right ? 'end' : 'start'}>
                     <tspan className="strip-body-name">{b.name}</tspan> <tspan className="strip-body-num">{fmtDeg(b.el)}</tspan>
                   </text>
                 </g>
