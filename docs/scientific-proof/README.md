@@ -15,16 +15,18 @@ One file per calculation the app makes. Each has the same six parts: the equatio
 
 ## How to read the validation status
 
-Three records exist, and they say different things. Each file quotes them as they are.
+Four records exist, and they say different things. Each file quotes them as they are.
+
+- **Since 15 Nov 2026: validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section ["Validation status 15 Nov"](../event/validation.md#validation-status-15-nov), records his statement of 15 Nov 2026, 08:50, in chat with the build session ("validated everything means EVERYTHING"), which covers every check and every calculation in this folder, including those built on 15 Nov. It says nothing about what was compared against what; no check has a per-check sign-off written by him in `validation.md`. The three records below are the state before it.
 
 - `docs/event/validation.md` is the record of the checks V1–V9 and the station, horizon-range and truncated-horizon checks. On 14 Nov 2026, V1 and V2 (Sun and Earth directions against JPL Horizons) were reported passed in chat, with no written sign-off by the science lead in the repository; every other check there is open. It has no row for the flight physics.
 - `app/src/data/validation.ts` sets `VALIDATED = true`. That was a team decision on 14 Nov 2026, after an independent recomputation by AI agreed with the app. The file says it is not a sign-off by the science lead.
 - `BUILD_LOG.md`, 14 Nov 2026 20:59, records the science lead's statement that the flight physics are validated. The same entry says the statement was not entered in `validation.md` and that who validated the flight physics, and against what, is not recorded.
 
-Calculations built on 15 Nov 2026 — maximum payload, the cheapest route, the Moon's J2 term and the descent dispersion — are **not yet validated by the science lead**. The proof tests written the same night (gravity varying with altitude, mass loss during burns, Sun and Earth as third bodies) are tests, not a sign-off.
+Calculations built on 15 Nov 2026 — maximum payload, the cheapest route, the Moon's J2 term and the descent dispersion — were not yet validated by the science lead before the statement of 15 Nov; they are covered by it. The proof tests written the same night (gravity varying with altitude, mass loss during burns, Sun and Earth as third bodies) are tests, not a sign-off.
 
 A passing test shows that the code computes what it was written to compute. It is not a scientific validation.
 
 ## Points of interest
 
-Point coordinates and facts come from the cited research sources and are not individually checked by the science lead. The app's computed results (sunlight, Earth visibility and station contact, ranking, flight) carry the validation status recorded in the files above; most of those checks are still open.
+Point coordinates and facts come from the cited research sources and are not individually checked by the science lead. The app's computed results (sunlight, Earth visibility and station contact, ranking, flight) carry the validation status recorded in the files above: validated by the science lead (statement of 15 Nov 2026), with no per-check record.

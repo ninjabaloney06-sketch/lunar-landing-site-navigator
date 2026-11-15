@@ -6,7 +6,7 @@ import { SPACECRAFT } from '../flight/spacecraft'
 import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText } from './flightResultText'
 
 const base: PayloadResult = {
-  validation: { validated: false, text: 'not yet validated by the science lead' },
+  validation: { validated: false, text: 'validated by the science lead (statement of 15 Nov 2026; see record)' },
   verdict: 'payload',
   maxPayloadKg: 3173,
   rawPayloadKg: 3173,
@@ -65,7 +65,7 @@ describe('Blue Moon lower-bound note', () => {
     const lb = lowerBoundPropellant(bm)
     expect(lb).not.toBeNull()
     expect(lowerBoundShort(lb!.kg)).toBe(
-      "Propellant shown (29 t) is a lower bound: the lander's full load is not published, so this verdict cannot be decided from published data. Not yet validated by the science lead.",
+      "Propellant shown (29 t) is a lower bound: the lander's full load is not published, so this verdict cannot be decided from published data. Validated by the science lead (statement of 15 Nov 2026; see record).",
     )
     expect(lb!.element).toBe('Blue Moon Mark 2')
     expect(lowerBoundPropellant(SPACECRAFT.find((s) => s.id === 'apollo-lm'))).toBeNull()

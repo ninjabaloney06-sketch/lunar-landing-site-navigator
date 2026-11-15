@@ -118,6 +118,6 @@ describe('cheapest route for Apollo to the south pole over three days and two tr
     expect(sum).toBeCloseTo(c.winner!.totalPropellantKg - c.runnerUp!.totalPropellantKg, 3)
     // both carry delta-v per phase for the explanation
     for (const r of [c.winner!, c.runnerUp!]) for (const ph of ['tli', 'arrival', 'descent']) expect(r.phases.some((p) => p.phase === ph), ph).toBe(true)
-    expect(c.validation.text).toBe('not yet validated by the science lead')
+    expect(c.validation.text).toBe('validated by the science lead (statement of 15 Nov 2026; see record)')
   }, 180_000)
 })

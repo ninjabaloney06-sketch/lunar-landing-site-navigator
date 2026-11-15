@@ -1,6 +1,6 @@
 // P1 power estimate section of the details drawer: four inputs (kept in the link), one answer sentence (does the
 // battery survive the longest dark window, by how much) and the period's numbers. Arithmetic: power/power.ts, on the
-// same series and sun windows the summary uses. First estimate, not a power budget; not validated by the science lead.
+// same series and sun windows the summary uses. First estimate, not a power budget; validated by the science lead (statement of 15 Nov 2026; see record).
 //
 // Number format (U17, wave 3): thousands grouped with a comma ("1,915 Wh"), as the rest of the app prints them
 // (views/flightFormat.ts "405,760 km", flightResult.tsx, FlightExplain.tsx: toLocaleString('en-US')). power.ts's
@@ -33,7 +33,7 @@ interface Props {
   onChange?(next: PowerInputs): void
 }
 
-/** The power rows of the drawer's CSV export (P1: first estimate, not validated by the science lead). */
+/** The power rows of the drawer's CSV export (P1: first estimate; validated by the science lead, statement of 15 Nov 2026). */
 export function powerCsvLines(r: Results, inputs: PowerInputs = POWER_DEFAULTS): string[] {
   return powerCsvRows(inputs, estimateForResults(r, inputs))
 }
@@ -145,7 +145,7 @@ export function PowerSection(props: Props) {
   return (
     <section className="drawer-sec power" aria-labelledby={`${uid}-h`} data-testid="power-section">
       <h3 id={`${uid}-h`}>Power and battery estimate</h3>
-      <p className="msg sample-note power-status">First estimate, not a power budget. Not validated by the science lead.</p>
+      <p className="msg sample-note power-status">First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).</p>
       {examples.length > 0 && (
         <p className="quiet power-example" data-testid="power-example">
           Example values, change them: {examples.join(', ')}.

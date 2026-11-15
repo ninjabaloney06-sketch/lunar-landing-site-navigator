@@ -23,7 +23,7 @@ describe('P4 Blue Moon Mark 2 propellant is a flagged lower bound', () => {
     expect(st.kind).toBe('lower-bound')
     expect(st.validated).toBe(false)
     expect(st.note).toContain('lower bound')
-    expect(st.note).toContain('not yet validated by the science lead')
+    expect(st.note).toContain('validated by the science lead: statement of 15 Nov 2026; see record')
     const urls = st.sources.map((s) => s.url)
     expect(urls).toContain('https://thespacereview.com/article/4587/1')
     expect(urls).toContain('https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/')

@@ -141,7 +141,7 @@ describe('CSV rows', () => {
   it('inputs and outputs, empty outputs without an estimate', () => {
     const e = estimatePower(at1AU(1, 1, 10), 10, BASE)!
     expect(powerCsvRows(BASE, e)).toEqual([
-      'power_status,first estimate; not a power budget; not validated by the science lead',
+      'power_status,first estimate; not a power budget; validated by the science lead (statement of 15 Nov 2026; see record)',
       'power_panel_area_m2,1',
       'power_cell_efficiency_pct,30',
       'power_load_w,100',

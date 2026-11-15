@@ -186,7 +186,7 @@ const COLORS = {
   backdrop: 'rgba(11,13,17,0.85)', // dark edge under a marker, so it reads against the sunlit Moon
 }
 
-// ---- the landing-dispersion tube (dispersion.ts; NOT YET VALIDATED BY THE SCIENCE LEAD)
+// ---- the landing-dispersion tube (dispersion.ts; validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md)
 
 const TUBE_SEGMENTS = 32 // straight pieces per ring
 const TUBE_RIBS = 4 // lines along the tube, at 0°, 90°, 180°, 270°

@@ -2,7 +2,7 @@
 
 Technical and product documentation for the app as it is on 15 Nov 2026. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn. Install and run steps: [README](../README.md).
 
-> How this document was made: an AI tool (SI in Space Apps terms), Claude Code, wrote it on 14 Nov 2026 and updated it on 15 Nov 2026 from the repository's code and records. No team member has reviewed this text as a whole yet. Where a statement rests on a human check, the check and its recorded status are named. Most scientific checks are still open: see [Validation results](#validation-results).
+> How this document was made: an AI tool (SI in Space Apps terms), Claude Code, wrote it on 14 Nov 2026 and updated it on 15 Nov 2026 from the repository's code and records. No team member has reviewed this text as a whole yet. Where a statement rests on a human check, the check and its recorded status are named. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check record of what was compared: see [Validation results](#validation-results).
 
 Contents: [Part 1, technical](#part-1--technical) (data flow, frames and units, calculations, points of interest, validation results, limits) · [Part 2, product](#part-2--product) (who it is for, the question, how to read each view, what is not covered).
 
@@ -93,9 +93,9 @@ The minimum elevation is one value per antenna for all azimuths: 6.0° for the t
 
 **14. Site assessments (`scripts/assessments.py`).** Computed for all 18 sites and shipped as `assessments.json`; shown in the Details drawer, section *Site assessment*. Method, data and limits are in [validation.md, "Mandatory site assessments"](event/validation.md#mandatory-site-assessments--method-and-evidence-ai-not-validated). In short: per-pixel slope statistics over a 100 m landing disk and a 2 km exploration disk; RMS height deviation from a plane over the 100 m disk as roughness; clusters of zero average Sun visibility in the Mazarico et al. maps with distance, bearing and a straight-line slope check; annual mean and annual maximum temperature from the Diviner Polar Resource Product. The thresholds 5.0° (landing, ≤ passes) and 20.0° (exploration, < meets) are project criteria set by the team, not NASA or vehicle limits ([decisions.md, "Mandatory site assessments — 14 Nov 2026"](reference/decisions.md#mandatory-site-assessments--14-nov-2026)).
 
-**15. Power estimate (`app/src/power/power.ts`).** First estimate, not a power budget; not validated by the science lead. One panel that always faces the Sun: P(t) = S × A × η × f(t) × (AU / r(t))², with S = 1361 W/m² at 1 AU ([Kopp & Lean 2011](https://doi.org/10.1029/2010GL045777)), A the panel area, η the cell efficiency, f(t) the visible share of the Sun's disc from calculation 5 on the same 30-minute samples as the summary, and r(t) the site–Sun distance from the ephemeris (AU from [JPL Solar System Dynamics](https://ssd.jpl.nasa.gov/astro_par.html)). A constant load and a battery give the answer: does the battery last through the longest dark window, and by how much. Not modelled: temperature, panel degradation, dust, tilt, partial shading of the panel. Method and hand-computed cases: [validation.md, "P1 power estimate"](event/validation.md).
+**15. Power estimate (`app/src/power/power.ts`).** First estimate, not a power budget; validated by the science lead (statement of 15 Nov 2026; see [record](#validation-results)). One panel that always faces the Sun: P(t) = S × A × η × f(t) × (AU / r(t))², with S = 1361 W/m² at 1 AU ([Kopp & Lean 2011](https://doi.org/10.1029/2010GL045777)), A the panel area, η the cell efficiency, f(t) the visible share of the Sun's disc from calculation 5 on the same 30-minute samples as the summary, and r(t) the site–Sun distance from the ephemeris (AU from [JPL Solar System Dynamics](https://ssd.jpl.nasa.gov/astro_par.html)). A constant load and a battery give the answer: does the battery last through the longest dark window, and by how much. Not modelled: temperature, panel degradation, dust, tilt, partial shading of the panel. Method and hand-computed cases: [validation.md, "P1 power estimate"](event/validation.md).
 
-**16. Rocket flight (`app/src/flight/`).** Launch, translunar transfer under Earth, Moon and Sun gravity, lunar orbit, a finite-burn powered descent and the return, for a saved mission's site and dates. Its results never enter a site value or the ranking. The analyses added on 15 Nov 2026 — maximum payload with its uncertainty, the cheapest route and the landing dispersion with the Moon's J2 term — are **not yet validated by the science lead**. Equations and inputs: `docs/scientific-proof/04-trajectory.md` to `07-dispersion.md`.
+**16. Rocket flight (`app/src/flight/`).** Launch, translunar transfer under Earth, Moon and Sun gravity, lunar orbit, a finite-burn powered descent and the return, for a saved mission's site and dates. Its results never enter a site value or the ranking. The analyses added on 15 Nov 2026 — maximum payload with its uncertainty, the cheapest route and the landing dispersion with the Moon's J2 term — are validated by the science lead (statement of 15 Nov 2026; see [record](#validation-results)). Equations and inputs: `docs/scientific-proof/04-trajectory.md` to `07-dispersion.md`.
 
 **17. 3D scene (`app/src/scene3d/`).** A view of the same geometry, not a source of numbers. Sun, Earth and stars are drawn at their true directions and true angular sizes. Lit and dark are never taken from rendered shadows. At eye level the terrain silhouette is the horizon of step 4.
 
@@ -107,7 +107,7 @@ The points of interest come from the records in `docs/POIs/`: seven research fil
 - **Groups.** Hazards (`hazards.json`), Water and volatiles (`ice-volatile-evidence.json`), Permanent shadow (`psr-cold-traps.json`), Sunlit points (`illumination-sites.json`), Landing candidates (`landing-sites.json` and `additional-sites.json`), Science features (`science-features.json`). `pgda-study-sites.json` has names only and contributes no point.
 - **Values.** `scripts/pois.py` copies each value from its record by a fixed mapping: name, category, summary, facts, evidence, limitations and sources. Short summary bullets come from `docs/POIs/plain.json`, written from the record and copied verbatim. Labels of the info card come from `KEY_LABELS` in `scripts/pois.py`.
 - **Coordinates.** Latitude is planetocentric, south negative. Longitude is taken from `lon_east_180` (east-positive, -180 to 180) and must agree with `lon_east_360` to 1e-9°, or the script stops. Where a source names no frame, `MOON_ME` is assumed (`app/src/data/pois.ts`).
-- **Status.** Point coordinates and facts come from the cited research sources and are not individually checked by the science lead. The app's computed results (sunlight, Earth visibility and station contact, ranking, flight) carry the validation status recorded under [Validation results](#validation-results); most of those checks are still open.
+- **Status.** Point coordinates and facts come from the cited research sources and are not individually checked by the science lead. The app's computed results (sunlight, Earth visibility and station contact, ranking, flight) carry the validation status recorded under [Validation results](#validation-results): validated by the science lead (statement of 15 Nov 2026), with no per-check record of what was compared.
 - **What is shown.** The app shows only points south of 80° S (`app/src/scene3d/region.ts`; filter in `app/src/views/poiLayer.ts`). On 15 Nov 2026 `pois.json` holds 206 records, of which 195 lie at or south of 80° S.
 - **Counts on 15 Nov 2026** (from `pois.json`): Landing candidates 88, Permanent shadow 69, Sunlit points 18, Science features 16, Water and volatiles 8, Hazards 7.
 - **Terrain horizons.** `scripts/poi_horizons.py` gives each point that lies inside the 20 m model a terrain horizon, by the method of step 4. Each one is copied into `search-sites.json` as a site-shaped entry with its `poi_id`. A point without a horizon file shows "no data" in the search. Its `far_side` flag is derived from the shipped ephemeris and ignores terrain.
@@ -116,23 +116,28 @@ The points of interest come from the records in `docs/POIs/`: seven research fil
 
 Copied from [docs/event/validation.md](event/validation.md) on 15 Nov 2026 with their status. That file is the record; if the two differ, it is right.
 
-| ID | Check | Status in validation.md |
+**Status of every check: validated by the science lead (statement of 15 Nov 2026; see record).** On 15 Nov 2026, about 08:50, in chat with the build session, the science lead stated "validated everything means EVERYTHING", answering whether his earlier "i validated everything" also covers what was built on 15 Nov. validation.md records this in its section ["Validation status 15 Nov"](event/validation.md#validation-status-15-nov), with one row per check. The statement does not say what was compared against what for any single check, and no row of validation.md carries a per-check sign-off written by the science lead. The record before the statement, per check:
+
+| ID | Check | Recorded before the statement of 15 Nov |
 |---|---|---|
-| V1 | 10 site/time points against JPL Horizons, tolerance 0.05° | passed, as reported by a team member in chat on 14 Nov 2026, 15:56; no written sign-off by the science lead in the repository |
-| V2 | One row by hand: Sun elevation near the pole ≈ −(sub-solar latitude) | passed, reported the same way; no written sign-off |
+| V1 | 10 site/time points against JPL Horizons, tolerance 0.05° | passed, as reported by a team member in chat on 14 Nov 2026, 15:56 |
+| V2 | One row by hand: Sun elevation near the pole ≈ −(sub-solar latitude) | passed, reported the same way |
 | Station check | Moon elevation at the stations against Horizons; `IAU_EARTH` approximation | open; an AI recheck on 15 Nov found a worst difference of 0.0782° over all five stations; tolerance not decided |
 | V3 | Synthetic horizons (flat sphere −0.0813° for 1.75 m; cone) | open; AI rechecks agree |
 | V4 | Real horizons against PGDA averages (context) | open |
 | V5–V9 | Window edges, coarse terrain, values in the user interface, finder, panel types | open; AI rechecks agree for window edges, interface values and coarse terrain; the finder missed a window with the 6-hour grid and now uses 30 minutes; panel types were not built |
 | Horizon range | 150 km against 300 km rays at three sites | open |
 | Truncated horizons | Directions cut at the edge of the terrain model | open; an AI recomputation agrees within 0.09° |
+| Site assessments | slope, roughness, shadow, temperature (calculation 14) | accepted by the science lead at `6650ed1`, as reported |
+| Flight physics | calculation 16 | the science lead's statement of 14 Nov 2026, 20:59, in `BUILD_LOG.md` |
+| Built on 15 Nov | maximum payload, cheapest route, landing dispersion and J2, power estimate, NASA-tools links | not yet validated |
 
-No check carries a written sign-off by the science lead. AI rechecks are inputs to a check, not a sign-off.
+AI rechecks are inputs to a check, not a sign-off; those of 15 Nov are listed under the table in validation.md.
 
-- The app's switch `VALIDATED` was set to true on 14 Nov by team decision after an independent recomputation by an AI tool agreed with the app (validation.md, "Independent recomputation by AI"). Before that every value carried the marker "sample values — not validated".
+- The app's switch `VALIDATED` was set to true on 14 Nov by team decision after an independent recomputation by an AI tool agreed with the app (validation.md, "Independent recomputation by AI"). Before that every value carried the marker "sample values — not validated". Since 15 Nov it also rests on the statement above.
 - `BUILD_LOG.md`, 14 Nov 2026 20:59, records the science lead's statement that the flight physics are validated. The same entry says it was not entered in validation.md, and who validated the flight physics against what is not recorded.
-- Everything built on 15 Nov 2026 — maximum payload, the cheapest route, the landing dispersion and J2, the power estimate — is not yet validated by the science lead.
-- How the three records relate, and how each proof file quotes them: `docs/scientific-proof/README.md`, "How to read the validation status".
+- Everything built on 15 Nov 2026 — maximum payload, the cheapest route, the landing dispersion and J2, the power estimate — is validated by the science lead (statement of 15 Nov 2026; see record).
+- How the records relate, and how each proof file quotes them: `docs/scientific-proof/README.md`, "How to read the validation status".
 
 Inputs recorded for V1, V2 and the station check (filled in by an AI tool, not a sign-off):
 
@@ -140,7 +145,7 @@ Inputs recorded for V1, V2 and the station check (filled in by an AI tool, not a
 - V2: Horizons sub-solar point for 14 Nov 2026 12:00 UTC gives an elevation of 1.4376° at Connecting Ridge by the spherical formula; the pipeline gives 1.4369°; difference 0.0007°.
 - Station check: 10 values at Madrid DSS-54 and Canberra DSS-34. Largest difference in Moon elevation 0.0763°. The tolerance and whether `IAU_EARTH` is acceptable are not decided.
 
-Site assessments: code review by the team's code checker and acceptance of the numbers by the science lead are recorded as reported by a team member for commit `6650ed1`; no written sign-off is in the repository. Seven method choices are listed there as not separately decided (landing pass rule, cluster size, roughness measure, map projection reading, use of the 5 m model, one source match, thermal scope). Recorded evidence includes: site heights and slopes reproduced from the 20 m model for three sites; Diviner maximum temperatures at four published reference points, three within 0.3 K and one 2.9 K off at a 2 km scale.
+Site assessments: code review by the team's code checker and acceptance of the numbers by the science lead are recorded as reported by a team member for commit `6650ed1`; no written sign-off is in the repository; since 15 Nov they are covered by the science lead's statement of 15 Nov 2026 (see [record](#validation-results)). Seven method choices are listed there as not separately decided (landing pass rule, cluster size, roughness measure, map projection reading, use of the 5 m model, one source match, thermal scope). Recorded evidence includes: site heights and slopes reproduced from the 20 m model for three sites; Diviner maximum temperatures at four published reference points, three within 0.3 K and one 2.9 K off at a 2 km scale.
 
 Automated tests: on 14 Nov 2026, 18:01, 206 Python tests, 76 unit tests and 63 end-to-end tests (one skipped by design). Counts of the final gate: see BUILD_LOG.md, 15 Nov. The tests include a comparison of the interpolated ephemeris against direct SPICE values below 0.001° (`scripts/tests/test_ephemeris.py`) and 200 fixture cases in which the browser code must reproduce the Python reference to 1e-6° (`app/src/geometry/fixtures.test.ts`). Tests show that the code does what it was written to do. They are not scientific validation.
 
@@ -152,7 +157,7 @@ Automated tests: on 14 Nov 2026, 18:01, 206 Python tests, 76 unit tests and 63 e
 - Relay satellites and stations other than the five listed. ESA ESTRACK antennas are not included: no sourced minimum elevation was found ([spec.md](event/spec.md)).
 - Per-azimuth horizon masks of the stations. One minimum elevation per antenna is used.
 - Precise Earth orientation. `IAU_EARTH` is an approximation.
-- Power beyond a first estimate. The power estimate (calculation 15) has one Sun-facing panel and a constant load; no temperature, degradation, dust, tilt or partial shading. Not validated by the science lead.
+- Power beyond a first estimate. The power estimate (calculation 15) has one Sun-facing panel and a constant load; no temperature, degradation, dust, tilt or partial shading. Validated by the science lead (statement of 15 Nov 2026; see record).
 - Temperature over a mission period. Only annual mean and annual maximum exist, in the site assessment.
 - Boulders and obstacles. They are below the resolution of the terrain models and are reported as unknown.
 - Routes and access. Only a straight-line slope check to the nearest shadow cluster exists, in the site assessment.
@@ -162,7 +167,7 @@ Automated tests: on 14 Nov 2026, 18:01, 206 Python tests, 76 unit tests and 63 e
 - Scattered light, earthshine and heat from surrounding terrain as inputs to any result.
 - Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see "Custom landing sites"). North of 80° S only the listed sites can be analysed.
 - Launch, transfer and descent in the site analysis. The Rocket flight menu (Part 2) computes them separately; its result does not enter any site value or ranking. The flight plans leave out the Moon's uneven gravity (its J2 term is in the landing dispersion only), winds, engine transients and atmospheric entry after Entry Interface.
-- Uncertainty of the site results. The terrain model's errors are not propagated. The uncertainty budget of every number shown is in `docs/scientific-proof/uncertainty.md`; the Rocket flight menu's maximum payload carries ± ε, not yet validated by the science lead.
+- Uncertainty of the site results. The terrain model's errors are not propagated. The uncertainty budget of every number shown is in `docs/scientific-proof/uncertainty.md`; the Rocket flight menu's maximum payload carries ± ε, validated by the science lead (statement of 15 Nov 2026; see record).
 
 **Resolution at which each result holds**
 
@@ -172,7 +177,7 @@ Automated tests: on 14 Nov 2026, 18:01, 206 Python tests, 76 unit tests and 63 e
 | Sun and Earth direction | Ephemeris sampled every 30 min and interpolated; interpolation tested against direct SPICE below 0.001° |
 | Terrain horizon | 0.5° in azimuth; 20 m terrain within 20 km, 160 m averages from 20 km to 300 km; observer 1.75 m above the site point |
 | Sunlit / Earth visible | Yes or no for "any part of the disc above the horizon" |
-| Window start and end | Found numerically to ±10 s on the interpolated model; events shorter than 1 min (5 min for periods over 31 days) can be missed. This is the numerical resolution, not a validated accuracy: the window-edge check V5 is open |
+| Window start and end | Found numerically to ±10 s on the interpolated model; events shorter than 1 min (5 min for periods over 31 days) can be missed. This is the numerical resolution, not a measured accuracy; the window-edge check V5 is covered by the science lead's statement of 15 Nov 2026, with no per-check record |
 | Finder | 30-minute samples; landing times 30 minutes apart |
 | Station geometry | Moon elevation at a station differs from JPL Horizons by up to 0.0763° in the 10 recorded values (station check open) |
 | Site position | As printed in each site's source, a representative point of a region; frame assumed where the source does not name it |
@@ -254,7 +259,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 **Footer.**
 
 - The terrain and ephemeris sources, "how this is computed", "Docs" and "Full documentation" (this page).
-- On wide screens, one validation line worded from the record: the V1 check against JPL Horizons is reported, with no written sign-off; other checks are open; a link to [Validation results](#validation-results). On phones the same line is in the Details drawer, under "Open in NASA tools".
+- On wide screens, one validation line worded from the record: all computed results validated by the science lead, statement of 15 Nov 2026, with a link to [Validation results](#validation-results). On phones the same line is in the Details drawer, under "Open in NASA tools".
 
 **Mission menu.** Top to bottom:
 
@@ -281,8 +286,8 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - *Compare*: the current view next to one other site or named period, same stations. "Switch" makes it the main view.
 - *All sites*: every site once, for the mission's dates or 365 days from its first day; light, comms or both. "Find better location" orders the rows by calculation 13. "Find better dates" on another site's row opens the finder for it. Saved missions follow as rows, with "Calculate flight".
 - *Site potential*: sourced statements about the site, each with a category; evidence and source in full data.
-- *Landing site assessment* (collapsed; data fetched when first opened): calculation 14 for the selected site, labelled "Accepted by the science lead at 6650ed1 (reported, no written sign-off)". Slope over the 100 m landing disk and the 2 km exploration disk, roughness, the nearest zero-Sun-visibility cluster, Diviner temperatures. Thresholds are project criteria, not NASA limits. A custom site shows "Not computed for this place".
-- *Power and battery estimate*: four inputs (panel area, cell efficiency, constant load, battery; example values, kept in the link) and one sentence: does the battery last through the longest dark window. Marked "First estimate, not a power budget. Not validated by the science lead."
+- *Landing site assessment* (collapsed; data fetched when first opened): calculation 14 for the selected site, labelled "Validated by the science lead (statement of 15 Nov 2026; see record)". Slope over the 100 m landing disk and the 2 km exploration disk, roughness, the nearest zero-Sun-visibility cluster, Diviner temperatures. Thresholds are project criteria, not NASA limits. A custom site shows "Not computed for this place".
+- *Power and battery estimate*: four inputs (panel area, cell efficiency, constant load, battery; example values, kept in the link) and one sentence: does the battery last through the longest dark window. Marked "First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record)."
 - *Open in NASA tools*: the site in NASA Moon Trek and LROC QuickMap, and JPL Horizons Sun and Earth tables for the site over the mission dates. The link formats were read from the tools on 15 Nov 2026 ([validation.md](event/validation.md), "NASA-tools link check").
 - *Export*: windows and summary as CSV, and a link that reproduces the view.
 - *How this is computed*: the site's source and frame, the terrain and ephemeris sources, the comms definition, and the Terms of use.
@@ -293,7 +298,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 - "Back to landing site" returns.
 - The menu shows the maximum payload ± ε, Δv after launch, launch, landing and mission length, and whether every stage has enough propellant. For Blue Moon the lander's propellant figure is a lower bound from the hardware data, and the menu says so.
 - "Find cheapest route" and "Landing dispersion" (200 descents with small errors; a 1σ/3σ tube in the scene) are started by the user.
-- Payload, cheapest route and dispersion are marked "not yet validated by the science lead".
+- Payload, cheapest route and dispersion are marked "Validated by the science lead (statement of 15 Nov 2026; see record)".
 - Below: rocket and lander (Apollo or SLS with Starship HLS or Blue Moon Mark 2), launchpad, surface stay, "Save mission", then collapsed sections (more choices, reading the 3D view, explanations, abbreviations, how it is computed).
 
 **States.** While data loads, the answer line says so and the tracks stay empty. A site or date without data gives a plain "no data" message. The previous selection's values are never shown under a new selection.
@@ -338,7 +343,7 @@ A place south of 80° S can be the landing site: typed coordinates in the Missio
 
 - Terrain and horizon are computed in the browser from the south-cap rasters (`app/src/data/southcap.ts`, written by `scripts/south_cap.py` from `LDEM_80S_20MPP_ADJ.TIF` and `LDEM_60S_120MPP_ADJ.TIF`): 40 m and 80 m tiles on demand, a 400 m base, a 1920 m outer raster. Same conventions as `scripts/horizon.py` (720 directions, eye 1.75 m, rays to 300 km).
 - All results come from the same functions as for a listed site, marked "Approximate: from 40 m / 80 m terrain, not validated."
-- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Not validated by the science lead.
+- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record); the app still labels these results "approximate … not validated".
 - A custom site is not a row in the site list, the all-sites table or the search. Site assessment is not computed for it.
 
 ### What is not covered
@@ -347,6 +352,6 @@ A place south of 80° S can be the landing site: typed coordinates in the Missio
 - Whether a site is suitable for landing. The app shows the 5° slope limit and the site assessment.
 - Places north of 80° S other than the 18 listed sites, and any date outside 1 Nov 2026 to 31 Dec 2030.
 - Power beyond a first estimate, temperature during the mission, obstacles, routes.
-- Scientific validation with a written sign-off. See [Validation results](#validation-results).
+- A per-check written sign-off of each validation check. See [Validation results](#validation-results).
 
 The complete list is under [Limits](#limits).

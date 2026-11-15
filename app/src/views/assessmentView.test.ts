@@ -20,7 +20,7 @@ describe('mapAssessment: Haworth from the shipped file', () => {
 
   it('status label and thresholds as given and as the file states them', () => {
     expect(ready(v).status).toBe(ASSESSMENT_STATUS)
-    expect(ready(v).status).toBe('Accepted by the science lead at 6650ed1 (reported, no written sign-off)')
+    expect(ready(v).status).toBe('Validated by the science lead (statement of 15 Nov 2026; see record)')
     expect(ready(v).thresholds).toBe(
       'Landing slope ≤ 5.0° passes; exploration slope < 20.0° meets: project criteria (set by the team), not NASA or vehicle limits.',
     )
