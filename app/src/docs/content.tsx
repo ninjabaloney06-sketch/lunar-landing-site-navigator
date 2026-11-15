@@ -296,8 +296,8 @@ export const DOC_INTRO = (
     <p className="docs-mark" data-testid="docs-si-marking">
       SI (AI) use: this panel is a simplified version of <Path>docs/documentation.md</Path> and{' '}
       <Path>docs/reference/data-sources.md</Path>. An AI tool, Claude Code, wrote both texts on 14 Nov 2026 and updated
-      them on 15 Nov 2026 from the repository&apos;s code and records. No team member has reviewed this text as a whole
-      yet. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check
+      them on 15 Nov 2026 from the repository&apos;s code and records. The team reviewed this text as a whole on 15 Nov
+      2026 (statement of a team member that day, no per-section record). Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check
       record of what was compared: see &quot;Validation status&quot; under Limits.
     </p>
   </>
@@ -956,7 +956,8 @@ export const DOC_SECTIONS: DocSection[] = [
         <ul className="docs-list">
           <li>
             <strong>This documentation.</strong> Written and simplified for this panel by Claude Code on 14 and 15 Nov
-            2026, as marked at the top. No team member has reviewed it as a whole yet.
+            2026, as marked at the top. Reviewed as a whole by the team on 15 Nov 2026 (statement of a team member that
+            day, no per-section record).
           </li>
           <li>
             <strong>Independent recomputation.</strong> An independent recomputation by an SI tool agreed with the app.
