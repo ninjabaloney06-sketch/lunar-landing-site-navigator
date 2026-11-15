@@ -93,12 +93,12 @@ dumbing the app down.
 The task lists U / P / D below say WHAT to build. This section says WHO builds it, WHEN, and in which files.
 Workstream headers' branch names and cut-offs are superseded by the waves here.
 
-### Setup (once, before wave 1)
+### Setup (once, before wave 0)
 
 - Keep the Mac awake for the whole run: `caffeinate -dimsu &` (kill it at the end). A sleeping Mac kills
   every agent.
 - Orchestrator works in the main checkout on branch `integration`, created from `origin/main` after the
-  Leo-merge check (if a stale local `integration` exists, rename it `integration-old` first). Keep
+  start-state check (recreate it from the pushed `main` after wave 0) (if a stale local `integration` exists, rename it `integration-old` first). Keep
   `integration` checked out there all night: agent worktrees branch from the main checkout's HEAD, so each
   wave starts from what is merged. Nobody else touches the main checkout except the Haiku text agents' `private/` folder.
 - Every coding agent: `Agent` with `run_in_background: true` and `isolation: "worktree"`. First commands in
@@ -150,7 +150,57 @@ On STALLED: read that agent's last commits and output (`SendMessage` to ask for 
 stop it (`TaskStop`), keep its commits, and respawn a narrower brief from where it stopped. On DISK LOW:
 remove merged worktrees and `dist/`, `test-results/` folders first.
 
-### Wave 1 — start immediately, all in parallel (cut-off 06:45)
+### Wave 0 — read every line, fix small bugs, clean the repo (start immediately, cut-off 06:00)
+
+Goal: waves 1–4 start from a flat, clean, green `main` whose every line of code has been read once.
+**You (the orchestrator) do not read the code yourself** — ~50,000 lines would fill your context and leave
+nothing for orchestrating. Nine sweep agents read it in parallel and send you compact reports.
+
+**Clean the repo state first (you, before spawning):**
+- `git status` clean on `main`; `git fetch --prune`; `git worktree prune`; delete any local branch other than
+  `main` that is fully merged (`git branch --merged origin/main`); report, don't delete, unmerged ones.
+- Kill stray dev servers on ports 5180–5199 (`lsof -ti tcp:5180-5199 | xargs kill`); delete `app/dist`,
+  `app/test-results`, `app/playwright-report` (all git-ignored, regenerable).
+- Create `integration` from `origin/main`.
+
+**Sweep agents (all `model: "opus"`, worktree + node_modules symlink as in Setup):**
+
+| Agent | Reads every line of (and owns) | Port |
+|---|---|---|
+| sweep-views | `app/src/views/**` (~6.1k lines) | 5181 |
+| sweep-shell | `app/src/App.tsx`, `state.ts`, `missions.ts`, `main.tsx`, their tests, `app/src/styles/**` (~4.5k) | 5182 |
+| sweep-scene | `app/src/scene3d/**` (~7.1k) | 5183 |
+| sweep-flight-a | `flight/ascent.ts`, `lunar.ts`, `transit.ts`, `sim.ts`, `nbody.ts`, `astro.ts`, `vec.ts`, `ephemeris.ts`, `numeric*`, `testEphem.ts` and their tests (~6k) | — |
+| sweep-flight-b | all other `app/src/flight/**` files and their tests (`nrho`, `missionNrho`, `mission`, `plan`, `planWorker`, `guess`, `ideal`, `planeChange`, `spacecraft`, `launchVehicles`, `vehicles`, `pads`, `hardware`, `designs`, `craft`, `types`, `energyBaseline*`) (~7k) | — |
+| sweep-geo | `app/src/geometry/**`, `app/src/data/**`, `app/src/docs/**` (~5.2k) | — |
+| sweep-e2e | `app/e2e/**`, `app/playwright.config.ts`, `vite.config.ts`, `tsconfig*.json`, `package.json`, `wrangler.jsonc`, `index.html` (~5.3k) | 5184 |
+| sweep-scripts | `scripts/**` (Python, ~7.3k); runs `pytest scripts/tests` | — |
+| sweep-docs | every tracked `*.md` except `docs/archive/**`, `AGENTS.md`, `CLAUDE.md`, `ORCHESTRATOR-PROMPT.md`, `BUILD_LOG.md`, `TASKS.md`, `docs/event/ai-use-log.md`; plus `.gitignore` | — |
+
+**What a sweep agent fixes directly** (each fix small, local and verifiable, with a test where one fits):
+type errors and unsafe casts that can fail, wrong or missing units in labels, off-by-one and boundary bugs,
+unhandled `null`/empty states that crash or show `NaN`/`undefined`, console errors and React key warnings,
+event listeners or timers that are never cleaned up, unused imports and exports (confirmed unused by a
+repo-wide grep), dead code orphaned by earlier changes, comments that contradict the code, broken relative
+links and references to files that no longer exist (docs), stale facts in docs that contradict the code.
+
+**What a sweep agent does NOT do:** refactor, rename, move or split files (the wave tables depend on today's
+paths); reformat; change behaviour a user would notice; change any physics or geometry result, constant
+or data value (Leo validated them — report instead); polish the parts waves 1–3 rewrite anyway (Mission menu
+site list and layout, the drawer's Simulation section, POI card text, the view menu entries, flight panel
+wording) — fix real bugs there, nothing else. No edits to `AGENTS.md`, `CLAUDE.md`, logs, `docs/archive/**`.
+
+**Report format (compact, ≤ 60 lines):** (1) fixes made: `file:line — bug — fix — test`; (2) not fixed,
+needs a decision or bigger change: `file:line — problem — suggested owner (wave agent or ninja)`;
+(3) checks run and results. Then `touch .agent-done`.
+
+**Your merge and gate:** merge each sweep branch as it finishes (they own disjoint files, so conflicts should
+be zero). Then on `integration`: tsc, full vitest incl. `flight/anySite.test.ts`, `pytest scripts/tests`,
+full Playwright (`PW_GPU=1` if S3 times out), `npm run build`. Green → fast-forward `main`, push, one
+BUILD_LOG line listing the sweep fixes. Add every "not fixed" item that falls in a wave-1–3 agent's files to
+that agent's brief; list the rest for ninja in your final report. Waves 1–4 branch from this pushed `main`.
+
+### Wave 1 — starts when wave 0 is merged and pushed, all in parallel (cut-off 07:45)
 
 | Agent | Model | Tasks | Owns (edit only these) | Port |
 |---|---|---|---|---|
@@ -171,7 +221,7 @@ After all 9 `poi-text` batches: one Opus reviewer (`poi-text-review`) checks 25 
 their records (U8 fact rule); failed batches are redone by Haiku; then the orchestrator merges the batches
 into `docs/POIs/plain.json` on `integration` and runs `scripts/pois.py`.
 
-### Wave 2 — starts when wave 1 is merged into `integration` (cut-off 09:00)
+### Wave 2 — starts when wave 1 is merged into `integration` (cut-off 09:45)
 
 | Agent | Model | Tasks | Owns | Port |
 |---|---|---|---|---|
@@ -179,7 +229,7 @@ into `docs/POIs/plain.json` on `integration` and runs `scripts/pois.py`.
 | flight-ui | opus | P2/P3/P5 UI (payload, cheapest route, 1σ/3σ tube in the scene), P6 uncertainty budget, P7 markers | `views/FlightPanel.tsx`, `views/FlightExplain.tsx`, `views/FlightTransport.tsx`, `views/flight*.ts`, `views/useFlight.ts`, `scene3d/flight.ts`, `styles/flight.css`, new `docs/scientific-proof/uncertainty.md` | 5188 |
 | proof | opus | D3 except uncertainty | new `docs/scientific-proof/*.md` (not `uncertainty.md`) | — |
 
-### Wave 3 — starts when wave 2 is merged (cut-off 10:45): U17 readability, one agent per screen
+### Wave 3 — starts when wave 2 is merged (cut-off 11:00): U17 readability, one agent per screen
 
 U17 cuts across every view, so it runs last, split by file so the agents never meet. Each agent first puts its
 current → proposed wording table in its report, then implements, then a 375 px screenshot.
@@ -193,18 +243,18 @@ current → proposed wording table in its report, then implements, then a 375 px
 | read-cards | opus | POI and site cards | `views/PoiInfo.tsx`, `views/PoiControl.tsx`, and the site info card's file (locate it; if another wave-3 agent owns it → diff in report) | 5185 |
 | docs-update | opus | D5 | `docs/documentation.md`, `app/src/docs/content.tsx` | — |
 
-### Wave 4 — integration and release (10:45–12:00)
+### Wave 4 — integration and release (11:00–12:00)
 
 1. Full `tsc`, vitest, Playwright, `npm run build` on `integration`.
 2. One fresh-context Opus reviewer (`final-review`) reads the whole `origin/main..integration` diff and clicks
    through the built app at 1280 px and 375 px; returns only real defects. Fix them (or revert the offending
-   merge) by 11:45.
+   merge) by 11:50.
 3. Fast-forward `main`, show ninja the diff stat, push. Write the BUILD_LOG lines and AI-use rows.
 4. Ask ninja for the deploy yes. Kill `caffeinate`. Remove all worktrees.
 
 ### Cut-offs and drop order
 
-An agent still running at its wave cut-off is stopped; its finished commits merge only if green. If a wave is
+An agent still running at its wave cut-off is stopped; its finished commits merge only if green. Wave 0 is never extended: at 06:00 merge the green sweeps and start wave 1. If a wave is
 late, start the next wave anyway with what is merged. Drop order, first dropped first: U13, U10, U4, U3, U2,
 U17 screens (cards → tables → dates → flight → mission), P5 tube UI, D4.
 
