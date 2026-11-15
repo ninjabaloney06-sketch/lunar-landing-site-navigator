@@ -8,7 +8,7 @@ Every library, font, icon, texture and data source used in the app, with its lic
 - The Student Research Center in Bad Saulgau, Germany (SFZ) — https://sfz-bw.de
 - MEXG, our school — https://mexg.de
 - Sponsor: Prime Balance — https://prime-balance.de
-- Our team: Otto Erwerle — Code & Backend Lead · Leonhard Greiner — Science Lead · Isaac Brauer — AI Lead · Benedikt Schmidt — Design & Frontend Lead
+- Our team: Otto Erwerle — Code Lead · Leonhard Greiner — Science Lead · Isaac Brauer — AI Lead · Benedikt Schmidt — Design & UI Lead
 
 ## Libraries
 
