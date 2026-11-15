@@ -921,12 +921,12 @@
   padding: var(--s-1) 0 var(--s-4);
 }
 
-/* Phones (F18): the title keeps one line beside Close; the dates line runs the full width under it, and the Full
-   data switch follows on its own line, instead of all three squeezed into a column beside the switch. */
+/* Phones (F18): Full data and Close stay top right on the first row; the title gets the full width on the next one
+   (it no longer wraps in a column beside them), then the dates line. */
 @media (max-width: 640px) {
   .drawer-head {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: var(--s-2) var(--s-3);
     align-items: center;
   }
@@ -937,25 +937,23 @@
     display: contents;
   }
 
-  .drawer-head .drawer-title {
-    grid-column: 1;
+  .drawer-head .full-switch {
+    grid-column: 2;
     grid-row: 1;
-    font-size: 20px;
   }
 
-  .drawer-head > div:first-child > p {
+  .drawer-head .btn {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .drawer-head .drawer-title {
     grid-column: 1 / -1;
     grid-row: 2;
   }
 
-  .drawer-head .full-switch {
+  .drawer-head > div:first-child > p {
     grid-column: 1 / -1;
     grid-row: 3;
-    justify-self: start;
-  }
-
-  .drawer-head .btn {
-    grid-column: 2;
-    grid-row: 1;
   }
 }

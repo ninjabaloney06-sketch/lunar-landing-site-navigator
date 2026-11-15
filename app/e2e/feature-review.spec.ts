@@ -79,13 +79,22 @@ test('F23: the in-app documentation names no repository file in its SI (AI) use 
   await expect(mark.getByRole('link', { name: '/docs' })).toHaveAttribute('href', '/docs')
 })
 
-test('View menu: Moon works right after a new site is chosen (while the camera still flies there)', async ({ page }) => {
-  await open(page)
-  await page.getByTestId('site-open').click()
-  await page.getByTestId('site-picker').getByRole('option', { name: /Malapert Massif/ }).click()
+test('View menu: Moon works while the camera still flies down to the site', async ({ page }) => {
+  type S = { flying(): boolean; setAnimated(on: boolean): void; advance(ms: number): void; level(): string }
+  await open(page, `/?test=1${DEMO.slice(1)}&view=globe`)
+  await page.waitForFunction(() => (window as unknown as { __scene?: unknown }).__scene !== undefined)
+  // Animated with a clock only the test moves: the fly to the new site stays under way until advanced.
+  await page.evaluate(() => (window as unknown as { __scene: S }).__scene.setAnimated(true))
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.level()), { timeout: 30_000 }).toBe('globe')
+  await page.getByTestId('view').click()
+  await page.getByTestId('view-menu').getByRole('menuitem', { name: /Landing site/ }).click()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.flying()), { timeout: 30_000 }).toBe(true)
   await page.getByTestId('view').click()
   await page.getByTestId('view-menu').getByRole('menuitem', { name: /Moon/ }).click()
-  await expect(page.getByTestId('view')).toHaveText('View: Moon', { timeout: 30_000 })
+  await expect(page.getByTestId('view')).toHaveText('View: Moon')
+  for (let i = 0; i < 400 && (await page.evaluate(() => (window as unknown as { __scene: S }).__scene.flying())); i++)
+    await page.evaluate(() => (window as unknown as { __scene: S }).__scene.advance(50))
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __scene: S }).__scene.level())).toBe('globe')
 })
 
 test('Add mission when the browser refuses storage says so', async ({ page }) => {
