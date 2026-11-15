@@ -81,6 +81,30 @@ test.describe('user points at 1440 × 900', () => {
     expect(await hashSite(page)).toMatch(/^cap:/)
   })
 
+  test('U10: a point assigned to the mission takes the mission name as the location; renaming the mission renames it; no role control', async ({ page }) => {
+    test.setTimeout(240_000)
+    await openApp(page, `site=${RIDGE}&period=${AUG}&name=Ridge%20survey`)
+    const panel = await addTyped(page, A.text)
+    const row = panel.getByTestId('point')
+    await expect(row.getByRole('combobox')).toHaveCount(0)
+    await expect(row).not.toContainText(/No role|Start|End/)
+    await row.getByRole('textbox').fill('Camp 1')
+    await panel.getByRole('button', { name: 'Set as landing site: Camp 1' }).click()
+    await expect.poll(() => hashSite(page)).toBe(A.id)
+    await expect(page.getByTestId('site-name')).toHaveText('Ridge survey')
+    await expect(page.getByTestId('coords')).toHaveText(A.shown)
+    await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', A.id, { timeout: 60_000 })
+    // The point keeps its own name; the location follows the mission name.
+    const panel2 = await openPanel(page)
+    await expect(panel2.getByTestId('point').getByRole('textbox')).toHaveValue('Camp 1')
+    await panel2.getByLabel('Name', { exact: true }).fill('Polar camp')
+    await expect(page.getByTestId('site-name')).toHaveText('Polar camp')
+    await page.keyboard.press('Escape')
+    await page.getByTestId('details').click()
+    await expect(page.getByTestId('drawer').getByRole('heading', { level: 2 })).toHaveText('Polar camp')
+    await expect(page.locator('body')).not.toContainText('Custom site')
+  })
+
   test('U11: the right-click menu on the second point sets that point as the landing site', async ({ page }) => {
     test.setTimeout(240_000)
     await openApp(page, `site=${RIDGE}&period=${AUG}`)

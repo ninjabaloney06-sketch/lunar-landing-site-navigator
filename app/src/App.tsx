@@ -148,7 +148,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const onLevel = useCallback((view: SceneLevel) => patch({ view }), [patch])
 
   // A custom landing site (data/customSite.ts) lives in the link as its id; its height and slope arrive with capHorizon.
-  const custom = useCustomSite(hs.site)
+  const custom = useCustomSite(hs.site, hs.name ?? DEFAULT_MISSION_NAME)
   const site = custom?.site ?? sites.find((s) => s.id === hs.site) ?? sites.find((s) => s.id === DEFAULT_SITE_ID) ?? sites[0]
   const customReady = custom?.status === 'ready' ? custom : null
   const missionName = hs.name ?? DEFAULT_MISSION_NAME

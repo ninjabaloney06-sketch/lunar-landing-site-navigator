@@ -34,6 +34,10 @@ export function parseCustomSiteId(id: string): { lat: number; lon: number } | nu
 
 export const CUSTOM_SITE_NAME = 'Custom site'
 
+/** U10: a custom landing site is the mission's own place and carries the mission's name; CUSTOM_SITE_NAME only when
+ *  there is none (blank or absent). The name never changes the id or anything computed for the site. */
+export const customSiteName = (missionName?: string | null): string => missionName?.trim() || CUSTOM_SITE_NAME
+
 /** The site as far as the id gives it: no height and no slope until capHorizon has run. */
 export function customSiteBase(id: string): Site | null {
   const c = parseCustomSiteId(id)

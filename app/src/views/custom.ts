@@ -2,7 +2,7 @@
 // and the texts that say how approximate its numbers are. Every resolution in these texts is read from the
 // horizon's `computed` record or the terrain's `meta.cap`, the spacings capHorizon and capTerrain actually used.
 import { useEffect, useMemo, useState } from 'react'
-import { customHorizon, customSiteBase, loadCustomSite, parseCustomSiteId } from '../data/customSite'
+import { customHorizon, customSiteBase, customSiteName, loadCustomSite, parseCustomSiteId } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import type { Site } from '../data/types'
 import { REGION_TEXT } from './poiLayer'
@@ -16,8 +16,11 @@ export type CustomSiteState =
 export const SITE_REGION_TEXT = `Landing sites can be set only ${REGION_TEXT}.`
 
 /** null when id is not a custom site id; otherwise the site, first without and then with its computed values. A
- *  failure leaves the base: the answer line reports it (data/results.ts gives the same "no data" state). */
-export function useCustomSite(id: string | null): CustomSiteState | null {
+ *  failure leaves the base: the answer line reports it (data/results.ts gives the same "no data" state).
+ *  U10: the site is called by `name`, the mission's name, when one is given (a user point assigned to a mission is
+ *  that mission's place); without it, CUSTOM_SITE_NAME. The name never changes the id or anything computed. */
+export function useCustomSite(id: string | null, name?: string | null): CustomSiteState | null {
+  const label = customSiteName(name)
   const base = useMemo(() => (id && parseCustomSiteId(id) ? customSiteBase(id) : null), [id])
   const loading = useMemo<CustomSiteState | null>(() => base && { status: 'loading', site: base }, [base])
   const [state, setState] = useState<{ id: string; s: CustomSiteState } | null>(null)
@@ -32,8 +35,8 @@ export function useCustomSite(id: string | null): CustomSiteState | null {
       alive = false
     }
   }, [base])
-  if (!base) return null
-  return state && state.id === base.id ? state.s : loading
+  const current = !base ? null : state && state.id === base.id ? state.s : loading
+  return useMemo(() => (current && current.site.name !== label ? { ...current, site: { ...current.site, name: label } } : current), [current, label])
 }
 
 type Computed = CapHorizon['computed']

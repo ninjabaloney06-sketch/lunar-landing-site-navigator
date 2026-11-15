@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { EMPTY_STATE, MAX_POINTS, addPoint, parseHash, pointName, removePoint, renamePoint, serializeHash } from './state'
 import type { UserPoint } from './state'
-import { customSiteId, parseCustomSiteId } from './data/customSite'
+import { CUSTOM_SITE_NAME, customSiteBase, customSiteId, customSiteName, parseCustomSiteId } from './data/customSite'
 import { capSiteId } from './data/southcap'
 
 const link = (pts: UserPoint[]) => serializeHash({ ...EMPTY_STATE, pts })
@@ -99,6 +99,17 @@ describe('points-of-interest layer in the link', () => {
     expect(parseHash('#drawer=search').drawer).toBe('search')
     expect(parseHash('#drawer=docs').drawer).toBe('docs')
     expect(parseHash('#drawer=other').drawer).toBeNull()
+  })
+})
+
+describe('a custom landing site carries the mission name (U10)', () => {
+  it('is called by the mission name; "Custom site" only without one; the id and the place stay the same', () => {
+    expect(customSiteName('Ridge survey')).toBe('Ridge survey')
+    expect(customSiteName('  ')).toBe(CUSTOM_SITE_NAME)
+    expect(customSiteName(null)).toBe(CUSTOM_SITE_NAME)
+    expect(customSiteName(undefined)).toBe(CUSTOM_SITE_NAME)
+    const id = customSiteId(-89.47, -136.78)!
+    expect(customSiteBase(id)).toMatchObject({ id, name: CUSTOM_SITE_NAME, lat: -89.47, lon: -136.78 })
   })
 })
 
