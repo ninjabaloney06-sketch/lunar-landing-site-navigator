@@ -139,6 +139,22 @@ test.describe('POI card at 1440 × 900', () => {
     await expect(box).toHaveAttribute('data-mode', 'full')
   })
 
+  // Needs SceneView to pass the current site to PoiInfo (`from` prop; SceneView belongs to agent `cam`, the one-line
+  // diff is in the poi agent's report). Remove `.fixme` when it is applied.
+  test.fixme('the summary card ends with the distance from the current landing site, computed in the app', async ({ page }) => {
+    const byId = await pois(page)
+    const cabeus = byId.get(CABEUS)!
+    const sites = (await (await page.request.get('/data/sites.json')).json()) as { id: string; name: string; lat: number; lon: number }[]
+    const ridge = sites.find((s) => s.id === 'connecting-ridge')!
+    const r = Math.PI / 180
+    const h = Math.sin(((cabeus.lat - ridge.lat) * r) / 2) ** 2 + Math.cos(ridge.lat * r) * Math.cos(cabeus.lat * r) * Math.sin(((cabeus.lon - ridge.lon) * r) / 2) ** 2
+    const km = 2 * 1737.4 * Math.asin(Math.sqrt(h))
+    await openApp(page)
+    const box = await openCard(page, cabeus, 760, 200)
+    await expect(box.getByTestId('poi-distance')).toHaveText(`${Math.round(km)} km from ${ridge.name}`)
+    await expect(box.getByTestId('poi-bullets').locator('li').last()).toHaveAttribute('data-testid', 'poi-distance')
+  })
+
   test('the switch is keyboard operable', async ({ page }) => {
     const byId = await pois(page)
     await openApp(page)
@@ -187,5 +203,26 @@ test.describe('POI card at 375 × 812, touch', () => {
     await expect(key).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(0)
+  })
+})
+
+test.describe('POI layer at 1280 × 720', () => {
+  test.use({ viewport: { width: 1280, height: 720 } })
+
+  test('key names the landing group "Landing candidates"; summary and full card fit in the stage', async ({ page }) => {
+    const byId = await pois(page)
+    await openApp(page)
+    await expect(page.getByTestId('poi-key').locator('.poi-key-name')).toContainText(['Landing candidates'])
+    await expect(page.getByTestId('poi-key')).not.toContainText('Landing sites')
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/poi-key-1280.png`, animations: 'disabled' })
+    const box = await openCard(page, byId.get(CABEUS)!, 640, 260)
+    for (const mode of ['summary', 'full']) {
+      if (mode === 'full') await box.getByRole('switch', { name: 'Full data' }).click()
+      await expect(box).toHaveAttribute('data-mode', mode)
+      const b = (await box.boundingBox())!
+      expect(b.x).toBeGreaterThanOrEqual(0)
+      expect(b.x + b.width).toBeLessThanOrEqual(1280)
+      if (SHOTS) await page.screenshot({ path: `${SHOTS}/poi-card-${mode}-1280.png`, animations: 'disabled' })
+    }
   })
 })
