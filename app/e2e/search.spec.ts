@@ -64,7 +64,7 @@ test.describe('search at 1440 × 900', () => {
   test('lists all 18 sites without search-sites.json, marks the best first, and matches a hand count and the table', async ({ page }) => {
     const sites = await data<SiteRef[]>(page, 'sites.json')
     expect(sites).toHaveLength(18)
-    // The build without search-sites.json (this branch today; forced here so the test keeps meaning once it exists).
+    // The build without search-sites.json, forced here (the real file is tested below).
     await page.route('**/data/search-sites.json', (r) => r.fulfill({ status: 404, body: '' }))
     const { panel } = await openSearch(page)
     const items = panel.getByTestId('search-results').locator('li')

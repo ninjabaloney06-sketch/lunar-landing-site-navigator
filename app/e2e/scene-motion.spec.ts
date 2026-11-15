@@ -4,7 +4,7 @@
 // Run: PW_PORT=5181 npx playwright test e2e/scene-motion.spec.ts --workers=1
 import { expect, test, type Page } from '@playwright/test'
 
-export interface Cam {
+interface Cam {
   level: string
   units: string
   position: number[]

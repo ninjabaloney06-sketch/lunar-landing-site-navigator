@@ -259,19 +259,22 @@ test.describe('S4: points of interest', () => {
 
   test('touch: a tap on a POI names it', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, hasTouch: true })
-    const page = await ctx.newPage()
-    await open(page)
-    await setView(page, { site: RIDGE.id, utc: UTC, level: 'globe', el: -72, az: RIDGE.lon, dist: 3200 })
-    await setPois(page, POIS)
-    const free = (await freePoi(page))!
-    await page.touchscreen.tap(free.x, free.y)
-    await frames(page)
-    expect((await scene(page, (s) => s.handle().named()))?.poiId).toBe(free.id)
-    // A tap elsewhere takes the name away.
-    await page.touchscreen.tap(40, 40)
-    await frames(page)
-    expect(await scene(page, (s) => s.handle().named())).toBeNull()
-    await ctx.close()
+    try {
+      const page = await ctx.newPage()
+      await open(page)
+      await setView(page, { site: RIDGE.id, utc: UTC, level: 'globe', el: -72, az: RIDGE.lon, dist: 3200 })
+      await setPois(page, POIS)
+      const free = (await freePoi(page))!
+      await page.touchscreen.tap(free.x, free.y)
+      await frames(page)
+      expect((await scene(page, (s) => s.handle().named()))?.poiId).toBe(free.id)
+      // A tap elsewhere takes the name away.
+      await page.touchscreen.tap(40, 40)
+      await frames(page)
+      expect(await scene(page, (s) => s.handle().named())).toBeNull()
+    } finally {
+      await ctx.close() // also when an expectation fails: the context is not the test's own, nothing else closes it
+    }
   })
 })
 
