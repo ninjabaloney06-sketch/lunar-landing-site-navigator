@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { EMPTY_STATE, parseHash, serializeHash } from './state'
 import type { HashState } from './state'
 
-export const MISSIONS_KEY = 'llsn.missions.v1'
+const MISSIONS_KEY = 'llsn.missions.v1'
 export const MAX_MISSIONS = 12
 
 /** The part of the state that is the mission: not the cursor, the view, the drawer or the user points. */

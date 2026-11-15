@@ -229,11 +229,6 @@
   color: var(--muted);
 }
 
-.flight-intro {
-  margin: var(--s-1) 0 0;
-  padding: 0 var(--s-4);
-}
-
 /* The mission this flight belongs to: name and site, one line each. */
 .flight-mission {
   display: grid;
@@ -609,20 +604,10 @@
   width: 100%;
 }
 
-.flight-note,
-.flight-foot {
-  margin: var(--s-2) 0 0;
-}
-
 .flight-line {
   margin: 0;
   padding-top: var(--s-2);
   overflow-wrap: anywhere;
-}
-
-/* A second value line under the first: "planned …" under "not before …" */
-.flight-line-next {
-  padding-top: 0;
 }
 
 .flight-sub {
@@ -630,14 +615,6 @@
   margin-top: var(--s-1);
   font-size: var(--t-small);
   color: var(--muted);
-}
-
-/* Landing point: the mission's site (with "Change") or free coordinates. */
-.flight-choice {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--s-3);
 }
 
 /* Latitude and longitude of a free point: two short number fields in one row. */
@@ -1057,7 +1034,7 @@
     display: contents;
   }
 
-  .top:has(> .place > .flight-panel) > .actions {
+  .top:has(> .place > .flight-panel) > .actions-col {
     order: 1;
   }
 

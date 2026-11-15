@@ -148,21 +148,6 @@
   box-shadow: inset 2px 0 0 var(--fg);
 }
 
-.opt.is-disabled {
-  cursor: default;
-  color: var(--faint);
-}
-
-.opt.is-disabled:hover {
-  background: none;
-}
-
-.opt-meta {
-  flex: none;
-  font-size: var(--t-small);
-  color: var(--faint);
-}
-
 .opt-label {
   display: block;
   font-size: var(--t-small);
@@ -177,12 +162,6 @@
   border-top: 1px solid var(--line);
   color: var(--faint);
   text-align: left;
-}
-
-.menu-add-note {
-  display: block;
-  margin-top: var(--s-1);
-  font-size: var(--t-small);
 }
 
 .date-form {
