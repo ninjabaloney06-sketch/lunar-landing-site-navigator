@@ -156,8 +156,10 @@ export function DateMenu(p: Props) {
             Best periods in {year} · <span className="best-mission">{p.missionName ?? 'Mission'}</span> at {p.site.name}
           </div>
           <p className="menu-msg is-quiet" data-testid="best-defaults">
-            {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
-            station contact ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
+            {/* F12: each limit on one line with its number and unit in the number font ("≥ 70 %" never breaks before "%"). */}
+            {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit{' '}
+            <span className="mono nowrap">≥ {FINDER_DEFAULTS.minLitPct} %</span>, station contact <span className="mono nowrap">≥ {FINDER_DEFAULTS.minCoveragePct} %</span>,
+            gap <span className="mono nowrap">≤ {FINDER_DEFAULTS.maxGapH} h</span>, darkness <span className="mono nowrap">≤ {FINDER_DEFAULTS.maxDarkH} h</span>.
           </p>
           {best.status === 'computing' && (
             <p className="menu-msg is-quiet" role="status">
@@ -190,8 +192,8 @@ export function DateMenu(p: Props) {
                       <span className="opt-name">
                         <Marked text={spanLabel(s, e)} />
                       </span>
-                      <span className="opt-label mono">
-                        sunlit {w.best.litPct.toFixed(1)} % · station contact {w.best.coveragePct.toFixed(1)} %
+                      <span className="opt-label">
+                        sunlit <span className="mono nowrap">{w.best.litPct.toFixed(1)} %</span> · station contact <span className="mono nowrap">{w.best.coveragePct.toFixed(1)} %</span>
                       </span>
                     </button>
                   </li>

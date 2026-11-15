@@ -741,3 +741,8 @@ select {
 .obj-note {
   color: var(--muted);
 }
+
+/* A number and its unit stay on one line. */
+.nowrap {
+  white-space: nowrap;
+}
