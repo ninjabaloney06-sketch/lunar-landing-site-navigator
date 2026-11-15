@@ -328,12 +328,19 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
     x = [x[0] * 1.003, 0]
     cur = shoot(x[0], 0)
   }
-  if (!cur) throw new FlightPlanError('The translunar flight could not be aimed: the first guess does not reach the Moon.')
+  if (!cur) {
+    if (inp.ignitionBandRad) throw new NoLeverage()
+    throw new FlightPlanError('The translunar flight could not be aimed: the first guess does not reach the Moon.')
+  }
   for (let iter = 0; iter < 30 && size(cur) > 0.01; iter++) {
     const f0 = cur.miss
     const a = shoot(x[0] + STEP_TAU, x[1])
     const b = shoot(x[0], x[1] + STEP_AZ)
-    if (!a || !b) throw new FlightPlanError('The translunar flight could not be aimed.')
+    if (!a || !b) {
+      // from an elliptical parking orbit the next launch opportunity is tried instead (launch() in planMissionNrho)
+      if (inp.ignitionBandRad) throw new NoLeverage()
+      throw new FlightPlanError('The translunar flight could not be aimed.')
+    }
     const j11 = (a.miss[0] - f0[0]) / STEP_TAU
     const j21 = (a.miss[1] - f0[1]) / STEP_TAU
     const j12 = (b.miss[0] - f0[0]) / STEP_AZ

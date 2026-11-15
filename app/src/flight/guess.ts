@@ -130,6 +130,12 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
   let P: Vec3 = [1, 0, 0]
   let coastAngle = 0
   let tTli = tL
+  // Elliptical parking orbit: the injection point (Pinj) and the transfer's perigee (P) differ. Off the parking
+  // orbit's perigee the flight-path angle is not zero, so the transfer leaving there is at the true anomaly with
+  // the same flight-path angle (thetaInj, < 0 before its perigee) and its perigee comes after the injection.
+  let Pinj: Vec3 = P
+  let nuInj: number | undefined
+  let tPeri = tL // instant of the transfer's perigee passage
   for (let pass = 0; pass < 5; pass++) {
     const mPos = ephem.moonPos(tA)
     d = norm(mPos)
@@ -141,19 +147,38 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     if (dot(h, pole) < 0) h = scale(h, -1) // prograde launch
     P = rotateAbout(mHat, h, -tr.nuA)
     if (ell && g.ellipse) {
-      // to the perigee of the raised orbit and on (or back) to the injection point
-      const nuP = wrapPi(angleAbout(padHat, P, h) - g.ascentArcRad - ell.angle)
+      const park = g.ellipse.raised
+      const et = tr.el.e
+      let thetaInj = 0
+      let nuP = 0
+      for (let k = 0; k < 4; k++) {
+        Pinj = rotateAbout(P, h, thetaInj)
+        // to the perigee of the raised orbit and on (or back) to the injection point
+        nuP = wrapPi(angleAbout(padHat, Pinj, h) - g.ascentArcRad - ell.angle)
+        const tanGamma = (park.e * Math.sin(nuP)) / (1 + park.e * Math.cos(nuP))
+        // tan γ = e sin θ / (1 + e cos θ) on the transfer, for θ near 0: θ = γ-matching root by Newton
+        let th = 0
+        for (let j = 0; j < 6; j++) {
+          const f = (et * Math.sin(th)) / (1 + et * Math.cos(th)) - tanGamma
+          const df = (et * (et + Math.cos(th))) / (1 + et * Math.cos(th)) ** 2
+          th -= f / df
+        }
+        thetaInj = th
+      }
+      nuInj = nuP
       coastAngle = ell.angle + nuP
-      tTli = Math.round(tL + ascentMs + (ell.seconds + timeFromPeriapsis(MU_EARTH, g.ellipse.raised, nuP)) * 1000)
+      tTli = Math.round(tL + ascentMs + (ell.seconds + timeFromPeriapsis(MU_EARTH, park, nuP)) * 1000)
+      tPeri = tTli - timeFromPeriapsis(MU_EARTH, tr.el, thetaInj) * 1000
+      tA = tPeri + tr.T * 1000
     } else {
       coastAngle = angleAbout(padHat, P, h) - g.ascentArcRad
       while (coastAngle < MIN_PARKING_COAST_RAD) coastAngle += TWO_PI
       tTli = Math.round(tL + ascentMs + (coastAngle / nPark) * 1000)
+      Pinj = P
+      tPeri = tTli
+      tA = tTli + tr.T * 1000
     }
-    tA = tTli + tr.T * 1000
   }
-  // where on the raised orbit the injection has to come
-  const nuInj = ell ? wrapPi(angleAbout(padHat, P, h) - g.ascentArcRad - ell.angle) : undefined
   const el = tr.el
   const Q = cross(h, P)
 
@@ -175,7 +200,7 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
   }
 
   // Sphere-of-influence entry and the approach hyperbola.
-  const tAt = (E: number) => tTli + Math.sqrt(el.a ** 3 / MU_EARTH) * (E - el.e * Math.sin(E)) * 1000
+  const tAt = (E: number) => tPeri + Math.sqrt(el.a ** 3 / MU_EARTH) * (E - el.e * Math.sin(E)) * 1000
   const posAt = (E: number) => perifocal(el, MU_EARTH, eccentricToTrue(el.e, E), P, Q)
   const gap = (E: number) => norm(sub(posAt(E).r, ephem.moonPos(tAt(E)))) - SOI_MOON
   const EA = trueToEccentric(el.e, tr.nuA)
@@ -211,7 +236,7 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
     inclinationRad: Math.acos(clamp(dot(h, pole), -1, 1)),
     coastAngleRad: coastAngle,
     tliMs: tTli,
-    tliPoint: P,
+    tliPoint: Pinj,
     dvTliKms: dvTli,
     transfer: el,
     loiMs: tLoi,

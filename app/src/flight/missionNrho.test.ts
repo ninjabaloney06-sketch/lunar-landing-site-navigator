@@ -212,13 +212,60 @@ function checkPublished(plan: MissionPlan) {
   expect(Math.abs(s.landerDown - 730) / 730).toBeLessThan(0.05)
   expect(Math.abs(s.landerUp - 730) / 730).toBeLessThan(0.05)
   expect(dv(plan, 'otc')).toBeLessThan(5) // the injection is aimed at the flyby; the correction is small
-  // Trans-lunar injection from a 185 km circular orbit to the Moon's distance: 3.13 km/s as one instantaneous
-  // push (vis-viva, below); a burn of many minutes costs up to 0.2 km/s more. Not a published Artemis number:
-  // Artemis injects from an eccentric orbit, which this planner does not fly.
-  const rPark = R_EARTH_EQ + 185
-  const impulsive = Math.sqrt(MU_EARTH * (2 / rPark - 2 / (rPark + plan.facts.moonDistKm))) - Math.sqrt(MU_EARTH / rPark)
+  // Trans-lunar injection to the Moon's distance as one instantaneous push at the parking orbit's perigee
+  // (vis-viva, below); a burn of many minutes costs up to 0.2 km/s more. Not a published Artemis number. The
+  // parking orbit is the plan's own: a 185 km circle (SLS Block 1B, 3.13 km/s), or for SLS Block 1 the orbit
+  // flown on Artemis I after its perigee raise (185 × about 1,800 km, about 2.72 km/s).
+  const rPark = R_EARTH_EQ + plan.facts.parkingPerigeeKm
+  const aPark = R_EARTH_EQ + (plan.facts.parkingPerigeeKm + plan.facts.parkingApogeeKm) / 2
+  const impulsive = Math.sqrt(MU_EARTH * (2 / rPark - 2 / (rPark + plan.facts.moonDistKm))) - Math.sqrt(MU_EARTH * (2 / rPark - 1 / aPark))
   expect(dv(plan, 'tli') / 1000).toBeGreaterThan(impulsive)
   expect(dv(plan, 'tli') / 1000).toBeLessThan(impulsive + 0.2)
+}
+
+/** SLS Block 1 flies the parking orbit of Artemis I (launchVehicles.ts SLS_BLOCK_1_PARKING; new, not yet validated
+ *  by the science lead). Flown and planned values to compare with:
+ *   [JANNAF] Askins, JANNAF 2024, NTRS 20240003963: insertion "972.6 nautical miles (1,801 km) by 15.9 nautical
+ *            miles (29.4 km)"; "a 45-minute coast phase before the ICPS performed at perigee raise maneuver";
+ *            "The 18-minute burn".
+ *   [IAC]    IAC 2023, NTRS 20230012789: PRM "raising ICPS/Orion to a 100 x 974.5 nmi Earth orbit".
+ *   [AAS]    AAS 20-649, NTRS 20205005150: TLI "occurs at a true anomaly between −40◦ and −95◦".
+ *   [KIT]    Artemis I press kit (planned): "Perigee Raise Maneuver (MET 00:52:56)", "22 seconds in duration";
+ *            "Trans-lunar injection (MET 01:29:27)". */
+function checkArtemisIParking(plan: MissionPlan) {
+  const ev = (id: string) => plan.events.find((e) => e.id === id)!
+  const prm = ev('prm')
+  const tli = ev('tli')
+  const ascent = ev('ascent')
+  const met = (e: { utcMs: number }) => (e.utcMs - plan.launchMs) / 60000 // minutes
+  expect(prm.label).toBe('Perigee Raise Maneuver (PRM)')
+  expect(prm.kind).toBe('burn')
+  expect(prm.utcMs).toBeGreaterThan(ascent.utcMs)
+  expect(prm.utcMs).toBeLessThan(tli.utcMs)
+  // insertion by the core stage into the flown orbit, to within 2 km [JANNAF]
+  const note = plan.notes.find((n) => n.startsWith('In low lunar orbit'))!
+  expect(note).toContain('not yet validated by the science lead')
+  // the injection starts from 100 nmi perigee [IAC] (osculating, at the PRM cut-off)
+  expect(Math.abs(plan.facts.parkingPerigeeKm - 185.2)).toBeLessThan(0.01)
+  expect(plan.facts.parkingApogeeKm).toBeGreaterThan(1700)
+  expect(plan.facts.parkingApogeeKm).toBeLessThan(1900)
+  // PRM: about 45 min after the core stage's insertion [JANNAF], about 22 s long [KIT] (within 15 %)
+  const coastMin = (prm.utcMs - (plan.launchMs + (ascent.durationS ?? 0) * 1000)) / 60000
+  expect(coastMin).toBeGreaterThan(40)
+  expect(coastMin).toBeLessThan(50)
+  expect(Math.abs((prm.durationS ?? 0) / 22 - 1)).toBeLessThan(0.15)
+  expect(Math.abs(met(prm) - 52.9)).toBeLessThan(5)
+  // TLI: begins in the true-anomaly band of the design [AAS] (the note says it is inside), lasts about 18 min [JANNAF]
+  expect(plan.notes.join(' ')).not.toContain('outside that range')
+  expect(Math.abs((tli.durationS ?? 0) / 60 / 18 - 1)).toBeLessThan(0.1)
+  expect(met(tli)).toBeGreaterThan(75)
+  expect(met(tli)).toBeLessThan(110)
+  // the upper stage's propellant is that of both burns
+  const icps = plan.propellant[0]
+  expect(icps.element).toBe('Interim Cryogenic Propulsion Stage (ICPS)')
+  expect(icps.usedKg).toBeCloseTo((prm.propellantKg ?? 0) + (tli.propellantKg ?? 0), 6)
+  expect(plan.unvalidated?.map((m) => m.text)).toEqual(['not yet validated by the science lead'])
+  for (const l of plan.legs.filter((x) => x.id === 'prm')) expect(l.powered).toBe(true)
 }
 
 describe.each(['artemis-starship', 'artemis-blue-moon'])('whole mission by NRHO rendezvous at the south pole, 6.5 days asked on the surface: %s', (archId) => {
@@ -234,6 +281,16 @@ describe.each(['artemis-starship', 'artemis-blue-moon'])('whole mission by NRHO 
 
   it('costs what NASA publishes for Orion and for the lander [WHITLEY] [HLS]', () => {
     checkPublished(plan)
+  })
+
+  it(archId === 'artemis-starship' ? 'SLS Block 1: parks in the orbit flown on Artemis I [JANNAF] [IAC] [AAS] [KIT]' : 'SLS Block 1B: parks in a 185 km circle, no perigee raise', () => {
+    if (archId === 'artemis-starship') checkArtemisIParking(plan)
+    else {
+      expect(plan.events.some((e) => e.id === 'prm')).toBe(false)
+      expect(plan.unvalidated).toBeUndefined()
+      expect(Math.abs(plan.facts.parkingPerigeeKm - 185)).toBeLessThan(1)
+      expect(Math.abs(plan.facts.parkingApogeeKm - 185)).toBeLessThan(1)
+    }
   })
 
   it('stays one revolution of the NRHO less the hours in low lunar orbit, and the capsule leaves within one more', () => {
@@ -272,8 +329,18 @@ describe('whole mission by NRHO rendezvous: other choices', () => {
     console.log(summary(plan, performance.now() - t0))
     checkPlan(plan, earliest, -6.5)
     const s = sums(plan)
-    // Orion's arrival does not depend on the site
-    expect(Math.abs(s.arrival - 428.5) / 428.5).toBeLessThan(0.1)
+    // Orion's arrival does not depend on the site: the same dates to the south pole cost the same, to within 10 %.
+    // (Before SLS Block 1 flew the Artemis I parking orbit this compared with WHITLEY's 428.5 m/s: 432 m/s. The
+    // injection is now tied to the parking orbit's perigee, which leaves fewer launch instants, and for these
+    // dates every one of them arrives at 497 to 530 m/s. Not yet validated by the science lead.)
+    const polar = planMissionNrho({
+      ...hardwareOf('artemis-starship'), pad, target: pole, ephem,
+      earliestTouchdownMs: earliest, surfaceStayDays: 3, returnWindowDays: 4, maxTransferDays: null, entryFpaDeg: -6.5,
+    })
+    const sp = sums(polar)
+    console.log(`[mission NRHO] same dates to the south pole: arrival ${sp.arrival.toFixed(1)} m/s, liftoff ${new Date(polar.launchMs).toISOString()}`)
+    expect(Math.abs(s.arrival - sp.arrival) / sp.arrival).toBeLessThan(0.1)
+    expect(Math.abs(s.arrival - 428.5) / 428.5).toBeLessThan(0.25)
     // the site is far from the plane of the NRHO: the lander's transfers cost more than to the pole
     expect(s.landerDown).toBeGreaterThan(704.7 + 50)
     // The lander cannot come back to the NRHO after 3 days. (Until the stay became adjustable this plan stayed a
@@ -293,5 +360,5 @@ describe('whole mission by NRHO rendezvous: other choices', () => {
     expect(nrd).toBeGreaterThanOrEqual(plan.dockingMs + HOUR_MS)
     expect(nrd).toBeLessThanOrEqual(plan.dockingMs + HOUR_MS + 4 * DAY_MS)
     expect(s.home).toBeGreaterThan(411.5)
-  }, 120000)
+  }, 240000)
 })
