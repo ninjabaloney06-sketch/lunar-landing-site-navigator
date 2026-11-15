@@ -238,6 +238,7 @@ test.describe('saved missions', () => {
     // A second mission: another name and site.
     await panel.getByLabel('Name', { exact: true }).fill('Ridge ops')
     await expect(add).toBeEnabled()
+    await panel.getByTestId('site-ranking').click() // U1: the site list opens on typing or from the ranking
     await page.locator(`#site-opt-${RIDGE}`).click()
     await page.getByTestId('mission').click()
     await page.getByTestId('mission-panel').getByTestId('add-mission').click()

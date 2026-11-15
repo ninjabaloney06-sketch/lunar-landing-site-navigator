@@ -33,9 +33,10 @@ async function stationIds(page: Page): Promise<string[]> {
   return (await data<{ id: string }[]>(page, 'stations.json')).map((s) => s.id)
 }
 
-/** Header control 1 is the mission (rocket + name); it opens the site list. */
+/** Header control 1 is the mission (rocket + name); the panel's ranked list of all sites is one click further (U1). */
 async function chooseSite(page: Page, id: string) {
   await page.getByTestId('mission').click()
+  await page.getByTestId('mission-panel').getByTestId('site-ranking').click()
   await page.locator(`#site-opt-${id}`).click()
 }
 
@@ -261,6 +262,8 @@ test('UX-04: the site menu lists every site in sites.json, each with its label',
   await page.goto(`/#site=${MASSIF}&period=${AUG}`)
   await expectAnswer(page, MASSIF, AUG, 60_000)
   await page.getByTestId('mission').click()
+  await expect(page.getByRole('option')).toHaveCount(0) // U1: no list until the user types or opens the ranking
+  await page.getByTestId('site-ranking').click()
   await expect(page.getByRole('option')).toHaveCount(sites.length)
   for (const s of sites.filter((x) => x.label)) {
     await expect(page.locator(`#site-opt-${s.id}`)).toHaveAccessibleName(`${s.name} ${s.label}`)
@@ -580,6 +583,7 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', SEP)
   await expectAnswer(page, RIDGE, SEP)
   await panel.getByRole('radio', { name: 'Consistent light' }).check()
+  await panel.getByTestId('site-ranking').click()
   await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station coverage')
 
   await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
@@ -605,6 +609,7 @@ test('panel: evidence goals show the evidence and say when station coverage deci
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
   const panel = page.getByTestId('mission-panel')
+  await panel.getByTestId('site-ranking').click()
   await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
   const ranked = panel.locator('[data-group=ranked] [role=option]')
   await expect(ranked.first().locator('[data-fact=evidence]')).toContainText(/^water ice: /)
@@ -797,6 +802,8 @@ for (const vp of [
     const panel = page.getByTestId('mission-panel')
     await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
     await shot('panel')
+    await panel.getByTestId('site-ranking').click()
+    await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
     await panel.getByRole('heading', { name: 'Landing site' }).evaluate((h) => h.scrollIntoView({ block: 'start' }))
     await shot('panel-sites')
     await page.keyboard.press('Escape')

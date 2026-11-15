@@ -111,7 +111,9 @@ export function MissionPanel(p: Props) {
   const [startDraft, setStartDraft] = useState<string | null>(null)
   const [endDraft, setEndDraft] = useState<string | null>(null)
   const [dateError, setDateError] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
+  // null = not editing: the field shows the current site's name and no list (U1). Typing shows the matching sites.
+  const [query, setQuery] = useState<string | null>(null)
+  const [rankingOpen, setRankingOpen] = useState(false) // the full ranked list, opened on purpose
   const [pointDraft, setPointDraft] = useState<{ i: number; text: string } | null>(null) // the name being typed
   const [activeId, setActiveId] = useState<string | null>(site.id) // keyboard row; null = first row (after typing)
 
@@ -165,9 +167,15 @@ export function MissionPanel(p: Props) {
     if (v !== null) shared.set(v, (shared.get(v) ?? 0) + 1)
   }
 
-  const coords = parseCoords(query)
-  const q = query.trim().toLowerCase()
-  const match = (s: Site) => coords.kind !== 'none' || !q || `${s.name} ${s.label ?? ''}`.toLowerCase().includes(q)
+  // A new landing site (typed coordinates set as the site) shows its name in the field again.
+  useEffect(() => setQuery(null), [site.id])
+
+  const typed = query ?? ''
+  const coords = parseCoords(typed)
+  const q = typed.trim().toLowerCase()
+  const searching = q !== '' && coords.kind === 'none'
+  const showList = rankingOpen || searching
+  const match = (s: Site) => !searching || `${s.name} ${s.label ?? ''}`.toLowerCase().includes(q)
   const toRow = (r: RankedSite): Row => ({ site: byId.get(r.siteId)!, r, entry: entries[r.siteId] })
   const groups = [
     {
@@ -179,7 +187,7 @@ export function MissionPanel(p: Props) {
     { key: 'unknown', title: 'Not enough data', rows: ranking.unknown.map(toRow) },
   ]
     .map((g) => ({ ...g, rows: g.rows.filter((row) => match(row.site)) }))
-    .filter((g) => g.rows.length > 0)
+    .filter((g) => showList && g.rows.length > 0)
   const flat = groups.flatMap((g) => g.rows)
   // Tracked by site id: rows move while the ranking fills in.
   const activeIdx = Math.max(0, flat.findIndex((row) => row.site.id === activeId))
@@ -390,13 +398,19 @@ export function MissionPanel(p: Props) {
             className="field"
             type="text"
             role="combobox"
-            aria-expanded="true"
+            aria-expanded={flat.length > 0}
             aria-controls="site-list"
             aria-activedescendant={flat[activeIdx] ? `site-opt-${flat[activeIdx].site.id}` : undefined}
             aria-label="Search a site or type coordinates"
             placeholder={`Site name, or ${eg(EXAMPLE.coords)}`}
-            value={query}
+            value={query ?? site.name}
             onKeyDown={onSearchKey}
+            onFocus={(e) => {
+              if (query === null) e.currentTarget.select() // typing replaces the site's name
+            }}
+            onBlur={() => {
+              if (query !== null && query.trim() === '') setQuery(null) // an emptied field shows the site again
+            }}
             onChange={(e) => {
               setQuery(e.target.value)
               setActiveId(null)
@@ -440,8 +454,21 @@ export function MissionPanel(p: Props) {
             )}
           </p>
         )}
+        <button
+          type="button"
+          className="link mp-disclose"
+          aria-expanded={rankingOpen}
+          aria-controls="site-list"
+          data-testid="site-ranking"
+          onClick={() => setRankingOpen((v) => !v)}
+        >
+          <span className="mp-chev" aria-hidden="true">
+            {rankingOpen ? '▾' : '▸'}
+          </span>
+          All {sites.length} sites, ranked for this mission
+        </button>
         <p className="menu-msg is-quiet mp-progress" aria-live="polite">
-          {computing > 0 ? `Computing ${sites.length - computing} of ${sites.length} sites for these dates…` : ''}
+          {showList && computing > 0 ? `Computing ${sites.length - computing} of ${sites.length} sites for these dates…` : ''}
         </p>
         <div id="site-list" className="menu-list" role="listbox" aria-label="Landing sites">
           {groups.map((g) => (
@@ -465,7 +492,7 @@ export function MissionPanel(p: Props) {
               })}
             </div>
           ))}
-          {coords.kind === 'none' && q && flat.length === 0 && <p className="menu-msg">No site matches “{query.trim()}”.</p>}
+          {searching && flat.length === 0 && <p className="menu-msg">No site matches “{typed.trim()}”.</p>}
         </div>
         <div role="group" aria-labelledby="mp-points" data-testid="points">
           <div id="mp-points" className="menu-group">

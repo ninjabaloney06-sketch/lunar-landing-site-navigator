@@ -195,6 +195,28 @@
   margin: 0 0 var(--s-2);
 }
 
+/* Disclosures in the panel: a text link with a chevron, tall enough to tap (44 px). */
+.mp-disclose {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.mp-disclose:hover,
+.mp-disclose:focus-visible,
+.mp-disclose[aria-expanded='true'] {
+  color: var(--fg);
+}
+
+.mp-chev {
+  display: inline-block;
+  width: 1em;
+  color: var(--faint);
+}
+
 .mp-progress:empty {
   padding: 0;
 }
