@@ -15,6 +15,7 @@ import {
   summarize,
   windows,
 } from './index'
+import stationsJson from '../../public/data/stations.json'
 import { type Fixtures, loadFixtures, loadHorizonFile, loadMonths } from './testData'
 
 const MIN = 60_000
@@ -252,6 +253,30 @@ describe('finder (T12)', () => {
     const r = run(constantMonth(UP, DOWN))
     expect(r.windows).toEqual([])
     expect(r.nearestMiss?.failed).toEqual(['minCoveragePct', 'maxGapH'])
+  })
+
+  // V8 recheck 15 Nov: with candidates 6 h apart the finder missed this window (18:00 has 74 h dark, 17 Aug 00:00 a
+  // 51 h gap); every 30-min landing time from 20:00 to 21:00 qualifies (windows.py brute force agrees).
+  it('V8: finds the short Haworth window of 16 Aug 2027 20:00-21:00 (all five stations, defaults)', async () => {
+    const months = await loadMonths(['2027-08', '2027-09', '2027-10', '2027-11'])
+    const horizon = await loadHorizonFile('haworth.json')
+    const stations = stationsJson as Station[]
+    const earliest = Date.parse('2027-08-16T00:00:00Z')
+    const r = finder(
+      months,
+      { lat: -86.75, lon: -23.67, elev_m: 1550.9 },
+      horizon,
+      stations,
+      stations.map((s) => s.id),
+      earliest,
+      earliest + 60 * 24 * HOUR,
+      FINDER_DEFAULTS,
+    )
+    const w = r.windows.find((x) => x.startMs === Date.parse('2027-08-16T20:00:00Z'))
+    expect(w).toBeDefined()
+    expect(w?.endMs).toBe(Date.parse('2027-08-16T21:00:00Z'))
+    expect(w?.best.longestDarkH).toBeLessThanOrEqual(FINDER_DEFAULTS.maxDarkH)
+    expect(w?.best.longestGapH).toBeLessThanOrEqual(FINDER_DEFAULTS.maxGapH)
   })
 
   it('runs on a real month in well under a second', async () => {

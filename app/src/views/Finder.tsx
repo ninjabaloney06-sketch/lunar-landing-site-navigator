@@ -21,7 +21,7 @@ const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: nu
 
 const SEARCH_DAYS = 60
 
-/** Landing times are candidates 6 h apart and the window's end is the LAST qualifying landing time
+/** Landing times are candidates 30 min apart and the window's end is the LAST qualifying landing time
  *  (inclusive), so fmtRange (exclusive end) would drop or add a day. "16 Aug 2027, 18:00 UTC" for one
  *  candidate, "16 Aug 2027, 06:00 – 18 Aug 2027, 00:00 UTC" for a range. */
 function fmtLandingRange(startMs: number, endMs: number): string {

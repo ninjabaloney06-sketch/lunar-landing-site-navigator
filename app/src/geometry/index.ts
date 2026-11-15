@@ -603,7 +603,7 @@ export const FINDER_DEFAULTS: FinderThresholds = {
 
 export interface FinderWindow {
   startMs: number // landing-time window: first qualifying landing time
-  endMs: number // last qualifying landing time (inclusive; candidates are 6 h apart)
+  endMs: number // last qualifying landing time (inclusive; candidates are 30 min apart)
   best: { landingMs: number; litPct: number; coveragePct: number; longestGapH: number; longestDarkH: number }
 }
 
@@ -612,10 +612,11 @@ export interface FinderResult {
   nearestMiss: { landingMs: number; failed: (keyof FinderThresholds)[] } | null
 }
 
-const CANDIDATE_STEP_MS = 6 * HOUR_MS
 const FINDER_STEP_MIN = 30
+// Every 30-min sample is a candidate (V8: a 6 h grid missed a qualifying Haworth window, 16 Aug 2027 20:00-21:00).
+const CANDIDATE_STEP_MS = FINDER_STEP_MIN * 60_000
 
-/** Candidate landing times every 6 h in [earliestMs, latestMs]; each mission [landing, landing + missionDays)
+/** Candidate landing times every 30 min in [earliestMs, latestMs]; each mission [landing, landing + missionDays)
  *  is scored on the 30-min samples (prefix sums; sample-based, not edge-refined). Qualifying neighbours merge
  *  into windows, ranked by best coverage, then lit %, then date. No qualifying candidate → nearest miss (fewest
  *  failed thresholds, then highest coverage). `months` must cover [earliestMs, latestMs + missionDays). */
