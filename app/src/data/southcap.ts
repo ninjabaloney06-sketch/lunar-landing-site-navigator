@@ -812,23 +812,14 @@ const fetchIo: CapIo = {
 }
 
 let shared: Promise<SouthCap> | null = null
-let ready: SouthCap | null = null
 
 /** The cap of this build: cap.json, the base and the outer raster, fetched once (5.4 MB). */
 export function loadCap(): Promise<SouthCap> {
   if (!shared) {
-    shared = openCap(fetchIo).then((c) => (ready = c))
+    shared = openCap(fetchIo)
     shared.catch(() => (shared = null)) // a failed request is forgotten so a retry can succeed
   }
   return shared
-}
-
-/**
- * Height of the 400 m base at a point (bilinear, metres above the 1737.4 km sphere). null outside the cap, and
- * null until loadCap() has resolved (await it once at start-up; this call itself never fetches).
- */
-export function capHeight(lat: number, lon: number): number | null {
-  return ready ? ready.height(lat, lon) : null
 }
 
 /** Terrain for any point of the cap, shaped like loadTerrain(siteId); null outside the cap or without cap data. */
