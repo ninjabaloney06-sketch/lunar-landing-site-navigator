@@ -1093,6 +1093,11 @@
   background: var(--fg);
 }
 
+/* The phone-only "More" toggle for row 2 (F07b); wide screens always show row 2. */
+.flight-more {
+  display: none;
+}
+
 /* Row 2: what the camera follows (one menu), the layers as plain checkboxes, the speed. Small text, no pills. */
 .flight-controls {
   font-size: var(--t-small);
@@ -1226,7 +1231,24 @@
   }
 
   .flight-row {
-    gap: var(--s-3) var(--s-4);
+    gap: var(--s-2) var(--s-3);
+  }
+
+  .flight-transport {
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-4);
+  }
+
+  /* F07b: one row (Play, readout, More) over the scrubber; camera, layers and speed open from More. */
+  .flight-more {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--s-1);
+  }
+
+  .flight-controls:not(.is-open) {
+    display: none;
   }
 
   /* Play and the readout share the first line (the readout wraps inside itself on phones), the scrubber takes

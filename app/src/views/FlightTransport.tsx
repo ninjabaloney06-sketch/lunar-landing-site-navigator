@@ -156,6 +156,10 @@ export function FlightTransport(p: FlightTransportProps) {
   const { launchMs, endMs } = plan
   const ticksRef = useRef<HTMLDivElement>(null)
   const [trackPx, setTrackPx] = useState(FALLBACK_TRACK_PX)
+  // Phones (F07b): the camera, layer and speed row folds behind one labelled "More" button, so the bar is one row
+  // plus the scrubber; above 640 px the row is always shown and the button is not (flight.css).
+  const [more, setMore] = useState(false)
+  const moreId = useId()
 
   useEffect(() => {
     const el = ticksRef.current
@@ -218,6 +222,22 @@ export function FlightTransport(p: FlightTransportProps) {
           </p>
         </div>
 
+        <button
+          type="button"
+          className="btn flight-more"
+          data-testid="flight-more"
+          aria-expanded={more}
+          aria-controls={moreId}
+          aria-label="More: camera, layers and speed"
+          title="Camera, layers and speed"
+          onClick={() => setMore((v) => !v)}
+        >
+          More{' '}
+          <span className="mp-chev" aria-hidden="true">
+            {more ? '▾' : '▸'}
+          </span>
+        </button>
+
         <div className="flight-track">
           <div ref={ticksRef} className="flight-ticks">
             {ticks.map(({ event: e, burn, name, pct, widthPx, text }, i) => {
@@ -259,7 +279,7 @@ export function FlightTransport(p: FlightTransportProps) {
         </div>
       </div>
 
-      <div className="flight-row flight-controls">
+      <div id={moreId} className={`flight-row flight-controls${more ? ' is-open' : ''}`} data-testid="flight-controls">
         <label className="flight-look-field" title="What the 3D view follows">
           <span className="quiet">Camera</span>
           <select className="field flight-look" value={focus} data-testid="flight-focus" onChange={(e) => onFocus(e.target.value as FlightFocus)}>
