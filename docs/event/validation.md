@@ -771,3 +771,48 @@ write it. "Minutes" = his time for that line in this file, plus any decision the
 | NASA-tools link check | "Open in NASA tools": Moon Trek, QuickMap and Horizons links land on the site; Horizons first row vs app < 0.05° | (a) section title "(AI, 15 Nov 2026 07:00–07:30, not validated)"; "For Leo: whether this link check, done by an AI, counts as the check the task asks for, and whether the eye height in the links … is the right choice." · (b) the statement of 08:50 | only by the science lead | two human decisions (an AI check counts; terrain + 1.75 m eye height) and a sign-off; or he opens one link himself | 3 |
 | Payload and cheapest route | Maximum payload ± ε; cheapest landing day and transfer limit (`flight/payload.ts`, built 15 Nov) | (a) "**Not yet validated by the science lead.** … Not recorded in `docs/event/validation.md`." (`docs/scientific-proof/06-payload.md`); marker on every result · (b) the statement of 08:50 (names payload and cheapest route) | only by the science lead | a sign-off naming what was compared; the 3 % reserve, the 6 % loss term and the 0.5 % tie threshold are assumptions he accepts or not | 10 |
 | Lunar J2 and dispersion | Moon J2 term (off in every plan) and the 200-run descent dispersion (`flight/dispersion.ts`, built 15 Nov) | (a) "**Not yet validated by the science lead**: the J2 term, the dispersion method and all four σ values. … Not recorded in `docs/event/validation.md`." (`docs/scientific-proof/07-dispersion.md`) · (b) the statement of 08:50 (names dispersion and lunar J2) | only by the science lead | a sign-off; the four σ values are assumptions ("every error size is an assumption"), so his line says he accepts them as assumptions | 5 |
+
+### AI recheck, 15 Nov, not a sign-off
+
+Agent `val-audit`, 15 Nov 2026 08:58–09:15, worktree on branch `w4/audit` (from `f718731`). Only data already in the
+repository and public JPL Horizons API queries; no download, no raw data. Python from the build run's venv; scripts in
+the session's scratch folder, not committed (they are `scripts/tools/independent_checks/horizons_positions.py` with
+new cases).
+
+| Check | What was compared | Largest difference | Against the check's own tolerance |
+|---|---|---|---|
+| V1 | Sun and Earth az/el at 12 new site/time points (24 values): Shackleton Rim Site04 10 Jan 2027 03:00, Nobile Rim 1 14 May 2027 09:30, de Gerlache Rim 1 2 Mar 2028 15:00, Amundsen Rim 20 Nov 2028 21:30, VIPER/Mons Mouton 7 Apr 2029 12:00, Peak near Shackleton 24 Dec 2029 06:00, Faustini Rim A 11 Feb 2030 18:00, Leibnitz Beta Plateau 30 Sep 2030 00:30, Connecting Ridge 20 Nov 2026 12:00, IM-2 intended 15 Dec 2030 22:00, Malapert Site23 6 Jul 2028 07:00, Nobile Rim 2 18 Oct 2027 13:30 (UTC). Ours: the shipped `ephem/*.json` vectors with the independent script's own ENU arithmetic, observer at the site's `elev_m` + 1.75 m. Horizons: `CENTER=coord@301`, `COORD_TYPE=GEODETIC`, same height, `QUANTITIES=4`, `APPARENT=AIRLESS`, degrees, UT, fetched 15 Nov ~09:00 | below 0.0001° in azimuth and in elevation at all 24 values (Horizons prints 4 decimals in this format; every printed value equal, except IM-2 Earth elevation −2.7727 vs −2.7728) | pass (< 0.05°). Note: the observer height is the terrain height, not V1's 1.75 m on the sphere; both sides use the same point |
+| V2 | Sun elevation from the Horizons sub-solar point (Moon from geocentre, `QUANTITIES=15`) by the exact spherical formula vs ours, at Connecting Ridge 20 Aug 2027 12:00 and 1 Dec 2028 00:00, Shackleton Rim Site04 15 Jun 2029 06:00, Peak near Shackleton 20 Mar 2030 18:00 | −0.0007° at all four (the same 0.0007° as V2's evidence box: the sub-solar point is seen from the Earth's centre, not from the site); the rough −φs check differs by up to 0.92° (sites 0.2–1.2° from the pole), as the check expects | pass (sign and size agree) |
+| V3 | `−acos(1737.4 / 1737.40175)` by hand; pytest `scripts/tests` (synthetic-terrain horizon tests included) | −0.0813217°, equal to `FLAT_DIP_DEG`; pytest 433 passed, 29 skipped (all skips need `CLPS_DATA` raw data) | pass |
+| V5, V7, V8 | vitest `src/geometry` (window refinement, answer sentences, fixtures exported from `windows.py`, and the V8 regression test "finds the short Haworth window of 16 Aug 2027 20:00-21:00") | 115 of 115 passed | pass (code tests against the pipeline's fixtures; not a new brute force) |
+| P1 power | vitest `src/power` (hand-computed cases 1–8 of the P1 section) | all passed | pass |
+| Flight physics, payload, cheapest route, J2, dispersion | vitest `src/flight` (proof tests, flown-mission comparisons, pinned results bit for bit) | 249 of 250 passed in a parallel run; the one failure was a 5 s timeout of `mission.test.ts` "a near-side equatorial point …" under load, which passes alone | pass. The pinned payload and dispersion hashes include the marker text and were re-recorded for the new wording only: with the new text mapped back to the old one, the results hash to the old values |
+| NASA-tools link check | vitest `nasaTools.test.ts` (URL builder) | passed | pass; the Horizons side of the link check uses the V1 settings and is covered by the V1 row above |
+| Station check | not rerun: this morning's recheck already covers all five stations; a further date would compare the same IAU_EARTH model again | — | — |
+| V4, V6, horizon range, truncated horizons | not rerun: needs the raw LOLA DEMs (`LDEM_80S_20MPP_ADJ.TIF`, `LDEM_60S_120MPP_ADJ.TIF`) and the PGDA illumination maps (`$CLPS_DATA`), not on this laptop | — | — |
+| Site assessments | pytest `test_assessments.py` without raw data passed; the reproduction tests are not rerun: needs the raw DEMs and `diviner/dlre_prp_south.tab` (`$CLPS_DATA`) | — | — |
+| V9 | nothing to rerun (not built) | — | — |
+
+### For the science lead: one line per check, ordered by value per minute
+
+The statement of 08:50 becomes a per-check written sign-off with one line per check in this file, written by the science
+lead himself: what he compared, the date, his initials. Value = what the line adds (on-screen claims that rest on it
+first, then checks with an earlier failure or a change after the earlier validation, then the rest). About 77 minutes
+for all of them.
+
+1. **V1** (2 min). The footer and "Open in NASA tools" rest on it. "V1: compared the 20 rows above and the 24 values of the AI recheck of 15 Nov with JPL Horizons; all within 0.05°. 15 Nov 2026, initials."
+2. **V2** (2 min). "V2: checked the arithmetic in the evidence box (1.4376° vs 1.4369°); sign and size agree. 15 Nov 2026, initials."
+3. **V8** (5 min). The only check that failed, fixed at 07:18, before his statement. "V8: the finder with the 30 min step finds the Haworth window of 16 Aug 2027 20:00–21:00; checked one window by eye on the timeline. 15 Nov 2026, initials."
+4. **Flight physics** (5 min). No row existed; Q1 and Q2 changed numbers at 08:35. "Flight physics: compared the proof tests and flown-mission comparisons in scientific-proof 04 and 05, numbers after Q1/Q2. 15 Nov 2026, initials."
+5. **V9** (1 min). "V9: not applicable, panel types not built. 15 Nov 2026, initials."
+6. **V3, V5, V7** (2 min each). "V3/V5/V7: accepted the AI rechecks of 14 and 15 Nov as recorded above. 15 Nov 2026, initials." (If that is what he did; otherwise what he compared.)
+7. **Horizon range** (2 min). "Horizon range: 300 km accepted. 15 Nov 2026, initials."
+8. **Truncated horizons** (3 min). "Truncated horizons: confirmed the 17 unchanged sites and the IM-1 change of the 17:47 regeneration. 15 Nov 2026, initials."
+9. **NASA-tools link check** (3 min). "NASA tools: the AI link check counts; terrain + 1.75 m eye height is right. 15 Nov 2026, initials."
+10. **Site assessments** (10 min). On screen. "Site assessments: numbers at 6650ed1 accepted; the seven choices decided as: … 15 Nov 2026, initials." (The code checker's review needs its own line.)
+11. **Station check** (5 min). "Station check: tolerance ≤ 0.1°; IAU_EARTH acceptable; 6° generic minimum acceptable (or masks). 15 Nov 2026, initials."
+12. **V6** (3 min). "V6: the stated coarse-terrain accuracy in the in-app docs is enough. 15 Nov 2026, initials."
+13. **Lunar J2 and dispersion** (5 min). "Dispersion: method and J2 checked; the four σ are accepted as assumptions. 15 Nov 2026, initials."
+14. **V4** (5 min). "V4: differences acceptable as context; Earth offset (needs / does not need) a cause. 15 Nov 2026, initials."
+15. **P1 power** (10 min). "P1: formula, S and AU, 1/r², cases 1–8 and the survival rule checked; not-modelled list enough. 15 Nov 2026, initials."
+16. **Payload and cheapest route** (10 min). "Payload/route: method checked; 3 % reserve, 6 % loss term and 0.5 % tie accepted as assumptions. 15 Nov 2026, initials."
