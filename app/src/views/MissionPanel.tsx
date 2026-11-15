@@ -55,6 +55,9 @@ export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: stri
   },
 ]
 
+/** Shown when the browser refuses to store a mission (storage blocked or full); shared with the flight panel. */
+export const SAVE_FAILED = 'Not saved: this browser does not allow storing it (storage blocked or full). Copy the link instead.'
+
 const PLAY_NOTE = 'The landing site from the first to the last mission day. Space pauses.'
 
 // U17: the dates of the data's coverage in the panel's own date format (16 Aug 2027), not state.ts's long months.
@@ -129,6 +132,7 @@ interface Props {
   missions: MissionState[] // saved in this browser
   missionSaved: boolean // the mission on screen is one of them
   onAddMission(): void
+  saveFailed?: boolean // the last Add mission was refused by the browser's storage
   onCalculateFlight(m: MissionState): void
   onCompareMissions(): void // opens the table of saved missions in the Details drawer (U13)
   onCalculateCurrentFlight(): void // the mission on screen, saved or not: the flight view has no tab (U12)
@@ -795,7 +799,9 @@ export function MissionPanel(p: Props) {
           </button>
         </div>
         <p className="quiet mp-save-note" aria-live="polite" data-testid="mission-save-note">
-          {p.missionSaved
+          {p.saveFailed && !p.missionSaved
+            ? SAVE_FAILED
+            : p.missionSaved
             ? 'Saved in this browser.'
             : p.missions.length >= MAX_MISSIONS
               ? `At most ${MAX_MISSIONS} saved missions.`

@@ -60,6 +60,7 @@ interface Props {
   onPower?(next: PowerInputs): void
   onSection(section: DrawerSection): void // a tab was chosen
   onClose(): void
+  shareUrl?: string // the link to this view now (the address bar follows 400 ms later)
 }
 
 type Tab = 'site' | 'dates' | 'compare'
@@ -247,7 +248,7 @@ export function Drawer(p: Props) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
+      await navigator.clipboard.writeText(p.shareUrl ?? window.location.href)
       setCopied('Link copied.')
     } catch {
       setCopied('Copy the address bar to share this view.')

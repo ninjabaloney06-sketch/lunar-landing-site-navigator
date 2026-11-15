@@ -31,6 +31,7 @@ import {
   pointName,
   removePoint,
   renamePoint,
+  serializeHash,
   STEP_MS,
   useHashState,
 } from './state'
@@ -229,6 +230,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }, [hs])
   const currentMission = missionKey(missionNow)
   const missionSaved = missions.list.some((m) => missionKey(m) === currentMission)
+  // Add mission / Save mission when the browser refuses storage (blocked or full): say so instead of doing nothing
+  // (feature review). The buttons are disabled for the other reasons add() returns false (saved already, list full).
+  const [saveFailed, setSaveFailed] = useState(false)
+  const saveMission = () => setSaveFailed(!missions.add(missionNow))
 
   const period: ViewPeriod = useMemo(
     () => resolvePeriod({ period: hs.period, from: hs.from, days: hs.days }, periods),
@@ -513,7 +518,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
     // Only for the scene's regression tests (?test=1): the app itself has no eye-level view.
     ...(ENGINE_TEST ? [{ id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') }] : []),
-    ...viewpointItems((v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
+    // A viewpoint is refused while the camera flies (goTo false, e.g. just after choosing a site): the Moon level then,
+    // which the scene applies when the fly ends (feature review: "Moon" in this menu did nothing in that moment).
+    ...viewpointItems((v: Viewpoint) => {
+      if (!scene.current?.goTo(v)) goLevel('globe')
+    }).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
   // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
@@ -755,7 +764,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               periods={periods}
               missions={missions.list}
               missionSaved={missionSaved}
-              onAddMission={() => missions.add(missionNow)}
+              onAddMission={saveMission}
+              saveFailed={saveFailed}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
               onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
@@ -800,7 +810,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               periods={periods}
               missions={missions.list}
               missionSaved={missionSaved}
-              onAddMission={() => missions.add(missionNow)}
+              onAddMission={saveMission}
+              saveFailed={saveFailed}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
               onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
@@ -902,7 +913,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               collapsed={panelCollapsed}
               onCollapsed={setPanelCollapsed}
               missionName={missionName}
-              onSaveMission={() => missions.add(missionNow)}
+              onSaveMission={saveMission}
+              saveFailed={saveFailed}
               missionSaved={missionSaved}
               canSaveMission={missions.list.length < MAX_MISSIONS}
             />
@@ -1207,6 +1219,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             power={hs.power}
             onPower={(power) => patch({ power })}
             onClose={() => patch({ drawer: null })}
+            // Copy link copies the state on screen, not the address bar, which is written 400 ms after a change.
+            shareUrl={`${window.location.origin}${window.location.pathname}${window.location.search}#${serializeHash(hs)}`}
           />
         )}
       </div>

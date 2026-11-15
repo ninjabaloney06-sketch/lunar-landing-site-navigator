@@ -798,7 +798,11 @@ export function SceneView(props: Props) {
             ...(ctxPoint && inPinRegion(ctxPoint.lat)
               ? [{ id: 'set-site', label: `Set ${ctxPoint.name} as landing site`, onSelect: () => onSetSite(ctxPoint.lat, ctxPoint.lon) }]
               : []),
-            ...viewpointItems((v) => handle.current?.goTo(v)),
+            // During a camera fly the scene refuses a viewpoint (goTo is false): ask for the Moon level instead,
+            // which the scene keeps until the fly ends (feature review: "Moon" did nothing right after a site change).
+            ...viewpointItems((v) => {
+              if (!handle.current?.goTo(v)) onLevel('globe')
+            }),
           ]}
           onClose={closeCtx}
         />
