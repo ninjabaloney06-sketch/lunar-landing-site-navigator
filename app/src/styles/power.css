@@ -5,16 +5,20 @@
   margin: 0 0 var(--s-3);
 }
 
+/* Two inputs per row, each with its unit and a one-line hint under it. */
 .power-fields {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--s-2) var(--s-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) var(--s-3);
+  margin-top: var(--s-2);
 }
 
-@media (max-width: 480px) {
-  .power-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.power-hint {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+  line-height: 1.35;
+  color: var(--faint);
 }
 
 .power-field label {
@@ -32,6 +36,7 @@
 
 .power-input .field {
   padding: var(--s-1) var(--s-2);
+  min-height: 44px; /* touch target at 375 px */
 }
 
 .power-input span {
@@ -45,7 +50,7 @@
 }
 
 .power-example {
-  margin: var(--s-2) 0 0;
+  margin: 0;
 }
 
 .power-answer {
@@ -66,6 +71,7 @@
   text-align: right;
   white-space: nowrap;
   padding-right: 0;
+  vertical-align: top;
 }
 
 .power-limits {
@@ -80,6 +86,30 @@
 .power-model summary {
   cursor: pointer;
   color: var(--muted);
+  padding: var(--s-2) 0;
+}
+
+.power-formula {
+  margin: var(--s-2) 0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.power-symbols {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  color: var(--muted);
+}
+
+.power-symbols dt {
+  font-family: var(--font-mono);
+  color: var(--fg);
+}
+
+.power-symbols dd {
+  margin: 0;
 }
 
 .power-model p {

@@ -15,3 +15,13 @@
 .nt-claim {
   margin: var(--s-3) 0 0;
 }
+
+/* Touch targets at 375 px: the text links get a 44 px tall hit area without looking like buttons. */
+.nt-list a {
+  display: inline-block;
+  padding: 10px 0;
+}
+
+.nt-list abbr {
+  text-decoration: none;
+}
