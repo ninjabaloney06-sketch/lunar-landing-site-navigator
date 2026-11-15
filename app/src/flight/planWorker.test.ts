@@ -102,3 +102,48 @@ describe('runDispersionRequest', () => {
     }
   })
 })
+
+// ---- Maximum payload as the follow-up of a plan (payload.ts; NOT YET VALIDATED BY THE SCIENCE LEAD)
+import { runPayload } from './planWorker'
+
+describe('runPayload', () => {
+  const arch = ARCHITECTURES.find((a) => a.id === 'apollo')!
+  const req: PlanRequest = {
+    id: 31,
+    months: [aug2027, sep2027].map((m) => JSON.parse(m) as EphemMonth),
+    rendezvous: 'llo',
+    withPayload: true,
+    input: {
+      pad: LAUNCHPADS.find((p) => p.id === 'ksc-39b')!,
+      target: { id: 'x', name: 'Chosen landing point', latDeg: -89.5, lonDeg: 0 },
+      architecture: { id: arch.id, name: arch.name },
+      launchVehicle: LAUNCH_VEHICLES.find((v) => v.id === arch.launchVehicleId)!,
+      capsule: SPACECRAFT.find((v) => v.id === arch.capsuleId)!,
+      lander: SPACECRAFT.find((v) => v.id === arch.landerId)!,
+      earliestTouchdownMs: Date.UTC(2027, 7, 16),
+      surfaceStayDays: 1,
+      returnWindowDays: 0,
+      maxTransferDays: null,
+    },
+  }
+
+  it('answers a computed plan with its maximum payload under the same id, marked not validated', { timeout: 120_000 }, () => {
+    const plan = runPlan(req)
+    expect(plan.ok).toBe(true)
+    if (!plan.ok) return
+    const reply = runPayload(req, plan.plan)
+    expect(reply.kind).toBe('payload')
+    expect(reply.id).toBe(31)
+    expect(reply.payload).not.toBeNull()
+    expect(reply.payload!.validation.text).toBe('not yet validated by the science lead')
+    expect(reply.payload!.verdict).toBe('payload')
+    expect(reply.payload!.maxPayloadKg).toBeGreaterThan(0)
+    expect(reply.payload!.epsilonKg).toBeGreaterThan(0)
+  })
+
+  it('a plan it cannot read gives a payload reply with a message, never a throw', () => {
+    const reply = runPayload({ ...req, id: 32, input: { ...req.input, launchVehicle: undefined as never } }, {} as never)
+    expect(reply).toMatchObject({ kind: 'payload', id: 32, payload: null })
+    expect(reply.message!.length).toBeGreaterThan(0)
+  })
+})

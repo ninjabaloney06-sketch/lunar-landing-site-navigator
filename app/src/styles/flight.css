@@ -189,7 +189,7 @@
 /* As wide as the Mission panel: the events table has five columns. */
 .flight-panel {
   width: min(440px, calc(100vw - var(--s-8)));
-  max-height: max(240px, calc(100dvh - 400px));
+  max-height: max(240px, calc(100dvh - 330px)); /* first paint; FlightPanel measures the room down to the bar */
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -211,6 +211,12 @@
   padding-top: var(--s-10);
 }
 
+@media (max-width: 640px) {
+  .flight-bottom {
+    padding-top: var(--s-2);
+  }
+}
+
 .bottom[hidden] {
   display: none;
 }
@@ -218,7 +224,7 @@
 /* Title at the left, "Hide" / "Show" at the right. */
 .flight-head {
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: var(--s-6);
   padding-bottom: 0;
 }
@@ -229,15 +235,29 @@
   color: var(--muted);
 }
 
-/* The mission this flight belongs to: name and site, one line each. */
+/* The mission this flight belongs to, in one line: its name, the site, and the two ways out. */
 .flight-mission {
-  display: grid;
-  gap: var(--s-1);
   margin: var(--s-2) var(--s-4) 0;
+  overflow-wrap: anywhere;
 }
 
-/* The result first: the energy multiplier large, then four short bullets. Times are buttons into the playback. */
-.flight-energy {
+.flight-site-name {
+  font-weight: 500;
+}
+
+.flight-change-site,
+.flight-close {
+  font-size: var(--t-small);
+}
+
+/* Title, the Full data switch, Hide: one line. */
+.flight-head .flight-full {
+  margin-left: auto;
+}
+
+/* The result first: the payload in one sentence, then three short bullets, then the two analyses the user can
+   start. Times are buttons into the playback. */
+.flight-result {
   margin: var(--s-4) var(--s-4) 0;
   padding: var(--s-3);
   border: 1px solid var(--line);
@@ -245,17 +265,85 @@
   background: var(--surface-2);
 }
 
-.flight-factor {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-4);
+.flight-payload {
+  margin: 0;
+  font-family: var(--font-serif, inherit);
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--fg);
+  overflow-wrap: anywhere;
 }
 
-.flight-factor-value {
-  font-size: 1.75rem;
-  line-height: 1.1;
-  color: var(--fg);
+/* Every new number carries this marker: small, quiet, never dropped. */
+.flight-unvalidated {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-payload .flight-unvalidated {
+  display: block;
+}
+
+/* The analyses the user starts: text links, progress in words with a thin bar, the answer as one sentence. */
+.flight-jobs {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.flight-job-start {
+  font-size: var(--t-small);
+}
+
+.flight-job p {
+  margin: 0 0 var(--s-1);
+  overflow-wrap: anywhere;
+}
+
+.flight-job-answer {
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.flight-job-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+}
+
+.flight-progress {
+  width: 8rem;
+  height: 4px;
+  accent-color: var(--fg);
+}
+
+.flight-analysis-body {
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.flight-analysis-body p {
+  margin: 0 0 var(--s-2);
+}
+
+.flight-phases {
+  margin-bottom: var(--s-3);
+}
+
+.flight-phases caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: var(--s-1);
+}
+
+.flight-lower-bound {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
 }
 
 .flight-bullets {
@@ -385,9 +473,14 @@
   padding: 0 var(--s-4) var(--s-4);
 }
 
-/* The fields bring their own padding in the Mission panel; inside a section the section's padding is enough. */
-.flight-panel .flight-fields {
+/* The fields keep the panel's side padding; inside a section the section's padding is enough. The label column
+   is as wide as the longest label ("Surface stay"), so no row sticks out past the padding. */
+.flight-sec-body .flight-fields {
   padding: 0;
+}
+
+.flight-panel .mp-field {
+  grid-template-columns: 7.5em minmax(0, 1fr);
 }
 
 .flight-filter {
@@ -399,6 +492,7 @@
 /* Surface stay: a short number field and its unit. */
 .flight-stay {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-2);
 }
@@ -469,20 +563,6 @@
 }
 
 .flight-own-tag {
-  display: block;
-  font-family: var(--font-sans);
-  color: var(--muted);
-}
-
-/* What the reader must not miss about the theoretical minimum: the same rule as a plan note. */
-.flight-prose .flight-caveat {
-  margin-bottom: var(--s-3);
-  padding-left: var(--s-3);
-  border-left: 2px solid var(--fg);
-  font-weight: 500;
-}
-
-.flight-fact-note {
   display: block;
   font-family: var(--font-sans);
   color: var(--muted);
@@ -906,8 +986,15 @@
   pointer-events: none;
 }
 
-.flight-tick-text.is-raised {
-  bottom: calc(100% + var(--s-3));
+.flight-tick-text.is-start {
+  left: 0;
+  transform: none;
+}
+
+.flight-tick-text.is-end {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 /* Scrubber: a 1px --track line with a 2px --fg bar for the thumb */
@@ -949,47 +1036,47 @@
   background: var(--fg);
 }
 
-/* Look at: what the camera follows. The header tabs' segmented control, used as a radio group. */
+/* Row 2: what the camera follows (one menu), the layers as plain checkboxes, the speed. Small text, no pills. */
+.flight-controls {
+  font-size: var(--t-small);
+}
+
 .flight-look-field {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
   align-items: center;
-  gap: var(--s-2) var(--s-3);
+  gap: var(--s-2);
   min-width: 0;
 }
 
-.flight-look .tab[aria-checked='true'] {
-  color: var(--fg);
-  background: var(--surface-2);
+.flight-look.field {
+  width: auto;
+  padding: var(--s-1) var(--s-2);
+  font-size: var(--t-small);
 }
 
-/* Layers: always-visible toggle chips in the bar. */
 .flight-layers {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-2);
+  gap: var(--s-1) var(--s-4);
+  min-width: 0;
 }
 
-.flight-chip {
+.flight-check {
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
-  padding: var(--s-1) var(--s-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: var(--t-small);
   color: var(--muted);
-  cursor: pointer;
   white-space: nowrap;
+  cursor: pointer;
 }
 
-.flight-chip.is-on {
-  border-color: var(--fg);
+.flight-check:has(input:checked) {
   color: var(--fg);
 }
 
-.flight-chip input {
+.flight-check input {
   margin: 0;
   accent-color: var(--fg);
 }
@@ -1008,7 +1095,7 @@
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-2);
   margin-left: auto;
   cursor: pointer;
 }
@@ -1042,7 +1129,7 @@
     position: static;
     order: 2;
     width: auto;
-    max-height: max(200px, calc(100dvh - 540px));
+    max-height: 40dvh; /* first paint; FlightPanel measures */
     border-left: 0;
     border-right: 0;
     border-radius: 0;
@@ -1080,25 +1167,26 @@
     flex-basis: 100%;
   }
 
-  .flight-look-field {
-    flex: 1 1 100%;
-  }
-
-  .flight-look {
-    flex: 1 1 auto;
+  /* Camera and speed share a line; the layer checkboxes wrap under them inside the width. */
+  .flight-controls {
+    gap: var(--s-2) var(--s-3);
   }
 
   .flight-layers {
+    order: 3;
     flex: 1 1 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
   }
 
-  .flight-look .tab {
-    flex: 1 1 auto;
-    padding: var(--s-2);
-    font-size: var(--t-small);
-    text-align: center;
+  .flight-speed-field {
+    margin-left: auto;
+  }
+
+  .flight-speed {
+    width: var(--s-12);
+  }
+
+  .flight-speed-field .mono {
+    min-width: 0;
   }
 }
 

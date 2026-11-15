@@ -20,6 +20,8 @@ import type { DescentInput, DescentResult } from './lunar'
 import { planMission } from './mission'
 import type { MissionInput } from './mission'
 import { planMissionNrho } from './missionNrho'
+import { ascentSensitivity, maxPayload } from './payload'
+import type { PayloadResult } from './payload'
 import { NrhoError } from './nrho'
 import { ARCHITECTURES } from './spacecraft'
 import { FlightPlanError } from './types'
@@ -30,6 +32,9 @@ export interface PlanRequest {
   months: EphemMonth[]
   rendezvous: 'llo' | 'nrho'
   input: Omit<MissionInput, 'ephem'>
+  /** Also work out the maximum payload (payload.ts, NOT YET VALIDATED BY THE SCIENCE LEAD) and post it as a
+   *  PayloadReply right after the PlanReply. Off for the plans of the cheapest-route search. */
+  withPayload?: boolean
 }
 
 export type PlanReply =
@@ -63,7 +68,17 @@ export type DispersionReply =
   | { kind: 'dispersion'; id: number; ok: true; result: DispersionResult }
   | { kind: 'dispersion'; id: number; ok: false; message: string; cancelled: boolean }
 
-export type WorkerReply = PlanReply | DispersionProgress | DispersionReply
+/** The maximum payload of a plan, sent after its PlanReply (same id). payload null: it could not be worked out
+ *  (message says why). It comes separately because the first ascent sensitivity of a vehicle and pad takes
+ *  1.4 to 3.1 s, and the plan should not wait for it. */
+export interface PayloadReply {
+  kind: 'payload'
+  id: number
+  payload: PayloadResult | null
+  message?: string
+}
+
+export type WorkerReply = PlanReply | PayloadReply | DispersionProgress | DispersionReply
 
 /** The descent of the last plan this thread computed, kept for the dispersion analysis. */
 let lastDescent: { planId: number; key: string; inp: DispersionInput } | null = null
@@ -101,6 +116,18 @@ export function runPlan(req: PlanRequest): PlanReply {
     return { id: req.id, ok: false, message: message || 'the plan could not be computed', expected }
   } finally {
     recordDescents(null)
+  }
+}
+
+/** The maximum payload for a plan this thread computed (payload.ts). Never throws. */
+export function runPayload(req: PlanRequest, plan: Omit<MissionPlan, 'ephem'>): PayloadReply {
+  try {
+    const hw = { launchVehicle: req.input.launchVehicle, capsule: req.input.capsule, lander: req.input.lander }
+    const ascentKgPerKg = ascentSensitivity({ ...hw, pad: req.input.pad, rendezvous: req.rendezvous, parkingAltKm: req.input.parkingAltKm })
+    return { kind: 'payload', id: req.id, payload: maxPayload({ plan, rendezvous: req.rendezvous, ...hw, ascentKgPerKg }) }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    return { kind: 'payload', id: req.id, payload: null, message: message || 'the payload could not be worked out' }
   }
 }
 
@@ -175,7 +202,10 @@ if (inWorker) {
       })
       return
     }
-    ctx.postMessage(runPlan(e.data as PlanRequest))
+    const req = e.data as PlanRequest
+    const reply = runPlan(req)
+    ctx.postMessage(reply)
+    if (reply.ok && req.withPayload) ctx.postMessage(runPayload(req, reply.plan))
   }
   // A request that cannot be read carries no id to answer with. Throwing reaches the page as the worker's
   // `error` event, which settles the waiting request there instead of leaving it pending for ever.
