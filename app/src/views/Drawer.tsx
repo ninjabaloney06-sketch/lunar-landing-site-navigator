@@ -100,6 +100,7 @@ export function Drawer(p: Props) {
   const closeBtn = useRef<HTMLButtonElement>(null)
   const finderRef = useRef<HTMLElement>(null)
   const sourcesRef = useRef<HTMLElement>(null)
+  const tableRef = useRef<HTMLElement>(null)
   const termsRef = useRef<HTMLElement>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [terms, setTerms] = useState(false)
@@ -142,6 +143,14 @@ export function Drawer(p: Props) {
     closeBtn.current?.focus({ preventScroll: true })
   }, [])
   useEffect(() => {
+    if (section === 'missions') {
+      // "Compare" in the Mission panel: bring the saved missions into view. They are the table's second body, below
+      // the listed sites, and the sections above grow while their results arrive, so place them again for a moment.
+      const place = () => (tableRef.current?.querySelector('[data-testid="mission-rows"]') ?? tableRef.current)?.scrollIntoView({ block: 'center' })
+      place()
+      const timers = [150, 500, 1200, 2500].map((ms) => window.setTimeout(place, ms))
+      return () => timers.forEach((t) => window.clearTimeout(t))
+    }
     const target = section === 'finder' ? finderRef.current : section === 'sources' ? sourcesRef.current : null
     if (target) target.scrollIntoView({ block: 'start' })
     else panel.current?.scrollTo({ top: 0 })
@@ -316,7 +325,7 @@ export function Drawer(p: Props) {
         />
       </section>
 
-      <section className="drawer-sec" aria-labelledby="sec-table">
+      <section ref={tableRef} className="drawer-sec" aria-labelledby="sec-table">
         <h3 id="sec-table">All sites</h3>
         <SiteTable
           key={`${site.id}|${period.startMs}|${period.endMs}`}

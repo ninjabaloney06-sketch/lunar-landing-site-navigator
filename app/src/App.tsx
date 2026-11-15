@@ -587,6 +587,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </button>
           {menu === 'mission' && (
             <MissionPanel
+              onCompareMissions={() => patch({ drawer: 'missions' })}
               sites={sites}
               stations={stations}
               ids={ids}
@@ -736,7 +737,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-testid="details"
               data-menu-trigger=""
               aria-haspopup="dialog"
-              aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources'}
+              aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources' || hs.drawer === 'missions'}
               onClick={() => patch({ drawer: 'details' })}
             >
               <Icon name="info" />
@@ -906,7 +907,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </Suspense>
         )}
 
-        {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources') && (
+        {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources' || hs.drawer === 'missions') && (
           <Drawer
             section={hs.drawer}
             site={site}

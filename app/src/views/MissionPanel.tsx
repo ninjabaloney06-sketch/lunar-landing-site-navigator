@@ -89,6 +89,7 @@ interface Props {
   missionSaved: boolean // the mission on screen is one of them
   onAddMission(): void
   onCalculateFlight(m: MissionState): void
+  onCompareMissions(): void // opens the table of saved missions in the Details drawer (U13)
   onCalculateCurrentFlight(): void // the mission on screen, saved or not: the flight view has no tab (U12)
   onLoadMission(m: MissionState): void
   onRemoveMission(key: string): void
@@ -580,6 +581,9 @@ export function MissionPanel(p: Props) {
           <h3 id="mp-missions" className="mp-h">
             Saved missions
           </h3>
+          <button type="button" className="link" data-testid="compare-missions" onClick={p.onCompareMissions}>
+            Compare
+          </button>
           <ul className="plain">
             {p.missions.map((m) => {
               const key = missionKey(m)

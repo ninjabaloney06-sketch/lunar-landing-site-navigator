@@ -26,7 +26,6 @@ import { customHorizon, customSiteBase } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
 import { useFullData } from './advanced'
-import { FullDataSwitch } from './FullDataSwitch'
 import type { RowEntry } from './useSiteRows'
 
 const YEAR_DAYS = 365
@@ -151,7 +150,6 @@ export function SiteTable(p: Props) {
           {year ? `${YEAR_DAYS} days from the mission's first day` : 'Mission dates'}: {fmtRange(dates.startMs, dates.endMs)}, UTC.{' '}
           {ids.length} of {stations.length} stations selected.{!VALIDATED && ` ${capital(NOT_VALIDATED)}.`}
         </p>
-        <FullDataSwitch />
       </div>
       {full && (
         <p className="quiet" data-testid="st-method">

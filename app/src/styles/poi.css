@@ -11,7 +11,7 @@
   min-width: 0;
 }
 
-/* The column is as wide as the button row (with the Landing site | Flight plan tabs, wider than the key): only its
+/* The column is as wide as the button row (wider than the key): only its
    parts take the pointer, the empty space beside the key belongs to the scene. */
 .top > .actions-col {
   pointer-events: none;

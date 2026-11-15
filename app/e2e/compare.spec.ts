@@ -87,12 +87,12 @@ test.describe('Full data in the All sites table at 1280 × 720', () => {
     await save(page, A)
     const table = await openTable(page)
     await expect(table.getByText('…', { exact: true })).toHaveCount(0, { timeout: 60_000 })
-    const sw = table.getByTestId('full-data-switch')
+    // The table sits in the Details drawer; the drawer's one Full data switch (top right) governs it. The table has
+    // no second switch of its own.
+    const sw = page.getByTestId('drawer').getByTestId('full-data-switch')
+    await expect(sw).toHaveCount(1)
     await expect(sw).toHaveText('Full data')
-    const tb = (await table.boundingBox())!
-    const sb = (await sw.boundingBox())!
-    expect(sb.x + sb.width).toBeGreaterThan(tb.x + tb.width - 4)
-    expect(sb.y).toBeLessThan(tb.y + 40)
+    await expect(table.getByTestId('full-data-switch')).toHaveCount(0)
     await expect(table.getByTestId('st-full')).toHaveCount(0)
     await expect(table.getByTestId('st-method')).toHaveCount(0)
 
@@ -132,7 +132,7 @@ test.describe('touch sizes at 375 × 812', () => {
 // U13 "reachable in one click": a "Compare" link beside "Saved missions" in the Mission panel opens the details
 // drawer at the table. Needs the diffs for state.ts, Drawer.tsx, MissionPanel.tsx and App.tsx in the tables report
 // ("Compare saved missions in one click"); until they are applied this test cannot pass.
-test.fixme('"Compare" in the Mission panel opens the table of saved missions in one click', async ({ page }) => {
+test('"Compare" in the Mission panel opens the table of saved missions in one click', async ({ page }) => {
   await save(page, A)
   await page.goto('about:blank')
   await page.goto('/#site=connecting-ridge&period=shackleton-2027-08')

@@ -13,7 +13,7 @@ above terrain, 1 km above the Moon sphere in space) and change the field of view
 Walk (note 6): a left-click (< 5 px) on terrain at site or eye level flies the camera to stand there, 1.75 m up, and
 ends at eye level; camera only (sky, labels and numbers stay the landing site's); beyond 60 km from the site it is ignored.
 Viewpoints (Brief C4 part 2; U14, 15 Nov): handle.goTo('moon') only. The point start / end, Earth, Sun and
-solar-system top viewpoints were removed (topview.ts keeps only the display constants the drawer text quotes).
+solar-system top viewpoints were removed.
 Eye level (U5, U16, U19): one placement, index.ts eyeAt(): 1.75 m above site.groundZ, the drawn triangles of the
 finest level under the camera (levels.ts surfaceZ), not the bilinear data height; settleEye() re-places the camera
 when the terrain is rebuilt (the near level arrives later).

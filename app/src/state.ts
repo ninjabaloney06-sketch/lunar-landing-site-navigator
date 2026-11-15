@@ -11,7 +11,7 @@ import type { SceneLevel } from './scene3d'
 
 // 'search' (site search by nearby POIs) and 'docs' (documentation) are panels of their own, opened from the top bar
 // and the footer; the other three are sections of the details drawer.
-export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs'
+export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs' | 'missions'
 
 /** A place the user marked: planetocentric lat/lon in the Moon body-fixed frame (MOON_ME), degrees, east-positive.
  *  It has no horizon file, so nothing is computed for it. */
@@ -60,7 +60,7 @@ export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
 const VIEWS: SceneLevel[] = ['globe', 'site', 'eye', 'flight']
-const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs']
+const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs', 'missions']
 const POI_IDS: PoiGroup[] = POI_GROUPS.map((g) => g.id)
 export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', 'science']
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/
