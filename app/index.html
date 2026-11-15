@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lunar Landing Site Navigator</title>
+    <!-- First paint before the script runs: the app's background and a loading line, not a blank white page (F16).
+         React replaces the contents of #root on its first render. Colours and type as tokens.css --bg, --fg and the app's own Loading notice. -->
+    <style>
+      html { color-scheme: dark; background: oklch(11% 0.006 260); }
+      .boot { margin: 0; padding: 40px; color: oklch(94% 0.008 85); font: 400 32px/1.2 Georgia, serif; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="boot" role="status" data-testid="boot-loading">Loading…</p></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
