@@ -45,6 +45,10 @@ export interface DebugView {
   flying(): boolean
   pins(): { globe: number; near: { kind: string; id: string; shape: string; base: number[]; ground: number; sphere: number }[] }
   projectPoi(id: string): ScreenPoint | null
+  /** At site and eye level: the head of another landing site's pin on screen (visible: not behind terrain); null where it has none. */
+  projectNearSite(id: string): ScreenPoint | null
+  /** Which site the frame's site, horizon and terrain belong to, and those the terrain was last built from. */
+  dataIds(): { frame: { site: string | null; horizon: string | null; terrain: string | null }; built: { site: string | null; horizon: string | null; terrain: string | null } }
   projectMe(p: number[]): ScreenPoint | null
   region(): { boundary: number[][]; cap: number[][] } | null
   setMoonVisible(on: boolean): void
@@ -155,6 +159,8 @@ export function installDebug(v: DebugView) {
     // the current level (null where it has no pin), and a MOON_ME point (km) on screen in the space scene.
     pins: () => v.pins(),
     projectPoi: (id: string) => v.projectPoi(id),
+    projectNearSite: (id: string) => v.projectNearSite(id),
+    dataIds: () => v.dataIds(),
     projectMe: (p: number[]) => v.projectMe(p),
     // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.
     region: () => v.region(),

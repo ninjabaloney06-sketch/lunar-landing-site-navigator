@@ -42,6 +42,7 @@ import {
 } from '../geometry'
 import { loadCap } from '../data/southcap'
 import { loadTextures } from './assets'
+import { siteLevelClick } from './click'
 import { easeShare, installFreeCam, type Rig } from './controls'
 import { installDebug, type DebugView } from './debug'
 import { Dissolve } from './dissolve'
@@ -1759,7 +1760,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         hover = tapped
         markDirty()
         if (tapped) return
-      } else if (tapped && (tapped.kind !== 'site' || level !== 'globe')) return // only a site pin on the globe is selected by a second tap
+      } else if (tapped && tapped.kind !== 'site') return // only a site pin is selected by a second tap
     }
     if (level === 'globe') {
       const hit = globe.pick(ndc, globeCam, size)
@@ -1770,8 +1771,18 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       for (const cb of pickCbs) cb(hit.lat, hit.lon)
       return
     }
-    // A click on a point of interest's pin belongs to the page (its info box): it is not a walk.
-    if (nameAt(ndc)?.kind === 'poi') return
+    // Another landing site's pin at site and eye level selects that site, as its pin on the globe does: onPick with
+    // the site's own coordinates (the contract the page matches pins by). Before (bug of 15 Nov night, "switching
+    // from one landing site to another fails in the landing-site view") the pin was named on hover but the click
+    // fell through to the walk and nothing happened. The page then delivers the site's frame; applyFrame places the
+    // camera at the new site's default view once it is there (expectSite keeps any fly from going to the old one).
+    // A click on a point of interest's pin belongs to the page (its info box): it is not a walk either.
+    const action = siteLevelClick(nameAt(ndc), frame?.site?.id ?? null, deps.sites)
+    if (action.act !== 'walk') {
+      lastClick = null
+      if (action.act === 'pick') for (const cb of pickCbs) cb(action.lat, action.lon)
+      return
+    }
     // Walk: a double-click (or double tap) on terrain within WALK_MAX_KM of the site, where walking is on.
     if (!walkEnabled) return
     const now = performance.now()
@@ -2063,6 +2074,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         site.updateMarks(siteCam, size.y)
         const head = site.nearTop('poi', id)
         return head ? toScreen(head, siteCam) : null
+      },
+      dataIds: () => ({
+        frame: { site: frame?.site?.id ?? null, horizon: frame?.horizon?.site_id ?? null, terrain: frame?.terrain?.meta.site_id ?? null },
+        built: { site: builtFor?.site?.id ?? null, horizon: builtFor?.horizon?.site_id ?? null, terrain: builtFor?.terrain?.meta.site_id ?? null },
+      }),
+      projectNearSite(id) {
+        if (inSpace()) return null
+        site.updateMarks(siteCam, size.y)
+        const head = site.nearTop('site', id)
+        if (!head) return null
+        const sp = toScreen(head, siteCam)
+        const dir = head.clone().sub(siteCam.position)
+        const len = dir.length()
+        return { ...sp, visible: sp.visible && !site.occluded(siteCam.position, dir.normalize(), len - 1) }
       },
       projectMe(p) {
         if (!inSpace()) return null

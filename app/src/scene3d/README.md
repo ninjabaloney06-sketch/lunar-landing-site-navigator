@@ -54,6 +54,9 @@ when a fly starts or a camera is placed; each scene is drawn once before the fly
 first fly does not stall on uploads; the globe's site pins are rebuilt only for another list of sites.
 POI pins have a 1.5 px dark outline (pins.ts: three more instanced meshes); at site and eye level a left-click
 on a POI's pin is not a walk (the page keeps its info box open on it).
+Site switch (15 Nov night): at site and eye level a click (or second tap) on another landing site's pin selects that
+site through onPick with its own coordinates, as on the globe (click.ts siteLevelClick); before, the click fell through
+to the walk and nothing happened. e2e/site-switch.spec.ts covers pins, the header picker, rapid switches and Play.
 Wave 3 (14 Nov evening):
 F3 camera at rest: OrbitControls.update() rebuilds the camera from spherical coordinates on every call, and the round
 trip moved a camera at rest by a unit in the last place (c4.spec.ts:210 once saw 9.09e-13 m). tick() calls it only
