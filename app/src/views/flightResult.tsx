@@ -7,16 +7,20 @@ import { landingSentence } from '../flight/dispersion'
 import type { PayloadResult, RouteComparison } from '../flight/payload'
 import type { Job } from './flightAnalysis'
 import { flightActions, useFlightAnalysis } from './flightAnalysis'
+import { useFullData } from './advanced'
 import { fmtTonnes } from './flightFormat'
 import { Abbr } from './flightGlossary'
 import {
+  DISPERSION_BRIEF,
   NOT_VALIDATED_TEXT,
   dispersionDetails,
   dispersionMeaning,
   dominantSentence,
+  errorText,
   limitSentence,
   payloadSentence,
   progressText,
+  routeText,
 } from './flightResultText'
 
 const grouped = (v: number) => Math.round(v).toLocaleString('en-US')
@@ -31,17 +35,29 @@ export function Unvalidated() {
   return <span className="flight-unvalidated">{NOT_VALIDATED_TEXT}</span>
 }
 
+/** An analysis that failed: one plain sentence with what to do; the technical reason in full data mode. */
+function ErrorLine({ what, message }: { what: 'payload' | 'route' | 'dispersion'; message: string }) {
+  const [full] = useFullData()
+  const e = errorText(what, message)
+  return (
+    <span className="quiet" role="alert">
+      {e.sentence}
+      {full && e.detail ? ` (${e.detail})` : ''}
+    </span>
+  )
+}
+
 /** The payload's summary line: the answer, then the marker. */
 export function PayloadLine() {
   const { payload } = useFlightAnalysis()
   if (payload.state === 'idle') return null
   return (
     <p className="flight-payload" data-testid="flight-payload" data-state={payload.state} data-verdict={payload.state === 'ready' ? payload.result.verdict : undefined}>
-      {payload.state === 'loading' && <span className="quiet">Max payload: working it out…</span>}
-      {payload.state === 'error' && <span className="quiet">{payload.message}</span>}
+      {payload.state === 'loading' && <span className="quiet">Max payload: working it out… a few seconds.</span>}
+      {payload.state === 'error' && <ErrorLine what="payload" message={payload.message} />}
       {payload.state === 'ready' && (
         <>
-          {payloadSentence(payload.result)} <Unvalidated />
+          <Abbr>{payloadSentence(payload.result)}</Abbr> <Unvalidated />
         </>
       )}
     </p>
@@ -86,11 +102,13 @@ export function PayloadDetails({ p }: { p: PayloadResult }) {
       )}
       {p.terms.length > 1 && (
         <>
-          <p className="quiet">Uncertainty terms (1σ, combined as a root sum of squares):</p>
+          <p className="quiet">
+            Uncertainty terms (<Abbr>1σ</Abbr>, combined as a root sum of squares):
+          </p>
           <ul className="flight-bullets">
             {p.terms.slice(0, 5).map((t) => (
               <li key={t.id}>
-                {t.label}: <span className="mono">±{grouped(t.kg)} kg</span>
+                <Abbr>{t.label}</Abbr>: <span className="mono">±{grouped(t.kg)} kg</span>
               </li>
             ))}
           </ul>
@@ -99,14 +117,18 @@ export function PayloadDetails({ p }: { p: PayloadResult }) {
       {p.caveats.length > 0 && (
         <ul className="flight-bullets">
           {p.caveats.map((c) => (
-            <li key={c}>{c}</li>
+            <li key={c}>
+              <Abbr>{c}</Abbr>
+            </li>
           ))}
         </ul>
       )}
       <p className="quiet">Assumptions:</p>
       <ul className="flight-bullets quiet">
         {p.assumptions.map((a) => (
-          <li key={a}>{a}</li>
+          <li key={a}>
+            <Abbr>{a}</Abbr>
+          </li>
         ))}
       </ul>
       {p.sources.length > 0 && (
@@ -125,9 +147,10 @@ export function PayloadDetails({ p }: { p: PayloadResult }) {
 }
 
 /** A job the user starts: the link, then progress with a stop link, then the answer. */
-function JobRow<T>({ id, label, job, what, start, cancel, answer }: {
+function JobRow<T>({ id, label, hint, job, what, start, cancel, answer }: {
   id: string
   label: string
+  hint: string // what the analysis does, in one line, shown until it has an answer
   job: Job<T>
   what: 'route' | 'dispersion'
   start(): void
@@ -148,13 +171,14 @@ function JobRow<T>({ id, label, job, what, start, cancel, answer }: {
         <>
           {job.state === 'ready' && <div className="flight-job-answer">{answer(job.result)}</div>}
           {job.state === 'error' && (
-            <p className="quiet" role="alert">
-              {job.message}
+            <p>
+              <ErrorLine what={what} message={job.message} />
             </p>
           )}
           <button type="button" className="link flight-job-start" data-testid={`flight-${id}-start`} onClick={start}>
             {job.state === 'ready' ? `${label} again` : label}
           </button>
+          {job.state !== 'ready' && <span className="quiet flight-job-hint"> {hint}</span>}
         </>
       )}
     </div>
@@ -164,33 +188,40 @@ function JobRow<T>({ id, label, job, what, start, cancel, answer }: {
 /** The two analyses the user starts, under the result. Not offered where no worker runs. */
 export function AnalysisActions() {
   const a = useFlightAnalysis()
+  const [full] = useFullData()
   if (!a.canAnalyse) return null
   return (
     <div className="flight-jobs">
       <JobRow
         id="route"
         label="Find cheapest route"
+        hint="Plans nearby landing days and transfer limits; compares propellant."
         what="route"
         job={a.route}
         start={flightActions.findRoute}
         cancel={flightActions.cancelRoute}
         answer={(r: RouteComparison) => (
           <p data-testid="flight-route-sentence">
-            {r.sentence} <Unvalidated />
+            <Abbr>{routeText(r.sentence)}</Abbr> <Unvalidated />
           </p>
         )}
       />
       <JobRow
         id="dispersion"
         label="Landing dispersion"
+        hint="Flies 200 descents with small errors; shows the landing scatter."
         what="dispersion"
         job={a.dispersion}
         start={flightActions.runDispersion}
         cancel={flightActions.cancelDispersion}
         answer={(r) => (
           <>
-            <p data-testid="flight-dispersion-sentence">{landingSentence(r)}</p>
-            <p className="quiet">{dispersionMeaning(r.sigmas)}</p>
+            <p data-testid="flight-dispersion-sentence">
+              <Abbr>{landingSentence(r)}</Abbr>
+            </p>
+            <p className="quiet" data-testid="flight-dispersion-meaning">
+              <Abbr>{full ? dispersionMeaning(r.sigmas) : DISPERSION_BRIEF}</Abbr>
+            </p>
           </>
         )}
       />
@@ -229,7 +260,7 @@ export function RouteDetails({ r }: { r: RouteComparison }) {
   )
   return (
     <div className="flight-analysis-body" data-testid="flight-route-details">
-      {r.winner && r.runnerUp && table(`Cheapest minus next best (${r.runnerUp.option.label}); negative = the cheapest needs less`, r.why)}
+      {r.winner && r.runnerUp && table(`Cheapest minus next best (${r.runnerUp.option.label}); negative: the cheapest needs less`, r.why)}
       {r.tie && r.clearlyWorse && table(`Cheapest minus the first clearly costlier option (${r.clearlyWorse.option.label})`, r.whyVsClearlyWorse)}
       <p className="quiet">
         Compared: {r.ranked.length + r.failed.length} options ({r.ranked.map((x) => x.option.label).join('; ')}). Ranked by total propellant, the launch included; plans that
@@ -238,7 +269,9 @@ export function RouteDetails({ r }: { r: RouteComparison }) {
       {r.caveats.length > 0 && (
         <ul className="flight-bullets">
           {r.caveats.map((c) => (
-            <li key={c}>{c}</li>
+            <li key={c}>
+              <Abbr>{c}</Abbr>
+            </li>
           ))}
         </ul>
       )}
@@ -256,7 +289,9 @@ export function DispersionDetails() {
           <Abbr>{line}</Abbr>
         </li>
       ))}
-      <li className="quiet">{dispersion.result.method}</li>
+      <li className="quiet">
+        <Abbr>{dispersion.result.method}</Abbr>
+      </li>
     </ul>
   )
 }

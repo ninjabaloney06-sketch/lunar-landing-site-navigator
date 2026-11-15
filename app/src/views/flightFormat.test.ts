@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SPEED, SPEEDS, burnName, fmtDayTime, fmtDays, fmtDuration, fmtElapsed, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc, shortStage } from './flightFormat'
+import { DEFAULT_SPEED, SPEEDS, burnName, fmtDayTime, fmtDays, fmtDuration, fmtDv, fmtElapsed, fmtKg, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc, shortStage } from './flightFormat'
 
 describe('fmtKms', () => {
   it('uses two decimals, three below 0.1 km/s', () => {
@@ -8,6 +8,21 @@ describe('fmtKms', () => {
   })
   it('marks estimates with ≈', () => {
     expect(fmtKms(9.42, true)).toBe('≈ 9.42 km/s')
+  })
+})
+
+describe('fmtDv', () => {
+  it('gives every Δv in m/s: whole metres per second, one decimal below 10 m/s', () => {
+    expect(fmtDv(8.4281)).toBe('8,428 m/s')
+    expect(fmtDv(0.0191)).toBe('19 m/s')
+    expect(fmtDv(0.0004)).toBe('0.4 m/s')
+  })
+})
+
+describe('fmtKg', () => {
+  it('rounds a summary mass to 100 kg from a tonne, to 10 kg below', () => {
+    expect(fmtKg(7512)).toBe('7,500 kg')
+    expect(fmtKg(234)).toBe('230 kg')
   })
 })
 

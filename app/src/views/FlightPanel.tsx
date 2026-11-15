@@ -1,8 +1,9 @@
-// Flight plan panel: the docked side panel of the Flight plan tab. First the mission at a glance (when it
-// launches, lands, leaves and returns, the total Δv, whether every stage has enough propellant), then named
-// sections that open and close: the choices, the notes, the events, the propellant budget, the flight facts, the
-// view and its legend, the explanations (FlightExplain) and how the numbers are made. Presentational only: the
-// mission is computed outside, and the status it is given drives the loading and error text.
+// Rocket flight menu: the docked side panel of the flight view. First the answer (maximum payload, whether every
+// stage has enough propellant, when it launches, lands and returns, the Δv after launch), then the inputs with a
+// label, unit and one-line hint each, then named sections that open and close: the notes, the events, the
+// propellant budget, the flight facts, the view and its legend, the explanations (FlightExplain) and how the
+// numbers are made. Summary mode shows the decision values; full data mode opens the breakdown and the long texts.
+// Presentational only: the mission is computed outside, and the status it is given drives the loading and error text.
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import '../styles/flight.css'
@@ -13,11 +14,11 @@ import { ARCHITECTURES, SPACECRAFT } from '../flight/spacecraft'
 import { useFullData } from './advanced'
 import { Glossary, HaloOrbit, LandingWays, SurfaceStay, rememberPlan } from './FlightExplain'
 import { fmtCoords, fmtDeg } from './format'
-import { fmtDayTime, fmtDays, fmtDuration, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
+import { fmtDayTime, fmtDays, fmtDuration, fmtDv, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
 import { useFlightAnalysis } from './flightAnalysis'
 import { Abbr } from './flightGlossary'
 import { AnalysisActions, DispersionDetails, PayloadDetails, PayloadLine, RouteDetails, Unvalidated } from './flightResult'
-import { lowerBoundPropellant, lowerBoundShort } from './flightResultText'
+import { NOT_VALIDATED_TEXT, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus } from './flightResultText'
 import { FullDataSwitch } from './FullDataSwitch'
 
 export type MissionStatus = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; plan: MissionPlan }
@@ -69,12 +70,13 @@ export interface FlightPanelProps {
   onClose?(): void
 }
 
+// Worded as the Mission menu's flight line words a saved mission's cap ("transfer at most 3 days 12 h").
 const TRANSFER_LIMITS: { value: string; label: string }[] = [
-  { value: '4.5', label: 'At most 4.5 days' },
-  { value: '4', label: '4 days' },
-  { value: '3.5', label: '3.5 days' },
-  { value: '3', label: '3 days' },
-  { value: '2.5', label: '2.5 days' },
+  { value: '4.5', label: 'Transfer at most 4 days 12 h' },
+  { value: '4', label: 'Transfer at most 4 days' },
+  { value: '3.5', label: 'Transfer at most 3 days 12 h' },
+  { value: '3', label: 'Transfer at most 3 days' },
+  { value: '2.5', label: 'Transfer at most 2 days 12 h' },
 ]
 
 const RETURN_WINDOWS: { value: number; label: string }[] = [
@@ -162,7 +164,9 @@ function Section({ id, title, count, defaultOpen = false, data = false, children
       }}
     >
       <summary>
-        <span className="flight-sec-title">{title}</span>
+        <span className="flight-sec-title">
+          <Abbr>{title}</Abbr>
+        </span>
         {count && <span className="flight-sec-count mono">{count}</span>}
       </summary>
       {open && <div className="flight-sec-body">{children}</div>}
@@ -173,6 +177,7 @@ function Section({ id, title, count, defaultOpen = false, data = false, children
 export function FlightPanel(p: FlightPanelProps) {
   const { architectureId, rendezvous, pads, padId, target, siteMode, status, trueScale, picking, collapsed } = p
   const uid = useId()
+  const [full] = useFullData()
   const plan = status.state === 'ready' ? status.plan : null
   const fitRef = usePanelFit()
 
@@ -240,19 +245,16 @@ export function FlightPanel(p: FlightPanelProps) {
 
       {status.state === 'loading' && (
         <p className="menu-msg is-quiet flight-status" role="status">
-          Computing the mission… a few seconds.
+          Planning the flight… this takes a few seconds.
         </p>
       )}
-      {status.state === 'error' && (
-        <p className="menu-msg is-error flight-status" role="alert">
-          {status.message}
-        </p>
-      )}
+      {status.state === 'error' && <PlanError message={status.message} />}
       {plan && <ResultCard plan={plan} onSeek={p.onSeek} />}
       {plan && <AnalysisSections />}
 
       <fieldset className="flight-designs" data-testid="flight-designs">
         <legend className="mp-label">Rocket and lander</legend>
+        <p className="quiet flight-hint flight-designs-hint">Launch vehicle · capsule · lander of the mission design.</p>
         {DESIGNS.map((d) => {
           const on = d.id === design.id
           return (
@@ -265,14 +267,22 @@ export function FlightPanel(p: FlightPanelProps) {
                   data-testid={`flight-design-${d.id}`}
                   onChange={() => p.onArchitecture(d.architectureIds[0])}
                 />
-                <strong>{d.title}</strong>
+                <strong>
+                  <Abbr>{d.title}</Abbr>
+                </strong>
               </span>
-              <span className="quiet flight-design-stack">{d.stack}</span>
-              <ul className="flight-bullets">
-                {d.bullets.map((b) => (
-                  <li key={b}>{b}</li>
-                ))}
-              </ul>
+              <span className="quiet flight-design-stack">
+                <Abbr>{d.stack}</Abbr>
+              </span>
+              {full && (
+                <ul className="flight-bullets">
+                  {d.bullets.map((b) => (
+                    <li key={b}>
+                      <Abbr>{b}</Abbr>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </label>
           )
         })}
@@ -288,10 +298,15 @@ export function FlightPanel(p: FlightPanelProps) {
                 data-testid={`flight-lander-${l.architectureId}`}
                 onClick={() => p.onArchitecture(l.architectureId)}
               >
-                {l.label}
+                <Abbr>{l.label}</Abbr>
               </button>
             ))}
           </div>
+        )}
+        {design.id === 'sls' && (
+          <p className="quiet flight-hint flight-designs-hint">
+            Lander: the Human Landing System (<Abbr>HLS</Abbr>) that takes two of the crew down and back.
+          </p>
         )}
       </fieldset>
 
@@ -300,20 +315,29 @@ export function FlightPanel(p: FlightPanelProps) {
           <label className="mp-label" htmlFor={`${uid}-pad`}>
             Launchpad
           </label>
-          <select id={`${uid}-pad`} className="field" value={padId} data-testid="flight-pad" onChange={(e) => p.onPad(e.target.value)}>
-            {pads.map((x) => (
-              <option key={x.id} value={x.id}>
-                {`${x.name} · ${x.site}`}
-              </option>
-            ))}
-            <option value="custom">Other coordinates</option>
-          </select>
+          <div className="flight-control">
+            <select id={`${uid}-pad`} className="field" value={padId} data-testid="flight-pad" onChange={(e) => p.onPad(e.target.value)}>
+              {pads.map((x) => (
+                <option key={x.id} value={x.id}>
+                  {`${x.name} · ${x.site}`}
+                </option>
+              ))}
+              <option value="custom">Other coordinates</option>
+            </select>
+            <p className="quiet flight-hint">Launch site on Earth where the ascent starts.</p>
+          </div>
         </div>
         <div className="mp-field">
           <span className="mp-label">Landing</span>
-          <span className="flight-line">
-            not before <span className="mono">{fmtUtc(p.earliestTouchdownMs)}</span>
-          </span>
+          <div className="flight-control">
+            <span className="flight-line">
+              not before{' '}
+              <span className="mono">
+                <Abbr>{fmtUtc(p.earliestTouchdownMs)}</Abbr>
+              </span>
+            </span>
+            <p className="quiet flight-hint">The mission start; change it in the Mission menu.</p>
+          </div>
         </div>
         <div className="mp-field">
           <label className="mp-label" htmlFor={`${uid}-stay`}>
@@ -321,10 +345,11 @@ export function FlightPanel(p: FlightPanelProps) {
           </label>
           <div className="flight-control">
             <StayField id={`${uid}-stay`} value={p.surfaceStayDays} onChange={p.onSurfaceStayDays} />
+            <p className="quiet flight-hint">Touchdown to liftoff, 0.5 to 30 days.</p>
             {plan && Math.abs(plan.facts.surfaceStayDays - p.surfaceStayDays) > 0.05 && (
               <p className="quiet" data-testid="flight-stay-planned">
                 flown: <span className="mono">{fmtDays(plan.facts.surfaceStayDays, 2)}</span>
-                {rendezvous === 'nrho' ? ' (the lander leaves once per halo-orbit revolution)' : ''}
+                {rendezvous === 'nrho' ? ' (the lander leaves once per halo-orbit revolution, every 6.56 days)' : ''}
               </p>
             )}
           </div>
@@ -335,14 +360,18 @@ export function FlightPanel(p: FlightPanelProps) {
         <button type="button" className="btn" data-testid="flight-save-mission" disabled={p.missionSaved || !p.canSaveMission} onClick={p.onSaveMission}>
           Save mission
         </button>
-        <span className="quiet" aria-live="polite">
-          {p.missionSaved ? 'Saved: see the mission table under Details.' : 'Keeps site, dates, launchpad, rocket and stay.'}
+        <span className="quiet" aria-live="polite" data-testid="flight-save-hint">
+          {p.missionSaved
+            ? 'Saved: see the mission table under Details.'
+            : p.canSaveMission
+              ? 'Keeps site, dates, launchpad, rocket, stay and transfer limit.'
+              : 'The mission list is full: remove a mission under Details to save this one.'}
         </span>
       </div>
 
       {plan && <MissionResult plan={plan} onSeek={p.onSeek} />}
 
-      <Section id="advanced" title="More choices">
+      <Section id="advanced" title="More inputs: launch and landing point, return, transfer">
         <div className="mp-fields flight-fields">
           {padId === 'custom' && (
             <div className="mp-field">
@@ -358,6 +387,7 @@ export function FlightPanel(p: FlightPanelProps) {
                 >
                   Pick on Earth
                 </button>
+                <p className="quiet flight-hint">Latitude and longitude in degrees, or pick a point on Earth.</p>
               </div>
             </div>
           )}
@@ -391,6 +421,7 @@ export function FlightPanel(p: FlightPanelProps) {
               <p className="flight-used mono" data-testid="flight-site-coords">
                 {fmtCoords(target.latDeg, target.lonDeg)}
               </p>
+              <p className="quiet flight-hint">Where the lander touches down.</p>
             </div>
           </div>
           {picking && (
@@ -402,6 +433,7 @@ export function FlightPanel(p: FlightPanelProps) {
             <label className="mp-label" htmlFor={`${uid}-return`}>
               Leaving the Moon
             </label>
+            <div className="flight-control">
             <select
               id={`${uid}-return`}
               className="field"
@@ -415,11 +447,14 @@ export function FlightPanel(p: FlightPanelProps) {
                 </option>
               ))}
             </select>
+            <p className="quiet flight-hint">When the crew leaves for Earth after the stay.</p>
+            </div>
           </div>
           <div className="mp-field">
             <label className="mp-label" htmlFor={`${uid}-transfer`}>
-              Transfer
+              Transfer limit
             </label>
+            <div className="flight-control">
             <select
               id={`${uid}-transfer`}
               className="field"
@@ -427,13 +462,17 @@ export function FlightPanel(p: FlightPanelProps) {
               data-testid="flight-transfer"
               onChange={(e) => p.onMaxTransferDays(e.target.value === '' ? null : Number(e.target.value))}
             >
-              <option value="">Minimum energy (about 5 days)</option>
+              <option value="">Minimum-energy transfer (about 5 days)</option>
               {TRANSFER_LIMITS.map((x) => (
                 <option key={x.value} value={x.value}>
                   {x.label}
                 </option>
               ))}
             </select>
+            <p className="quiet flight-hint">
+              Longest flight from <Abbr>TLI</Abbr> to the Moon; a shorter one needs more <Abbr>Δv</Abbr>.
+            </p>
+            </div>
           </div>
           <label className="check">
             <input type="checkbox" checked={trueScale} onChange={(e) => p.onTrueScale(e.target.checked)} />
@@ -481,20 +520,41 @@ export function FlightPanel(p: FlightPanelProps) {
       </Section>
 
       <Section id="how" title="How this is computed">
-        <ul className="flight-bullets quiet">
-          <li>Every phase integrated numerically with the engines' thrust and propellant flow</li>
-          <li>
-            Gravity of Earth (with its oblateness), the Moon and the Sun; positions from <Abbr>JPL DE440</Abbr>
-          </li>
-          <li>Launch time, azimuth, burn lengths and ignition points searched for the least propellant</li>
-          <li>
-            Max payload: the rocket equation per stage on the plan's burns, every element loaded with what it needs plus a 3 % reserve, the
-            error a root sum of squares of one-at-a-time changes (not yet validated by the science lead)
-          </li>
-          <li>Landing dispersion: 200 descents flown with small errors in thrust, specific impulse, pointing and launch time (not yet validated by the science lead)</li>
-          <li>Not modelled: the Moon's uneven gravity in the plans (its J2 term is in the landing dispersion only), winds, engine transients, atmospheric entry after Entry Interface</li>
-        </ul>
-        {plan && plan.sources.length > 0 && (
+        {full ? (
+          <ul className="flight-bullets quiet">
+            <li>Every phase integrated numerically with the engines' thrust and propellant flow</li>
+            <li>
+              Gravity of Earth (with its oblateness, <Abbr>J2</Abbr>), the Moon and the Sun; positions from <Abbr>JPL DE440</Abbr>
+            </li>
+            <li>Launch time, azimuth, burn lengths and ignition points searched for the least propellant</li>
+            <li>
+              Max payload: the rocket equation per stage on the plan's burns, every element loaded with what it needs plus a 3 % reserve, the
+              error a root sum of squares of one-at-a-time changes (not yet validated by the science lead)
+            </li>
+            <li>
+              Cheapest route: one full plan per option (landing day and transfer limit), ranked by total propellant (not yet validated by the
+              science lead)
+            </li>
+            <li>
+              Landing dispersion: 200 descents flown with small errors in thrust, specific impulse (<Abbr>Isp</Abbr>), pointing and launch time (not
+              yet validated by the science lead)
+            </li>
+            <li>
+              Not modelled: the Moon's uneven gravity in the plans (its <Abbr>J2</Abbr> term is in the landing dispersion only), winds, engine
+              transients, atmospheric entry after Entry Interface
+            </li>
+          </ul>
+        ) : (
+          <ul className="flight-bullets quiet">
+            <li>Every phase integrated numerically with thrust and propellant flow</li>
+            <li>
+              Gravity of Earth, Moon and Sun; positions from <Abbr>JPL DE440</Abbr>
+            </li>
+            <li>Launch time, azimuth and burns searched for least propellant</li>
+            <li>Payload, cheapest route, dispersion: not yet validated by the science lead</li>
+          </ul>
+        )}
+        {full && plan && plan.sources.length > 0 && (
           <ul className="plain flight-sources">
             {plan.sources.map((s, i) => (
               <li key={`${i}-${s.url}`}>
@@ -521,56 +581,74 @@ const lowerBoundOf = (architectureId: string) => {
   return lowerBoundPropellant(SPACECRAFT.find((x) => x.id === a?.landerId))
 }
 
-/** The result: the payload line first, then the mission in three short bullets (times are buttons into the
- *  playback), then the two analyses the user can start. */
+/** A time in the result: a button into the playback. */
+function TimeLink({ ms, label, onSeek }: { ms: number; label: string; onSeek(utcMs: number): void }) {
+  return (
+    <button type="button" className="link mono flight-glance-time" aria-label={`Go to ${label}, ${fmtUtc(ms)}`} onClick={() => onSeek(ms)}>
+      <Abbr>{fmtUtc(ms)}</Abbr>
+    </button>
+  )
+}
+
+/** The result, in the order a planner asks: how much can it carry (the payload line), is it feasible (propellant,
+ *  coloured only when a stage is short: the plan's own threshold usedKg > capacityKg), when does it launch, land and
+ *  return (buttons into the playback), and its Δv; then the two analyses the user can start. */
 function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
   const [full] = useFullData()
   const f = plan.facts
-  const short = plan.propellant.filter((u) => u.usedKg > u.capacityKg)
   const lb = lowerBoundOf(plan.architecture.id)
+  const status = propellantStatus(plan.propellant, lb?.element ?? null)
   return (
     <section className="flight-result" aria-label="Result" data-testid="flight-result">
       <PayloadLine />
-      <ul className="flight-bullets">
-        <li>
-          <Abbr>Δv</Abbr> after launch: <span className="mono">{fmtKms(dvAfterLaunchOf(plan))}</span>
-        </li>
-        <li>
-          Launch{' '}
-          <button type="button" className="link mono" onClick={() => onSeek(plan.launchMs)}>
-            {fmtUtc(plan.launchMs)}
-          </button>
-          , landing{' '}
-          <button type="button" className="link mono" onClick={() => onSeek(plan.touchdownMs)}>
-            {fmtUtc(plan.touchdownMs)}
-          </button>
-          , home after <span className="mono">{fmtDays(f.missionDays, 1)}</span>
-        </li>
-        <li data-testid="flight-glance-propellant">
-          {short.length === 0 ? (
-            'Propellant: every stage has enough.'
-          ) : (
-            <>
-              Propellant short:{' '}
-              {short.map((u, i) => (
-                <span key={i} className="flight-glance-short">
-                  <Abbr>{u.element}</Abbr> <span className="mono">{fmtTonnes(u.usedKg - u.capacityKg)}</span>
-                  {i < short.length - 1 ? ', ' : ''}
-                </span>
-              ))}{' '}
-              <span className="quiet">(why: Notes on this plan)</span>
-            </>
-          )}
+      <ul className="flight-glance">
+        <li data-testid="flight-glance-propellant" data-tone={status.tone}>
+          <span className={status.tone === 'short' ? 'flight-glance-short' : undefined}>
+            <Abbr>{status.text}</Abbr>
+          </span>
+          {status.tone !== 'enough' && !full && <span className="quiet"> Per stage: Propellant, below.</span>}
           {lb && (
             <span className="flight-lower-bound quiet" data-testid="flight-lower-bound">
-              {' '}
-              {full ? lb.note : lowerBoundShort(lb.kg)}
+              {full ? `${lb.note} ${NOT_VALIDATED_TEXT}` : lowerBoundShort(lb.kg)}
             </span>
           )}
+        </li>
+        <li className="flight-glance-times" data-testid="flight-glance-times">
+          <span className="flight-glance-row">
+            <span className="quiet">Launch</span> <TimeLink ms={plan.launchMs} label="launch" onSeek={onSeek} />
+          </span>
+          <span className="flight-glance-row">
+            <span className="quiet">Landing</span> <TimeLink ms={plan.touchdownMs} label="touchdown" onSeek={onSeek} />
+          </span>
+          <span className="flight-glance-row">
+            <span className="quiet">
+              Return (<Abbr>EI</Abbr>)
+            </span>{' '}
+            <TimeLink ms={plan.endMs} label="Entry Interface" onSeek={onSeek} />
+            <span className="quiet"> · {fmtDays(f.missionDays, 1)} in all</span>
+          </span>
+        </li>
+        <li data-testid="flight-glance-dv">
+          <span className="quiet">
+            <Abbr>Δv</Abbr> after launch
+          </span>{' '}
+          <span className="mono">{fmtDv(dvAfterLaunchOf(plan))}</span>
         </li>
       </ul>
       <AnalysisActions />
     </section>
+  )
+}
+
+/** The plan could not be made: one plain sentence with what to do; the planner's own reason in full data mode. */
+function PlanError({ message }: { message: string }) {
+  const [full] = useFullData()
+  const e = errorText('mission', message)
+  return (
+    <div className="menu-msg is-error flight-status" role="alert" data-testid="flight-error">
+      <p>{e.sentence}</p>
+      {full && e.detail && <p className="quiet">Planner: {e.detail}</p>}
+    </div>
   )
 }
 
@@ -672,7 +750,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
 
   const loss = f.ascentLossKms
   const losses: Fact[] = loss
-    ? [['ascent-losses', 'Ascent losses', [`gravity ${fmtKms(loss.gravity)}`, `drag ${fmtKms(loss.drag)}`, `steering ${fmtKms(loss.steering)}`]]]
+    ? [['ascent-losses', 'Ascent losses (Δv)', [`gravity ${fmtDv(loss.gravity)}`, `drag ${fmtDv(loss.drag)}`, `steering ${fmtDv(loss.steering)}`]]]
     : []
   const facts: Fact[] = [
     ['launch', 'Launch', [fmtUtc(plan.launchMs)]],
@@ -762,7 +840,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
                       <span>{day}</span> <span>{time}</span>
                     </button>
                   </td>
-                  <td className="flight-num mono">{e.dvKms === null ? '–' : fmtKms(e.dvKms)}</td>
+                  <td className="flight-num mono">{e.dvKms === null ? '–' : fmtDv(e.dvKms)}</td>
                   <td className="flight-num mono">{e.propellantKg === null ? '–' : fmtTonnes(e.propellantKg)}</td>
                   <td className="flight-num mono">{e.durationS === null ? '–' : fmtDuration(e.durationS)}</td>
                 </tr>
@@ -774,7 +852,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
               <th scope="row" colSpan={2}>
                 Total <Abbr>Δv</Abbr> after launch
               </th>
-              <td className="flight-num mono">{fmtKms(dvAfterLaunch)}</td>
+              <td className="flight-num mono">{fmtDv(dvAfterLaunch)}</td>
               <td colSpan={2} />
             </tr>
           </tfoot>

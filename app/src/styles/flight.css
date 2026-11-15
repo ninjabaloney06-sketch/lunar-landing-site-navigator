@@ -360,6 +360,30 @@
   color: var(--error);
 }
 
+/* The answer under the payload: feasibility, the three times, the Δv. No bullets: each line is labelled. */
+.flight-glance {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+
+.flight-glance-times {
+  display: grid;
+  gap: 2px;
+}
+
+.flight-glance-row .quiet:first-child {
+  display: inline-block;
+  min-width: 6.5em;
+}
+
+.flight-glance-time {
+  text-align: left;
+}
+
 /* Rocket and lander: two cards side by side, the chosen one outlined. */
 .flight-designs {
   display: grid;
@@ -731,6 +755,18 @@
 
 .flight-hint {
   margin: 0;
+}
+
+/* The one-line hint under an input: small and quiet, under the control it explains. */
+.flight-control .flight-hint,
+.flight-designs-hint,
+.flight-job-hint {
+  font-size: var(--t-small);
+  line-height: 1.4;
+}
+
+.flight-designs-hint {
+  grid-column: 1 / -1;
 }
 
 /* The coordinates in use, under the choice that produced them. */
@@ -1129,10 +1165,28 @@
     position: static;
     order: 2;
     width: auto;
+    min-width: 0;
+    max-width: 100%; /* a flex item sized to its content: without a cap the events table's min-content made it wider than the screen in full data mode */
     max-height: 40dvh; /* first paint; FlightPanel measures */
     border-left: 0;
     border-right: 0;
     border-radius: 0;
+  }
+
+  /* Full data tables: tighter cells so five columns fit 375 px; a wider one scrolls inside its section. */
+  .flight-panel .tbl th,
+  .flight-panel .tbl td {
+    padding-left: var(--s-1);
+    padding-right: var(--s-1);
+  }
+
+  .flight-sec-body {
+    overflow-x: auto;
+  }
+
+  /* A value and its unit may break here ("3,149" over "m/s") so the five event columns fit. */
+  .flight-burns td {
+    white-space: normal;
   }
 
   /* Collapsed it is a small box again, not a full-width sheet. */

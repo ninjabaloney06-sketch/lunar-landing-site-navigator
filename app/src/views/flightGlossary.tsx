@@ -1,7 +1,7 @@
-// Every abbreviation and symbol that the Flight plan tab shows, with what it stands for and one line on what it
-// means. One list feeds two things: the glossary section of the panel, and <Abbr>, which marks the abbreviations
-// inside any text of the tab (event names, stage names, notes) with <abbr title="…"> so that a pointer or a
-// screen reader gets the long form where the short one is used.
+// Every abbreviation and symbol that the Rocket flight menu shows, with what it stands for and one line on what it
+// means. One list feeds two things: the glossary section of the menu, and <Abbr>, which marks the abbreviations
+// inside any text of the menu (event names, stage names, notes) with <abbr title="long form: meaning"> so that a
+// pointer or a screen reader gets the long form and a plain meaning where the short one is used.
 import type { ReactNode } from 'react'
 import type { SourceRef } from '../flight/types'
 
@@ -69,14 +69,22 @@ export const GLOSSARY: GlossaryEntry[] = [
   { term: 'LC-39B', name: 'Launch Complex 39B', meaning: 'The SLS launchpad at Kennedy Space Center. Other pads carry their site’s own names.', group: 'hardware' },
 
   // Units, symbols, data
-  { term: 'Δv', name: 'Delta-v, change of velocity', meaning: 'What a burn delivers, in km/s. The Δv of all burns is the cost of a mission; with the engine and the mass it gives the propellant.', group: 'unit' },
+  { term: 'Δv', name: 'Delta-v', meaning: 'Change in velocity a burn must deliver, in m/s. The Δv of all burns is the cost of a mission; with the engine and the mass it gives the propellant.', group: 'unit' },
+  { term: 'Isp', name: 'Specific impulse', meaning: 'How efficiently an engine uses propellant, in seconds: the higher, the less propellant for the same Δv.', group: 'unit' },
+  { term: '1σ', name: 'One standard deviation', meaning: 'About 68 % of outcomes fall within this distance of the value, if the errors are normally distributed.', group: 'unit' },
+  { term: '3σ', name: 'Three standard deviations', meaning: 'About 99.7 % of outcomes fall within this distance of the value, if the errors are normally distributed.', group: 'unit' },
+  { term: 'J2', name: 'Oblateness term of a gravity field', meaning: 'The largest correction to a round planet’s gravity, from its flattening at the poles.', group: 'unit' },
   { term: 'v∞', name: 'Hyperbolic excess speed', meaning: 'The speed relative to the Moon that the craft arrives with, counted far out, before the Moon’s pull speeds it up.', group: 'unit' },
-  { term: 'UTC', name: 'Coordinated Universal Time', meaning: 'Every time in this tab.', group: 'unit' },
+  { term: 'UTC', name: 'Coordinated Universal Time', meaning: 'Every time in this menu.', group: 'unit' },
   { term: 'T+', name: 'Time since liftoff', meaning: 'The mission elapsed time in the playback bar.', group: 'unit', match: null },
   { term: 'g', name: 'Standard gravity, 9.81 m/s²', meaning: 'Unit of acceleration: "hold 3.25 g" keeps the crew at 3.25 times their weight.', group: 'unit', match: null },
   { term: 't', name: 'Tonne, 1,000 kg', meaning: 'Unit of the propellant masses.', group: 'unit', match: null },
   { term: 'MJ/kg', name: 'Megajoule per kilogram', meaning: 'Energy per mass. 3.6 MJ are 1 kWh.', group: 'unit', match: null },
   { term: 'DE440', name: 'Development Ephemeris 440', meaning: 'The Jet Propulsion Laboratory’s table of where the Moon, Earth and Sun are, used for every plan here.', group: 'unit' },
+  { term: 'NASA', name: 'National Aeronautics and Space Administration', meaning: 'The United States space agency.', group: 'unit' },
+  { term: 'DSN', name: 'NASA Deep Space Network', meaning: 'NASA’s antennas at Goldstone, Madrid and Canberra.', group: 'unit' },
+  { term: 'JAXA', name: 'Japan Aerospace Exploration Agency', meaning: 'Operates the Usuda and Uchinoura antennas.', group: 'unit' },
+  { term: 'LOLA', name: 'Lunar Orbiter Laser Altimeter', meaning: 'LRO instrument; source of the terrain.', group: 'unit' },
   { term: 'JPL', name: 'Jet Propulsion Laboratory', meaning: 'The NASA centre that publishes the ephemeris.', group: 'unit' },
   { term: 'J2000', name: 'The reference axes of 1 January 2000', meaning: 'Directions fixed to the stars: the 3D view does not turn with Earth or the Moon.', group: 'unit' },
 ]
@@ -102,6 +110,19 @@ const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const MARKED = GLOSSARY.filter((g) => g.match !== null).sort((a, b) => b.term.length - a.term.length)
 const TERM_RE = new RegExp(`(?<![A-Za-z0-9-])(?:${MARKED.map((g) => `(${g.match ?? esc(g.term)})`).join('|')})(?![A-Za-z0-9])`, 'g')
 
+/** What a pointer shows over a term: "Delta-v — Change in velocity a burn must deliver, in m/s." (the long form and
+ *  the first sentence of the meaning, so the hover stays short). */
+export function hoverText(g: GlossaryEntry): string {
+  const first = g.meaning.split(/(?<=\.) /)[0]
+  return `${g.name} — ${first}`
+}
+
+/** The hover text of a term, or null when it is not in the glossary. */
+export function hoverOf(term: string): string | null {
+  const g = GLOSSARY.find((x) => x.term === term)
+  return g ? hoverText(g) : null
+}
+
 /** The long form of an abbreviation, or null when it is not in the glossary. */
 export function expand(term: string): string | null {
   return GLOSSARY.find((g) => g.term === term)?.name ?? null
@@ -116,7 +137,7 @@ export function Abbr({ children }: { children: string }): ReactNode {
     const entry = MARKED[m.slice(1).findIndex((x) => x !== undefined)]
     if (at > last) out.push(children.slice(last, at))
     out.push(
-      <abbr key={at} title={entry.name}>
+      <abbr key={at} title={hoverText(entry)}>
         {m[0]}
       </abbr>,
     )

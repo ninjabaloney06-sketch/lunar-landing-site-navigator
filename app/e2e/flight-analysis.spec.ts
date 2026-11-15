@@ -32,7 +32,7 @@ test('landing dispersion: started by a click, shows progress, answers in one sen
   const sentence = panel.getByTestId('flight-dispersion-sentence')
   await expect(sentence).toContainText(/Landing dispersion \(3σ, \d+ of 200 unguided runs\): [\d.]+ × [\d.]+ km ellipse/)
   await expect(sentence).toContainText('Not yet validated by the science lead.')
-  await expect(job).toContainText('Every error is an assumption')
+  await expect(job).toContainText('Every error size is an assumption')
   await expect(job).toContainText('guided lander lands much closer')
   await shot(page, 'flight-1280-dispersion')
   // the tube is a layer like the others, offered once there is a dispersion

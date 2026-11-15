@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SIGMAS } from '../flight/dispersion'
 import type { PayloadResult } from '../flight/payload'
 import { SPACECRAFT } from '../flight/spacecraft'
-import { dispersionMeaning, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, roundWithError } from './flightResultText'
+import { DISPERSION_BRIEF, dispersionMeaning, errorText, limitSentence, lowerBoundPropellant, lowerBoundShort, payloadSentence, propellantStatus, roundWithError, routeText } from './flightResultText'
 
 const base: PayloadResult = {
   validation: { validated: false, text: 'not yet validated by the science lead' },
@@ -64,7 +64,10 @@ describe('Blue Moon lower-bound note', () => {
     const bm = SPACECRAFT.find((s) => s.id === 'blue-moon-mk2')
     const lb = lowerBoundPropellant(bm)
     expect(lb).not.toBeNull()
-    expect(lowerBoundShort(lb!.kg)).toBe("Propellant shown (29 t) is a lower bound: the lander's full load is not published. Not yet validated by the science lead.")
+    expect(lowerBoundShort(lb!.kg)).toBe(
+      "Propellant shown (29 t) is a lower bound: the lander's full load is not published, so this verdict cannot be decided from published data. Not yet validated by the science lead.",
+    )
+    expect(lb!.element).toBe('Blue Moon Mark 2')
     expect(lowerBoundPropellant(SPACECRAFT.find((s) => s.id === 'apollo-lm'))).toBeNull()
   })
 })
@@ -77,5 +80,42 @@ describe('dispersionMeaning', () => {
     expect(s).toContain('thrust 1 %')
     expect(s).toContain('pointing 0.15° per axis')
     expect(s).toContain('launch time 3 s')
+    expect(s).toContain('Every error size is an assumption')
+  })
+  it('the summary form keeps both warnings', () => {
+    expect(DISPERSION_BRIEF).toContain('Unguided descent')
+    expect(DISPERSION_BRIEF).toContain('guided lander lands much closer')
+    expect(DISPERSION_BRIEF).toContain('Every error size is an assumption')
+  })
+})
+
+describe('propellantStatus', () => {
+  const use = (element: string, usedKg: number, capacityKg: number) => ({ element, usedKg, capacityKg })
+  it('enough when no element needs more than its capacity (the threshold of the propellant table)', () => {
+    expect(propellantStatus([use('S-IVB', 70_000, 71_000), use('Descent Stage', 8248, 8248)], null)).toEqual({ tone: 'enough', text: 'Propellant: every stage has enough.' })
+  })
+  it('names each short element and its shortfall in kg', () => {
+    expect(propellantStatus([use('Descent Stage', 9_460, 8_248)], null)).toEqual({ tone: 'short', text: 'Propellant: Descent Stage short by 1,200 kg.' })
+  })
+  it('undecided when only the lower-bound element is short (Blue Moon)', () => {
+    expect(propellantStatus([use('Blue Moon Mark 2', 36_500, 29_000)], 'Blue Moon Mark 2').tone).toBe('undecided')
+    expect(propellantStatus([use('Blue Moon Mark 2', 36_500, 29_000), use('ICPS', 30_000, 29_000)], 'Blue Moon Mark 2').tone).toBe('short')
+  })
+})
+
+describe('errorText', () => {
+  it('one plain sentence with what to do; the planner reason only as detail', () => {
+    const e = errorText('mission', 'Could not compute the mission. the insertion did not converge (0.12 km, 0.0001° off)')
+    expect(e.sentence).toBe('This flight could not be planned. Try another landing date, launchpad, transfer or rocket.')
+    expect(e.detail).toBe('the insertion did not converge (0.12 km, 0.0001° off)')
+    expect(errorText('mission', 'No ephemeris for these dates in this build. A mission needs …').sentence).toContain('Choose other mission dates')
+    expect(errorText('payload', 'The payload needs a background worker, which this browser did not start.').sentence).toContain('Reload the page')
+    expect(errorText('route', 'The search stopped: boom').sentence).toBe('The cheapest-route search stopped. Start it again, or change the inputs first.')
+  })
+})
+
+describe('routeText', () => {
+  it('writes delta-v as Δv', () => {
+    expect(routeText('The largest saving is in LOI: 109 m/s less delta-v, 1.2 t less propellant.')).toBe('The largest saving is in LOI: 109 m/s less Δv, 1.2 t less propellant.')
   })
 })
