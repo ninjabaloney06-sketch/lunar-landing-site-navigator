@@ -299,3 +299,9 @@ ninja's instruction: adjust the course of the tasks to be more innovative and to
 **Direction taken:** the app starts from a mission and its science goal instead of a coordinate, ranks the evaluated sites for that mission and shows why they differ. Plan and agent brief: [agent-briefs.md, Step 2-UI](../event/agent-briefs.md#step-2-ui--mission-layer-and-science-goals-plan--brief-c3-written-14-nov-1330); task order: TASKS.md "Course adjustment". Polish and breadth without new content are cut first.
 
 **Limits kept:** no weighted score without Leo's approval (ranking is filter, then one rule per goal, then tie-breakers); "biology experiments" is offered only with a primary source; unknown evidence is shown as unknown; nothing is called optimal.
+
+## Full names in the credits — 15 Nov 2026
+
+- **Decided by ninja (15 Nov 2026):** the four team members are named with their full names in the credits. This overrides the AGENTS.md line "no recognizable names of anyone under 18" for the credits file only.
+- **Where:** `docs/credits.md` and the `/docs` page built from it. Nowhere else: not in the demo video, screenshots, the app UI, other documents or logs.
+- **Source of the decision:** `ORCHESTRATOR-PROMPT.md`, "Traps" item 1 (written 15 Nov 2026 on ninja's request). Recorded here by the orchestrator agent when `docs/credits.md` was merged; not re-confirmed with ninja in this session.
