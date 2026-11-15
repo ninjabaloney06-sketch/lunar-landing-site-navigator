@@ -36,7 +36,7 @@ Shipped as web fonts through three `@fontsource` packages in `app/package.json`.
 
 | Set | Version | Licence | Link | Icons used |
 |---|---|---|---|---|
-| Ionicons | 8.1.0 | MIT (`package.json` and `LICENSE` in the package) | http://ionicons.com/ | `rocket-outline`, `warning-outline`, `settings-outline`, used as static SVG files in `app/src/views/Icon.tsx` |
+| Ionicons | 8.1.0 | MIT (`package.json` and `LICENSE` in the package) | http://ionicons.com/ | `rocket-outline` (Mission menu), `warning-outline` (slope warning), `information-circle-outline` (Details button), used as static SVG files in `app/src/views/Icon.tsx`; `settings-outline` is still bundled there but no longer shown |
 
 ## Textures and images
 

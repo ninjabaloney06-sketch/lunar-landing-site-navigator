@@ -276,7 +276,7 @@ const RESOLUTION: [string, string][] = [
     'Window start and end',
     'Found numerically to ±10 s on the interpolated model; events shorter than 1 min (5 min for periods over 31 days) can be missed. This is the numerical resolution, not a validated accuracy: the window-edge check V5 is open',
   ],
-  ['Find better dates', '30-minute samples; landing times 6 hours apart'],
+  ['Find better dates', '30-minute samples; landing times 30 minutes apart'],
   ['Station geometry', 'Moon elevation at a station differs from JPL Horizons by up to 0.0763° in the 10 recorded values (station check open)'],
   ['Site position', "As printed in each site's source, a representative point of a region; frame assumed where the source does not name it"],
   ['Site slope (5° limit)', 'One value per site over a 100 m baseline on the 20 m model, stored to 0.1°'],
@@ -289,13 +289,15 @@ export const DOC_INTRO = (
   <>
     <p className="docs-lede">
       What the Lunar Landing Site Navigator answers, how to read it and where its numbers come from. This page
-      describes the app as it was on 14 Nov 2026. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn.
+      describes the app as it is on 15 Nov 2026. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn. The
+      full documentation, with the scientific proof of each calculation and the credits, is at{' '}
+      <a href="/docs">/docs</a>.
     </p>
     <p className="docs-mark" data-testid="docs-si-marking">
-      SI marking: <Path>docs/documentation.md</Path> was drafted by an SI (AI) tool, Claude Code, on 14 Nov 2026 from
-      the repository's code and records. It awaits review by the team (code checks against behaviour; science lead
-      for the validation part). This in-app version is a simplified version of <Path>docs/documentation.md</Path> and{' '}
-      <Path>docs/reference/data-sources.md</Path>, made by an SI (AI) tool, Claude Code, on 14 Nov 2026.
+      SI (AI) use: this panel is a simplified version of <Path>docs/documentation.md</Path> and{' '}
+      <Path>docs/reference/data-sources.md</Path>. An AI tool, Claude Code, wrote both texts on 14 Nov 2026 and updated
+      them on 15 Nov 2026 from the repository&apos;s code and records. No team member has reviewed this text as a whole
+      yet. Most scientific checks are still open: see &quot;Validation status&quot; under Limits.
     </p>
   </>
 )
@@ -336,200 +338,289 @@ export const DOC_SECTIONS: DocSection[] = [
     title: 'How to read each view',
     body: (
       <>
-        <p className="docs-quiet">
-          Some parts of the app were added after this description was written; they are listed in{' '}
-          <Path>BUILD_LOG.md</Path>.
+        <p>
+          <strong>Summary and full data.</strong> One &quot;Full data&quot; switch, top right in each panel (Details
+          drawer, search, point card, Rocket flight menu), sets the mode everywhere. Summary, the default, shows the
+          decision values; full data adds breakdowns, raw values, method and sources. The setting is kept in this
+          browser.
         </p>
         <p>
-          <strong>Header (top left).</strong> The mission name, with a rocket icon, opens the Mission panel. Below it
-          are the site name, its coordinates and, where the site has one, a caveat label (for example a reference point
-          that is not a landing site). The date and time shown is the cursor time in UTC; it opens the date menu.
-        </p>
-        <p>
-          <strong>3D scene.</strong> There are three levels. Globe: the Moon with one pin per site; click a pin to
-          select that site. Site: the terrain around the landing site, seen from above. Eye: the view of a person
-          standing at the site, 1.75 m above the ground. Labels sit on the objects: "Sun" and "Earth" with their
-          elevation in degrees, and "Landing site". A negative elevation means below the horizontal plane. Whether the
-          body is hidden depends on the terrain, which the answer sentences and the horizon strip tell. <Key>E</Key>{' '}
-          switches between site and eye level; <Key>Esc</Key> goes back to the globe. Without WebGL the scene is
-          replaced by the horizon strip.
-        </p>
-        <p>
-          <strong>Moving the camera.</strong> Left-drag orbits. Middle-drag looks around from where the camera is. The
-          wheel or a two-finger pinch moves the camera along the view and stops 1.75 m above the terrain. At eye level
-          it narrows the lens instead (54° down to 4°), and the Sun and Earth keep their computed angular size. A
-          left-click on the terrain at site or eye level moves the camera to stand on that spot. Hovering or tapping a
-          pin shows its name.
-        </p>
-        <p>
-          <strong>Viewpoints and points.</strong> "View", beside the timeline, and a right-click on the scene list the
-          viewpoints: Moon, Point start, Point end, Earth, Sun and "Solar system — top view". The top view looks down
-          the Moon's +z axis; it is not to scale, and it is marked so. "View" also lists Landing site and Eye level, so
-          a phone needs no keyboard. "Add point here" in the right-click menu, or coordinates typed in the Mission
-          panel, add a user point with a name and an optional role (Start, End). The point is kept in the link. A user
-          point has no horizon file, so the app shows its marker, its coordinates and "No terrain data for this point",
-          never a value.
-        </p>
-        <p>
-          <strong>Simulate.</strong> "Simulate", beside the timeline, plays the mission by the clock. The speed and
-          "Reset to start" are in the Details drawer. None of the camera, viewpoint, point or simulation controls
-          changes the site, the dates or a number: the labels and the answer always describe the landing site.
-        </p>
-        <p>
-          <strong>Answer line (above the timeline).</strong> Two sentences for the cursor time. The first is about
-          sunlight ("Sunlight for 3 more days.", "Dark for 5 more hours."). The second is about station contact in the
-          geometric sense ("Station contact for 9 more hours.", "Next station contact in 2 days."). Durations of 48
-          hours or more are given in whole days, shorter ones in whole hours. Good time is rounded down and waiting
-          time up, so a sentence never promises more than the data.
-        </p>
-        <p>
-          <strong>Timeline.</strong> Two tracks over the mission, plus three dimmed days before and after for context.
-          Light: <span className="docs-sun">yellow</span> is sunlit, dark is not. Comms:{' '}
-          <span className="docs-comms">blue</span> is at least one selected station geometrically visible, dark is
-          none, hatched is unknown. The bracket marks the mission with its name and length. Drag to move the cursor;
-          click a date to jump to that day at 12:00 UTC. <Key>Space</Key> plays and pauses, the arrow keys step 30
-          minutes, and with <Key>Shift</Key> one day.
-        </p>
-        <p>
-          <strong>Slope warning.</strong> Shown above the timeline only when the selected site fails the 5° slope
-          limit, with the measured slope and the 100 m baseline.
-        </p>
-        <p>
-          <strong>Footer.</strong> The terrain and ephemeris sources in one line, and a link to "how this is computed".
-        </p>
-        <p>
-          <strong>Mission panel.</strong> Fields in this order: name; start and end date (changing the start keeps the
-          length); science goal; landing site; ground stations; Play mission. The landing-site list is the site ranking
-          for the mission's own dates, stations and goal. It has three groups: "Passes the 5° slope limit" (ranked,
-          with rank numbers), "Too steep to land (slope above 5°)" and "Not enough data". Each row shows the values it
-          was ranked by: percent lit, percent comms, slope and, for evidence goals, the evidence label with its source
-          link. "Best" here means best among the 18 evaluated sites for these inputs. Play mission moves the cursor
-          from the first to the last mission day at eye level. "Add mission" saves a mission in this browser only;
-          there is no account.
-        </p>
-        <p>
-          <strong>Date menu.</strong> Five named periods and a field for any date and time in the supported range. The
-          named periods are the team's test periods, not verified best windows; each says so.
-        </p>
-        <p>
-          <strong>Details drawer (gear button, top right).</strong> One scrolling panel with these parts:
+          <strong>Header.</strong>
         </p>
         <ul className="docs-list">
+          <li>The mission name, with a rocket icon, opens the Mission menu.</li>
+          <li>Below it: the site name, its coordinates and, where the site has one, a caveat label.</li>
+          <li>The date and time is the cursor time in UTC; it opens the date menu.</li>
           <li>
-            Horizon: the terrain horizon in every direction (N, E, S, W) with the Sun and Earth at the cursor time. A
-            body below the plotted range is pinned to the bottom edge as a hollow dot and keeps its true value in the
-            label. Pointing at a direction shows the terrain angle there, how far away the blocking terrain is, and
-            whether the terrain data ends before 300 km.
-          </li>
-          <li>
-            Stations: one row per selected station with its state at the cursor time ("line of sight", "blocked by
-            terrain", "Moon below station mask"), its elevation seen from the site and the Moon's elevation at the
-            station.
-          </li>
-          <li>
-            Find better dates: the thresholds of the date search and up to five landing windows with percent sunlit,
-            coverage and longest gap. "Show" opens exactly the interval that was scored.
-          </li>
-          <li>
-            Compare: the current view next to one other site or named period, with the same stations: sunlit, station
-            coverage, unknown, longest darkness, longest coverage gap. "Switch" makes the compared choice the main
-            view.
-          </li>
-          <li>
-            All sites: one table with every site once, for the mission's own dates or a whole year of 365 days from its
-            first day. The columns show both (sunlit, station coverage), light (sunlit, longest darkness) or comms
-            (station coverage, longest coverage gap). "Find better location" orders the rows by the site ranking for
-            the mission's science goal, with rank numbers; sites above the slope limit and sites without data follow,
-            unranked. "Find better dates" on a row opens the date search for that site. Checked rows show their sunlit
-            windows as tracks on one time axis. Saved missions follow as rows, each for its own site, dates and
-            stations. A site without a horizon file shows "no data".
-          </li>
-          <li>
-            Site potential: sourced statements about the site, each with a category, an evidence label and a source
-            link. Access is not assessed.
-          </li>
-          <li>
-            Site assessment (collapsed; its data file is fetched the first time it is opened): slope, roughness, the
-            nearest permanent shadow and temperature for the selected site, as the data file has them, labelled
-            &quot;Accepted by the science lead at 6650ed1 (reported, no written sign-off)&quot;. Slope: median, maximum, %
-            ≤ 5° and % &lt; 20° over the 100 m landing disk and the 2 km exploration disk, and whether the landing disk
-            passes the landing rule (every valid pixel ≤ 5.0°). The 5° and 20° thresholds are project criteria set by
-            the team, not NASA or vehicle limits. Roughness: RMS height; obstacles unknown, with the reason (below
-            the terrain model&apos;s detection limit). Nearest cluster of zero average Sun visibility: distance, bearing
-            (compass point and degrees), area and a straight-line slope check, which is not a route. Temperature:
-            Diviner annual mean (2 cm depth) and annual maximum (surface) in K; no annual minimum exists in the
-            product. Each block has its source, method and limitations behind a disclosure; Full data adds the
-            terrain model, pixel counts and the block status. A custom site shows &quot;Not computed for this
-            place&quot;.
-          </li>
-          <li>Export: the windows and the summary as CSV, and a link that reproduces the view.</li>
-          <li>
-            How this is computed: the site's source and frame, the terrain and ephemeris sources, the comms definition,
-            and the Terms of use.
+            Top right: &quot;Points of interest&quot;, &quot;Search&quot; and &quot;Details&quot; (info icon), which
+            opens the Details drawer.
           </li>
         </ul>
         <p>
-          <strong>Points of interest layer.</strong> The top-bar button "Points of interest" switches the layer on and
-          off. It is off by default, so a first visit shows the plain scene, and the link has no <Path>poi</Path>{' '}
-          setting until the layer is on. While it is on, a key under the top bar lists the six groups with their
-          colour, a checkbox per group and, once the data has loaded, the number of pins in each group. The data is
-          fetched the first time the layer or the search opens. In the link, <Path>poi=all</Path> means every group and{' '}
-          <Path>poi=none</Path> means on with no group. The key's note says "Hover or tap a pin to read about it."; with
-          no 3D view it says that no pins are drawn. Both end with "Only south of 80° S. From research notes, not
-          validated by the science lead."
+          <strong>3D scene.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>
+            Globe: the Moon with one pin per site; click a pin to select it. Site: the terrain around the landing site
+            from above. Eye: standing at the site, 1.75 m above the ground.
+          </li>
+          <li>
+            Labels: &quot;Sun&quot; and &quot;Earth&quot; with their elevation in degrees, and &quot;Landing
+            site&quot;. A negative elevation means below the horizontal plane; whether terrain hides the body, the
+            answer and the horizon strip tell.
+          </li>
+          <li>
+            <Key>E</Key> switches between site and eye level. <Key>Esc</Key> goes to the globe; during a simulation it
+            stops it and returns to the landing-site view.
+          </li>
+          <li>Without WebGL the scene is replaced by the horizon strip.</li>
+        </ul>
+        <p>
+          <strong>Moving the camera.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>Left-drag orbits. Middle-drag looks around from where the camera is.</li>
+          <li>
+            The wheel or a two-finger pinch moves the camera and stops 1.75 m above the terrain. At eye level it narrows
+            the lens instead (54° down to 4°).
+          </li>
+          <li>A left-click on the terrain at site or eye level stands the camera on that spot.</li>
+          <li>Hovering or tapping a pin shows its name.</li>
+        </ul>
+        <p>
+          <strong>Viewpoints and points.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>&quot;View&quot;, beside the timeline, lists Landing site, Eye level and Moon. A right-click on the scene lists Moon.</li>
+          <li>
+            &quot;Add point here&quot; in the right-click menu, or coordinates typed in the Mission menu, add a user
+            point with a name. It is kept in the link.
+          </li>
+          <li>A user point has no horizon file: the app shows its marker and coordinates, never a value.</li>
+        </ul>
+        <p>
+          <strong>Simulate.</strong> &quot;Simulate&quot;, beside the timeline, plays the mission by the clock. While a
+          simulation runs or is paused, a speed slider and &quot;Reset to start&quot; sit beside it. None of the
+          camera, viewpoint, point or simulation controls changes the site, the dates or a number.
         </p>
         <p>
-          A pin's info box: with a mouse it shows while the pointer is on the pin and stays while the pointer moves onto
-          it. A click on the pin, or a tap, keeps it open. A kept box closes with its "Close" button, <Key>Esc</Key>, a
-          press anywhere else, or a camera move away from it. It shows the group and coordinates, the name, the summary,
-          the record's facts, "Evidence", "Limitations", the caveat about research notes, and the source links, each
-          shown by its host name. A right-click outside the south cap gives "Points can be added only south of 80° S."
+          <strong>Answer line (above the timeline).</strong>
+        </p>
+        <ul className="docs-list">
+          <li>First sentence, sunlight: &quot;Sunlight for 3 more days.&quot;, &quot;Dark for 5 more hours.&quot;</li>
+          <li>
+            Second sentence, station contact in the geometric sense: &quot;Station contact for 9 more hours.&quot;,
+            &quot;Next station contact in 2 days.&quot;
+          </li>
+          <li>
+            48 hours or more are given in whole days, shorter times in whole hours. Good time is rounded down and
+            waiting time up, so a sentence never promises more than the data.
+          </li>
+        </ul>
+        <p>
+          <strong>Timeline.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>Two tracks over the mission, plus three dimmed days before and after for context.</li>
+          <li>
+            Light: <span className="docs-sun">yellow</span> is sunlit, dark is not. Comms:{' '}
+            <span className="docs-comms">blue</span> is at least one selected station geometrically visible, dark is
+            none, hatched is unknown.
+          </li>
+          <li>
+            Drag to move the cursor; click a date to jump to 12:00 UTC that day. <Key>Space</Key> plays and pauses, the
+            arrow keys step 30 minutes, with <Key>Shift</Key> one day.
+          </li>
+        </ul>
+        <p>
+          <strong>Slope warning.</strong> Shown above the timeline only when the site fails the 5° slope limit, with
+          the measured slope and the 100 m baseline.
         </p>
         <p>
-          <strong>Search sites.</strong> The top-bar button "Search" opens the search panel. Its candidates are the
-          sites and the points of interest that have a horizon file. Until the points of interest are loaded, the panel
-          says "Loading the points of interest…". The defaults: the groups Water and volatiles, Permanent shadow and
-          Science features (Hazards, Landing sites and Sunlit points are off); "Within, km" 20 (the field accepts 1 to
-          200 km); "Must pass the 5° slope limit" on; "Rank by" Both. The search settings are not part of the link;
-          only <Path>drawer=search</Path> is.
+          <strong>Footer.</strong> The terrain and ephemeris sources, &quot;how this is computed&quot;, &quot;Docs&quot;
+          (this panel) and &quot;Full documentation&quot;. On wide screens one validation line, worded from the record:
+          the V1 check against JPL Horizons is reported, with no written sign-off; other checks are open. On phones the
+          same line is in the Details drawer.
         </p>
         <p>
-          Each row shows its rank once the list is ordered, "Best" for the first 3 rows (more when tied), the count of
-          each chosen group within the radius, Sunlit, Coverage and Slope ("— too steep" when it fails the limit). A
-          site row offers "Select". A point row offers "Show" only, which opens the globe with the point's group
-          switched on. A group's count is the number of its points within the radius (inclusive), measured along a
-          1737.4 km sphere; a candidate's own record is not counted.
+          <strong>Mission menu.</strong> Top to bottom:
+        </p>
+        <ul className="docs-list">
+          <li>&quot;Mission&quot; with &quot;Play mission&quot; (eye level, first to last mission day).</li>
+          <li>Name; start and end date (changing the start keeps the length).</li>
+          <li>Science goal.</li>
+          <li>
+            Landing site: the site ranking for the mission&apos;s dates, stations and goal, in three groups:
+            &quot;Passes the 5° slope limit&quot; (ranked), &quot;Too steep to land (slope above 5°)&quot; and
+            &quot;Not enough data&quot;. &quot;Best&quot; means best among the 18 evaluated sites for these inputs.
+            Your points follow.
+          </li>
+          <li>Ground stations.</li>
+          <li>
+            Saved missions: &quot;Compare&quot; opens them in the All sites table; each row has &quot;Calculate
+            flight&quot;.
+          </li>
+          <li>&quot;Calculate flight&quot; for the current mission, and &quot;Add mission&quot; (this browser only; no account).</li>
+        </ul>
+        <p>
+          <strong>Date menu.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>
+            &quot;Best periods&quot;: up to five for the mission at its site, found with the default thresholds over the
+            mission&apos;s calendar year. Choosing one sets the mission dates.
+          </li>
+          <li>Five named periods: the team&apos;s test periods, not verified best windows; each says so.</li>
+          <li>A field for any UTC date and time in the supported range.</li>
+        </ul>
+        <p>
+          <strong>Details drawer.</strong> One scrolling panel, top to bottom:
+        </p>
+        <ul className="docs-list">
+          <li>
+            Find better dates: the thresholds of the date search and up to five landing windows with percent sunlit,
+            coverage and longest gap. &quot;Show&quot; opens exactly the interval that was scored.
+          </li>
+          <li>Year timeline: light or comms over a calendar year, for the current site and each saved mission&apos;s site.</li>
+          <li>
+            Horizon: the terrain horizon in every direction with the Sun and Earth at the cursor time. Pointing at a
+            direction shows the terrain angle, how far away the blocking terrain is, and whether the data ends before
+            300 km.
+          </li>
+          <li>
+            Stations: per selected station its state at the cursor time (&quot;line of sight&quot;, &quot;blocked by
+            terrain&quot;, &quot;Moon below station mask&quot;), its elevation seen from the site and the Moon&apos;s
+            elevation at the station.
+          </li>
+          <li>
+            Compare: the current view next to one other site or named period, with the same stations. &quot;Switch&quot;
+            makes it the main view.
+          </li>
+          <li>
+            All sites: every site once, for the mission&apos;s dates or 365 days from its first day; light, comms or
+            both. &quot;Find better location&quot; orders the rows by the site ranking. &quot;Find better dates&quot; on
+            another site&apos;s row opens the date search for it. Saved missions follow as rows.
+          </li>
+          <li>Site potential: sourced statements about the site, each with a category; evidence and source in full data.</li>
+          <li>
+            Site assessment (collapsed; its data is fetched when first opened): slope over the 100 m landing disk and the
+            2 km exploration disk, roughness, the nearest permanent shadow and Diviner temperatures, labelled
+            &quot;Accepted by the science lead at 6650ed1 (reported, no written sign-off)&quot;. The 5° and 20°
+            thresholds are project criteria set by the team, not NASA or vehicle limits. A custom site shows &quot;Not
+            computed for this place&quot;.
+          </li>
+          <li>
+            Power estimate: panel area, cell efficiency, constant load and battery (example values) and one sentence:
+            does the battery last through the longest dark window. Marked &quot;First estimate, not a power budget. Not
+            validated by the science lead.&quot;
+          </li>
+          <li>
+            Open in NASA tools: the site in NASA Moon Trek and LROC QuickMap, and JPL Horizons Sun and Earth tables for
+            the site over the mission dates.
+          </li>
+          <li>Export: the windows and the summary as CSV, and a link that reproduces the view.</li>
+          <li>
+            How this is computed: the site&apos;s source and frame, the terrain and ephemeris sources, the comms
+            definition, and the Terms of use.
+          </li>
+        </ul>
+        <p>
+          <strong>Rocket flight.</strong> There is no flight tab.
+        </p>
+        <ul className="docs-list">
+          <li>
+            &quot;Calculate flight&quot; on a mission opens the flight view with its site, dates, launchpad, rocket and
+            surface stay. &quot;Back to landing site&quot; returns.
+          </li>
+          <li>
+            The menu shows the maximum payload ± ε, Δv after launch, launch, landing and mission length, and whether
+            every stage has enough propellant. For Blue Moon the lander&apos;s propellant figure is a lower bound.
+          </li>
+          <li>
+            &quot;Find cheapest route&quot; and &quot;Landing dispersion&quot; (a 1σ/3σ tube in the scene) are started
+            by the user.
+          </li>
+          <li>Payload, cheapest route and dispersion are not yet validated by the science lead.</li>
+        </ul>
+        <p>
+          <strong>Points of interest layer.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>
+            The top-bar button &quot;Points of interest&quot; switches the layer on and off. It is off by default; the
+            link has no <Path>poi</Path> setting until it is on.
+          </li>
+          <li>
+            While it is on, a key lists the six groups with their colour, a checkbox and the number of pins. In the link,{' '}
+            <Path>poi=all</Path> means every group and <Path>poi=none</Path> means on with no group.
+          </li>
+          <li>
+            The key&apos;s note: &quot;Hover or tap a pin to read about it. Only south of 80° S.&quot; Without a 3D
+            view it says that no pins are drawn.
+          </li>
+          <li>
+            A pin&apos;s card sits beside it. Hover shows it; a click or tap keeps it; it closes with &quot;Close&quot;,{' '}
+            <Key>Esc</Key> or a press anywhere else. Summary: name, feature type, short bullets and the distance from
+            the landing site. Full data: the whole record with its source links.
+          </li>
+          <li>A right-click outside the south cap gives &quot;Points can be added only south of 80° S.&quot;</li>
+        </ul>
+        <p>
+          <strong>Search sites.</strong>
+        </p>
+        <ul className="docs-list">
+          <li>
+            The top-bar button &quot;Search&quot; opens the search panel. Candidates: the sites and the points of
+            interest that have a horizon file.
+          </li>
+          <li>
+            Defaults: Water and volatiles, Permanent shadow and Science features; within 20 km (1 to 200 km); &quot;Must
+            pass the 5° slope limit&quot; on; rank by Both. The settings are not part of the link; only{' '}
+            <Path>drawer=search</Path> is.
+          </li>
+          <li>Records with the same place name within 5 km (1 km for illumination points) are one row.</li>
+          <li>
+            Each row: rank, &quot;Best&quot; for up to the first 3 ranks, the nearby counts in words, Sunlit, Coverage
+            and Slope (&quot;— too steep&quot; when it fails).
+          </li>
+          <li>
+            A site row offers &quot;Select&quot;. A point row offers &quot;Show&quot; only, which makes the point the
+            landing site and opens it at eye level with its group on.
+          </li>
+          <li>
+            Order: rows that pass the slope filter and have a value, places with a value of 0 last, then by groups
+            covered, the value, flatter slope and points nearby. &quot;Both&quot; is the smaller of sunlit and coverage.
+            Then rows without data, then rows that fail the slope filter.
+          </li>
+        </ul>
+        <p>
+          <strong>Documentation view.</strong> The footer link &quot;Docs&quot; opens this short version as a panel (
+          <Path>drawer=docs</Path> in the link). &quot;Full documentation&quot; opens the full page at{' '}
+          <a href="/docs">/docs</a>, built from the repository&apos;s documentation files.
         </p>
         <p>
-          The order: first the rows that meet the slope filter and have a value, by the number of chosen groups
-          covered, then by the number of points nearby, then by that value, the most first each time. For "Both" the
-          value is the sunlit percentage plus the coverage percentage; no other weighted score is used. Equal keys share
-          a rank (1, 1, 3). Then come the rows that meet the slope filter but have no data, then the rows that fail it.
-          With the slope filter off, every row counts as meeting it. Sunlit and Coverage are the values of the
-          comparison table for the mission dates; a place without a horizon file shows "no data". The list appears once
-          every row is computed; until then the panel shows "Computing X of N places for these dates…".
+          <strong>Custom landing sites.</strong>
         </p>
-        <p>
-          <strong>Documentation view.</strong> The footer link "Docs" opens this documentation as a panel (
-          <Path>drawer=docs</Path> in the link). It is loaded as a separate part of the app the first time it is
-          opened.
-        </p>
-        <p>
-          <strong>Custom landing sites.</strong> A place south of 80° S can be made the landing site: typed coordinates
-          in the Mission panel and every user point offer "Set as landing site" (the right-click menu on a user point
-          offers the same). Outside the south cap the action is not offered. The link holds the place with five
-          decimals. Its terrain and horizon are computed in the browser from coarser south-cap terrain (40 m and 80 m
-          tiles, a 400 m base and a 1920 m outer raster), by the same conventions as the sites: 720 directions, eye
-          1.75 m above the ground, rays to 300 km. Every result then comes from the same functions as for a listed
-          site, and is marked as approximate and not validated. Compared with the horizons of the 18 listed sites on
-          14 Nov 2026, the browser horizon differs by 0.013° in the median over sites and by up to 1.68° in single
-          directions; a difference of that size can move a sunrise or sunset. A custom site is named "Custom site" and
-          is not a row in the site list, the all-sites table or the search.
-        </p>
+        <ul className="docs-list">
+          <li>
+            A place south of 80° S can be the landing site: typed coordinates in the Mission menu, a user point
+            (&quot;Set as landing site&quot;) or &quot;Show&quot; in the search. The link holds it with five decimals.
+          </li>
+          <li>
+            Terrain and horizon are computed in the browser from coarser south-cap terrain (40 m and 80 m tiles, a 400 m
+            base, a 1920 m outer raster): 720 directions, eye 1.75 m, rays to 300 km.
+          </li>
+          <li>
+            Results are marked as approximate and not validated. Against the 18 listed sites&apos; horizons (14 Nov
+            2026): 0.013° median difference over sites, up to 1.68° in single directions; that can move a sunrise or
+            sunset.
+          </li>
+          <li>A custom site is not a row in the site list, the all-sites table or the search.</li>
+        </ul>
         <p>
           <strong>Loading and missing data.</strong> While data loads, the answer line says so and the tracks stay
-          empty. A site or date without data gives a plain "no data" message. The previous selection's values are never
-          shown under a new selection.
+          empty. A site or date without data gives a plain &quot;no data&quot; message. The previous selection&apos;s
+          values are never shown under a new selection.
         </p>
       </>
     ),
@@ -569,8 +660,8 @@ export const DOC_SECTIONS: DocSection[] = [
         <h4>Points of interest</h4>
         <p>
           The points of interest come from the research records in <Path>docs/POIs/</Path>: seven research files and{' '}
-          <Path>additional-sites.json</Path>, which adds researched points. Each file states its source, its coordinate
-          convention and its validation status.
+          <Path>additional-sites.json</Path>, which adds researched points. Each file states its source and its
+          coordinate convention.
         </p>
         <ul className="docs-list">
           <li>
@@ -578,24 +669,25 @@ export const DOC_SECTIONS: DocSection[] = [
             findings without coordinates are not pins.
           </li>
           <li>
-            There are six groups: Hazards, Water and volatiles, Permanent shadow, Sunlit points, Landing sites and Science
-            features. <Path>pgda-study-sites.json</Path> has names only and adds no point.
+            There are six groups: Hazards, Water and volatiles, Permanent shadow, Sunlit points, Landing candidates and
+            Science features. <Path>pgda-study-sites.json</Path> has names only and adds no point.
           </li>
           <li>
             The name, category, summary, facts, evidence, limitations and sources are copied from each record by a fixed
-            mapping. Nothing is reworded.
+            mapping. The short bullets on a point&apos;s card come from <Path>docs/POIs/plain.json</Path>, written
+            from the record.
           </li>
           <li>
             Latitude is planetocentric, south negative; longitude is east-positive, from −180° to 180°. Where a source
             names no frame, <Path>MOON_ME</Path> is assumed.
           </li>
           <li>
-            These are research notes, not validated by the science lead. Landing records carry the note that their
-            coordinates still need a check.
+            Point coordinates and facts come from the cited research sources and are not individually checked by the
+            science lead. The app&apos;s computed results carry the validation status under Limits.
           </li>
           <li>
-            The app shows only points south of 80° S. On 14 Nov 2026 <Path>pois.json</Path> holds 206 records, of which
-            195 lie at or south of 80° S. By group: Landing sites 88, Permanent shadow 69, Sunlit points 18, Science
+            The app shows only points south of 80° S. On 15 Nov 2026 <Path>pois.json</Path> holds 206 records, of which
+            195 lie at or south of 80° S. By group: Landing candidates 88, Permanent shadow 69, Sunlit points 18, Science
             features 16, Water and volatiles 8, Hazards 7.
           </li>
           <li>
@@ -704,6 +796,19 @@ export const DOC_SECTIONS: DocSection[] = [
           are named.
         </p>
         <p>
+          <strong>Power estimate.</strong> First estimate, not a power budget; not validated by the science lead. One
+          panel that always faces the Sun gives S × A × η × f × (AU / r)²: S = 1361 W/m² at 1 AU (
+          <Ext href="https://doi.org/10.1029/2010GL045777">Kopp &amp; Lean 2011</Ext>), A the panel area, η the cell
+          efficiency, f the visible share of the Sun&apos;s disc, r the distance to the Sun (AU from
+          {' '}<Ext href="https://ssd.jpl.nasa.gov/astro_par.html">JPL Solar System Dynamics</Ext>). A constant load and
+          a battery give the answer: does the battery last through the longest dark window.
+        </p>
+        <p>
+          <strong>Rocket flight.</strong> Launch, transfer under Earth, Moon and Sun gravity, lunar orbit, a finite-burn
+          descent and the return. Its results never enter a site value. Maximum payload, the cheapest route and the
+          landing dispersion with the Moon&apos;s J2 term are not yet validated by the science lead.
+        </p>
+        <p>
           <strong>3D scene.</strong> The scene shows the same geometry; it is not a source of numbers. The Sun, Earth
           and stars are drawn at their true directions and true angular sizes. Lit and dark are never taken from
           rendered shadows. At eye level the terrain silhouette is the computed horizon.
@@ -727,7 +832,7 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>
             Precise Earth orientation. The <Path>IAU_EARTH</Path> frame is an approximation.
           </li>
-          <li>Power. Sunlit is yes or no; there is no solar-panel model and no partial-disc power value.</li>
+          <li>Power beyond a first estimate: one Sun-facing panel and a constant load; no temperature, degradation, dust, tilt or partial shading. Not validated by the science lead.</li>
           <li>Temperature over a mission period. Only annual mean and annual maximum exist, in the site assessments.</li>
           <li>Boulders and obstacles. They are below the resolution of the terrain models and are reported as unknown.</li>
           <li>
@@ -744,10 +849,11 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>Scattered light, earthshine and heat from surrounding terrain, as inputs to any result.</li>
           <li>Arbitrary coordinates outside the south cap. A place south of 80° S can be set as a custom landing site; its numbers are approximate (see &quot;Custom landing sites&quot; under &quot;How to read each view&quot;). North of 80° S only the listed sites can be analysed.</li>
           <li>
-            Launch, transfer and descent in the site analysis. The Flight plan tab computes them separately; its result
-            does not enter any site value or ranking.
+            Launch, transfer and descent in the site analysis. The Rocket flight menu computes them separately; its
+            result does not enter any site value or ranking. Its flight plans leave out the Moon&apos;s uneven gravity
+            (its J2 term is in the landing dispersion only).
           </li>
-          <li>Uncertainty. No error bars are computed; errors of the terrain model are not propagated.</li>
+          <li>Uncertainty of the site results: errors of the terrain model are not propagated. The budget of every number shown is in <Path>docs/scientific-proof/uncertainty.md</Path>.</li>
         </ul>
 
         <h4>Resolution of each result</h4>
@@ -774,10 +880,10 @@ export const DOC_SECTIONS: DocSection[] = [
         <p>
           <strong>No check carries a written sign-off by the science lead.</strong> The app's switch{' '}
           <Path>VALIDATED</Path> was set to true on 14 Nov 2026 by team decision, after an independent recomputation by
-          an SI tool agreed with the app. Before that, every value carried the marker "sample values — not validated".
+          an AI tool agreed with the app. Before that, every value carried the marker "sample values — not validated".
         </p>
         <p>
-          Copied from <Path>docs/event/validation.md</Path> on 14 Nov 2026 with their status. That file is the
+          Copied from <Path>docs/event/validation.md</Path> on 15 Nov 2026 with their status. That file is the
           record.
         </p>
         <ul className="docs-list">
@@ -797,8 +903,18 @@ export const DOC_SECTIONS: DocSection[] = [
             approximation is acceptable, are not decided.
           </li>
           <li>
-            V3 to V9 (synthetic horizons, real horizons against PGDA averages, window edges, coarse terrain, values in
-            the user interface, finder, panel types): open.
+            Station check: open. An AI recheck on 15 Nov found a worst difference of 0.0782° over all five stations.
+          </li>
+          <li>
+            V3 to V9, the horizon-range check and the truncated-horizon check: open. AI rechecks agree for synthetic
+            horizons, window edges, interface values, coarse terrain and truncated horizons; the finder missed a window
+            with its old 6-hour grid and now tries landing times every 30 minutes; panel types were not built.
+          </li>
+          <li>
+            The science lead&apos;s statement that the flight physics are validated (14 Nov 2026, 20:59) is recorded
+            in <Path>BUILD_LOG.md</Path>, not in <Path>docs/event/validation.md</Path>; who validated them against
+            what is not recorded. Everything built on 15 Nov 2026 (maximum payload, cheapest route, landing
+            dispersion, power estimate) is not yet validated by the science lead.
           </li>
         </ul>
         <p>
@@ -819,8 +935,8 @@ export const DOC_SECTIONS: DocSection[] = [
         </p>
         <ul className="docs-list">
           <li>
-            <strong>This documentation.</strong> Drafted, and simplified for this page, by Claude Code, as marked at the
-            top. The original awaits review by the team.
+            <strong>This documentation.</strong> Written and simplified for this panel by Claude Code on 14 and 15 Nov
+            2026, as marked at the top. No team member has reviewed it as a whole yet.
           </li>
           <li>
             <strong>Independent recomputation.</strong> An independent recomputation by an SI tool agreed with the app.

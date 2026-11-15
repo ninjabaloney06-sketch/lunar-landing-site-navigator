@@ -3,9 +3,9 @@
 A web app that compares landing sites near the Moon's south pole by sunlight and by geometric visibility of Earth ground stations, over dates the user chooses. Built by team SFZ | MEXG at NASA Space Apps 2026 (local event Heilbronn, 14–15 Nov 2026) for the challenge [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/).
 
 - Hosted preview: <https://nasa.digi-works.org> (the deployed revision is recorded in [BUILD_LOG.md](BUILD_LOG.md))
-- Technical and product documentation: [docs/documentation.md](docs/documentation.md)
+- Technical and product documentation: [docs/documentation.md](docs/documentation.md), also on the app's `/docs` page with the scientific proof of each calculation ([docs/scientific-proof/](docs/scientific-proof/README.md)) and the credits
 - Project page draft: [docs/event/project-page.md](docs/event/project-page.md)
-- Status of the numbers: recomputed independently by an SI tool on 14 Nov and found in agreement; no check has a written sign-off by the science lead. Which checks agree and which are open: [docs/event/validation.md](docs/event/validation.md).
+- Status of the numbers: recomputed independently by an SI tool on 14 and 15 Nov and found in agreement except where [docs/event/validation.md](docs/event/validation.md) says otherwise; no check there has a written sign-off by the science lead. Calculations added on 15 Nov (maximum payload, cheapest route, landing dispersion, power estimate) are not yet validated by the science lead. How the records relate: [docs/scientific-proof/README.md](docs/scientific-proof/README.md).
 
 > SI marking: this README was drafted by an SI (AI) tool, Claude Code, on 14 Nov 2026 from the repository's own files. See [AI/SI use](#aisi-use).
 
@@ -22,9 +22,13 @@ What you can do on main today:
 - Scrub or play the period on a timeline with a Light track and a Comms track.
 - See the Sun and Earth over the real terrain horizon in a 3D view (globe, site, eye level) or, without WebGL, in a horizon strip.
 - Rank the 18 sites for the mission's dates, stations and science goal. Sites that pass the 5° slope limit are ranked; the others are listed separately.
-- Find better dates: landing times within 60 days after the mission start that meet adjustable thresholds.
+- Find better dates: landing times every 30 minutes within 60 days after the mission start that meet adjustable thresholds.
 - Compare the current view with another site or another named period.
 - Download the windows as CSV and copy a link that reproduces the view.
+- Set any place south of 80° S as a custom landing site (approximate numbers, marked so).
+- Show points of interest from the cited research sources and search for sites near them.
+- Read the site assessment (slope, roughness, nearest permanent shadow, temperature), a first power estimate and links that open the site in NASA Moon Trek, LROC QuickMap and JPL Horizons.
+- Calculate the rocket flight for a saved mission (launch, transfer, descent, return; payload, cheapest route and landing dispersion not yet validated by the science lead).
 
 Added after this text was written: see [BUILD_LOG.md](BUILD_LOG.md).
 
@@ -58,7 +62,7 @@ npm test
 npx playwright test
 ```
 
-`npm test` runs the unit tests (vitest; 70 passed on 14 Nov 2026). `npx playwright test` starts its own dev server on port 5180 and runs the end-to-end tests in Chromium (40 passed, 1 skipped by design). It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download). The 3D tests render with SwiftShader (software WebGL) by default; on a machine where that is too slow (a Windows laptop: the S3 fly test exceeded its 400 s timeout), `PW_GPU=1 npx playwright test` renders on the machine's own GPU instead (127 tests in about 2.6 min on a Radeon 860M, 15 Nov 2026).
+`npm test` runs the unit tests (vitest; 70 passed on 14 Nov 2026). `npx playwright test` starts its own dev server on port 5180 and runs the end-to-end tests in Chromium (on 14 Nov 2026: 40 passed, 1 skipped by design). Counts of the final gate: see BUILD_LOG.md, 15 Nov. It needs Playwright's Chromium, installed once with `npx playwright install chromium` (not run here: the browser was already installed on the test machine, and installing it is a download). The 3D tests render with SwiftShader (software WebGL) by default; on a machine where that is too slow (a Windows laptop: the S3 fly test exceeded its 400 s timeout), `PW_GPU=1 npx playwright test` renders on the machine's own GPU instead (127 tests in about 2.6 min on a Radeon 860M, 15 Nov 2026).
 
 ## Data pipeline (Python)
 
@@ -149,11 +153,11 @@ Space Apps calls AI tools "SI". This project was built with them, and says so he
 Full list with the resolution of each result: [docs/documentation.md, Limits](docs/documentation.md#limits).
 
 - Comms is geometric visibility of the selected stations, at both ends. No link budget, antenna schedule, weather or equipment is modelled.
-- No validation check has a written sign-off. V1 and V2 are recorded as passed as reported; the station check and V3 to V9 are open. An independent recomputation by an SI tool (14 Nov) agrees with the app for positions, horizons, sunlight and station coverage; on that basis the team removed the app's "not validated" marker. Slope, the PGDA comparison, the finder ranking and whole-year mode were not rechecked.
-- Only the 18 listed sites can be analysed. They are representative points of regions, not chosen landing points.
+- No validation check has a written sign-off. V1 and V2 are recorded as passed as reported; the station check and V3 to V9 are open. An independent recomputation by an SI tool (14 Nov) agrees with the app for positions, horizons, sunlight and station coverage; on that basis the team removed the app's "not validated" marker. In that first recheck, slope, the PGDA comparison, the finder ranking and whole-year mode were not rechecked. A second AI recheck on 15 Nov covered window edges, coarse terrain, interface values, the finder (it found a window the old 6-hour candidate grid missed; the finder now tries every 30 minutes), station geometry and slopes; it is not a sign-off either.
+- The 18 listed sites are representative points of regions, not chosen landing points. Other places south of 80° S can be set as custom landing sites; their numbers come from coarser terrain computed in the browser and are marked approximate, not validated. North of 80° S only the listed sites can be analysed.
 - The 20 m terrain model ends at 80° S; beyond it the horizon search continues on a 120 m model of the same product. Only IM-1, about 4 km from that edge, has skyline directions (52 of 720) that come from the coarser model.
 - The slope shown is one measurement over a 100 m baseline on the 20 m terrain model, compared with a project criterion of 5°.
-- The site assessments (slope statistics, roughness, shadow access, temperature) are computed and shipped in `assessments.json` but not shown in the user interface.
+- The site assessments (slope statistics, roughness, shadow access, temperature) are shown in the Details drawer for the 18 listed sites, not for custom sites.
 
 Added after this text was written: see [BUILD_LOG.md](BUILD_LOG.md).
 

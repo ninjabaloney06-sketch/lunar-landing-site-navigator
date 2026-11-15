@@ -80,3 +80,20 @@ test('wave 3: points of interest, the layer, the search and this view are descri
   await expect(docs).toContainText('A point row offers "Show" only')
   await expect(docs).not.toContainText('stub')
 })
+
+test('15 Nov: the panel and the /docs page describe the app as it is (no flight tab, no energy multiplier, no removed views)', async ({ page }) => {
+  const STALE = ['energy multiplier', 'Flight plan tab', 'gear button', 'Point start', 'top view', 'landing times 6', 'still need a check', 'research notes, not validated']
+  await openApp(page, `${DEMO}&drawer=docs`)
+  const docs = page.getByTestId('docs')
+  await expect(docs).toBeVisible({ timeout: 30_000 }) // lazy chunk
+  for (const t of STALE) await expect(docs).not.toContainText(t)
+  await expect(docs).toContainText('are not individually checked by the science lead')
+  await expect(docs).toContainText('landing times 30 minutes apart')
+  await expect(docs.locator('a[href="/docs"]').first()).toBeAttached()
+  await page.goto('/docs')
+  const main = page.locator('.docpage-main')
+  await expect(main).toBeVisible({ timeout: 30_000 })
+  const doc = main.locator('#doc-documentation')
+  for (const t of STALE) await expect(doc).not.toContainText(t)
+  await expect(doc).toContainText('are not individually checked by the science lead')
+})
