@@ -45,7 +45,7 @@ import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
 import { PinField, type PinItem } from './pins'
-import { heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, type Level } from './levels'
+import { heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, surfaceZ, type Level, type LevelGrid } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
 const NO_HORIZON_RADIUS_M = 200_000 // smooth-sphere ground when a site has no horizon file
@@ -213,8 +213,17 @@ export class SiteWorld {
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
   private mastHeight = 1600
   readonly eyeHeight = OBSERVER_HEIGHT_M // spec: 1.75 m above the ground
-  // What groundZ reads: the data the terrain was built from.
-  private ground: { levels: Level[] | null; tile: TerrainTile | null; rSite: number } = { levels: null, tile: null, rSite: MOON_RADIUS_KM * 1000 }
+  // What groundZ reads: the placed and clamped vertices the terrain meshes are drawn from (levels, or the 80 m tile
+  // alone), and the ray twins of the zipper strips between the levels.
+  private ground: { levels: Level[] | null; grids: LevelGrid[] | null; tileGrid: LevelGrid | null; strips: Object3D[]; tile: TerrainTile | null; rSite: number } = {
+    levels: null,
+    grids: null,
+    tileGrid: null,
+    strips: [],
+    tile: null,
+    rSite: MOON_RADIUS_KM * 1000,
+  }
+  private readonly down = new Vector3(0, 0, -1)
   private readonly tmp = new Vector3()
 
   constructor() {
@@ -247,7 +256,7 @@ export class SiteWorld {
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
     const levels = tile ? nestedLevels(tile) : null
-    this.ground = { levels, tile, rSite }
+    this.ground = { levels, grids: null, tileGrid: null, strips: [], tile, rSite }
     if (levels) {
       // Nested levels reach ±300 km: no skirt, no ring ground; at eye level only the crest strip on the mask.
       this.addLevels(levels, rSite, line)
@@ -268,7 +277,7 @@ export class SiteWorld {
     this.eyeOnly.visible = eye
   }
 
-  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both') {
+  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both'): Mesh {
     const grp = where === 'both' ? this.terrain : where === 'orbit' ? this.orbitOnly : this.eyeOnly
     grp.add(new Mesh(g, regolith()))
     // Occlusion tests use an invisible double-sided twin (coarse for the tile, so project() stays cheap).
@@ -276,6 +285,7 @@ export class SiteWorld {
     p.visible = false
     grp.add(p)
     this.rays[where].push(p)
+    return p
   }
 
   /** No tile, no horizon: the smooth sphere through the site (flat-disc fallback). */
@@ -436,6 +446,7 @@ export class SiteWorld {
     const grids = levels.map((l) =>
       levelGrid(l, rSite, (p: Vector3, rho: number) => (!line ? Infinity : l.name === 'tile' ? line.belowAt(p, rho) : line.belowCell(p, rho, l.spacing))),
     )
+    this.ground.grids = grids
     // Normals from the grids, blended across each rim band (levels.ts levelNormals): the shading meets at a border.
     const normals = levelNormals(levels, grids)
     const full: BufferGeometry[] = []
@@ -447,7 +458,7 @@ export class SiteWorld {
       full.push(geo)
     })
     for (let li = 1; li < levels.length; li++) {
-      this.addMesh(stitch(grids[li - 1], normalsOf(full[li - 1]), grids[li], normalsOf(full[li])))
+      this.ground.strips.push(this.addMesh(stitch(grids[li - 1], normalsOf(full[li - 1]), grids[li], normalsOf(full[li]))))
     }
   }
 
@@ -552,6 +563,18 @@ export class SiteWorld {
         zGrid[i * size + j] = z
       }
     }
+    // The drawn vertices as a level grid, for groundZ (surfaceZ: the same triangles as make(1) below).
+    const tpos = new Float32Array(size * size * 3)
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        const v = i * size + j
+        tpos[v * 3] = (j - half) * spacing_m
+        tpos[v * 3 + 1] = (half - i) * spacing_m
+        tpos[v * 3 + 2] = zGrid[v]
+      }
+    }
+    const level: Level = { name: 'tile', size, spacing: spacing_m, half, ext: half * spacing_m, h: new Float32Array(0) }
+    this.ground.tileGrid = { level, pos: tpos, ok: okGrid }
     const make = (stride: number) => {
       const m = Math.floor((size - 1) / stride) + 1
       const pos = new Float32Array(m * m * 3)
@@ -658,7 +681,7 @@ export class SiteWorld {
     for (let i = 0; i < this.near.count; i++) {
       const it = this.near.item(i)!
       const rho = Math.hypot(it.base.x, it.base.y)
-      out.push({ kind: it.kind, id: it.id, shape: it.shape, base: it.base.toArray(), ground: it.grid ? this.groundZ(it.grid.x, it.grid.y) : NaN, sphere: sphereZ(rho, this.ground.rSite) })
+      out.push({ kind: it.kind, id: it.id, shape: it.shape, base: it.base.toArray(), ground: this.drawnZ(it.base.x, it.base.y) ?? NaN, sphere: sphereZ(rho, this.ground.rSite) })
     }
     return out
   }
@@ -721,39 +744,69 @@ export class SiteWorld {
   }
 
   /**
-   * Terrain height (m, ENU z) under the ENU point (x, y), from the data the meshes are built from: the nested
-   * levels, or the 80 m tile inside its radius, and the smooth sphere through the site where neither has data.
-   * The drawn meshes are clamped to the mask sight line, so they are never above this height.
+   * Height (m, ENU z) of the drawn terrain under the ENU point (x, y), the one ground every camera placement and
+   * pin uses (U5, U16, U19): the triangles of the level meshes as drawn (levels.ts surfaceZ, finest level that draws
+   * a triangle there), the zipper strip between two levels, or the 80 m tile alone; the smooth sphere through the
+   * site where no mesh has ground. Not the bilinear height of the data: between the vertices of a quad that is not
+   * flat the drawn triangles lie up to a quarter of its twist above that (measured: up to 35 m at the 400 m level),
+   * and a camera put 1.75 m above the bilinear height stood inside the drawn ground. Clamped vertices (the mask
+   * sight line) are used as drawn.
    */
   groundZ(x: number, y: number): number {
-    const { levels, tile, rSite } = this.ground
+    const { levels, grids, tileGrid, rSite } = this.ground
     const rho = Math.hypot(x, y)
-    if (levels) {
+    if (levels && grids) {
+      for (let li = 0; li < grids.length; li++) {
+        const z = surfaceZ(grids[li], x, y, li > 0 ? levels[li - 1].ext : null)
+        if (z !== null) return z
+      }
+      const s = this.stripZ(x, y)
+      if (s !== null) return s
       const f = heightAt(levels, x, y)
       if (f) return place(levels[f.li], x, y, f.h, rSite, this.tmp).z
-    } else if (tile && rho <= TILE_RADIUS_M) {
-      const h = tileHeight(tile, x, y)
-      if (h !== null) return sphereZ(rho, rSite, h)
+    } else if (tileGrid && rho <= TILE_RADIUS_M) {
+      const z = surfaceZ(tileGrid, x, y, null)
+      if (z !== null) return z
     }
     return sphereZ(rho, rSite)
   }
 
+  /** Highest zipper-strip surface under (x, y) (the band between two levels), or null outside every strip. */
+  private stripZ(x: number, y: number): number | null {
+    if (!this.ground.strips.length) return null
+    this.raycaster.set(this.tmp.set(x, y, 50_000), this.down)
+    this.raycaster.far = Infinity
+    return this.raycaster.intersectObjects(this.ground.strips, false)[0]?.point.z ?? null
+  }
+
   /**
-   * Where a pin at terrain-grid offset (x, y) stands: the terrain point from the data loaded under it (placed as
-   * the levels are, levels.ts), the smooth sphere through the site where no level or tile has data, and the
-   * local vertical there.
+   * Test helper, independent of groundZ: the highest drawn terrain triangle under (x, y) at the current level, by a
+   * ray straight down through every visible terrain mesh (slow: every triangle is tested).
+   */
+  drawnZ(x: number, y: number): number | null {
+    const targets: Object3D[] = []
+    for (const grp of [this.terrain, this.eyeMode ? this.eyeOnly : this.orbitOnly]) for (const c of grp.children) if (c.visible) targets.push(c)
+    const was = targets.map((t) => (t as Mesh).material)
+    for (const t of targets) (t as Mesh).material = this.rayMat // both faces
+    this.raycaster.set(new Vector3(x, y, 50_000), this.down)
+    this.raycaster.far = Infinity
+    const hit = this.raycaster.intersectObjects(targets, false)[0]?.point.z ?? null
+    targets.forEach((t, i) => ((t as Mesh).material = was[i]))
+    return hit
+  }
+
+  /**
+   * Where a pin at terrain-grid offset (x, y) stands: the point placed as the levels place it (levels.ts), at the
+   * height of the drawn ground there (groundZ), and the local vertical there.
    */
   groundAt(x: number, y: number): { pos: Vector3; up: Vector3 } {
-    const { levels, tile, rSite } = this.ground
-    const rho = Math.hypot(x, y)
-    const pos = new Vector3(x, y, sphereZ(rho, rSite))
+    const { levels, rSite } = this.ground
+    const pos = new Vector3(x, y, 0)
     if (levels) {
       const f = heightAt(levels, x, y)
       if (f) place(levels[f.li], x, y, f.h, rSite, pos)
-    } else if (tile && rho <= TILE_RADIUS_M) {
-      const h = tileHeight(tile, x, y)
-      if (h !== null) pos.z = sphereZ(rho, rSite, h)
     }
+    pos.z = this.groundZ(pos.x, pos.y)
     return { pos, up: new Vector3(pos.x, pos.y, pos.z + rSite).normalize() }
   }
 

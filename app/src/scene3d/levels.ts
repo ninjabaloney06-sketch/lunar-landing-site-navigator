@@ -235,6 +235,80 @@ export function levelGrid(l: Level, rSite: number, clamp: (p: Vector3, rho: numb
   return { level: l, pos, ok }
 }
 
+/**
+ * Height (ENU z) of the drawn surface of a full-resolution level mesh (levelMesh, stride 1) at the ENU point
+ * (x, y): the triangle of the quad under it, split along the NE–SW diagonal exactly as levelMesh's index buffer
+ * (a, c, b) + (b, c, d), interpolated linearly between the placed and clamped vertices. Not the bilinear height:
+ * where a quad is not flat the drawn triangles lie above it by up to a quarter of the quad's twist (U19). null
+ * where this mesh draws nothing: outside the grid, a quad with a vertex without data, or a quad inside the hole the
+ * next finer level's square (half-width `inner`) cuts.
+ *
+ * Beyond 20 km the vertices are not at their grid offsets (place: the blend to the radial placement moves them
+ * by up to 4.4 km at 300 km), so the grid position under (x, y) is found by inverting the placement locally (a
+ * few steps of the bilinear map of the cell's placed corners).
+ */
+export function surfaceZ(g: LevelGrid, x: number, y: number, inner: number | null): number | null {
+  const { level: l, pos, ok } = g
+  const n = l.size
+  let gx = x
+  let gy = y
+  let i0 = 0
+  let j0 = 0
+  for (let step = 0; step < 4; step++) {
+    const fj = gx / l.spacing + l.half
+    const fi = l.half - gy / l.spacing
+    if (fj < 0 || fi < 0 || fj > n - 1 || fi > n - 1) return null
+    j0 = Math.min(Math.floor(fj), n - 2)
+    i0 = Math.min(Math.floor(fi), n - 2)
+    if (l.name === 'fine' || l.name === 'tile' || Math.hypot(gx, gy) <= BLEND_FROM_M * 0.99) break
+    // Placed position of grid point (gx, gy) by the bilinear map of the cell's corners; move by the miss.
+    const dj = fj - j0
+    const di = fi - i0
+    const k = [i0 * n + j0, i0 * n + j0 + 1, (i0 + 1) * n + j0, (i0 + 1) * n + j0 + 1]
+    const w = [(1 - dj) * (1 - di), dj * (1 - di), (1 - dj) * di, dj * di]
+    let px = 0
+    let py = 0
+    for (let c = 0; c < 4; c++) {
+      px += pos[k[c] * 3] * w[c]
+      py += pos[k[c] * 3 + 1] * w[c]
+    }
+    const ex = x - px
+    const ey = y - py
+    if (Math.abs(ex) < 1e-3 && Math.abs(ey) < 1e-3) break
+    gx += ex
+    gy += ey
+  }
+  const a = i0 * n + j0 // north-west
+  const b = a + 1 // north-east
+  const c = a + n // south-west
+  const d = c + 1 // south-east
+  if (!(ok[a] && ok[b] && ok[c] && ok[d])) return null
+  if (inner !== null) {
+    const x0 = (j0 - l.half) * l.spacing
+    const x1 = x0 + l.spacing
+    const y1 = (l.half - i0) * l.spacing
+    const y0 = y1 - l.spacing
+    if (x1 > -inner && x0 < inner && y1 > -inner && y0 < inner) return null // levelMesh 'touching'
+  }
+  // Which of the two triangles: by the grid position (dj + di ≤ 1 → a, c, b), then exact barycentric weights from
+  // the triangle's placed corners, so the height is that of the drawn plane through them.
+  const dj = gx / l.spacing + l.half - j0
+  const di = l.half - gy / l.spacing - i0
+  const [p, q, r] = dj + di <= 1 ? [a, c, b] : [b, c, d]
+  const ax = pos[p * 3]
+  const ay = pos[p * 3 + 1]
+  const bx = pos[q * 3] - ax
+  const by = pos[q * 3 + 1] - ay
+  const cx = pos[r * 3] - ax
+  const cy = pos[r * 3 + 1] - ay
+  const det = bx * cy - by * cx
+  if (det === 0) return null
+  const u = ((x - ax) * cy - (y - ay) * cx) / det
+  const v = (bx * (y - ay) - by * (x - ax)) / det
+  const za = pos[p * 3 + 2]
+  return za + u * (pos[q * 3 + 2] - za) + v * (pos[r * 3 + 2] - za)
+}
+
 /** Grid coordinate index range [k0, k1] of the hole an inner square of half-width ext cuts into level l. */
 function holeRange(l: Level, ext: number): [number, number] {
   const k1 = Math.ceil(ext / l.spacing + l.half - 1e-6)

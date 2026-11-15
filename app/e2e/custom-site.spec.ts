@@ -164,7 +164,7 @@ test.describe('custom landing site at 1440 × 900', () => {
     await expect(page.getByTestId('pin-name')).toHaveText('Ridge camp')
     await page.mouse.click(mark.x, mark.y, { button: 'right' })
     const menu = page.getByTestId('scene-menu')
-    await expect(menu.getByRole('menuitem')).toHaveText(['Add point here', 'Set Ridge camp as landing site', 'Moon', 'Point start', 'Point end', 'Earth', 'Sun', 'Solar system — top view'])
+    await expect(menu.getByRole('menuitem')).toHaveText(['Add point here', 'Set Ridge camp as landing site', 'Moon']) // U14: Moon is the only viewpoint
     await menu.getByRole('menuitem', { name: 'Set Ridge camp as landing site' }).click()
     await expect.poll(() => hashSite(page)).toBe(PLACE.id)
     await expect(page.getByTestId('answer')).toHaveAttribute('data-site-id', PLACE.id, { timeout: 60_000 })

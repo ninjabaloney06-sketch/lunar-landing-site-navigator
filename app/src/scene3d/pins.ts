@@ -51,6 +51,13 @@ export interface PinItem {
  */
 export const POI_NEAR_KM = 60
 
+/**
+ * At site and eye level a pin closer than this to the current site, km, is not drawn (visual sweep 20): it marks the
+ * landing site itself (its own landing record, a sunlit point on the same spot), which the mast already marks, and
+ * from the default view such pins stood on the mast's foot and hid it. On the globe every pin is drawn.
+ */
+export const POI_AT_SITE_KM = 0.5
+
 const STEM_W_PX = 1.6
 const SITE_LEN_PX = 26 // the globe's site pin (globe.ts)
 const SITE_HEAD_PX = 3.2

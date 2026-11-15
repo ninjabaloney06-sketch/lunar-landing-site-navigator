@@ -1,18 +1,13 @@
-// The viewpoint menu (Brief C4 part 2). One list, two places: under the "View" button beside the timeline
+// The viewpoint menu (Brief C4 part 2; U14 left the Moon as its only viewpoint). One list, two places: under the "View" button beside the timeline
 // (keyboard and touch) and at the pointer after a right-click on the scene. Arrow keys move, Enter or Space
 // chooses, Esc closes and gives the focus back.
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import type { Viewpoint } from '../scene3d'
 
-export const VIEWPOINTS: { id: Viewpoint; label: string }[] = [
-  { id: 'moon', label: 'Moon' },
-  { id: 'start', label: 'Point start' },
-  { id: 'end', label: 'Point end' },
-  { id: 'earth', label: 'Earth' },
-  { id: 'sun', label: 'Sun' },
-  { id: 'top', label: 'Solar system — top view' },
-]
+// U14 (ninja, 15 Nov): "Moon" is the only viewpoint left; Point start, Point end, Earth, Sun and the solar-system top
+// view were removed. The View button still lists Landing site, Eye level and Moon, so the menu stays a menu.
+export const VIEWPOINTS: { id: Viewpoint; label: string }[] = [{ id: 'moon', label: 'Moon' }]
 
 export interface ViewItem {
   id: string

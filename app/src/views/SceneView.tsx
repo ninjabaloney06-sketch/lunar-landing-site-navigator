@@ -1,6 +1,5 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
-// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top, and "Moon" at the Moon where it is
-// a body in the picture (the Earth and Sun viewpoints; labelPoint('moon') is null elsewhere). A label is hidden
+// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth and "Landing site" at the mast top. A label is hidden
 // whenever project() / labelPoint() returns null or a point that is not visible. On the flight level the labels are
 // Earth, Moon, the launchpad, the landing point, the capsule, the lander, and one at each engine burn (its name, the
 // stage that fires, or both: the layer checkboxes choose). Burn labels that would lie over another label are not
@@ -59,14 +58,10 @@ export interface SceneApi {
   setLevel(level: SceneLevel): void
 }
 
-/** The six viewpoint entries, shared by the View button and the right-click menu. */
-export function viewpointItems(points: ScenePoint[], goTo: (v: Viewpoint) => void): ViewItem[] {
-  return VIEWPOINTS.map((v) => ({
-    id: v.id,
-    label: v.label,
-    disabled: (v.id === 'start' || v.id === 'end') && !points.some((p) => p.role === v.id),
-    onSelect: () => goTo(v.id),
-  }))
+/** The viewpoint entries (U14: only "Moon"), shared by the View button and the right-click menu. `points` is no
+ *  longer read (it decided whether Point start / Point end were enabled); kept so App.tsx's call stays valid. */
+export function viewpointItems(_points: ScenePoint[], goTo: (v: Viewpoint) => void): ViewItem[] {
+  return VIEWPOINTS.map((v) => ({ id: v.id, label: v.label, onSelect: () => goTo(v.id) }))
 }
 
 interface Props {
@@ -84,7 +79,7 @@ interface Props {
   clickGuard(): boolean // false while a click on the scene only closes a menu
   points: ScenePoint[] // user points, drawn as markers
   api: RefObject<SceneApi | null>
-  onTopView(on: boolean): void // the not-to-scale top view is shown
+  onTopView?(on: boolean): void // unused since U14 removed the top view; App.tsx still passes it (diff in cam's report)
   canAddPoint: boolean // false when the list of user points is full
   onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
@@ -93,7 +88,6 @@ interface Props {
 }
 
 const HOVER_GRACE_MS = 350 // pointer from the pin onto its info box
-const LABEL_NEAR_PX = { x: 110, y: 52 } // two label points this close would put the label boxes over each other
 const CLICK_SLOP_PX = 5 // the scene's own limit between a click and a drag
 
 /** Test hook (?test=1 only, like the scene's window.__scene): the POIs last passed to setPois, and an override of
@@ -139,6 +133,22 @@ const SAME_SPOT_PX = 24 // burn markers closer than this on screen share one lab
 const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0
 const grown = (b: Box): Box => ({ x0: b.x0 - PAD_PX, y0: b.y0 - PAD_PX, x1: b.x1 + PAD_PX, y1: b.y1 + PAD_PX })
 
+/**
+ * Boxes (in the stage's coordinates) of the page's own text and controls that lie over the scene: the header's
+ * parts (not its empty middle), the timeline footer, the POI key, the Mission panel and the flight panels. A label or
+ * an info box placed there could not be read, or would hide them.
+ */
+const OVERLAY_SELECTORS = ['.top > :not(.actions-col)', '.top .actions-col > *', '.bottom > *', '.foot', '.poi-key', '.mission-panel', '.flight-panel', '.flight-transport']
+function overlayBoxes(stage: HTMLElement): Box[] {
+  const o = stage.getBoundingClientRect()
+  const out: Box[] = []
+  for (const el of document.querySelectorAll(OVERLAY_SELECTORS.join(','))) {
+    const r = el.getBoundingClientRect()
+    if (r.width > 0 && r.height > 0) out.push({ x0: r.left - o.left, y0: r.top - o.top, x1: r.right - o.left, y1: r.bottom - o.top })
+  }
+  return out
+}
+
 /** Writes text into an element only when it changed: this runs on every animation frame. */
 function setText(el: HTMLElement | null, text: string) {
   if (el && el.textContent !== text) el.textContent = text
@@ -163,15 +173,15 @@ const BODY_TEXT: Record<string, string> = { earth: 'Earth', moon: 'Moon', arriva
 
 export function SceneView(props: Props) {
   const { deps, siteId, utcMs, view, sunEl, earthEl, flight, onUnavailable, onPick, onFlightPick } = props
-  const { onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
+  const { onLevel, clickGuard, points, api, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
   pick.current = onPick
   const flightPick = useRef(onFlightPick)
   flightPick.current = onFlightPick
-  const cb = useRef({ onLevel, clickGuard, onTopView })
-  cb.current = { onLevel, clickGuard, onTopView }
+  const cb = useRef({ onLevel, clickGuard })
+  cb.current = { onLevel, clickGuard }
   const name = useRef<HTMLDivElement>(null)
   const nameText = useRef<HTMLDivElement>(null)
   // Right-click menu: where it opened, the Moon point under it, and the user point named() reports at that moment
@@ -191,8 +201,6 @@ export function SceneView(props: Props) {
   const ownLevel = useRef<SceneLevel | null>(null)
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
-  const moon = useRef<HTMLDivElement>(null)
-  const moonBox = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
   const flightEls = useRef<Partial<Record<FlightAnchor, HTMLDivElement | null>>>({})
   const capsuleEls = useRef<CraftEls>({ box: null, name: null, sub: null })
@@ -397,7 +405,6 @@ export function SceneView(props: Props) {
     })
     // A press that closes the right-click menu is not also a click on the scene.
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
-    const offTop = h.onTopView((on) => cb.current.onTopView(on))
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
@@ -414,7 +421,9 @@ export function SceneView(props: Props) {
       ;(window as unknown as { __views?: ViewsTestHook }).__views = hook
     }
 
-    // The box sits above the pin (below it when there is no room), inside the stage.
+    // The info box (U8, visual sweep 9 and 10) sits beside its pin, never on it: right of the pin, flipped to the
+    // left at the stage's right edge, else above or below it. Of those, the first that covers none of the page's
+    // own text over the stage (header, timeline, POI key, open panels); when none is free, the one covering least.
     const placeBox = () => {
       const el = box.current
       const a = anchor.current
@@ -425,27 +434,71 @@ export function SceneView(props: Props) {
       const W = stage.clientWidth
       const H = stage.clientHeight
       const gap = 14
-      const x = Math.max(8, Math.min(a.x - w / 2, W - w - 8))
-      let y = a.y - ht - gap
-      if (y < 8) y = a.y + gap
-      y = Math.max(8, Math.min(y, H - ht - 8))
-      const t = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`
+      const m = 8
+      const clampX = (x: number) => Math.max(m, Math.min(x, W - w - m))
+      const clampY = (y: number) => Math.max(m, Math.min(y, H - ht - m))
+      // Beside: moved only along the pin's vertical, so it never slides over the pin; above / below: only sideways.
+      const sides: [string, Box][] = (
+        [
+          ['right', a.x + gap, clampY(a.y - ht / 2)],
+          ['left', a.x - gap - w, clampY(a.y - ht / 2)],
+          ['above', clampX(a.x - w / 2), a.y - gap - ht],
+          ['below', clampX(a.x - w / 2), a.y + gap],
+        ] as [string, number, number][]
+      )
+        .filter(([, x, y]) => x >= m - 0.5 && y >= m - 0.5 && x + w <= W - m + 0.5 && y + ht <= H - m + 0.5)
+        .map(([side, x, y]) => [side, { x0: x, y0: y, x1: x + w, y1: y + ht }])
+      const blocked = overlayBoxes(stage)
+      const cover = (b: Box) => blocked.reduce((s, o) => s + Math.max(0, Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0)) * Math.max(0, Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0)), 0)
+      let best: [string, Box] | null = null
+      let least = Infinity
+      for (const c of sides) {
+        const k = cover(c[1])
+        if (k < least) {
+          least = k
+          best = c
+        }
+        if (k === 0) break
+      }
+      // A stage too small for any side (a phone in landscape): inside the stage, below the pin if it fits.
+      const [side, b] = best ?? ['inside', { x0: clampX(a.x - w / 2), y0: clampY(a.y + gap), x1: 0, y1: 0 }]
+      const t = `translate(${b.x0.toFixed(0)}px, ${b.y0.toFixed(0)}px)`
       if (el.style.transform !== t) el.style.transform = t
+      if (el.dataset.side !== side) el.dataset.side = side
+    }
+
+    // A Sun, Earth or Landing site label that would lie on the page's own text (the header over the sky, visual sweep
+    // 1 and 2) hangs below its point instead (.obj-box.is-below); if that is covered too, it is not drawn.
+    const clearOfText = (el: HTMLDivElement | null) => {
+      const box = el?.firstElementChild
+      if (!el || el.hidden || !box) return
+      const o = host.current!.getBoundingClientRect()
+      const blocked = overlayBoxes(host.current!)
+      const covered = () => {
+        const b = box.getBoundingClientRect()
+        const me: Box = { x0: b.left - o.left, y0: b.top - o.top, x1: b.right - o.left, y1: b.bottom - o.top }
+        return blocked.some((x) => overlaps(me, x))
+      }
+      box.classList.remove('is-below')
+      if (!covered()) return
+      if (box.classList.contains('obj-box')) {
+        box.classList.add('is-below')
+        if (!covered()) return
+        box.classList.remove('is-below')
+      }
+      el.hidden = true
     }
 
     let raf = 0
     const tick = () => {
       h.setFlightTime(flightRef.current.clock.timeMs)
       place(sun.current, h.labelPoint('sun'), have.current.sun)
+      clearOfText(sun.current)
       const ep = h.labelPoint('earth')
       place(earth.current, ep, have.current.earth)
-      const mp = h.labelPoint('moon')
-      place(moon.current, mp, true)
-      // From the Sun's side the Moon and Earth are a fraction of a degree apart: the Moon's label then hangs below
-      // its point, so the two labels never cover each other.
-      const near = !!(mp?.visible && ep?.visible && have.current.earth && Math.abs(ep.x - mp.x) < LABEL_NEAR_PX.x && Math.abs(ep.y - mp.y) < LABEL_NEAR_PX.y)
-      moonBox.current?.classList.toggle('is-below', near)
+      clearOfText(earth.current)
       place(site.current, h.project('site'), true)
+      clearOfText(site.current)
       const n = namedNow()
       const named = n && n.visible ? poiOf(n) : null
       if (named !== dismissed.current) dismissed.current = null // the pointer has left the dismissed pin
@@ -521,10 +574,8 @@ export function SceneView(props: Props) {
       offPick()
       offFlightPick()
       offLevel()
-      offTop()
       offMenu()
       api.current = null
-      cb.current.onTopView(false)
       handle.current = null
       h.dispose()
     }
@@ -649,12 +700,6 @@ export function SceneView(props: Props) {
         <div ref={earth} className="obj" hidden>
           <div className="obj-box" data-testid="label-earth">
             <span className="obj-name obj-earth">Earth</span> <span className="obj-num">{earthEl === null ? '' : fmtDeg(earthEl)}</span>
-            <span className="obj-tick" />
-          </div>
-        </div>
-        <div ref={moon} className="obj" hidden>
-          <div ref={moonBox} className="obj-box" data-testid="label-moon">
-            <span className="obj-name">Moon</span>
             <span className="obj-tick" />
           </div>
         </div>

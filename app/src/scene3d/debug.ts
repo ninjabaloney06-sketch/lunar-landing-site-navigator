@@ -50,13 +50,14 @@ export interface DebugView {
   setMoonVisible(on: boolean): void
   showRegion(on: boolean): void
   flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
-  topView(): boolean
   named(): SceneName | null
   surfaceAt(x: number, y: number): { lat: number; lon: number } | null
   bodies(): { name: string; center: number[]; camera: number[] }[]
   projectMark(index: number): ScreenPoint | null
   skySize(b: 'sun' | 'earth'): number | null
   walkTo(x: number, y: number): boolean
+  /** U19: the site camera's height above the drawn terrain under it (a ray straight down through the visible terrain meshes). */
+  eyeClearance(): { level: SceneLevel; position: number[]; drawn: number | null; ground: number; clearance: number | null }
   nearLevel(on: boolean): Promise<void>
   nearReady(): Promise<void>
   levelSpecs(): { name: string; size: number; spacing: number; ext: number }[]
@@ -131,9 +132,8 @@ export function installDebug(v: DebugView) {
     surfaceDist: () => v.surfaceDist(),
     // Terrain point (ENU m, z = ground height) under a screen position at site or eye level: where a click walks to.
     terrainAt: (x: number, y: number) => v.terrainAt(x, y),
-    // Viewpoints without the fly, the top-view flag, the name label's data, the Moon point under a screen
-    // position, each body's centre with the camera in the same frame and unit (MOON_ME km, or the top view's
-    // display units), and a user point's marker on screen.
+    // The Moon viewpoint without the fly, the name label's data, the Moon point under a screen position, each
+    // body's centre with the camera in the same frame and unit (MOON_ME km), and a user point's marker on screen.
     goTo: async (vp: Viewpoint) => {
       const ok = v.goTo(vp)
       v.renderNow()
@@ -167,7 +167,6 @@ export function installDebug(v: DebugView) {
     // The camera in one frame at every level (MOON_ME km and the orientation in MOON_ME), with the site scene's
     // share of the picture (0 = space scene, 1 = site scene) and the site's position, for the fly between the scenes.
     flyPose: () => v.flyPose(),
-    topView: () => v.topView(),
     named: () => v.named(),
     surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),
     bodies: () => v.bodies(),
@@ -176,6 +175,10 @@ export function installDebug(v: DebugView) {
     // F3: the walk a click on terrain starts, to the ENU point (x, y) in m, without a frame drawn in between (a
     // test can read the camera before and after the next frame).
     walkTo: (x: number, y: number) => v.walkTo(x, y),
+    // U19: the id of the site whose frame the scene has, and the camera's height over the drawn terrain under it
+    // (a ray straight down through the visible terrain meshes, independent of the camera code's groundZ).
+    siteId: () => v.frame?.site?.id ?? null,
+    eyeClearance: () => v.eyeClearance(),
     // F2: the near terrain level (160 m to ±40 km from the south-cap 80 m tiles). Off in test mode until
     // nearLevel(true), which also starts it for the current site; nearReady() resolves once the job for the
     // current site has ended (the terrain rebuilt, or nothing to do); levelSpecs() lists the levels as built.

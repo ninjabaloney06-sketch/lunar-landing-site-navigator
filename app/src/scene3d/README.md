@@ -12,8 +12,11 @@ from the camera's position, wheel and pinch dolly along the view (speed ∝ dist
 above terrain, 1 km above the Moon sphere in space) and change the field of view at eye level (4°–54°, bodies unscaled).
 Walk (note 6): a left-click (< 5 px) on terrain at site or eye level flies the camera to stand there, 1.75 m up, and
 ends at eye level; camera only (sky, labels and numbers stay the landing site's); beyond 60 km from the site it is ignored.
-Viewpoints (Brief C4 part 2): handle.goTo('moon'|'start'|'end'|'earth'|'sun'|'top'). Earth and Sun reuse the sky layer
-(true direction and angular size from the camera's position, 5.5 radii out); 'top' is topview.ts, not to scale.
+Viewpoints (Brief C4 part 2; U14, 15 Nov): handle.goTo('moon') only. The point start / end, Earth, Sun and
+solar-system top viewpoints were removed (topview.ts keeps only the display constants the drawer text quotes).
+Eye level (U5, U16, U19): one placement, index.ts eyeAt(): 1.75 m above site.groundZ, the drawn triangles of the
+finest level under the camera (levels.ts surfaceZ), not the bilinear data height; settleEye() re-places the camera
+when the terrain is rebuilt (the near level arrives later).
 User points (part 3): handle.setMarkers(points): square-headed pins on the globe, and in the site scene where the 80 m
 tile has terrain under them. handle.named() gives the hovered or tapped pin's name; handle.onMenu the right-click.
 Easing (scene track, 14 Nov): the orbit drag, the middle-drag, the wheel and the pinch all apply the share
@@ -38,14 +41,10 @@ Pin region (S5): on the globe the cap south of region.ts PIN_REGION_NORTH_LAT is
 boundary and a 9 % tint, both unlit in the colour of the user points and built from geometry.siteVector at the
 constant's latitude (globe.ts buildRegion). Picking is unchanged; the views decide where a point may be added.
 Zoom limits (S6): the wheel's outer limit is around the nearest body (20 000 km from the Moon's centre, the same
-11.5 radii for Earth and the Sun), not around the scene origin, which blocked one direction at the Earth and Sun
-viewpoints depending on the Moon's phase. A trackpad pinch (wheel + ctrlKey) zooms by e^(−deltaY/100).
-Body viewpoints over time (S7): after goTo('earth'|'sun') the camera and its orbit target move with the body's
-centre on every update(frame), so the body stays in place in the picture and the zoom is kept; any other
-viewpoint or level ends it.
+11.5 radii for Earth and the Sun), not around the scene origin. A trackpad pinch (wheel + ctrlKey) zooms by e^(−deltaY/100).
 Moon label anchor (S8): project('moon') and labelPoint('moon') give the Moon's centre (top edge once its disc is
-wider than 40 px) where the camera is farther from the Moon than the globe view goes (20 000 km: the Earth and
-Sun viewpoints and the flights to them), visible: false off screen or behind Earth or the Sun; null elsewhere.
+wider than 40 px) where the camera is farther from the Moon than the globe view goes (20 000 km, after a free
+zoom out), visible: false off screen or behind Earth or the Sun; null elsewhere.
 Bodies hiding each other (S9): of Earth and the Sun the sky layer draws the one nearer to the observer in front;
 one that is nearer than the Moon (at its own viewpoint) is drawn after the Moon, over it. project() and
 labelPoint() report visible: false for the Sun, Earth or Moon whose centre is behind another body.
