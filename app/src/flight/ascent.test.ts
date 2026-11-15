@@ -220,7 +220,8 @@ describe('Saturn V: Apollo 11', () => {
     expect(res.upperStagePropellantKg).toBeGreaterThan(0.95 * 70684)
     expect(res.upperStagePropellantKg).toBeLessThan(1.05 * 70684)
     // stage, instrument unit and spacecraft add up to the mass in orbit
-    expect(res.upperStageDryKg + res.upperStagePropellantKg + 45693).toBeCloseTo(res.insertion.massKg, 3)
+    // to 5 g: with the guidance prediction step of 30 s (team decision, 15 Nov 2026) the sum is 0.6 g off, was within 0.5 g
+    expect(res.upperStageDryKg + res.upperStagePropellantKg + 45693).toBeCloseTo(res.insertion.massKg, 2)
   })
 
   it('flies the first stage along the flown path', () => {

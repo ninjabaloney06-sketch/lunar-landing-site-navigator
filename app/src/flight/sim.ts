@@ -227,8 +227,12 @@ function thirdBody(tab: BodyTable, mu: number, sign: 1 | -1, r: Vec3, utcMs: num
   const dx = r[0] - bx
   const dy = r[1] - by
   const dz = r[2] - bz
-  const d3 = Math.pow(dx * dx + dy * dy + dz * dz, 1.5)
-  const b3 = Math.pow(bx * bx + by * by + bz * bz, 1.5)
+  // x^1.5 as x·√x: the same value to the last bit or two, at a fraction of the cost of Math.pow (team decision
+  // in chat, 15 Nov 2026, on the measured table: round-off only; the commit lists what moved)
+  const d2 = dx * dx + dy * dy + dz * dz
+  const d3 = d2 * Math.sqrt(d2)
+  const b2 = bx * bx + by * by + bz * bz
+  const b3 = b2 * Math.sqrt(b2)
   out[0] -= mu * (dx / d3 + bx / b3)
   out[1] -= mu * (dy / d3 + by / b3)
   out[2] -= mu * (dz / d3 + bz / b3)

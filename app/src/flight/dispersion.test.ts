@@ -81,7 +81,8 @@ describe('runDispersion', () => {
     // the planned descent lands within 10 m of the site (lunar.test.ts): so do these
     expect(Math.hypot(r.runs[0].eastKm, r.runs[0].northKm)).toBeLessThan(0.01)
     expect(r.propellant.sigmaKg).toBe(0)
-    expect(r.landing.sigmaMajorKm).toBe(0)
+    // zero to round-off: the runs are identical, their mean is no longer exact since thirdBody uses x*sqrt(x) (1.4e-26 km)
+    expect(r.landing.sigmaMajorKm).toBeLessThan(1e-12)
     expect(r.tube.every((p) => p.sigmaMajorKm === 0 && p.sigmaMinorKm === 0)).toBe(true)
     expect(r.j2Only).toBeNull()
   })
@@ -110,12 +111,14 @@ describe('runDispersion', () => {
     expect(r.sigmas).toEqual(DEFAULT_SIGMAS)
     expect(r.flown).toBe(200)
     expect(r.tube.length).toBe(64)
-    // seed 1 fixes the statistics (values of this file's first run, Node 24 on the build laptop)
-    expect(r.landing.sigmaMajorKm).toBeCloseTo(0.7295818738462894, 9)
-    expect(r.landing.sigmaMinorKm).toBeCloseTo(0.2962744953239841, 9)
-    expect(r.landing.majorAzimuthDeg).toBeCloseTo(177.65761915101533, 7)
-    expect(r.propellant.meanKg).toBeCloseTo(6949.2331744809235, 6)
-    expect(r.propellant.sigmaKg).toBeCloseTo(42.20281998660058, 7)
+    // seed 1 fixes the statistics (Node 24 on the build laptop). Re-recorded on 15 Nov 2026 after thirdBody changed to
+    // x*sqrt(x) (team decision): sigmaMinor moved by 0.65 µm, the azimuth by 6.5e-8°, mean propellant by 0.018 g, its σ
+    // by 0.047 g; before: 0.7295818738462894, 0.2962744953239841, 177.65761915101533, 6949.2331744809235, 42.20281998660058
+    expect(r.landing.sigmaMajorKm).toBeCloseTo(0.7295818738141273, 9)
+    expect(r.landing.sigmaMinorKm).toBeCloseTo(0.29627449466998346, 9)
+    expect(r.landing.majorAzimuthDeg).toBeCloseTo(177.6576192163001, 7)
+    expect(r.propellant.meanKg).toBeCloseTo(6949.233192646087, 6)
+    expect(r.propellant.sigmaKg).toBeCloseTo(42.20286725523752, 7)
     // J2 alone, flown open loop, moves this descent's touchdown by about 4.7 km and costs about 157 kg more
     expect(Math.hypot(r.j2Only!.eastKm, r.j2Only!.northKm)).toBeGreaterThan(4)
     expect(Math.hypot(r.j2Only!.eastKm, r.j2Only!.northKm)).toBeLessThan(5.5)

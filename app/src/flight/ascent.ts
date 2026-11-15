@@ -638,7 +638,11 @@ interface Guess {
   tf: number // time to go, s
 }
 
-const PREDICT_STEP_S = 15
+// Step of the guidance's own RK4 prediction of the rest of the ascent: 30 s since the team decision in chat of
+// 15 Nov 2026 (it was 15 s), taken on the measured trade-off. Half the prediction work (1.8-2.0x fewer steps);
+// on the six pinned plans it moved delta-v by at most 0.23 mm/s, propellant by 7.4 g, the ground-fixed
+// touchdown point by under 1 um, event times by 0.16 s and the Entry Interface point by 52 m.
+const PREDICT_STEP_S = 30
 // scratch for the predictor (one flight at a time: plain synchronous code)
 const PY = new Float64Array(12)
 const PT = new Float64Array(12)
