@@ -20,6 +20,11 @@ export interface StageSpec {
   name: string // official name: "S-IC", "Core Stage", "Interim Cryogenic Propulsion Stage (ICPS)"
   dryKg: number // mass without usable propellant (includes residuals and the interstage it drops with)
   propellantKg: number // usable main-engine propellant
+  /** Set when propellantKg is not a stated capacity. 'lower-bound': the real usable load is at least this
+   *  (derived from a "more than" figure, no capacity published), so a propellant shortfall computed with it is
+   *  an upper limit on the real one. `note` is one plain sentence the UI shows next to any propellant verdict
+   *  for this element; `validated` stays false until the science lead signs the vehicle's numbers. */
+  propellantStatus?: { kind: 'lower-bound'; note: string; validated: false; sources: SourceRef[] }
   engine: EngineSpec | null // null = no main engine (a crew module)
   diameterM: number
   lengthM: number

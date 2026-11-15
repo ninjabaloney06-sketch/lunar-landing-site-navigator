@@ -104,6 +104,14 @@ const WIKI_BLUE_MOON: SourceRef = {
   label: 'Wikipedia: Blue Moon (spacecraft) (fallback: Blue Origin and NASA state no masses and no engine count)',
   url: 'https://en.wikipedia.org/wiki/Blue_Moon_(spacecraft)',
 }
+const SPACE_REVIEW_BLUE_MOON: SourceRef = {
+  label: 'J. Foust, A lunar lander makeover, The Space Review (22 May 2023; Blue Origin\'s HLS program manager on Mark 2 masses)',
+  url: 'https://thespacereview.com/article/4587/1',
+}
+const NASA_LANDERS_2028: SourceRef = {
+  label: 'NASA, NASA, Partners Accelerate Lander Development for 2028 Moon Missions (23 Oct 2026)',
+  url: 'https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/',
+}
 const WIKI_BE7: SourceRef = {
   label: 'Wikipedia: BE-7 (fallback: Blue Origin states no specific impulse)',
   url: 'https://en.wikipedia.org/wiki/BE-7',
@@ -385,9 +393,24 @@ export const SPACECRAFT: SpacecraftSpec[] = [
         name: 'Blue Moon Mark 2',
         // FALLBACK, Wikipedia Blue Moon (spacecraft), Mark 2 infobox: dry mass 16,000 kg (cited there to SpaceNews, 19 May 2023)
         dryKg: 16_000,
-        // FALLBACK, difference of two Wikipedia infobox numbers: launch mass >45,000 kg − dry mass 16,000 kg = 29,000 kg.
-        // The launch mass is given as a lower limit, so this is one too.
+        // LOWER BOUND: fuelled mass more than 45,000 kg − dry mass 16,000 kg = 29,000 kg. Wikipedia's infobox calls the
+        // 45,000 kg "launch mass"; the article it cites (Foust, SpaceNews, reprinted in The Space Review) says it is the
+        // fuelled mass: "When loaded with liquid hydrogen and liquid oxygen propellants, its mass increases to more than
+        // 45 metric tons" and "weighs 16 metric tons dry". Same article: "The lander will need to be refueled in lunar
+        // orbit before attempting a landing." NASA (23 Oct 2026) has since changed the plan: "Blue Origin will defer
+        // propellant transfer and use three transfer stages", rendezvous in "an elliptical polar orbit", which "reduces
+        // Blue Moon lander propellant requirements" compared with the halo orbit. Neither source, nor NASA's selection
+        // release, states a tank capacity or the load at the start of the descent: the real load is at least 29,000 kg.
         propellantKg: 45_000 - 16_000,
+        propellantStatus: {
+          kind: 'lower-bound',
+          note:
+            'Blue Moon’s propellant here (29 t) is a lower bound: the only published figure is a fuelled mass of more than 45 t, ' +
+            'the real lander was to be refuelled in lunar orbit (NASA’s 2028 plan uses transfer stages and a cheaper orbit instead), ' +
+            'and its full load is not published, so the real lander may not be short (not yet validated by the science lead).',
+          validated: false,
+          sources: [SPACE_REVIEW_BLUE_MOON, WIKI_BLUE_MOON, NASA_LANDERS_2028],
+        },
         engine: {
           name: 'BE-7',
           // FALLBACK, Wikipedia Blue Moon (spacecraft): "Mark 1 is to use a single engine, whereas the other spacecraft are
@@ -408,10 +431,10 @@ export const SPACECRAFT: SpacecraftSpec[] = [
         diameterM: 7,
         // NASA: "The Blue Moon crew lander that will fly to the Moon will stand about 52 feet tall."
         lengthM: 52 * FT,
-        sources: [NASA_BLUE_MOON_CABIN, BLUE_ORIGIN_ENGINES, WIKI_BLUE_MOON, WIKI_BE7],
+        sources: [NASA_BLUE_MOON_CABIN, BLUE_ORIGIN_ENGINES, WIKI_BLUE_MOON, SPACE_REVIEW_BLUE_MOON, NASA_LANDERS_2028, WIKI_BE7],
       },
     ],
-    sources: [NASA_BLUE_MOON_CABIN, BLUE_ORIGIN_ENGINES, WIKI_BLUE_MOON, WIKI_BE7],
+    sources: [NASA_BLUE_MOON_CABIN, BLUE_ORIGIN_ENGINES, WIKI_BLUE_MOON, SPACE_REVIEW_BLUE_MOON, NASA_LANDERS_2028, WIKI_BE7],
   },
 ]
 
