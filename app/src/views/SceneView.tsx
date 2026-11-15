@@ -679,6 +679,7 @@ export function SceneView(props: Props) {
           poi={poiById.get(info.id)!}
           pinned={info.pinned}
           boxRef={box}
+          from={deps.sites.find((s) => s.id === siteId) ?? null}
           onClose={dismissInfo}
           onPointerEnter={() => {
             overBox.current = true
