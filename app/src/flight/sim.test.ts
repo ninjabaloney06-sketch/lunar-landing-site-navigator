@@ -68,4 +68,16 @@ describe('integrate', () => {
     const expected = -1.5 * J2_EARTH * n * (R_EARTH_EQ / r) ** 2 * Math.cos(incl) * day
     expect(node).toBeCloseTo(expected, 3) // about −5° per day for the ISS orbit
   })
+
+  it('throws a RangeError for a non-finite maxSeconds instead of returning an empty or endless run', () => {
+    const none: Field = { centre: 'earth', accel: (_r, _t, out) => out.fill(0) }
+    for (const maxSeconds of [NaN, Infinity, -Infinity]) {
+      expect(() => integrate(none, { r: [7000, 0, 0], v: [0, 7.5, 0], m: 1 }, 0, { maxSeconds })).toThrow(RangeError)
+    }
+  })
+
+  it('throws a RangeError when the step guard runs out before maxSeconds', () => {
+    const none: Field = { centre: 'earth', accel: (_r, _t, out) => out.fill(0) }
+    expect(() => integrate(none, { r: [7000, 0, 0], v: [0, 7.5, 0], m: 1 }, 0, { maxSeconds: 5000, maxStepS: 1e-3, path: false })).toThrow(/step limit/)
+  })
 })

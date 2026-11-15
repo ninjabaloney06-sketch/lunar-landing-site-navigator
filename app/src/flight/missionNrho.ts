@@ -45,7 +45,7 @@ import type { EarthField, Field, SimRun, SimState } from './sim'
 import { apsides } from './transit'
 import type { MissionEvent, MissionLeg, MissionPlan, PropellantUse, SourceRef, Vec3 } from './types'
 import { FlightPlanError } from './types'
-import { DEG, TWO_PI, angleAbout, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
+import { DEG, TWO_PI, angleAbout, angleWrapUp, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
 
 const HOUR_MS = 3_600_000
 const MIN_MS = 60_000
@@ -273,7 +273,7 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
       const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
       // The burn straddles the injection point: half of it before, half after.
       coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
-      while (coastS < 0) coastS += TWO_PI / nPark
+      coastS = angleWrapUp(coastS, 0, TWO_PI / nPark)
       // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
       coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
     }
@@ -366,7 +366,8 @@ function aimTli(inp: TliInput): { shot: TliShot; tauS: number; planeTurnRad: num
     x = [x[0] + dx0, x[1] + dx1]
     cur = next
   }
-  if (size(cur) > 0.5 || Math.abs(cur.rp - inp.flybyRadiusKm) > 0.5) throw new NoLeverage()
+  // written as !(≤) so that a NaN miss or radius is refused, not returned as a solved shot
+  if (!(size(cur) <= 0.5) || !(Math.abs(cur.rp - inp.flybyRadiusKm) <= 0.5)) throw new NoLeverage()
   return { shot: cur, tauS: x[0], planeTurnRad: x[1] }
 }
 
@@ -418,7 +419,9 @@ function perigeeRaise(earth: EarthField, ins: OrbitState, m0: number, stage: Eng
   const rA = norm(apo.end.r)
   const dv = visViva(MU_EARTH, rA, 0.5 * (rA + rpTarget)) - norm(apo.end.v)
   if (!(dv > 0)) throw new FlightPlanError('The insertion orbit needs no perigee raise to reach the parking orbit.')
-  let a = fire((m0 * (1 - Math.exp(-dv / cKms))) / flow)
+  const tau0 = (m0 * (1 - Math.exp(-dv / cKms))) / flow
+  if (!(tau0 > 0 && tau0 < tApoS)) throw new FlightPlanError('The Perigee Raise Maneuver could not be sized.')
+  let a = fire(tau0)
   let b = fire(a.tauS * 1.05)
   for (let i = 0; i < 20 && Math.abs(b.err) > 1e-4; i++) {
     const next = b.tauS - (b.err * (b.tauS - a.tauS)) / (b.err - a.err)
@@ -426,7 +429,8 @@ function perigeeRaise(earth: EarthField, ins: OrbitState, m0: number, stage: Eng
     a = b
     b = fire(next)
   }
-  if (Math.abs(b.err) > 0.01) throw new FlightPlanError('The Perigee Raise Maneuver could not be sized.')
+  // !(≤) also catches a NaN error, which `> 0.01` and the loop's `> 1e-4` would both pass over
+  if (!(Math.abs(b.err) <= 0.01)) throw new FlightPlanError('The Perigee Raise Maneuver could not be sized.')
   return { coast: b.coast, burn: b.burn, tIgnMs: b.tIgnMs, tauS: b.tauS, m0Kg: m0 }
 }
 

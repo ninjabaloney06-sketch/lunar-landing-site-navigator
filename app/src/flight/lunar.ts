@@ -409,13 +409,20 @@ function newton(f: (x: number[]) => number[] | null, x0: number[], h: number[], 
   return size(res) < 1 ? x : null
 }
 
+const MAX_FOLLOW_STEPS = 10_000
+
 /** Follows a solution along a parameter from p0 (where x0 solves the problem) to p1: each step starts the
  *  solver from the last solution; a step the solver rejects is halved. */
-function follow(solveAt: (p: number, guess: number[]) => number[] | null, p0: number, x0: number[], p1: number): number[] | null {
+export function follow(solveAt: (p: number, guess: number[]) => number[] | null, p0: number, x0: number[], p1: number): number[] | null {
+  // NaN never equals itself and Infinity never gets reached: neither parameter may end the loop below
+  if (!Number.isFinite(p0) || !Number.isFinite(p1)) throw new RangeError('follow: non-finite parameter')
   let p = p0
   let x = x0
   let step = p1 - p0
-  while (p !== p1) {
+  // A step shrinks only by halving and stops at 1/200 of the span, so about 200 solves and a handful of
+  // rejections reach p1; the cap only ends a solver that never settles on a step.
+  for (let n = 0; p !== p1; n++) {
+    if (n >= MAX_FOLLOW_STEPS) throw new RangeError('follow: no end to the continuation')
     const next = Math.abs(p1 - p) <= Math.abs(step) ? p1 : p + step
     const sol = solveAt(next, x)
     if (sol) {
@@ -466,7 +473,8 @@ function bestThrottle(massAt: (k: number) => number, kLo: number): number {
   let d = a + g * (b - a)
   let fc = massAt(Math.exp(c))
   let fd = massAt(Math.exp(d))
-  while (b - a > 0.05) {
+  for (let it = 0; b - a > 0.05; it++) {
+    if (it >= 200) throw new RangeError('throttle search: no convergence')
     if (fc > fd) {
       b = d
       d = c
@@ -564,7 +572,8 @@ function designTerminal(m: Motor, mGate: number, g: number): Terminal | null {
     const F = (t: number) => GATE_ALT_KM - CUTOFF_HEIGHT_KM - CUTOFF_SINK_KMS * t + 0.5 * g * t * t + m.veKms * t - (mGate / m.flowKgS) * L(t)
     let hi = Math.sqrt((2 * GATE_ALT_KM) / (aMax - g))
     const tEmpty = mGate / m.flowKgS
-    while (F(hi) > 0 && hi < 0.5 * tEmpty) hi *= 1.5
+    // 1.5^200 is beyond any range: the cap only ends a hi that cannot grow (0, NaN); F(hi) > 0 below then says no
+    for (let it = 0; it < 200 && F(hi) > 0 && hi < 0.5 * tEmpty; it++) hi *= 1.5
     if (F(hi) > 0) return null
     let lo = 0
     for (let i = 0; i < 60; i++) {

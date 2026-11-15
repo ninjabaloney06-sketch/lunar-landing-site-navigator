@@ -26,7 +26,7 @@ import { constantThrust, earthField, integrate, moonField } from './sim'
 import type { EarthField, Field, SimRun, SimState } from './sim'
 import type { FlightEphemeris, Vec3 } from './types'
 import { FlightPlanError } from './types'
-import { DEG, TWO_PI, add, angleAbout, combine, cross, dot, latLonUnit, norm, qconj, qrot, rotateAbout, scale, sub, unit } from './vec'
+import { DEG, TWO_PI, add, angleAbout, angleWrapUp, combine, cross, dot, latLonUnit, norm, qconj, qrot, rotateAbout, scale, sub, unit } from './vec'
 
 const HOUR_MS = 3_600_000
 
@@ -179,7 +179,7 @@ export function flyOutbound(inp: OutboundInput): OutboundResult {
     const point = rotateAbout(guess.tliPoint, guess.padHat, dAz)
     // The burn straddles the injection point: half of it before, half after.
     let coastS = angleAbout(unit(r0), point, h) / nPark - tauS / 2
-    while (coastS < 0) coastS += TWO_PI / nPark
+    coastS = angleWrapUp(coastS, 0, TWO_PI / nPark)
     // whole revolutions more, as the first guess planned the coast (one to two revolutions in the parking orbit)
     coastS += Math.max(0, Math.round((guess.coastAngleRad / nPark - tauS / 2 - coastS) / (TWO_PI / nPark))) * (TWO_PI / nPark)
     try {

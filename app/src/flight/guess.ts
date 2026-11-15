@@ -13,7 +13,7 @@ import { MU_EARTH, MU_MOON, OMEGA_EARTH, R_EARTH_EQ, R_MOON, SOI_MOON, DAY_S, bi
 import type { Ellipse } from './astro'
 import type { FlightEphemeris, Vec3 } from './types'
 import { FlightPlanError } from './types'
-import { DEG, TWO_PI, angleAbout, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
+import { DEG, TWO_PI, angleAbout, angleWrapUp, cross, dot, latLonUnit, norm, qrot, rotateAbout, scale, sub, unit } from './vec'
 
 const HOUR_MS = 3_600_000
 const MIN_MS = 60_000
@@ -105,6 +105,7 @@ const wrapPi = (x: number) => {
  *  apogee on the insertion orbit, then half a revolution of the raised orbit to its perigee (the perigee raise at
  *  apogee leaves the line of apsides where it is). */
 function ellipseCoast(el: NonNullable<GuessInput['ellipse']>): { angle: number; seconds: number } {
+  if (!Number.isFinite(el.insertionTrueAnomalyRad)) throw new RangeError('ellipseCoast: the insertion true anomaly is not finite')
   const nu = wrapPi(el.insertionTrueAnomalyRad)
   const half = (o: Ellipse) => Math.PI * Math.sqrt(o.a ** 3 / MU_EARTH)
   return { angle: TWO_PI - nu, seconds: half(el.insertion) - timeFromPeriapsis(MU_EARTH, el.insertion, nu) + half(el.raised) }
@@ -172,7 +173,7 @@ function evaluate(g: GuessInput, tL: number): Guess | null {
       tA = tPeri + tr.T * 1000
     } else {
       coastAngle = angleAbout(padHat, P, h) - g.ascentArcRad
-      while (coastAngle < MIN_PARKING_COAST_RAD) coastAngle += TWO_PI
+      coastAngle = angleWrapUp(coastAngle, MIN_PARKING_COAST_RAD, TWO_PI)
       tTli = Math.round(tL + ascentMs + (coastAngle / nPark) * 1000)
       Pinj = P
       tPeri = tTli

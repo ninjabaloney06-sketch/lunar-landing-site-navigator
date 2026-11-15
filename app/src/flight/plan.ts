@@ -63,7 +63,7 @@ import {
 import type { Ellipse, Hyperbola } from './astro'
 import { makeGravity, propagate } from './nbody'
 import type { Gravity, Propagation } from './nbody'
-import { DEG, TWO_PI, add, sub, scale, dot, cross, norm, unit, lerp, combine, rotateAbout, angleAbout, qrot, latLonUnit } from './vec'
+import { DEG, TWO_PI, angleWrapUp, add, sub, scale, dot, cross, norm, unit, lerp, combine, rotateAbout, angleAbout, qrot, latLonUnit } from './vec'
 
 const HOUR_MS = 3600000
 const MIN_MS = 60000
@@ -262,7 +262,7 @@ function evaluate(c: Ctx, tL: number): Sample | null {
     P = rotateAbout(mHat, h, -tr.nuA) // TLI happens at periapsis
     Q = cross(h, P)
     coastAngle = angleAbout(padHat, P, h) - c.ascentArc
-    while (coastAngle < 5 * DEG) coastAngle += TWO_PI
+    coastAngle = angleWrapUp(coastAngle, 5 * DEG, TWO_PI)
     coastS = coastAngle / c.nPark
     tTli = Math.round(tL + ascentMs + coastS * 1000)
     tA = tTli + tr.T * 1000

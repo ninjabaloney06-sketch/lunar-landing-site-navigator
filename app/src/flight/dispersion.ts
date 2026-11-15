@@ -86,7 +86,10 @@ export function gaussian(seed: number): () => number {
       return s
     }
     let u1 = u()
-    while (u1 <= 0) u1 = u()
+    for (let tries = 0; u1 <= 0; tries++) {
+      if (tries >= 1000) throw new RangeError('gaussian: the uniform source keeps returning 0')
+      u1 = u()
+    }
     const u2 = u()
     const r = Math.sqrt(-2 * Math.log(u1))
     spare = r * Math.sin(2 * Math.PI * u2)
@@ -233,6 +236,14 @@ function eig2(a: number, b: number, c: number): { l1: number; l2: number; v1: [n
   return { l1: Math.max(0, l1), l2: Math.max(0, l2), v1 }
 }
 
+/** Unit chord from centers[from] to centers[to]; fallback (the previous tangent) when the two coincide or are not
+ *  finite, so a tube point never gets a NaN axis. Where the chord is usable this is exactly unit(sub(b, a)). */
+export function pathTangent(centers: Vec3[], from: number, to: number, fallback: Vec3): Vec3 {
+  const chord = sub(centers[to], centers[from])
+  const len = norm(chord)
+  return len > 0 && Number.isFinite(len) ? unit(chord) : fallback
+}
+
 const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / Math.max(1, xs.length)
 const sd = (xs: number[]) => {
   if (xs.length < 2) return 0
@@ -278,10 +289,12 @@ export function* dispersionSteps(inp: DispersionInput, opt: DispersionOptions = 
   }
 
   // ---- tube
+  let prevAlong: Vec3 = pathTangent(centers, 0, centers.length - 1, [1, 0, 0])
   const tube: TubePoint[] = times.map((utcMs, j) => {
     const ds = dev[j]
     const m: Vec3 = ds.length ? scale(ds.reduce((s, d) => add(s, d), [0, 0, 0] as Vec3), 1 / ds.length) : [0, 0, 0]
-    const along = unit(sub(centers[Math.min(K - 1, j + 1)], centers[Math.max(0, j - 1)]))
+    const along = pathTangent(centers, Math.max(0, j - 1), Math.min(K - 1, j + 1), prevAlong)
+    prevAlong = along
     const ref: Vec3 = Math.abs(along[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0]
     const u0 = unit(cross(along, ref))
     const v0 = cross(along, u0)
