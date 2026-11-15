@@ -242,7 +242,7 @@ function checkArtemisIParking(plan: MissionPlan) {
   expect(prm.kind).toBe('burn')
   expect(prm.utcMs).toBeGreaterThan(ascent.utcMs)
   expect(prm.utcMs).toBeLessThan(tli.utcMs)
-  // insertion by the core stage into the flown orbit, to within 2 km [JANNAF]
+  // the plan says which parking orbit it flew, with the marker (the insertion orbit itself: ascent.ts hits its target)
   const note = plan.notes.find((n) => n.startsWith('In low lunar orbit'))!
   expect(note).toContain('not yet validated by the science lead')
   // the injection starts from 100 nmi perigee [IAC] (osculating, at the PRM cut-off)
