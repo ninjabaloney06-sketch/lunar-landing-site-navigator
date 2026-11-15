@@ -1,5 +1,6 @@
-// Text formatting for the Flight plan tab. UTC everywhere; English month abbreviations; no locale output.
-// Estimates carry a leading "≈" (the caller passes estimate = true).
+// Text formatting for the Rocket flight menu. UTC everywhere; English month abbreviations; no locale output.
+// Estimates carry a leading "≈" (the caller passes estimate = true). Δv is always in m/s (fmtDv); speeds such as
+// the arrival v∞ or the entry speed stay in km/s (fmtKms).
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -9,6 +10,19 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export function fmtKms(v: number, estimate = false): string {
   const s = `${v.toFixed(Math.abs(v) < 0.1 ? 3 : 2)} km/s`
   return estimate ? `≈ ${s}` : s
+}
+
+/** Δv in m/s, the unit of every Δv in the menu: "8,428 m/s"; one decimal below 10 m/s ("0.4 m/s"). Input in km/s. */
+export function fmtDv(kms: number): string {
+  const ms = kms * 1000
+  if (Math.abs(ms) < 9.95) return `${ms.toFixed(1)} m/s`
+  return `${Math.round(ms).toLocaleString('en-US')} m/s`
+}
+
+/** A mass in kg for a summary line: "7,500 kg" (to 100 kg from 1,000 kg, to 10 kg below). */
+export function fmtKg(kg: number): string {
+  const step = Math.abs(kg) >= 1000 ? 100 : 10
+  return `${(Math.round(kg / step) * step).toLocaleString('en-US')} kg`
 }
 
 /** "27.0 t"; "0.21 t" below one tonne. */
