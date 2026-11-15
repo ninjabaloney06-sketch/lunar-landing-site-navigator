@@ -97,8 +97,8 @@ for (const vp of [
     // The View menu: each entry has a one-line hint; the names stay the labels.
     await page.getByTestId('view').click()
     const menu = page.getByTestId('view-menu')
-    await expect(menu.getByRole('menuitem')).toHaveText(['Landing site', 'Eye level', 'Moon'])
-    for (const name of ['Landing site', 'Eye level', 'Moon']) await expect(menu.getByRole('menuitem', { name, exact: true })).toHaveAttribute('data-hint', /\w+ \w+/)
+    await expect(menu.getByRole('menuitem')).toHaveText(['Landing site', 'Moon']) // 15 Nov: the eye-level view was removed from the app
+    for (const name of ['Landing site', 'Moon']) await expect(menu.getByRole('menuitem', { name, exact: true })).toHaveAttribute('data-hint', /\w+ \w+/)
     await page.screenshot({ path: `${SHOTS}/${vp.width}-view-menu.png` })
     await page.keyboard.press('Escape')
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)

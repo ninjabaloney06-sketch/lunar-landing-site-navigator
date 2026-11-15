@@ -55,7 +55,7 @@ export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: stri
   },
 ]
 
-const PLAY_NOTE = 'Eye level at the landing site, from the first to the last mission day. Space pauses.'
+const PLAY_NOTE = 'The landing site from the first to the last mission day. Space pauses.'
 
 // U17: the dates of the data's coverage in the panel's own date format (16 Aug 2027), not state.ts's long months.
 const RANGE_TEXT = `Dates from ${fmtDate(COVERAGE_START_MS)} to ${fmtDate(COVERAGE_END_MS - DAY_MS)} (UTC) are supported.`

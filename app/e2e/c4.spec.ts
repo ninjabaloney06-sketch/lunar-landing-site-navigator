@@ -836,7 +836,7 @@ test('app: middle-drag, wheel, eye-level zoom and every viewpoint leave site, pe
   await act('Landing site', () => chooseView(page, 'Landing site'))
 })
 
-test('without test mode: the walk and the viewpoint flights finish, with no page error', async ({ page }) => {
+test('without test mode: no walk, the viewpoint flights finish, with no page error', async ({ page }) => {
   test.setTimeout(120_000)
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -846,10 +846,11 @@ test('without test mode: the walk and the viewpoint flights finish, with no page
   await expect(page.getByTestId('label-site')).toBeVisible({ timeout: 30_000 })
   const view = (label: string) => chooseView(page, label)
   const hashView = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('view') ?? 'site')
-  // Walk: the 1.5 s flight ends at eye level.
-  await page.mouse.dblclick(900, 430) // 15 Nov: a walk needs a double-click
-  await expect.poll(hashView, { timeout: 10_000 }).toBe('eye')
+  // 15 Nov: the eye-level view was removed from the app (before: a click walked there). A double-click on the
+  // terrain leaves the view where it is.
+  await page.mouse.dblclick(900, 430)
   await page.waitForTimeout(1800)
+  expect(await hashView()).toBe('site')
   await page.screenshot({ path: 'test-results/c4-live-walk-1440x900.png', animations: 'disabled' })
   // U14: the Earth, Sun, top view and point viewpoints are gone; Moon is the one flight left.
   await view('Moon')

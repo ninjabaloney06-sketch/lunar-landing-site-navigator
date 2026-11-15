@@ -656,7 +656,7 @@ test('panel: invalid mission dates are rejected with a message', async ({ page }
   await expect(page.locator('body')).not.toContainText('NaN')
 })
 
-test('panel: Play mission goes to eye level at the mission start and plays', async ({ page }) => {
+test('panel: Play mission goes to the mission start and plays, in the landing-site view', async ({ page }) => {
   await page.goto(`/#site=${RIDGE}&period=${AUG}&t=2027-08-22T06:00Z`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
@@ -666,7 +666,10 @@ test('panel: Play mission goes to eye level at the mission start and plays', asy
   await expect(page.getByTestId('date')).not.toHaveText('16 August 2027, 00:00 UTC')
   await page.keyboard.press('Space') // pause; the link is written once the cursor rests
   const paused = await page.getByTestId('date').innerText()
-  await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=eye')
+  // 15 Nov: the eye-level view was removed from the app; the mission plays in the landing-site view (the default,
+  // so the link carries no view).
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('t=2027-08-16')
+  expect(await page.evaluate(() => location.hash)).not.toContain('view=')
   await expect(page.getByTestId('date')).toHaveText(paused)
 })
 
@@ -679,12 +682,13 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
-  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, above 15°')
+  await expect(page.getByTestId('slope-warning')).toHaveText("Landing not recommended: slope 31.8° over 100 m. NASA's Artemis III landing requirement is under 10° over 100 m. Source")
   // The warning is text, not a control: the header still has 5 controls (U4: mission, date, Points of interest,
   // Search, Details) and the main screen 10 (+ View, Simulate, the footer's "how this is computed", "Documentation"
   // and the validation line's record link; read-header dropped the second documentation link).
   await expect(page.locator('header.top').getByRole('button').or(page.locator('header.top').getByRole('link'))).toHaveCount(5)
-  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(10)
+  // 15 Nov: the warning names NASA's requirement and links its source, one more link while it shows.
+  await expect(page.getByRole('button').or(page.getByRole('link'))).toHaveCount(11)
   await chooseSite(page, RIDGE)
   await expectAnswer(page, RIDGE, AUG)
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)

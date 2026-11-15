@@ -20,7 +20,7 @@ What you can do on main today:
 - Choose a mission: name, start and end date (1 Nov 2026 to 31 Dec 2030 UTC, at most 60 days), a science goal, one of 18 sourced sites, and the ground stations to count.
 - Read two sentences above the timeline: one for sunlight, one for geometric visibility of the selected stations, both for the time under the cursor.
 - Scrub or play the period on a timeline with a Light track and a Contact (station contact) track.
-- See the Sun and Earth over the real terrain horizon in a 3D view (globe, site, eye level) or, without WebGL, in a horizon strip.
+- See the Sun and Earth over the real terrain horizon in a 3D view (globe, site) or, without WebGL, in a horizon strip.
 - Rank the 18 sites for the mission's dates, stations and science goal. Sites that pass the 5° slope limit are ranked; the others are listed separately.
 - Find better dates: landing times every 30 minutes within 60 days after the mission start that meet adjustable thresholds.
 - Compare the current view with another site or another named period.

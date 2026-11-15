@@ -414,6 +414,8 @@ export function SceneView(props: Props) {
     })
     // A press that closes the right-click menu is not also a click on the scene.
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
+    // No eye-level view in the app (15 Nov): no walk. The scene's regression tests (?test=1) keep it.
+    h.setWalkEnabled(new URLSearchParams(window.location.search).has('test'))
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l), goToPoint: (lat, lon) => h.goToPoint(lat, lon) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
