@@ -8,8 +8,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Window } from '../geometry'
-import { DAY_MS } from '../state'
+import type { Site, Station } from '../data/types'
+import { DAY_MS, SPEEDS_H_PER_S } from '../state'
 import { fmtDateTime, fmtDay } from './format'
+import { useYearBars, yearSpan, YEARS } from './yearBars'
 
 interface Props {
   startMs: number // shown range: mission start minus the context days, clipped to the supported dates
@@ -23,7 +25,45 @@ interface Props {
   valueText: string
   answer: ReactNode // the answer line or its loading / empty / error state
   tools?: ReactNode // quiet text controls at the right end above the answer (View, Simulate)
+  sim?: SimControls | null // while a simulation runs or is paused: its speed slider and "Reset to start"
   onScrub(ms: number): void
+}
+
+export interface SimControls {
+  speed: number // hours of mission time per second, one of SPEEDS_H_PER_S
+  onSpeed(hoursPerSecond: number): void
+  onReset(): void // cursor back to the first mission step, simulation paused
+}
+
+export const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
+const speedShort = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'}/s` : `${h} h/s`)
+
+/** Simulation speed: a slider over the steps of SPEEDS_H_PER_S (like the Flight plan's), beside Simulate. */
+export function SimSpeed({ speed, onSpeed, onReset }: SimControls) {
+  const found = SPEEDS_H_PER_S.indexOf(speed)
+  const i = found < 0 ? 0 : found
+  return (
+    <span className="sim-controls" data-testid="sim-controls">
+      <button type="button" className="tool" onClick={onReset}>
+        Reset to start
+      </button>
+      <label className="sim-speed-field" title="Mission time per second of real time">
+        <span>Speed</span>
+        <input
+          type="range"
+          className="sim-speed"
+          min={0}
+          max={SPEEDS_H_PER_S.length - 1}
+          step={1}
+          value={i}
+          aria-valuetext={speedLabel(SPEEDS_H_PER_S[i])}
+          data-testid="sim-speed"
+          onChange={(e) => onSpeed(SPEEDS_H_PER_S[Number(e.target.value)])}
+        />
+        <span className="mono">{speedShort(SPEEDS_H_PER_S[i])}</span>
+      </label>
+    </span>
+  )
 }
 
 function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number; endMs: number; show: string[] }) {
@@ -44,7 +84,7 @@ function Segments({ ws, startMs, endMs, show }: { ws: Window[]; startMs: number;
   )
 }
 
-export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, tools, onScrub }: Props) {
+export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, missionLabel, cursorMs, sun, comms, valueText, answer, tools, sim, onScrub }: Props) {
   const body = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const dragging = useRef(false)
@@ -87,7 +127,12 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
 
   return (
     <div className="timeline">
-      {tools && <div className="tl-tools">{tools}</div>}
+      {(tools || sim) && (
+        <div className="tl-tools">
+          {sim && <SimSpeed {...sim} />}
+          {tools}
+        </div>
+      )}
       <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
         <span>Light</span>
@@ -154,6 +199,96 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
             )
           })}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------- the drawer's stacked timeline: one bar per location over a calendar year ----------
+
+export interface YearRow {
+  site: Site
+  missions: { name: string; startMs: number; endMs: number }[] // mission spans drawn as an outline on the row
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** Light or communication over a year (2026–2030, data from Nov 2026): a month axis and one bar row per
+ *  location, bars = sunlit or in-contact spans, the share of the covered days at the row's end. */
+export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearRow[]; stations: Station[]; ids: string[]; initialYear: number }) {
+  const [kind, setKind] = useState<'light' | 'comms'>('light')
+  const [year, setYear] = useState(initialYear)
+  const entries = useYearBars(
+    rows.map((r) => r.site),
+    stations,
+    ids,
+    year,
+  )
+  const { yearStartMs, yearEndMs, startMs, endMs } = yearSpan(year)
+  const span = yearEndMs - yearStartMs
+  const pct = (ms: number) => `${(100 * (Math.min(yearEndMs, Math.max(yearStartMs, ms)) - yearStartMs)) / span}%`
+  const width = (a: number, b: number) => `${(100 * (Math.min(yearEndMs, b) - Math.max(yearStartMs, a))) / span}%`
+  const what = kind === 'light' ? 'sunlit' : 'in line of sight of a selected station'
+
+  return (
+    <div className="yt" data-testid="year-timeline">
+      <div className="yt-controls">
+        <select className="field" aria-label="Show" data-testid="year-kind" value={kind} onChange={(e) => setKind(e.target.value as 'light' | 'comms')}>
+          <option value="light">Light</option>
+          <option value="comms">Communication</option>
+        </select>
+        <select className="field mono" aria-label="Year" data-testid="year-select" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+          {YEARS.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+        <span className="yt-key">
+          <i className={`yt-swatch is-${kind}`} aria-hidden="true" />
+          {what}
+        </span>
+      </div>
+      <div className="yt-grid">
+        <span />
+        <div className="yt-axis" aria-hidden="true">
+          {MONTHS.map((m, i) => (
+            <span key={m} className="yt-month" style={{ left: pct(Date.UTC(year, i, 1)) }}>
+              {m}
+            </span>
+          ))}
+        </div>
+        <span />
+        {rows.map((r) => {
+          const e = entries[r.site.id] ?? { status: 'computing' }
+          const spans = e.status === 'done' ? (kind === 'light' ? e.lit : e.covered) : []
+          const share = e.status === 'done' && endMs > startMs ? (100 * spans.reduce((t, [a, b]) => t + (b - a), 0)) / (endMs - startMs) : null
+          const label =
+            e.status === 'done'
+              ? `${r.site.name}: ${what} ${share!.toFixed(0)} % of the time in ${year}`
+              : e.status === 'none'
+                ? `${r.site.name}: ${e.reason}`
+                : `${r.site.name}: computing`
+          return (
+            <div key={r.site.id} className="yt-row" data-testid="year-row" data-site-id={r.site.id} data-state={e.status}>
+              <span className="yt-name" title={r.site.name}>
+                {r.site.name}
+              </span>
+              <div className={`yt-bar is-${kind}`} role="img" aria-label={label}>
+                {startMs > yearStartMs && <span className="yt-nodata" style={{ left: 0, width: width(yearStartMs, startMs) }} />}
+                {spans.map(([a, b]) => (
+                  <span key={a} className="yt-seg" data-testid="year-seg" style={{ left: pct(a), width: width(a, b) }} />
+                ))}
+                {r.missions
+                  .filter((m) => m.endMs > yearStartMs && m.startMs < yearEndMs)
+                  .map((m) => (
+                    <span key={`${m.name}|${m.startMs}`} className="yt-mission" title={m.name} style={{ left: pct(m.startMs), width: width(m.startMs, m.endMs) }} />
+                  ))}
+              </div>
+              <span className="yt-val mono">{share !== null ? `${share.toFixed(0)} %` : e.status === 'none' ? 'no data' : '…'}</span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

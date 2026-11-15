@@ -1,20 +1,23 @@
 // Details drawer: horizon strip, station states (chosen in the Mission panel), finder, comparison, site
 // potential, export, how this is computed and the terms of use. Opened from the answer sentence, "Find better dates" or the
 // footer link.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sample, ScienceGoal, StationLos } from '../geometry'
 import type { MissionState } from '../missions'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { TOP_VIEW } from '../scene3d'
-import { SPEEDS_H_PER_S } from '../state'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteTable } from './SiteTable'
 import { Terms } from './Terms'
+import { YearTimeline } from './Timeline'
+import type { YearRow } from './Timeline'
+import { resolvePeriod } from './period'
+import { yearOf } from './yearBars'
 import { capital, fmtDateTime, fmtDeg } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
@@ -46,17 +49,12 @@ interface Props {
   missions: MissionState[] // saved missions, shown as rows of the table
   onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
   onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
-  speed: number // Simulate: hours of mission time per second
-  onSpeed(hoursPerSecond: number): void
-  onReset(): void // cursor back to the first mission step
   onClose(): void
 }
 
 // Whole-year mode of the table. Measured before shipping (14 Nov 2026, this build in Chromium on ninja's Mac):
 // one site for 365 days (17 520 samples) took 198 ms, all 18 sites 3.2 s; the limit set for shipping was 20 s.
 const WHOLE_YEAR = true
-
-const speedLabel = (h: number) => (h % 24 === 0 ? `${h / 24} ${h === 24 ? 'day' : 'days'} per second` : `${h} hours per second`)
 
 const CATEGORY: Record<SitePotential['category'], string> = {
   'water-ice': 'Water ice',
@@ -121,6 +119,20 @@ export function Drawer(p: Props) {
   }, [custom, site.id])
   const meshRes = mesh && mesh.id === site.id ? mesh.res : null
 
+  // The year timeline: the current site first, then each saved mission's site once, with the missions' dates.
+  const yearRows: YearRow[] = useMemo(() => {
+    const rows: YearRow[] = [{ site, missions: [{ name: 'Current mission', startMs: period.startMs, endMs: period.endMs }] }]
+    for (const m of p.missions) {
+      const s = m.site === site.id ? site : p.sites.find((x) => x.id === m.site)
+      if (!s) continue // a saved custom site that is not the current one: its terrain is computed only when chosen
+      let row = rows.find((r) => r.site.id === s.id)
+      if (!row) rows.push((row = { site: s, missions: [] }))
+      const span = resolvePeriod(m, p.periods)
+      row.missions.push({ name: m.name ?? 'Saved mission', startMs: span.startMs, endMs: span.endMs })
+    }
+    return rows
+  }, [site, period.startMs, period.endMs, p.missions, p.sites, p.periods])
+
   useEffect(() => {
     closeBtn.current?.focus({ preventScroll: true })
   }, [])
@@ -157,11 +169,12 @@ export function Drawer(p: Props) {
   }
 
   const ready = results.status === 'ready'
+  const horizonFile = ready ? results.results.series.horizon : null
   const truncated = ready && results.results.series.horizon && results.results.series.horizon.truncated.length > 0 && (
     <>
       {' '}
       <strong data-testid="truncated-note">
-        At this site the model ends before 300 km in {results.results.series.horizon.truncated.length} of{' '}
+        At this site the model ends before {results.results.series.horizon.ray_max_km} km in {results.results.series.horizon.truncated.length} of{' '}
         {results.results.series.horizon.mask.length} directions, so distant terrain there is missing and
         sunlight and Earth visibility in those directions may be overstated.
       </strong>
@@ -204,6 +217,24 @@ export function Drawer(p: Props) {
       )}
       {results.status === 'empty' && <p className="msg">{results.message}</p>}
       {results.status === 'error' && <p className="msg is-error">{results.error}</p>}
+
+      <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
+        <h3 id="sec-finder">Find better dates</h3>
+        {/* keyed: a site, station or period change starts a fresh finder, so old results never show under a new site */}
+        <Finder
+          key={`${site.id}|${p.ids.join(',')}|${period.startMs}`}
+          site={site}
+          stations={p.stations}
+          ids={p.ids}
+          fromMs={period.startMs}
+          onShow={p.onShowWindow}
+        />
+      </section>
+
+      <section className="drawer-sec" aria-labelledby="sec-year">
+        <h3 id="sec-year">Year timeline</h3>
+        <YearTimeline rows={yearRows} stations={p.stations} ids={p.ids} initialYear={yearOf(period.startMs)} />
+      </section>
 
       <section className="drawer-sec" aria-labelledby="sec-horizon">
         <h3 id="sec-horizon">Horizon</h3>
@@ -257,19 +288,6 @@ export function Drawer(p: Props) {
             Choose ground stations
           </button>
         </p>
-      </section>
-
-      <section ref={finderRef} className="drawer-sec" aria-labelledby="sec-finder">
-        <h3 id="sec-finder">Find better dates</h3>
-        {/* keyed: a site, station or period change starts a fresh finder, so old results never show under a new site */}
-        <Finder
-          key={`${site.id}|${p.ids.join(',')}|${period.startMs}`}
-          site={site}
-          stations={p.stations}
-          ids={p.ids}
-          fromMs={period.startMs}
-          onShow={p.onShowWindow}
-        />
       </section>
 
       <section className="drawer-sec" aria-labelledby="sec-compare">
@@ -330,26 +348,6 @@ export function Drawer(p: Props) {
         </ul>
       </section>
 
-      <section className="drawer-sec" aria-labelledby="sec-simulation">
-        <h3 id="sec-simulation">Simulation</h3>
-        <p className="quiet">Simulate, beside the timeline, plays the mission from the cursor to its last day. Space pauses.</p>
-        <div className="row">
-          <label className="row sim-speed">
-            <span className="quiet">Speed</span>
-            <select className="field" data-testid="speed" value={p.speed} onChange={(e) => p.onSpeed(Number(e.target.value))}>
-              {SPEEDS_H_PER_S.map((h) => (
-                <option key={h} value={h}>
-                  {speedLabel(h)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="btn" type="button" onClick={p.onReset}>
-            Reset to start
-          </button>
-        </div>
-      </section>
-
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
         <div className="row">
@@ -403,8 +401,10 @@ export function Drawer(p: Props) {
             </li>
           ) : (
             <li>
+              {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM) and
+                  scripts/terrain_tiles.py (LEVELS); ray length and eye height come from the site's horizon file. */}
               Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
-              beyond; the 3D scene uses an 80 m mesh (
+              beyond (
               <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
                 Barker et al. 2023
               </a>
@@ -412,9 +412,10 @@ export function Drawer(p: Props) {
               <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
                 data
               </a>
-              ). The horizon is searched up to 300 km in each direction for an eye 1.75 m above the ground. Where
-              that reaches past the edge of the 20 m model (about 80° S), a 120 m model from the same data set
-              continues it.
+              ). The horizon is searched in 720 directions up to {horizonFile?.ray_max_km ?? 300} km for an eye{' '}
+              {horizonFile?.observer_height_m ?? 1.75} m above the ground. Where that reaches past the edge of the 20 m
+              model (about 80° S), a 120 m model from the same data set continues it. The 3D scene draws the terrain at
+              20 m within 2.5 km of the site, 80 m within 20 km, then 400 m and 2 km means out to 300 km.
               {truncated}
             </li>
           )}

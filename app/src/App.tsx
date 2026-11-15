@@ -133,6 +133,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
+  // Simulation mode: from the first play until the run reaches its last step, Esc or the Flight plan tab.
+  // A pause stays in it, so the speed slider and "Reset to start" stay beside Simulate.
+  const [simMode, setSimMode] = useState(false)
+  const leftSite = hs.view === 'flight'
+  useEffect(() => {
+    if (leftSite) setSimMode(false)
+    else if (playing) setSimMode(true)
+  }, [playing, leftSite])
   const [webgl, setWebgl] = useState(() => webglAvailable())
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
@@ -289,6 +297,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (!playing) return
     if (inFlight || cursorNow.current >= lastStep) {
       setPlaying(false)
+      setSimMode(false)
       return
     }
     let from = cursorNow.current // mission time and
@@ -309,7 +318,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         shown = next
         patch({ t: next })
       }
-      if (next >= lastStep) setPlaying(false)
+      if (next >= lastStep) {
+        setPlaying(false)
+        setSimMode(false)
+      }
     }, 40)
     return () => window.clearInterval(id)
   }, [playing, inFlight, speed, lastStep, patch])
@@ -321,7 +333,11 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
       if (e.key === 'Escape') {
         if (menu) closeMenu(true)
         else if (hs.drawer) patch({ drawer: null })
-        else patch({ view: inFlight ? 'site' : 'globe' })
+        else {
+          setPlaying(false)
+          setSimMode(false)
+          patch({ view: inFlight ? 'site' : 'globe' })
+        }
         return
       }
       if (menu || hs.drawer || e.metaKey || e.ctrlKey || e.altKey) return
@@ -606,6 +622,17 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               }}
               onCustom={openCustom}
               onClose={closeMenuQuiet}
+              missionName={missionName}
+              site={site}
+              stations={stations}
+              ids={ids}
+              missionStartMs={period.startMs}
+              missionEndMs={period.endMs}
+              onBest={(startMs, days, landingMs) => {
+                setMenu(null)
+                patch({ period: 'custom', from: startMs, days, t: landingMs })
+                dateBtn.current?.focus()
+              }}
             />
           )}
           {inFlight && menu === null && (
@@ -771,7 +798,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           answer={
             ready && answer ? (
               <p className="answer" data-testid="answer" data-state="ready" data-site-id={site.id} data-period-id={period.id}>
-                <span className="answer-line answer-sun">{answer.sun}</span>
+                <span className={`answer-line answer-sun${atCursor?.sun.lit ? '' : ' is-dark'}`}>{answer.sun}</span>
                 <span className="answer-line answer-comms">{answer.comms}</span>
               </p>
             ) : (
@@ -815,6 +842,18 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                 {playing ? 'Pause' : 'Simulate'}
               </button>
             </>
+          }
+          sim={
+            simMode
+              ? {
+                  speed,
+                  onSpeed: setSpeed,
+                  onReset: () => {
+                    setPlaying(false)
+                    patch({ t: period.startMs })
+                  },
+                }
+              : null
           }
           onScrub={(ms) => patch({ t: snap(ms) })}
         />
@@ -889,12 +928,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           missions={missions.list}
           onFindDates={(siteId) => patch({ site: siteId, drawer: 'finder' })}
           onCalculateFlight={calculateFlight}
-          speed={speed}
-          onSpeed={setSpeed}
-          onReset={() => {
-            setPlaying(false)
-            patch({ t: period.startMs })
-          }}
           onClose={() => patch({ drawer: null })}
         />
       )}

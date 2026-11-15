@@ -67,7 +67,7 @@
   gap: var(--s-3);
 }
 
-/* ---------- popovers: site menu and date menu ---------- */
+/* ---------- popovers: the date menu (Time periods) ---------- */
 
 .popover {
   position: absolute;
@@ -164,6 +164,17 @@
   text-align: left;
 }
 
+/* Best periods: the span on one line, its sunlit and coverage values under it. */
+.best .opt {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.best-mission {
+  color: var(--fg);
+}
+
 .date-form {
   padding-bottom: var(--s-4);
 }
@@ -194,6 +205,9 @@
   padding: var(--s-6) var(--s-6) var(--s-12);
   background: var(--surface);
   border-left: 1px solid var(--line);
+  /* The rest of the screen recedes behind the open drawer, so the header row it covers reads as behind it,
+     not as a word cut in half. */
+  box-shadow: 0 0 0 100vmax oklch(0% 0 0 / 0.55);
   animation: drawer-in var(--dur-panel) var(--ease-out);
 }
 
@@ -347,6 +361,124 @@
   color: var(--fg);
 }
 
+/* ---------- year timeline: one select row, a month axis, one bar per location ---------- */
+
+.yt-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  font-size: var(--t-small);
+}
+
+.yt-controls .field {
+  width: auto;
+  padding: var(--s-1) var(--s-2);
+}
+
+.yt-key {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--muted);
+}
+
+.yt-swatch {
+  width: var(--s-3);
+  height: 6px;
+}
+
+.yt-swatch.is-light,
+.yt-bar.is-light .yt-seg {
+  background: var(--sun);
+}
+
+.yt-swatch.is-comms,
+.yt-bar.is-comms .yt-seg {
+  background: var(--comms);
+}
+
+.yt-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr) 4ch;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+}
+
+.yt-row {
+  display: contents;
+}
+
+.yt-axis {
+  position: relative;
+  height: var(--s-4);
+}
+
+.yt-month {
+  position: absolute;
+  bottom: 0;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.yt-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yt-bar {
+  position: relative;
+  height: var(--s-3);
+  background: var(--track);
+}
+
+.yt-seg,
+.yt-nodata,
+.yt-mission {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.yt-nodata {
+  background: repeating-linear-gradient(135deg, var(--hatch) 0 1px, transparent 1px 4px);
+}
+
+/* A mission's dates: an outline over the bars, so the spans inside stay visible. */
+.yt-mission {
+  top: -3px;
+  bottom: -3px;
+  box-sizing: border-box;
+  min-width: 2px;
+  border: 1px solid var(--fg);
+}
+
+.yt-val {
+  text-align: right;
+  color: var(--fg);
+}
+
+/* Every other month named (a month is ~25 px wide in the drawer); each named month has a tick at its start. */
+.yt-month:nth-child(even) {
+  display: none;
+}
+
+.yt-month {
+  padding-left: 3px;
+  border-left: 1px solid var(--line);
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .yt-grid {
+    grid-template-columns: minmax(0, 6em) minmax(0, 1fr) 4ch;
+  }
+}
+
 /* ---------- horizon strip ---------- */
 
 .strip {
@@ -446,6 +578,11 @@
   fill: var(--muted);
 }
 
+.strip-leader {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
 .strip-guide {
   stroke: var(--fg);
   stroke-width: 1;
@@ -477,6 +614,64 @@
   .btn {
     transition: none;
   }
+}
+
+/* ---------- timeline on the stage: simulation controls and legibility ---------- */
+
+/* Beside Simulate while a simulation runs or is paused: "Reset to start" and the speed slider. */
+.timeline .tl-tools {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--s-2);
+}
+
+.sim-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.sim-speed-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.sim-speed {
+  width: var(--s-24);
+  margin: 0;
+  accent-color: var(--fg);
+}
+
+.sim-speed-field .mono {
+  min-width: 7ch;
+  color: var(--fg);
+}
+
+/* Track names in the foreground colour, 6 px tracks (names and cursor re-aligned to them). */
+.timeline .tl-names {
+  row-gap: 6px;
+  padding-top: 5px;
+  color: var(--fg);
+}
+
+.timeline .tl-track {
+  height: 6px;
+}
+
+.timeline .tl-cursor {
+  height: calc(var(--s-2) + 6px + var(--s-3) + 6px + var(--s-1));
+}
+
+.timeline .tl-tick.is-day {
+  color: var(--fg);
+}
+
+/* The light sentence in the Sun colour only while the site is lit (App adds .is-dark when it is not). */
+.answer-sun.is-dark {
+  color: var(--fg);
 }
 
 /* Saved mission row: the flight choices, and the button into the Flight plan with them. */
