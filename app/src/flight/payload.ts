@@ -598,3 +598,193 @@ export function predictedExtraUse(inp: PayloadInput, payloadKg: number): Record<
   for (const t of chain.tanks) out[t.element] = r.dUsed[t.id]
   return out
 }
+
+// =========================================================================================================
+// Minimum-propellant route (P3): among the options the planner already has (the day: the earliest touchdown,
+// stepped through a window; the transfer: minimum energy or a capped duration, the Flight panel's choices; and,
+// when asked, the orbit design, i.e. the architecture) the plan that burns the least propellant in total, the
+// next best, and the delta-v and propellant per phase of both, so the reader sees why the winner wins. Every
+// candidate is a full plan of planMission / planMissionNrho (about 2 s for low lunar orbit, 10 to 13 s for the
+// halo orbit): a worker job. cheapestRoute itself only compares finished plans and takes under a millisecond.
+
+/** The transfer choices of the Flight panel (views/FlightPanel.tsx): null = minimum energy, else at most this many days. */
+export const ROUTE_TRANSFER_CHOICES: (number | null)[] = [null, 4.5, 4, 3.5, 3, 2.5]
+
+export interface RouteOption {
+  key: string // stable id: `${architectureId}|${dayOffset}|${maxTransferDays ?? 'min'}`
+  architectureId: string
+  dayOffset: number // days after the asked earliest touchdown
+  earliestTouchdownMs: number // UTC ms, what the planner is given
+  maxTransferDays: number | null // null = minimum-energy transfer
+  label: string // "touchdown from 17 Aug 2027, minimum-energy transfer"
+}
+
+export interface RouteSummary {
+  option: RouteOption
+  launchMs: number // UTC ms
+  touchdownMs: number // UTC ms
+  totalPropellantKg: number // every burn of the plan, the launch included, kg
+  launchPropellantKg: number // the launch to the parking orbit alone, kg
+  dvInSpaceKms: number // every burn from the Trans-Lunar Injection on, km/s
+  /** An element needs more propellant than it carries in this plan (plan.propellant); ranked after the rest. */
+  short: boolean
+  shortKg: number // summed over the elements that are short, kg
+  phases: { phase: PayloadPhase; label: string; dvKms: number; propellantKg: number }[]
+}
+
+export interface RouteCandidate {
+  option: RouteOption
+  plan: Omit<MissionPlan, 'ephem'> | null
+  error?: string // why the planner gave no plan
+}
+
+export interface RouteComparison {
+  validation: ValidationMarker
+  winner: RouteSummary | null
+  runnerUp: RouteSummary | null
+  ranked: RouteSummary[] // cheapest first; plans that run short of propellant after those that do not
+  failed: { option: RouteOption; message: string }[]
+  /** Winner minus runner-up per phase (negative = the winner needs less), largest propellant difference first. */
+  why: { phase: PayloadPhase; label: string; dvDeltaKms: number; propellantDeltaKg: number }[]
+  /** Winner and runner-up differ by less than tieKg (ROUTE_TIE_FRACTION of the winner's propellant in space). */
+  tie: boolean
+  tieKg: number
+  /** The best option that differs from the winner by tieKg or more (or in having a shortfall), and the same
+   *  per-phase difference against it: what the reader can tell apart when the runner-up is a tie. */
+  clearlyWorse: RouteSummary | null
+  whyVsClearlyWorse: { phase: PayloadPhase; label: string; dvDeltaKms: number; propellantDeltaKg: number }[]
+  /** One sentence for the reader: what wins, by how much, and where the difference comes from. */
+  sentence: string
+  caveats: string[]
+}
+
+const DAY_MS = 86_400_000
+const fmtDay = (ms: number) => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+const transferText = (d: number | null) => (d === null ? 'minimum-energy transfer' : `transfer of at most ${d} days`)
+
+/** The options to plan: every day of the window (both ends included) × every transfer × every architecture. */
+export function routeOptions(
+  base: { earliestTouchdownMs: number; architectureId: string },
+  o: { windowDays: number; stepDays?: number; transfers?: (number | null)[]; architectureIds?: string[] },
+): RouteOption[] {
+  const step = o.stepDays ?? 1
+  const out: RouteOption[] = []
+  for (const architectureId of o.architectureIds ?? [base.architectureId]) {
+    for (let dayOffset = 0; dayOffset <= o.windowDays + 1e-9; dayOffset += step) {
+      for (const maxTransferDays of o.transfers ?? [null]) {
+        const earliestTouchdownMs = base.earliestTouchdownMs + dayOffset * DAY_MS
+        out.push({
+          key: `${architectureId}|${dayOffset}|${maxTransferDays ?? 'min'}`, architectureId, dayOffset, earliestTouchdownMs, maxTransferDays,
+          label: `touchdown from ${fmtDay(earliestTouchdownMs)}, ${transferText(maxTransferDays)}`,
+        })
+      }
+    }
+  }
+  return out
+}
+
+/** Propellant and delta-v per phase, and the totals, of one finished plan. */
+export function routeSummary(option: RouteOption, plan: Omit<MissionPlan, 'ephem'>): RouteSummary {
+  const phases: RouteSummary['phases'] = []
+  let total = 0
+  let launch = 0
+  let dvSpace = 0
+  for (const e of plan.events) {
+    if (e.kind !== 'burn') continue
+    const ph = phaseOfEvent(e, plan.touchdownMs, e.utcMs)
+    const kg = e.propellantKg ?? 0
+    total += kg
+    if (ph === 'launch') launch += kg
+    else dvSpace += e.dvKms ?? 0
+    const row = phases.find((x) => x.phase === ph)
+    if (row) {
+      row.dvKms += e.dvKms ?? 0
+      row.propellantKg += kg
+    } else phases.push({ phase: ph, label: PHASE_LABELS[ph], dvKms: e.dvKms ?? 0, propellantKg: kg })
+  }
+  const shortKg = plan.propellant.reduce((s, u) => s + Math.max(0, u.usedKg - u.capacityKg), 0)
+  return { option, launchMs: plan.launchMs, touchdownMs: plan.touchdownMs, totalPropellantKg: total, launchPropellantKg: launch, dvInSpaceKms: dvSpace, short: shortKg > 0, shortKg, phases }
+}
+
+/** The cheapest of finished plans, the next best and why. Pure and fast: the page can call it on worker replies. */
+export function cheapestRoute(candidates: RouteCandidate[]): RouteComparison {
+  const failed = candidates.filter((c) => !c.plan).map((c) => ({ option: c.option, message: c.error ?? 'no plan' }))
+  const ranked = candidates
+    .filter((c): c is RouteCandidate & { plan: Omit<MissionPlan, 'ephem'> } => !!c.plan)
+    .map((c) => routeSummary(c.option, c.plan))
+    .sort((a, b) => Number(a.short) - Number(b.short) || (a.short ? a.shortKg - b.shortKg : 0) || a.totalPropellantKg - b.totalPropellantKg)
+  const winner = ranked[0] ?? null
+  const runnerUp = ranked[1] ?? null
+  const diff = (w: RouteSummary, o: RouteSummary): RouteComparison['why'] => {
+    const out: RouteComparison['why'] = []
+    for (const ph of new Set<PayloadPhase>([...w.phases, ...o.phases].map((p) => p.phase))) {
+      const a = w.phases.find((p) => p.phase === ph)
+      const b = o.phases.find((p) => p.phase === ph)
+      out.push({ phase: ph, label: PHASE_LABELS[ph], dvDeltaKms: (a?.dvKms ?? 0) - (b?.dvKms ?? 0), propellantDeltaKg: (a?.propellantKg ?? 0) - (b?.propellantKg ?? 0) })
+    }
+    return out.sort((x, y) => Math.abs(y.propellantDeltaKg) - Math.abs(x.propellantDeltaKg))
+  }
+  const why = winner && runnerUp ? diff(winner, runnerUp) : []
+  // A difference below ROUTE_TIE_FRACTION of what the winner burns in space is a tie; the first option beyond it
+  // is the one the reader can tell apart.
+  const tieKg = winner ? ROUTE_TIE_FRACTION * (winner.totalPropellantKg - winner.launchPropellantKg) : 0
+  const tie = !!(winner && runnerUp && !runnerUp.short === !winner.short && runnerUp.totalPropellantKg - winner.totalPropellantKg < tieKg)
+  const clearlyWorse = winner ? (ranked.find((r) => r.short !== winner.short || r.totalPropellantKg - winner.totalPropellantKg >= tieKg) ?? null) : null
+  const whyVsClearlyWorse = winner && clearlyWorse ? diff(winner, clearlyWorse) : []
+  const caveats: string[] = []
+  if (new Set(ranked.map((r) => r.option.architectureId)).size > 1) {
+    caveats.push(
+      "The designs compared use different rockets and landers. In the halo-orbit design the lander's own launch and refilling are not part of the plan, so its total leaves out propellant that the low-lunar-orbit design counts.",
+    )
+  }
+  if (winner?.short) caveats.push('Every plan compared runs short of propellant in at least one element; the winner is the one with the smallest shortfall.')
+  if (failed.length) caveats.push(`${failed.length} of the ${candidates.length} options gave no plan (${failed[0].message}).`)
+  const t = (kg: number) => (Math.abs(kg) < 1000 ? `${Math.abs(kg).toFixed(0)} kg` : `${(Math.abs(kg) / 1000).toFixed(1)} t`)
+  const where = (rows: RouteComparison['why']) => {
+    const lead = rows.find((w) => w.propellantDeltaKg < 0) ?? rows[0]
+    return lead
+      ? ` The largest saving is in ${lead.label}: ${Math.abs(lead.dvDeltaKms * 1000).toFixed(0)} m/s ${lead.dvDeltaKms <= 0 ? 'less' : 'more'} delta-v, ${t(lead.propellantDeltaKg)} ${lead.propellantDeltaKg <= 0 ? 'less' : 'more'} propellant.`
+      : ''
+  }
+  let sentence = 'No option gave a plan.'
+  if (winner && !runnerUp) sentence = `Only one option gave a plan: ${winner.option.label}, ${t(winner.totalPropellantKg)} of propellant in total.`
+  if (winner && runnerUp) {
+    const saved = runnerUp.totalPropellantKg - winner.totalPropellantKg
+    if (!tie) sentence = `Least propellant: ${winner.option.label}, ${t(saved)} less than the next best (${runnerUp.option.label}).` + where(why)
+    else {
+      sentence =
+        `Least propellant: ${winner.option.label}; the next best (${runnerUp.option.label}) needs only ${t(saved)} more, ` +
+        `less than ${(ROUTE_TIE_FRACTION * 100).toFixed(1)} % of the propellant burned in space: practically a tie.` +
+        (clearlyWorse ? ` The first clearly costlier option, ${clearlyWorse.option.label}, needs ${t(clearlyWorse.totalPropellantKg - winner.totalPropellantKg)} more.` + where(whyVsClearlyWorse) : '')
+    }
+  }
+  return { validation: NOT_VALIDATED, winner, runnerUp, ranked, failed, why, tie, tieKg, clearlyWorse, whyVsClearlyWorse, sentence, caveats }
+}
+
+/** ASSUMPTION: two plans whose total propellant differs by less than 0.5 % of what the cheaper one burns in space
+ *  (TLI onwards) are a tie: the planner aims and searches every burn numerically, and differences of this size
+ *  are not worth a different launch day. */
+export const ROUTE_TIE_FRACTION = 0.005
+
+/** Plans every option and compares them. Seconds per option: run it in the worker. `plan` is called with the
+ *  base input changed to the option's day and transfer (planMission or planMissionNrho, chosen by the caller from
+ *  the architecture's rendezvous; for options of another architecture the caller swaps the hardware there).
+ *  Errors of the planner become failed options. */
+export function planCheapestRoute<I extends { earliestTouchdownMs: number; maxTransferDays: number | null; architecture: { id: string } }>(
+  base: I,
+  o: Parameters<typeof routeOptions>[1],
+  plan: (input: I, option: RouteOption) => Omit<MissionPlan, 'ephem'>,
+  onProgress?: (done: number, total: number) => void,
+): RouteComparison {
+  const options = routeOptions({ earliestTouchdownMs: base.earliestTouchdownMs, architectureId: base.architecture.id }, o)
+  const candidates: RouteCandidate[] = []
+  options.forEach((option, i) => {
+    try {
+      candidates.push({ option, plan: plan({ ...base, earliestTouchdownMs: option.earliestTouchdownMs, maxTransferDays: option.maxTransferDays }, option) })
+    } catch (e) {
+      candidates.push({ option, plan: null, error: e instanceof Error ? e.message : String(e) })
+    }
+    onProgress?.(i + 1, options.length)
+  })
+  return cheapestRoute(candidates)
+}
