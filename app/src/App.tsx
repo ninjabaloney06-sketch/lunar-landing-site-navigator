@@ -195,6 +195,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }
   // Phones: the action bar folded behind one Menu button (CSS shows the button at 640 px and below only).
   const [navOpen, setNavOpen] = useState(false)
+  const navHost = useRef<HTMLDivElement>(null)
+  const closeNav = useCallback(() => setNavOpen(false), [])
+  useClickOutside(navHost, closeNav, navOpen)
   const missionBtn = useRef<HTMLButtonElement>(null)
   const siteBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
@@ -886,7 +889,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             />
           )}
         </div>
-        <div className={`actions-col${navOpen && !inFlight ? ' is-open' : ''}${inFlight ? ' in-flight' : ''}`}>
+        <div ref={navHost} className={`actions-col${navOpen && !inFlight ? ' is-open' : ''}${inFlight ? ' in-flight' : ''}`}>
           {/* Phones: the action bar folds into one labelled Menu button, so the header keeps to two rows. */}
           <button
             type="button"
@@ -896,7 +899,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             aria-controls="header-actions"
             onClick={() => setNavOpen((v) => !v)}
           >
-            {navOpen ? 'Close menu' : 'Menu'}
+            Menu
           </button>
           <div className="actions" id="header-actions" onClick={(e) => (e.target as Element).closest('button') && setNavOpen(false)}>
             {/* The flight view opens from Flight plan; this button (or Esc) goes back to the landing site. */}

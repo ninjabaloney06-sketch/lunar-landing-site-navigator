@@ -203,6 +203,11 @@ test.describe('375 px: the action bar folds into one Menu button', () => {
     const list = (await page.locator('#header-actions').boundingBox())!
     const tl = (await page.getByTestId('cursor-time').boundingBox())!
     expect(list.y + list.height).toBeLessThan(tl.y)
+    // A press outside closes it (U9), as for every other menu; Menu opens it again.
+    await page.mouse.click(190, 480)
+    await expect(menu).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByTestId('search-open')).toBeHidden()
+    await menu.click()
     await page.getByTestId('details').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await expect(menu).toHaveAttribute('aria-expanded', 'false')
