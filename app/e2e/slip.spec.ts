@@ -40,7 +40,7 @@ test.describe('If the mission slips', () => {
     await expect(fold.getByTestId('slip-row-now').locator('.th-sub')).toHaveCount(0)
     await expect(fold.getByTestId('slip-row-slip-7')).toContainText('23 Aug – 5 Sep 2027')
     await expect(fold.getByTestId('slip-row-nearest')).toContainText(/Nearest other site, \d+ km away/)
-    await expect(fold.getByTestId('slip-row-nearest')).not.toContainText('Connecting Ridge')
+    await expect(fold.getByTestId('slip-row-nearest')).toContainText('Connecting Ridge Extension') // the nearest site that is a landing site (reference sites are skipped)
     if (!VALIDATED) await expect(fold).toContainText(NOT_VALIDATED.slice(1)) // the Finder's marker, same switch
 
     await fold.getByRole('button', { name: 'Show the mission 7 days later' }).click()
