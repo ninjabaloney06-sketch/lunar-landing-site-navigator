@@ -129,12 +129,12 @@ interface Case {
 // accepted on their measured effect (x·√x in sim.ts thirdBody, 30 s ascent prediction step): the commits list
 // what moved, by how much.
 const CASES: Case[] = [
-  { name: 'LLO Apollo, south pole, KSC', arch: 'apollo', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 0.9, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 16), hash: 'c4c0208f32524412', numbers: 26306, touchdownMs: 1818382412530.0635, dvTotalKms: 17.504151381431036, endMs: 1818869649447 },
-  { name: 'LLO Apollo, near-side equator, Kourou, return window', arch: 'apollo', pad: 'kourou-ela4', latDeg: 0.5, lonDeg: 10, stayDays: 3, returnWindowDays: 1, earliest: Date.UTC(2027, 8, 2), hash: 'a76240667f165d4b', numbers: 42812, touchdownMs: 1819868980205.5847, dvTotalKms: 17.668598687811368, endMs: 1820607706003 },
-  { name: 'LLO Apollo, far side 30°N, Tanegashima', arch: 'apollo', pad: 'tanegashima-yoshinobu', latDeg: 30, lonDeg: 180, stayDays: 14, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 20), hash: '9c6d52053c354328', numbers: 124209, touchdownMs: 1818753479166.3386, dvTotalKms: 19.186367915641238, endMs: 1820353443249 },
-  { name: 'NRHO Starship, south pole, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '9683f76801a72bd5', numbers: 34004, touchdownMs: 1820725369339.6707, dvTotalKms: 18.32295135084534, endMs: 1822203540462 },
-  { name: 'NRHO Starship, near-side equator, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: 0, lonDeg: 0, stayDays: 3, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: 'aed701d353b868f4', numbers: 57793, touchdownMs: 1820722454800.2476, dvTotalKms: 18.633059020232754, endMs: 1822203540305 },
-  { name: 'NRHO Blue Moon, far side 30°N, Kourou', arch: 'artemis-blue-moon', pad: 'kourou-ela4', latDeg: 30, lonDeg: 180, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '2364d6d79832ecf8', numbers: 36580, touchdownMs: 1820729878207.6062, dvTotalKms: 18.663909003798015, endMs: 1822210863740 },
+  { name: 'LLO Apollo, south pole, KSC', arch: 'apollo', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 0.9, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 16), hash: '3d7560aeb9ee4c9f', numbers: 26306, touchdownMs: 1818382412530.1104, dvTotalKms: 17.504151609677404, endMs: 1818869649448 },
+  { name: 'LLO Apollo, near-side equator, Kourou, return window', arch: 'apollo', pad: 'kourou-ela4', latDeg: 0.5, lonDeg: 10, stayDays: 3, returnWindowDays: 1, earliest: Date.UTC(2027, 8, 2), hash: '727c6242f81822d7', numbers: 42812, touchdownMs: 1819868980204.582, dvTotalKms: 17.66859890387239, endMs: 1820607705999 },
+  { name: 'LLO Apollo, far side 30°N, Tanegashima', arch: 'apollo', pad: 'tanegashima-yoshinobu', latDeg: 30, lonDeg: 180, stayDays: 14, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 20), hash: 'c5fa43da369a3947', numbers: 124209, touchdownMs: 1818753479166.3254, dvTotalKms: 19.18636812821884, endMs: 1820353443252 },
+  { name: 'NRHO Starship, south pole, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '2929ad9b139feb06', numbers: 34004, touchdownMs: 1820725369184.2961, dvTotalKms: 18.32295133172373, endMs: 1822203540320 },
+  { name: 'NRHO Starship, near-side equator, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: 0, lonDeg: 0, stayDays: 3, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '6571c85994af7b1e', numbers: 57793, touchdownMs: 1820722454644.831, dvTotalKms: 18.633059033097766, endMs: 1822203540164 },
+  { name: 'NRHO Blue Moon, far side 30°N, Kourou', arch: 'artemis-blue-moon', pad: 'kourou-ela4', latDeg: 30, lonDeg: 180, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '74ca95dd2572d682', numbers: 36580, touchdownMs: 1820729878208.522, dvTotalKms: 18.66390897217201, endMs: 1822210863741 },
 ]
 
 // PIN_RECORD=1 prints the values instead of checking them (only for recording a new case).
@@ -172,7 +172,7 @@ describe('pinned planner results, bit for bit', () => {
 })
 
 // payload.ts: the ascent sensitivity (two ascents) and the payload maximum over the Apollo south-pole plan.
-const PAYLOAD = { sensitivity: 0.8009121998565679, hash: 'ac7391517f93ff9c' }
+const PAYLOAD = { sensitivity: 0.800912174302066, hash: '11c093ab8aec1c5a' }
 describe('pinned payload results, bit for bit', () => {
   it('ascent sensitivity and maximum payload, Apollo south pole', () => {
     const c = CASES[0]
