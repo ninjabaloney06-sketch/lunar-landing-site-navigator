@@ -1,6 +1,7 @@
 // URL builder for "Open in NASA tools" (add-on Task 3). Expected URLs are the ones opened in Chromium on 15 Nov 2026
 // and recorded in docs/event/validation.md ("NASA-tools link check"): each landed on the site.
 import { describe, expect, it } from 'vitest'
+import sitesJson from '../../public/data/sites.json'
 import { horizonsTime, horizonsUrl, lon180, lon360, moonTrekUrl, nasaLinks, quickMapUrl, southPolarXY, spanProblem } from './nasaTools'
 
 const RIDGE = { lat: -89.46, lon: -136.68, elev_m: 1944.6 } // sites.json
@@ -137,5 +138,23 @@ describe('encoding', () => {
   it('map links carry the CRS and extent encoded', () => {
     expect(moonTrekUrl(RIDGE).href).not.toMatch(/crs:/)
     expect(quickMapUrl(RIDGE).href!.split('?')[1]).not.toMatch(/,/)
+  })
+})
+
+describe('the 18 listed sites', () => {
+  it('each opens both map tools in the south polar view at its own coordinates, and Horizons at its terrain height', () => {
+    expect(sitesJson).toHaveLength(18)
+    for (const site of sitesJson) {
+      const l = nasaLinks({ lat: site.lat, lon: site.lon, elev_m: site.elev_m }, NOW)
+      expect(l.polar, site.id).toBe(true)
+      const [x, y] = southPolarXY(site.lat, site.lon)
+      expect(l.moonTrek.href, site.id).toContain(`&x=${Math.round(x * 10) / 10}&y=${Math.round(y * 10) / 10}&z=8&p=urn%3Aogc%3Adef%3Acrs%3AIAU2000%3A%3A30120&`)
+      expect(l.quickMap.href, site.id).toMatch(/&proj=27$/)
+      const coord = new URLSearchParams(l.horizonsSun.href!.split('?')[1]).get('SITE_COORD')!
+      const [lon, lat, alt] = coord.slice(1, -1).split(',').map(Number)
+      expect(lon360(lon - site.lon), site.id).toBeCloseTo(0, 5)
+      expect(lat, site.id).toBe(site.lat)
+      expect(alt, site.id).toBeCloseTo((site.elev_m + 1.75) / 1000, 5)
+    }
   })
 })
