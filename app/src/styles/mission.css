@@ -512,3 +512,12 @@
   color: var(--error);
   font-weight: 500;
 }
+
+/* the Mission panel's last row: what closing does, and the button that closes */
+.mp-done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: var(--s-4) 0 0;
+}

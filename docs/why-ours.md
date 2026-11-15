@@ -13,6 +13,17 @@ Everything in the middle column is what we saw in those two runs, not a general 
 | Which site, or which dates, are better? | Not part of our test question; we did not test it. | A table of all sites with sunlit % and station coverage % for the mission dates or a whole year, a side-by-side comparison of two sites or two periods, and a search for better dates at one site. |
 | Can I take the numbers away? | Horizons saves its text table ("Download Results", 25 Oct). We got no numeric output from Moon Trek or QuickMap. | A CSV per site and period: lit and comms windows with UTC start and end, plus the summary percentages. It does not export the azimuth and elevation series. |
 
+## What this app adds
+
+Each point is the right-hand column of the table above, in one place. It says what this app does, not that the other tools cannot do it in general.
+
+- **One question, one answer.** Site, dates and stations are chosen once; the answer is one sentence and one timeline with sunlight and station contact together. In our runs the same question needed separate runs per body in Horizons and gave no number in the other two tools.
+- **Terrain in the sunlight answer.** The Sun counts as up only when it is above the terrain horizon computed from the LOLA elevation model, in 720 directions around the site.
+- **Earth stations.** Line of sight from the site over its terrain to five named ground stations, with the station's own elevation limit.
+- **Comparison and search.** All sites in one table for the same dates, two sites or two periods side by side, a search for better dates, and a search for sites by what is nearby and by how much sunlight and station contact they must have.
+- **The site as a place.** The 3D view from above and from eye level with the Sun and Earth where the calculation puts them, plus the points of interest around it with their sources.
+- **Numbers to take away.** A CSV of the windows and summary values, and a link that reproduces the view.
+
 ## What the other tools do better
 
 - Horizons takes any observer, any target and any date range and step, with many more output quantities. It is also our reference: our Sun and Earth positions were checked against it.

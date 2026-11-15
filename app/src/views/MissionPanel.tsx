@@ -687,6 +687,13 @@ export function MissionPanel(p: Props) {
         </section>
       )}
 
+      {/* Phone testers (15 Nov) looked for a way to apply: every change applies as it is made, Done only closes. */}
+      <p className="mp-done">
+        <span className="quiet">Changes apply as you make them.</span>
+        <button type="button" className="btn" data-testid="mission-done" onClick={onClose}>
+          Done
+        </button>
+      </p>
       <section className="mp-sec mp-bottom" aria-labelledby="mp-this" data-testid="mission-actions">
         <div className="ms-row mp-this">
           <h3 id="mp-this" className="mp-h ms-load">

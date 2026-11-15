@@ -49,6 +49,7 @@ export interface FlightPanelProps {
   earliestTouchdownMs: number // the mission start
   surfaceStayDays: number // the stay asked for; the plan's own stay can differ
   onSurfaceStayDays(v: number): void
+  missionDays?: number // length of the mission dates, days: offered as the surface stay when it differs
   surfaceStay: ArchitectureSpec['surfaceStay'] // what the chosen design documents about its stay, when it does
   returnWindowDays: number // 0 = leave when the stay ends; 7 or 14 = cheapest departure within that many days after
   onReturnWindowDays(v: number): void
@@ -347,6 +348,15 @@ export function FlightPanel(p: FlightPanelProps) {
           <div className="flight-control">
             <StayField id={`${uid}-stay`} value={p.surfaceStayDays} onChange={p.onSurfaceStayDays} />
             <p className="quiet flight-hint">Touchdown to liftoff, 0.5 to 30 days.</p>
+            {p.missionDays !== undefined && Math.abs(Math.min(30, p.missionDays) - p.surfaceStayDays) > 0.05 && (
+              <p className="quiet" data-testid="flight-stay-mission">
+                Your mission dates are {p.missionDays} {p.missionDays === 1 ? 'day' : 'days'}; this flight stays {fmtDays(p.surfaceStayDays, 1)} (the
+                design's own stay unless you change it).{' '}
+                <button type="button" className="btn" data-testid="flight-stay-use-mission" onClick={() => p.onSurfaceStayDays(Math.min(30, p.missionDays!))}>
+                  Use {Math.min(30, p.missionDays)} days
+                </button>
+              </p>
+            )}
             {plan && Math.abs(plan.facts.surfaceStayDays - p.surfaceStayDays) > 0.05 && (
               <p className="quiet" data-testid="flight-stay-planned">
                 flown: <span className="mono">{fmtDays(plan.facts.surfaceStayDays, 2)}</span>

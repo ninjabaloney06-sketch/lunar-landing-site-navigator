@@ -749,6 +749,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               surfaceStayDays={stayDays}
               onSurfaceStayDays={(days) => patch({ stay: days })}
               surfaceStay={architecture.surfaceStay}
+              missionDays={missionDays}
               returnWindowDays={returnWindowDays}
               onReturnWindowDays={setReturnWindowDays}
               maxTransferDays={hs.tmax}

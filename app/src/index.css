@@ -670,8 +670,10 @@ select {
   pointer-events: none;
 }
 
+/* Narrower screens: the header fills the top row, so the hint sits in the middle of the scene. */
 @media (max-width: 1100px) {
   .hint {
-    display: none;
+    top: 42%;
+    width: min(34ch, 80vw);
   }
 }

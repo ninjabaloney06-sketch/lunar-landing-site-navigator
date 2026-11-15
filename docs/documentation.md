@@ -4,6 +4,14 @@ Technical and product documentation for the app as it is on 15 Nov 2026. Team SF
 
 > How this document was made: an AI tool (SI in Space Apps terms), Claude Code, wrote it on 14 Nov 2026 and updated it on 15 Nov 2026 from the repository's code and records. No team member has reviewed this text as a whole yet. Where a statement rests on a human check, the check and its recorded status are named. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check record of what was compared: see [Validation results](#validation-results).
 
+## Overview: what it is and why it matters
+
+- **What it is.** A web app for choosing a landing site near the Moon's south pole. For a site and a set of mission dates it shows when the site is in sunlight, given the real terrain around it, and when it has line of sight to a ground station on Earth.
+- **Why it matters.** Near the pole the Sun stays within a few degrees of the horizon, so a ridge a few kilometres away decides whether a lander has power, and the same holds for the radio path to Earth. A site that is good in one week can be dark in the next. A planner needs the answer per site and per date, and again when a date slips.
+- **What you can do with it.** Read the answer for one site in one sentence and on a timeline; compare sites and periods side by side; search for better dates; search for sites near water ice, permanent shadow or science targets; stand at the site and see its horizon; estimate power; plan the flight from Earth.
+- **What it is not.** It is a planning aid built in one weekend, not a certified mission tool; "comms" means geometric line of sight, not a radio link budget. The limits are listed under [Limits](#limits) and [What is not covered](#what-is-not-covered).
+- **How it compares.** [How this app compares with the NASA tools](why-ours.md): what we observed in JPL Horizons, Moon Trek and QuickMap, what this app adds, and what those tools do better.
+
 Contents: [Part 1, technical](#part-1--technical) (data flow, frames and units, calculations, points of interest, validation results, limits) · [Part 2, product](#part-2--product) (who it is for, the question, how to read each view, what is not covered).
 
 ---
