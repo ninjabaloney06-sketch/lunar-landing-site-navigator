@@ -1,5 +1,6 @@
-// Mission panel (Step 2-UI; paper pages 2340–2342): the paper's field order — Name, Start, End, Science goal,
-// Landing site, Ground stations — with Play mission in the header and Add mission at the bottom (U2). Folded until
+// Mission panel (Step 2-UI; paper pages 2340–2342): Name, Start, End, Landing site, Science goal, Your points, Ground
+// stations (U17: the landing site moved above the goal so it is in the first view at 1280×720), then the mission
+// actions, with Play mission and the Full data switch in the header and Add mission at the bottom (U2). Folded until
 // asked for: the site list (opens on typing, or as the full ranking), the ground-station checklist. The landing sites are ranked for this mission's own dates,
 // stations and goal by geometry/rankSites; every row shows the values it was ranked by. Grown from the C2 site
 // menu: its search, which also accepts typed coordinates. Typed coordinates can be added as a user point (Brief
@@ -11,9 +12,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Period, Site, Station } from '../data/types'
 import { MAX_MISSIONS, missionKey } from '../missions'
 import type { MissionState } from '../missions'
-import { rankSites } from '../geometry'
+import { FINDER_DEFAULTS, rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
-import { DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
+import { DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, COVERAGE_END_MS, COVERAGE_START_MS } from '../state'
 import type { UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { EXAMPLE, eg } from './examples'
@@ -24,9 +25,12 @@ import { SLOPE_BASELINE, slopeOf } from './slope'
 import { StationChecklist } from './Stations'
 import { useSummaries } from './useSummaries'
 import { inPinRegion } from '../scene3d/region'
-import { CUSTOM_SITE_NAME, parseCustomSiteId } from '../data/customSite'
+import { customSiteName, parseCustomSiteId } from '../data/customSite'
 import { SITE_REGION_TEXT } from './custom'
 import type { SummaryEntry } from './useSummaries'
+import { FullDataSwitch } from './FullDataSwitch'
+import { useFullData } from './advanced'
+import { Abbr } from './flightGlossary'
 
 export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
   { id: 'any', label: 'Any', rule: 'station coverage, then sunlight' },
@@ -52,6 +56,37 @@ export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: stri
 ]
 
 const PLAY_NOTE = 'Eye level at the landing site, from the first to the last mission day. Space pauses.'
+
+// U17: the dates of the data's coverage in the panel's own date format (16 Aug 2027), not state.ts's long months.
+const RANGE_TEXT = `Dates from ${fmtDate(COVERAGE_START_MS)} to ${fmtDate(COVERAGE_END_MS - DAY_MS)} (UTC) are supported.`
+
+/** A duration as "8.4 h" below a day, else "3 days 4 h" (U17). */
+export function fmtDuration(hours: number): string {
+  if (hours < 24) return `${hours.toFixed(1)} h`
+  let d = Math.floor(hours / 24)
+  let h = Math.round(hours - d * 24)
+  if (h === 24) [d, h] = [d + 1, 0]
+  return `${d} ${d === 1 ? 'day' : 'days'}${h ? ` ${h} h` : ''}`
+}
+
+// Status thresholds for the per-site values: the "Find better dates" defaults (FINDER_DEFAULTS in geometry/index.ts,
+// docs/event/spec.md "Finder"; proposed defaults, the science lead reviews them) and the 5° landing-slope criterion
+// (geometry/rankSites.ts SLOPE_LIMIT_DEG). Values without a stated threshold get no colour.
+const TH = FINDER_DEFAULTS
+const SLOPE_LIMIT = '5°'
+
+// Networks of the stations in stations.json, expanded on hover.
+const NETWORK_NAME: Record<string, string> = {
+  DSN: 'NASA Deep Space Network',
+  JAXA: 'Japan Aerospace Exploration Agency',
+  ESTRACK: 'ESA tracking station network',
+}
+
+const ab = (term: string, title: string) => (
+  <abbr key={term} title={title}>
+    {term}
+  </abbr>
+)
 
 // Shown under an unlabelled site's name; a site's own label (e.g. "Blue Moon MK1 target") takes its place.
 const GROUP_TEXT: Record<Site['group'], string> = {
@@ -248,7 +283,7 @@ export function MissionPanel(p: Props) {
     if (startDraft === null) return
     const a = parseDate(startDraft)
     if (a === null) return setDateError('Start: enter a date such as 16 Aug 2027.')
-    if (!inCoverage(a)) return setDateError(RANGE_ERROR)
+    if (!inCoverage(a)) return setDateError(RANGE_TEXT)
     setDateError(null)
     setStartDraft(null)
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
@@ -258,7 +293,7 @@ export function MissionPanel(p: Props) {
     if (endDraft === null) return
     const b = parseDate(endDraft)
     if (b === null) return setDateError('End: enter a date such as 29 Aug 2027.')
-    if (!inCoverage(b)) return setDateError(RANGE_ERROR)
+    if (!inCoverage(b)) return setDateError(RANGE_TEXT)
     if (b < period.startMs) return setDateError('End is before Start.')
     const n = Math.round((b - period.startMs) / DAY_MS) + 1
     if (n > MAX_DAYS) return setDateError(`A mission can last at most ${MAX_DAYS} days.`)
@@ -272,6 +307,11 @@ export function MissionPanel(p: Props) {
       commit()
     }
   }
+
+  const [fullData] = useFullData()
+  // The networks the app's stations belong to (stations.json: DSN and JAXA today), in the order they appear.
+  const networks = [...new Set(p.stations.map((s) => s.network))]
+  const missionName = p.name ?? DEFAULT_MISSION_NAME
 
   return (
     <div
@@ -300,6 +340,7 @@ export function MissionPanel(p: Props) {
         <span id="mp-play-note" className="sr-only">
           {PLAY_NOTE}
         </span>
+        <FullDataSwitch className="mp-full" />
       </div>
 
       <div className="mp-fields">
@@ -347,8 +388,8 @@ export function MissionPanel(p: Props) {
             onKeyDown={onEnter(commitEnd)}
           />
         </div>
-        <p id="mp-dates-note" className="mp-note quiet">
-          {days} {days === 1 ? 'day' : 'days'}, UTC, last day included. Changing Start keeps the length.
+        <p id="mp-dates-note" className="mp-note quiet" data-testid="mp-dates-note">
+          {days} {days === 1 ? 'day' : 'days'}, {ab('UTC', 'Coordinated Universal Time')}, last day included. Changing Start keeps the length.
         </p>
         {dateError && (
           <p className="menu-msg is-error mp-error" role="alert">
@@ -357,17 +398,8 @@ export function MissionPanel(p: Props) {
         )}
       </div>
 
-      <fieldset className="mp-sec mp-goals">
-        <legend className="mp-h">Science goal</legend>
-        {GOALS.map((g) => (
-          <label key={g.id} className="check mp-radio">
-            <input type="radio" name="mission-goal" value={g.id} checked={goal === g.id} onChange={() => p.onGoal(g.id)} />
-            <span>{g.label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <section className="mp-sec" aria-labelledby="mp-sites">
+      {/* U17: the landing site is the first decision, so it comes before the goal that orders its ranking. */}
+      <section className="mp-sec" aria-labelledby="mp-sites" data-testid="mp-site-section">
         <h3 id="mp-sites" className="mp-h">
           Landing site
         </h3>
@@ -446,11 +478,19 @@ export function MissionPanel(p: Props) {
           All {sites.length} sites, ranked for this mission
         </button>
         {showList && (
-          <p className="quiet mp-rule">
-            Best among the {sites.length} evaluated sites for this mission first, by {goalRow.rule}.
-            {goalRow.short && ' Evidence, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown.'} Slope over{' '}
-            {SLOPE_BASELINE} on the LOLA 20 m terrain; passing the 5° slope limit alone does not establish landing safety.
-          </p>
+          <ul className="quiet mp-rule mp-bullets" data-testid="mp-rule">
+            <li>Best first, by {goalRow.rule}.</li>
+            <li>Green meets its threshold; red misses it and names it.</li>
+            <li>Passing the {SLOPE_LIMIT} slope limit alone does not establish landing safety.</li>
+            {fullData && (
+              <li>
+                Among the {sites.length} evaluated sites. Slope over {SLOPE_BASELINE} on the {ab('LOLA', 'Lunar Orbiter Laser Altimeter')} 20 m terrain.
+                {goalRow.short && ' Evidence, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown.'} Thresholds: the
+                Find better dates defaults, sunlit at least {TH.minLitPct} %, comms at least {TH.minCoveragePct} %, longest darkness at most{' '}
+                {fmtDuration(TH.maxDarkH)}, longest comms gap at most {fmtDuration(TH.maxGapH)}.
+              </li>
+            )}
+          </ul>
         )}
         <p className="menu-msg is-quiet mp-progress" aria-live="polite">
           {showList && computing > 0 ? `Computing ${sites.length - computing} of ${sites.length} sites for these dates…` : ''}
@@ -466,6 +506,8 @@ export function MissionPanel(p: Props) {
                     key={row.site.id}
                     row={row}
                     goal={goalRow}
+                    days={days}
+                    full={fullData}
                     current={row.site.id === site.id}
                     active={i === activeIdx}
                     orderedByCoverage={row.r !== null && row.r.rank !== null && (shared.get(ruleValue(row.r) ?? '') ?? 0) > 1}
@@ -479,73 +521,87 @@ export function MissionPanel(p: Props) {
           ))}
           {searching && flat.length === 0 && <p className="menu-msg">No site matches “{typed.trim()}”.</p>}
         </div>
-        <div role="group" aria-labelledby="mp-points" data-testid="points">
-          <div id="mp-points" className="menu-group">
-            Your points
-          </div>
-          {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
-          <ul className="plain">
-            {p.points.map((pt, i) => {
-              const name = pointName(pt, i)
-              const selected = p.selectedPoint === i
-              return (
-                <li key={pointKeys[i]} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point">
-                  <input
-                    className="field pt-name"
-                    type="text"
-                    aria-label={`Name of ${name}`}
-                    maxLength={NAME_MAX}
-                    placeholder={eg(EXAMPLE.point)}
-                    value={pointDraft?.i === i ? pointDraft.text : name}
-                    onChange={(e) => {
-                      setPointDraft({ i, text: e.target.value })
-                      p.onPointName(i, e.target.value)
-                    }}
-                    onBlur={() => setPointDraft(null)}
-                  />
-                  <button
-                    type="button"
-                    className="mp-close pt-del"
-                    aria-label={`Delete ${name}`}
-                    onClick={() => {
-                      setPointDraft(null)
-                      p.onPointDelete(i)
-                    }}
-                  >
-                    ×
-                  </button>
-                  <button
-                    type="button"
-                    className="pt-select mono"
-                    aria-pressed={selected}
-                    aria-label={`Select ${name}, ${fmtCoords(pt.lat, pt.lon)}`}
-                    onClick={() => p.onPointSelect(selected ? null : i)}
-                  >
-                    {fmtCoords(pt.lat, pt.lon)}
-                  </button>
-                  <span className="pt-none" data-fact="none">
-                    No terrain data for this point
-                  </span>
-                  {inPinRegion(pt.lat) ? (
-                    <button
-                      type="button"
-                      className="link pt-land"
-                      data-testid="point-set-site"
-                      aria-label={`Set as landing site: ${name}`}
-                      onClick={() => p.onSetSite(pt.lat, pt.lon)}
-                    >
-                      Set as landing site
-                    </button>
-                  ) : (
-                    <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+      </section>
+
+      <fieldset className="mp-sec mp-goals">
+        <legend className="mp-h">Science goal</legend>
+        <p className="quiet mp-hint">Orders the landing-site ranking above.</p>
+        <div className="mp-goal-grid">
+          {GOALS.map((g) => (
+            <label key={g.id} className="check mp-radio" title={`Ranks by ${g.rule}.`}>
+              <input type="radio" name="mission-goal" value={g.id} checked={goal === g.id} onChange={() => p.onGoal(g.id)} />
+              <span>{g.label}</span>
+            </label>
+          ))}
         </div>
+      </fieldset>
+
+      <section className="mp-sec" aria-labelledby="mp-points" data-testid="points">
+        <h3 id="mp-points" className="mp-h">
+          Your points
+        </h3>
+        {p.points.length === 0 && <p className="menu-msg is-quiet">None yet.</p>}
+        <ul className="plain">
+          {p.points.map((pt, i) => {
+            const name = pointName(pt, i)
+            const selected = p.selectedPoint === i
+            return (
+              <li key={pointKeys[i]} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point">
+                <input
+                  className="field pt-name"
+                  type="text"
+                  aria-label={`Name of ${name}`}
+                  maxLength={NAME_MAX}
+                  placeholder={eg(EXAMPLE.point)}
+                  value={pointDraft?.i === i ? pointDraft.text : name}
+                  onChange={(e) => {
+                    setPointDraft({ i, text: e.target.value })
+                    p.onPointName(i, e.target.value)
+                  }}
+                  onBlur={() => setPointDraft(null)}
+                />
+                <button
+                  type="button"
+                  className="mp-close pt-del"
+                  aria-label={`Delete ${name}`}
+                  onClick={() => {
+                    setPointDraft(null)
+                    p.onPointDelete(i)
+                  }}
+                >
+                  ×
+                </button>
+                <button
+                  type="button"
+                  className="pt-select mono"
+                  aria-pressed={selected}
+                  aria-label={`Select ${name}, ${fmtCoords(pt.lat, pt.lon)}`}
+                  onClick={() => p.onPointSelect(selected ? null : i)}
+                >
+                  {fmtCoords(pt.lat, pt.lon)}
+                </button>
+                <span className="pt-none" data-fact="none">
+                  No terrain data for this point
+                </span>
+                {inPinRegion(pt.lat) ? (
+                  <button
+                    type="button"
+                    className="link pt-land"
+                    data-testid="point-set-site"
+                    aria-label={`Set as landing site: ${name}`}
+                    onClick={() => p.onSetSite(pt.lat, pt.lon)}
+                  >
+                    Set as landing site
+                  </button>
+                ) : (
+                  <span className="pt-land quiet">{SITE_REGION_TEXT}</span>
+                )}
+              </li>
+            )
+          })}
+        </ul>
         <button className="menu-add" type="button" disabled>
-          Add a point: type coordinates above, or right-click the Moon
+          Add a point: type coordinates in Landing site, or right-click the Moon
         </button>
       </section>
 
@@ -556,6 +612,7 @@ export function MissionPanel(p: Props) {
             className="link mp-disclose mp-sum"
             aria-expanded={stationsOpen}
             aria-controls="mp-station-list"
+            aria-describedby="mp-stations-hint"
             data-testid="stations-toggle"
             onClick={() => setStationsOpen((v) => !v)}
           >
@@ -568,6 +625,15 @@ export function MissionPanel(p: Props) {
             </span>
           </button>
         </h3>
+        <p id="mp-stations-hint" className="quiet mp-hint" data-testid="stations-hint">
+          {networks.map((n, i) => (
+            <span key={n}>
+              {i > 0 && (i === networks.length - 1 ? ' and ' : ', ')}
+              {NETWORK_NAME[n] ? ab(n, NETWORK_NAME[n]) : n}
+            </span>
+          ))}{' '}
+          antennas for line-of-sight contact
+        </p>
         {stationsOpen && (
           <div id="mp-station-list">
             <p className="quiet mp-rule">Comms means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
@@ -576,25 +642,33 @@ export function MissionPanel(p: Props) {
         )}
       </section>
 
+      {/* U17: one set of mission actions. Every mission, saved or on screen, has "Calculate flight" in the same
+          place at the right of its row; Compare sits in the saved list's heading. */}
       {p.missions.length > 0 && (
-        <section className="mp-sec" aria-labelledby="mp-missions" data-testid="saved-missions">
-          <h3 id="mp-missions" className="mp-h">
-            Saved missions
-          </h3>
-          <button type="button" className="link" data-testid="compare-missions" onClick={p.onCompareMissions}>
-            Compare
-          </button>
+        <section className="mp-sec mp-missions" aria-labelledby="mp-missions" data-testid="saved-missions">
+          <div className="mp-act-head">
+            <h3 id="mp-missions" className="mp-h">
+              Saved missions <span className="mp-sum-val">{p.missions.length}</span>
+            </h3>
+            <button type="button" className="link mp-act" data-testid="compare-missions" onClick={p.onCompareMissions}>
+              Compare
+            </button>
+          </div>
           <ul className="plain">
             {p.missions.map((m) => {
               const key = missionKey(m)
               const name = m.name ?? DEFAULT_MISSION_NAME
-              // null = the default site, as in a link (App and the mission table resolve it the same way)
+              // null = the default site, as in a link (App and the mission table resolve it the same way). A custom
+              // site carries its mission's name, as in the header (U10).
               const where =
-                sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID))?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : 'unknown site')
+                sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID))?.name ?? (m.site && parseCustomSiteId(m.site) ? customSiteName(m.name) : 'unknown site')
               return (
                 <li key={key} className="ms-row" data-mission={key}>
-                  <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
+                  <button type="button" className="link ms-load" title="Open this mission" onClick={() => p.onLoadMission(m)}>
                     {name}
+                  </button>
+                  <button type="button" className="link mp-act ms-flight" data-testid="panel-calculate-flight" onClick={() => p.onCalculateFlight(m)}>
+                    Calculate flight
                   </button>
                   <button type="button" className="mp-close ms-del" aria-label={`Remove ${name}`} onClick={() => p.onRemoveMission(key)}>
                     ×
@@ -602,10 +676,9 @@ export function MissionPanel(p: Props) {
                   <span className="quiet ms-what">
                     {where} · {resolvePeriod(m, p.periods).label}
                   </span>
-                  <span className="quiet ms-what">{flightSummary(m)}</span>
-                  <button type="button" className="link ms-flight" data-testid="panel-calculate-flight" onClick={() => p.onCalculateFlight(m)}>
-                    Calculate flight
-                  </button>
+                  <span className="quiet ms-what">
+                    <Abbr>{flightSummary(m)}</Abbr> · {transferText(m.tmax)}
+                  </span>
                 </li>
               )
             })}
@@ -613,30 +686,40 @@ export function MissionPanel(p: Props) {
         </section>
       )}
 
-      <div className="mp-sec mp-bottom">
-        <div className="mp-save">
-          <button type="button" className="link" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
+      <section className="mp-sec mp-bottom" aria-labelledby="mp-this" data-testid="mission-actions">
+        <div className="ms-row mp-this">
+          <h3 id="mp-this" className="mp-h ms-load">
+            This mission <span className="mp-sum-val">{missionName}</span>
+          </h3>
+          <button type="button" className="link mp-act" data-testid="current-calculate-flight" onClick={p.onCalculateCurrentFlight}>
             Calculate flight
           </button>
           <button type="button" className="btn" data-testid="add-mission" disabled={p.missionSaved || p.missions.length >= MAX_MISSIONS} onClick={p.onAddMission}>
             Add mission
           </button>
-          <span className="quiet" aria-live="polite">
-            {p.missionSaved
-              ? 'Saved in this browser.'
-              : p.missions.length >= MAX_MISSIONS
-                ? `At most ${MAX_MISSIONS} saved missions.`
-                : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
-          </span>
         </div>
-      </div>
+        <p className="quiet mp-save-note" aria-live="polite" data-testid="mission-save-note">
+          {p.missionSaved
+            ? 'Saved in this browser.'
+            : p.missions.length >= MAX_MISSIONS
+              ? `At most ${MAX_MISSIONS} saved missions.`
+              : 'Keeps name, site, dates, stations, goal, launchpad, rocket, surface stay and transfer cap in this browser.'}
+        </p>
+      </section>
     </div>
   )
+}
+
+/** The transfer cap a saved mission stores (hash key tmax): null = minimum energy, as the flight menu says. */
+function transferText(tmax: number | null | undefined): string {
+  return tmax == null ? 'minimum-energy transfer' : `transfer at most ${fmtDuration(tmax * 24)}`
 }
 
 interface RowProps {
   row: Row
   goal: (typeof GOALS)[number]
+  days: number // mission length, for "≈ 3.6 of 14 days" in full data mode
+  full: boolean // full data mode: every value of the summary, not only the decision values
   current: boolean
   active: boolean
   orderedByCoverage: boolean
@@ -645,11 +728,27 @@ interface RowProps {
   onSelect(): void
 }
 
-function SiteRow({ row, goal, current, active, orderedByCoverage, tiedNames, onHover, onSelect }: RowProps) {
+type Status = 'pass' | 'fail'
+
+/** One value of a site row: label, value with unit, status against a stated threshold (colour plus, when it misses,
+ *  the threshold in words), and the hint on hover. */
+function Fact({ fact, label, value, status, miss, hint, extra }: { fact: string; label: string; value: string; status?: Status; miss?: string; hint: string; extra?: string }) {
+  return (
+    <span data-fact={fact} data-status={status} className={status ? `is-${status}` : undefined} title={hint}>
+      {label} {value}
+      {extra && <span className="fact-extra"> {extra}</span>}
+      {status === 'fail' && miss && <span className="fact-miss">, {miss}</span>}
+    </span>
+  )
+}
+
+function SiteRow({ row, goal, days, full, current, active, orderedByCoverage, tiedNames, onHover, onSelect }: RowProps) {
   const { site, r, entry } = row
   const own = r ? null : slopeOf(site)
   const slope = r ?? { slope: own!.state, slopeDeg: own!.deg }
   const id = site.id
+  const ofDays = (pct: number) => (full ? `(≈ ${Number(((pct / 100) * days).toFixed(1))} of ${days} ${days === 1 ? 'day' : 'days'})` : undefined)
+  const s = entry?.status === 'done' ? entry.summary : null
   return (
     <div
       id={`site-opt-${id}`}
@@ -670,18 +769,62 @@ function SiteRow({ row, goal, current, active, orderedByCoverage, tiedNames, onH
         </span>
         {!site.label && <span className="opt-label">{GROUP_TEXT[site.group]}</span>}
         <span id={`site-fx-${id}`} className="rank-facts">
-          {entry?.status === 'done' ? (
+          {s ? (
             <>
-              <span data-fact="lit">lit {fmtPct(entry.summary.litPct)}</span>
-              <span data-fact="comms">comms {fmtPct(entry.summary.coveragePct)}</span>
-              {goal.id === 'light' && <span data-fact="dark">longest dark {fmtHours(entry.summary.longestDarkH)}</span>}
+              <Fact
+                fact="lit"
+                label="sunlit"
+                value={fmtPct(s.litPct)}
+                status={s.litPct >= TH.minLitPct ? 'pass' : 'fail'}
+                miss={`below ${TH.minLitPct} %`}
+                extra={ofDays(s.litPct)}
+                hint={`Share of the mission time with the Sun above the local horizon. Threshold: at least ${TH.minLitPct} % (Find better dates default).`}
+              />
+              <Fact
+                fact="comms"
+                label="comms"
+                value={fmtPct(s.coveragePct)}
+                status={s.coveragePct >= TH.minCoveragePct ? 'pass' : 'fail'}
+                miss={`below ${TH.minCoveragePct} %`}
+                extra={ofDays(s.coveragePct)}
+                hint={`Share of the mission time in line of sight of at least one selected ground station; not a guaranteed radio link. Threshold: at least ${TH.minCoveragePct} % (Find better dates default).`}
+              />
+              {(goal.id === 'light' || full) && (
+                <Fact
+                  fact="dark"
+                  label="longest darkness"
+                  value={fmtDuration(s.longestDarkH)}
+                  status={s.longestDarkH <= TH.maxDarkH ? 'pass' : 'fail'}
+                  miss={`over ${fmtDuration(TH.maxDarkH)}`}
+                  hint={`Longest stretch without the Sun in the mission. Threshold: at most ${fmtDuration(TH.maxDarkH)} (Find better dates default).`}
+                />
+              )}
+              {full && (
+                <>
+                  <Fact
+                    fact="gap"
+                    label="longest comms gap"
+                    value={fmtDuration(s.longestGapH)}
+                    status={s.longestGapH <= TH.maxGapH ? 'pass' : 'fail'}
+                    miss={`over ${fmtDuration(TH.maxGapH)}`}
+                    hint={`Longest stretch without line of sight to a selected station. Threshold: at most ${fmtDuration(TH.maxGapH)} (Find better dates default).`}
+                  />
+                  <Fact fact="earth" label="Earth in view" value={fmtPct(s.earthVisiblePct)} hint="Share of the mission time with Earth above the local horizon. No threshold set." />
+                  {s.unknownPct > 0 && <Fact fact="unknown" label="comms unknown" value={fmtPct(s.unknownPct)} hint="Share of the mission time whose station visibility could not be decided. No threshold set." />}
+                </>
+              )}
             </>
           ) : entry?.status === 'none' ? (
-            <span data-fact="none">{entry.reason}</span>
+            <span data-fact="none">{entry.reason === 'could not load' ? 'Data for these dates could not be loaded.' : 'No sunlight data for these dates.'}</span>
           ) : (
             <span data-fact="computing">computing…</span>
           )}
-          <span data-fact="slope" className={slope.slope === 'fail' ? 'is-fail' : undefined}>
+          <span
+            data-fact="slope"
+            data-status={slope.slope === 'unknown' || slope.slopeDeg === null ? undefined : slope.slope}
+            className={slope.slope === 'fail' ? 'is-fail' : slope.slope === 'pass' && slope.slopeDeg !== null ? 'is-pass' : undefined}
+            title={`Terrain slope over ${SLOPE_BASELINE} (LOLA). Limit: at most ${SLOPE_LIMIT}; passing it alone does not establish landing safety.`}
+          >
             {slope.slope === 'unknown' || slope.slopeDeg === null
               ? 'slope unknown'
               : slope.slope === 'fail'
@@ -689,7 +832,7 @@ function SiteRow({ row, goal, current, active, orderedByCoverage, tiedNames, onH
                 : `slope ${fmtDeg(slope.slopeDeg)}`}
           </span>
           {goal.short && r && (
-            <span data-fact="evidence">
+            <span data-fact="evidence" title="Best evidence for this goal in the site's sourced research entries. No threshold set.">
               {goal.short}: {r.goalEvidence ?? 'no sourced entry'}
               {r.goalSourceUrl && (
                 <>
