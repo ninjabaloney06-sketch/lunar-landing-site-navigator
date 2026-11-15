@@ -520,6 +520,7 @@
   justify-content: space-between;
   gap: var(--s-3);
   margin: var(--s-4) 0 0;
+  padding: 0 var(--s-4); /* it sits between two sections, so it carries their side padding itself */
 }
 
 /* the calendar fields under the typed dates */
@@ -532,7 +533,22 @@
 
 .mp-pick .field {
   width: auto;
-  flex: 0 1 11.5em;
+  min-width: 0;
+  flex: 1 1 8.5em;
+}
+
+/* Phones: the calendar fields take the full width under the typed dates, both on one row. */
+@media (max-width: 640px) {
+  .mp-pick {
+    padding-left: 0;
+    flex-wrap: nowrap;
+  }
+
+  .mp-pick .field {
+    flex: 1 1 0;
+    padding-left: var(--s-2);
+    padding-right: var(--s-2);
+  }
 }
 
 /* Phones: View and Simulate reach 12 px above their row (44 px targets); the warning keeps clear of them. */

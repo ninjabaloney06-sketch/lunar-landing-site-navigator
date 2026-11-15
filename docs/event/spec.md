@@ -84,6 +84,12 @@ The demo must use validated outputs, not the reference image's sample values. Me
 - **Validity:** Leo's independent geometry, horizon and link-model validation and visible uncertainty support the results.
 - **Relevance:** the site/date flow and required basic comparison answer the lunar landing-site challenge.
 - **Presentation:** the 30-second challenge → problem → app answer → significance storyboard demonstrates the decision.
+- **Where each criterion is on screen (state of 15 Nov 2026, criteria named as in the 2026 Judging & Awards Guide):**
+  - *Impact*: the main screen (`#site=connecting-ridge&period=shackleton-2027-08`): the one-sentence answer and the Light / Contact timeline; Details → Compare for two sites or two periods.
+  - *Creativity*: the 3D landing-site view with the Sun and Earth where the calculation puts them; Search (sites by what is nearby and by how much sunlight and station contact they must have); the Rocket flight view opened by "Calculate flight".
+  - *Validity*: the footer's validation line with its link to the record; Details → Site details → "How this is computed"; the "Full data" switch; `/docs` with the scientific-proof pages.
+  - *Relevance*: the Mission menu (site, dates, stations, science goal); Details → Site details with the landing site assessment, power estimate and "Open in NASA tools"; the slope warning with NASA's landing requirement.
+  - *Presentation*: the demo storyboard above, on the main screen and the Compare tab; the first-use hint; `/docs` → overview and "How this app compares with the NASA tools".
 - **Local jury (notes 14 Nov, not the official wording):** usefulness for researchers/astronauts → the one-sentence answer and basic comparison; intuitive use → UX-02 60-second run; innovation → sunlight, station line of sight and terrain in one flow; content over UI → validation table and the four mandatory site assessments.
 
 ## Open decisions, validation and mentor questions
