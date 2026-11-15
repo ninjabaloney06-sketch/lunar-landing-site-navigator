@@ -53,6 +53,13 @@ const NOT_MODELLED = 'Not modelled: temperature, panel degradation, dust, tilt, 
 export const grouped = (s: string) => s.replace(/(\d)\u202f(?=\d{3})/g, '$1,')
 const num = (v: number, digits: number) => grouped(fmtNum(v, digits))
 
+/** What a marked field accepts, in one line. */
+function badText(f: (typeof FIELDS)[number], draft: string): string {
+  const max = `${grouped(fmtNum(POWER_MAX[f.key], 0))} ${f.unit}`
+  if (draft.includes(',')) return 'No commas: a point for decimals, for example 2.5.'
+  return `Enter a number above 0 and at most ${max}.`
+}
+
 function Field({ id, f, value, onValue, onBad }: { id: string; f: (typeof FIELDS)[number]; value: number; onValue(v: number): void; onBad(bad: boolean): void }) {
   const [draft, setDraft] = useState(String(value))
   const [seen, setSeen] = useState(value)
@@ -86,8 +93,10 @@ function Field({ id, f, value, onValue, onBad }: { id: string; f: (typeof FIELDS
         />
         <span>{f.unit}</span>
       </span>
-      <span className="power-hint" id={`${id}-hint`}>
-        {f.hint}
+      {/* A marked field says what it accepts (feature review: "2,5", a huge or an empty value only said "the marked
+          field"): a point for decimals, above 0, the field's own upper limit. */}
+      <span className={`power-hint${bad ? ' is-error' : ''}`} id={`${id}-hint`} data-testid={`power-hint-${f.key}`}>
+        {bad ? badText(f, draft) : f.hint}
       </span>
     </div>
   )
