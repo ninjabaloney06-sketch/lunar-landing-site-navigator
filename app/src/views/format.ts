@@ -2,6 +2,8 @@
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const MINUS = '−'
+/** Shown for a value that is not a finite number (e.g. a share of a zero-length span), never "NaN %". */
+export const NO_VALUE = '—'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -45,12 +47,14 @@ export function fmtShort(ms: number): string {
   return `${fmtDay(ms)} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
 }
 
-/** "16–29 Aug 2027" for [start, end) with end at 00:00 of the day after the last day. */
+/** "16–29 Aug 2027" for [start, end) with end at 00:00 of the day after the last day; one day is "31 Dec 2030"
+ *  (feature review: a one-day mission read "31–31 Dec 2030"). */
 export function fmtRange(startMs: number, endMs: number): string {
   const a = new Date(startMs)
   const b = new Date(endMs - 1)
   const y = (d: Date) => d.getUTCFullYear()
   const m = (d: Date) => MONTHS[d.getUTCMonth()].slice(0, 3)
+  if (y(a) === y(b) && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate()) return `${a.getUTCDate()} ${m(a)} ${y(a)}`
   if (y(a) === y(b) && a.getUTCMonth() === b.getUTCMonth()) return `${a.getUTCDate()}–${b.getUTCDate()} ${m(a)} ${y(a)}`
   if (y(a) === y(b)) return `${a.getUTCDate()} ${m(a)} – ${b.getUTCDate()} ${m(b)} ${y(a)}`
   return `${a.getUTCDate()} ${m(a)} ${y(a)} – ${b.getUTCDate()} ${m(b)} ${y(b)}`
@@ -58,12 +62,14 @@ export function fmtRange(startMs: number, endMs: number): string {
 
 /** Signed degrees with a true minus sign: "1.2°", "−0.4°". */
 export function fmtDeg(v: number, digits = 1): string {
+  if (!Number.isFinite(v)) return NO_VALUE
   const s = Math.abs(v).toFixed(digits)
   return `${v < 0 && Number(s) !== 0 ? MINUS : ''}${s}°`
 }
 
 /** "89.77° S · 171.87° W" (planetocentric, east-positive input). */
 export function fmtCoords(lat: number, lon: number): string {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return NO_VALUE
   const lo = ((((lon + 180) % 360) + 360) % 360) - 180
   return `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'} · ${Math.abs(lo).toFixed(2)}° ${lo < 0 ? 'W' : 'E'}`
 }
@@ -74,10 +80,12 @@ export function capital(s: string): string {
 }
 
 export function fmtPct(v: number): string {
+  if (!Number.isFinite(v)) return NO_VALUE
   return `${v.toFixed(1)} %`
 }
 
 export function fmtHours(v: number): string {
+  if (!Number.isFinite(v)) return NO_VALUE
   return `${v.toFixed(1)} h`
 }
 

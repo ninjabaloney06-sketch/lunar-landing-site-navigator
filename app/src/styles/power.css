@@ -115,3 +115,8 @@
 .power-model p {
   margin: var(--s-2) 0 0;
 }
+
+/* A marked field: what it accepts, in the error colour (feature review). */
+.power-hint.is-error {
+  color: var(--error);
+}

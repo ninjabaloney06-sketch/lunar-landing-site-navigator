@@ -55,10 +55,16 @@ export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: stri
   },
 ]
 
+/** Shown when the browser refuses to store a mission (storage blocked or full); shared with the flight panel. */
+export const SAVE_FAILED = 'Not saved: this browser does not allow storing it (storage blocked or full). Copy the link instead.'
+
 const PLAY_NOTE = 'The landing site from the first to the last mission day. Space pauses.'
 
 // U17: the dates of the data's coverage in the panel's own date format (16 Aug 2027), not state.ts's long months.
 const RANGE_TEXT = `Dates from ${fmtDate(COVERAGE_START_MS)} to ${fmtDate(COVERAGE_END_MS - DAY_MS)} (UTC) are supported.`
+
+/** Start moved so close to the end of the supported dates that the mission had to be shortened. */
+const shortenedText = (n: number) => `Shortened to ${n} ${n === 1 ? 'day' : 'days'}: supported dates end on ${fmtDate(COVERAGE_END_MS - DAY_MS)}.`
 
 /** A duration as "8.4 h" below a day, else "3 days 4 h" (U17). */
 export function fmtDuration(hours: number): string {
@@ -126,6 +132,7 @@ interface Props {
   missions: MissionState[] // saved in this browser
   missionSaved: boolean // the mission on screen is one of them
   onAddMission(): void
+  saveFailed?: boolean // the last Add mission was refused by the browser's storage
   onCalculateFlight(m: MissionState): void
   onCompareMissions(): void // opens the table of saved missions in the Details drawer (U13)
   onCalculateCurrentFlight(): void // the mission on screen, saved or not: the flight view has no tab (U12)
@@ -300,9 +307,10 @@ export function MissionPanel(p: Props) {
     const a = parseDate(startDraft)
     if (a === null) return setDateError('Start: enter a date such as 16 Aug 2027.')
     if (!inCoverage(a)) return setDateError(RANGE_TEXT)
-    setDateError(null)
     setStartDraft(null)
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    // The length is kept unless the supported dates end first; then say so (feature review: it shrank silently).
+    setDateError(n < days ? shortenedText(n) : null)
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
   // The calendar fields under the typed ones (phone testers, 15 Nov: a date typed wrongly): the browser's own date
@@ -312,9 +320,10 @@ export function MissionPanel(p: Props) {
     const a = Date.parse(`${value}T00:00:00Z`)
     if (!Number.isFinite(a)) return
     if (!inCoverage(a)) return setDateError(RANGE_TEXT)
-    setDateError(null)
     setStartDraft(null)
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    // The length is kept unless the supported dates end first; then say so (feature review: it shrank silently).
+    setDateError(n < days ? shortenedText(n) : null)
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
   const pickEnd = (value: string) => {
@@ -790,7 +799,9 @@ export function MissionPanel(p: Props) {
           </button>
         </div>
         <p className="quiet mp-save-note" aria-live="polite" data-testid="mission-save-note">
-          {p.missionSaved
+          {p.saveFailed && !p.missionSaved
+            ? SAVE_FAILED
+            : p.missionSaved
             ? 'Saved in this browser.'
             : p.missions.length >= MAX_MISSIONS
               ? `At most ${MAX_MISSIONS} saved missions.`

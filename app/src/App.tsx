@@ -3,7 +3,7 @@
 // The flight view shares the stage: the Earth-to-Moon trajectory for a mission's site and start date, with its own
 // panel and playback bar. It has no tab: "Calculate flight" on a mission opens it (U12); "Back to landing site" or
 // Esc leaves it.
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { loadPeriods, loadSites, loadStations } from './data/load'
 import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
@@ -31,6 +31,7 @@ import {
   pointName,
   removePoint,
   renamePoint,
+  serializeHash,
   STEP_MS,
   useHashState,
 } from './state'
@@ -171,7 +172,7 @@ function AnswerPending({ state, siteName }: { state: ResultsState; siteName: str
 }
 
 function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; stations: Station[] }) {
-  const [hs, patch] = useHashState()
+  const [hs, patch, flushHash] = useHashState()
   const [menu, setMenu] = useState<null | 'mission' | 'site' | 'date' | 'view'>(null)
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -184,6 +185,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (leftSite) setSimMode(false)
     else if (playing) setSimMode(true)
   }, [playing, leftSite])
+  // When Play stops (Pause, Esc, the last step) the link is written in the same commit as the Play label, so a link
+  // read right after it holds the resting cursor; while playing it follows every 400 ms (state.ts).
+  const wasPlaying = useRef(playing)
+  useLayoutEffect(() => {
+    if (wasPlaying.current && !playing) flushHash()
+    wasPlaying.current = playing
+  }, [playing, flushHash])
+  const [slopeWhy, setSlopeWhy] = useState(false) // the slope warning's "Why?" (NASA requirement and source)
   const [webgl, setWebgl] = useState(() => webglAvailable())
   // "How to use" card (feedback of 15 Nov: "not clear what the user can do"; science lead: "make the UI more
   // intuitive"): three numbered steps, shown until "Got it" and reopened from Help. Only the dismissal is kept, in
@@ -229,6 +238,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }, [hs])
   const currentMission = missionKey(missionNow)
   const missionSaved = missions.list.some((m) => missionKey(m) === currentMission)
+  // Add mission / Save mission when the browser refuses storage (blocked or full): say so instead of doing nothing
+  // (feature review). The buttons are disabled for the other reasons add() returns false (saved already, list full).
+  const [saveFailed, setSaveFailed] = useState(false)
+  const saveMission = () => setSaveFailed(!missions.add(missionNow))
 
   const period: ViewPeriod = useMemo(
     () => resolvePeriod({ period: hs.period, from: hs.from, days: hs.days }, periods),
@@ -755,7 +768,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               periods={periods}
               missions={missions.list}
               missionSaved={missionSaved}
-              onAddMission={() => missions.add(missionNow)}
+              onAddMission={saveMission}
+              saveFailed={saveFailed}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
               onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
@@ -800,7 +814,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               periods={periods}
               missions={missions.list}
               missionSaved={missionSaved}
-              onAddMission={() => missions.add(missionNow)}
+              onAddMission={saveMission}
+              saveFailed={saveFailed}
               onLoadMission={(m) => patch({ ...m, t: null })}
               onCalculateFlight={calculateFlight}
               onCalculateCurrentFlight={() => calculateFlight(missionOf(hs))}
@@ -902,7 +917,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               collapsed={panelCollapsed}
               onCollapsed={setPanelCollapsed}
               missionName={missionName}
-              onSaveMission={() => missions.add(missionNow)}
+              onSaveMission={saveMission}
+              saveFailed={saveFailed}
               missionSaved={missionSaved}
               canSaveMission={missions.list.length < MAX_MISSIONS}
             />
@@ -1022,15 +1038,34 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             depends on the vehicle; above 15° the harsher one. The 5° project criterion of the ranking and the search
             is unchanged and stated there. */}
         {slope.deg !== null && slope.deg > SLOPE_WARN_DEG && (
+          // Compact (3D audit, 15 Nov: the banner covered site pins and, on a phone, the lower third of the scene): the
+          // verdict and the number on one line; NASA's requirement, the lander note and the source behind "Why?".
           <p className={`slope-warning${slope.deg > SLOPE_SEVERE_DEG ? ' is-severe' : ''}`} data-testid="slope-warning" data-level={slope.deg > SLOPE_SEVERE_DEG ? 'severe' : 'caution'}>
             <Icon name="warning" />
             <span>
               {slope.deg > SLOPE_SEVERE_DEG
-                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}. NASA's Artemis III landing requirement is under ${SLOPE_SEVERE_DEG}° over 100 m. `
-                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above the ${SLOPE_WARN_DEG}° contour of NASA's site maps (requirement: under ${SLOPE_SEVERE_DEG}°). Whether a landing is possible depends on the lander. `}
-              <a href={SLOPE_SOURCE} target="_blank" rel="noopener noreferrer" data-testid="slope-source">
-                Source
-              </a>
+                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}.`
+                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}`}{' '}
+              {slopeWhy && (
+                <span id="slope-why" data-testid="slope-why-text">
+                  {slope.deg > SLOPE_SEVERE_DEG
+                    ? `NASA's Artemis III landing requirement is under ${SLOPE_SEVERE_DEG}° over 100 m. `
+                    : `, above the ${SLOPE_WARN_DEG}° contour of NASA's site maps (requirement: under ${SLOPE_SEVERE_DEG}°). Whether a landing is possible depends on the lander. `}
+                  <a href={SLOPE_SOURCE} target="_blank" rel="noopener noreferrer" data-testid="slope-source">
+                    Source
+                  </a>{' '}
+                </span>
+              )}
+              <button
+                type="button"
+                className="link slope-why"
+                data-testid="slope-why"
+                aria-expanded={slopeWhy}
+                aria-controls="slope-why"
+                onClick={() => setSlopeWhy((v) => !v)}
+              >
+                {slopeWhy ? 'Less' : 'Why?'}
+              </button>
             </span>
           </p>
         )}
@@ -1208,6 +1243,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             power={hs.power}
             onPower={(power) => patch({ power })}
             onClose={() => patch({ drawer: null })}
+            // Copy link copies the state on screen, not the address bar, which is written 400 ms after a change.
+            shareUrl={`${window.location.origin}${window.location.pathname}${window.location.search}#${serializeHash(hs)}`}
           />
         )}
       </div>

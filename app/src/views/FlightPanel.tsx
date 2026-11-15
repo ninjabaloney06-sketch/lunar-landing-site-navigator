@@ -21,6 +21,7 @@ import { Abbr } from './flightGlossary'
 import { AnalysisActions, DispersionDetails, PayloadDetails, PayloadLine, RouteDetails, Unvalidated } from './flightResult'
 import { NOT_VALIDATED_TEXT, SHORT_MEANING, errorText, lowerBoundPropellant, lowerBoundShort, propellantStatus, shortElementsOf } from './flightResultText'
 import { FullDataSwitch } from './FullDataSwitch'
+import { SAVE_FAILED } from './MissionPanel'
 
 export type MissionStatus = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; plan: MissionPlan }
 
@@ -70,6 +71,7 @@ export interface FlightPanelProps {
   onSaveMission(): void
   missionSaved: boolean // the current mission is already in the saved list
   canSaveMission: boolean // false when the list is full
+  saveFailed?: boolean // the last save was refused by the browser's storage
   /** Back to the landing-site view (the menu's own way out of the flight view). */
   onClose?(): void
 }
@@ -192,8 +194,9 @@ export function FlightPanel(p: FlightPanelProps) {
 
   const head = (
     <div className="mp-head flight-head">
+      {/* Named as the button that opens it (header action bar: "Flight plan"). */}
       <h2 id="flight-title" className="mp-title">
-        Rocket flight
+        Flight plan
       </h2>
       {!collapsed && <FullDataSwitch className="flight-full" />}
       <button
@@ -331,6 +334,26 @@ export function FlightPanel(p: FlightPanelProps) {
             <p className="quiet flight-hint">Launch site on Earth where the ascent starts.</p>
           </div>
         </div>
+        {/* Right under the Launchpad menu (feature review: "Other coordinates" opened fields inside the folded
+            More inputs section, so the choice seemed to do nothing). */}
+        {padId === 'custom' && (
+          <div className="mp-field">
+            <span className="mp-label">Launch point</span>
+            <div className="flight-control">
+              <CoordFields value={p.customPad} testId="flight-pad" onChange={p.onCustomPad} />
+              <button
+                type="button"
+                className="link flight-pick"
+                aria-pressed={picking === 'pad'}
+                data-testid="flight-pick-pad"
+                onClick={() => p.onPicking(picking === 'pad' ? null : 'pad')}
+              >
+                Pick on Earth
+              </button>
+              <p className="quiet flight-hint">Latitude and longitude in degrees, or pick a point on Earth.</p>
+            </div>
+          </div>
+        )}
         <div className="mp-field">
           <span className="mp-label">Landing</span>
           <div className="flight-control">
@@ -379,7 +402,9 @@ export function FlightPanel(p: FlightPanelProps) {
           Save mission
         </button>
         <span className="quiet" aria-live="polite" data-testid="flight-save-hint">
-          {p.missionSaved
+          {p.saveFailed && !p.missionSaved
+            ? SAVE_FAILED
+            : p.missionSaved
             ? 'Saved: see the mission table under Details.'
             : p.canSaveMission
               ? 'Keeps site, dates, launchpad, rocket, stay and transfer limit.'
@@ -389,26 +414,8 @@ export function FlightPanel(p: FlightPanelProps) {
 
       {plan && <MissionResult plan={plan} onSeek={p.onSeek} />}
 
-      <Section id="advanced" title="More inputs: launch and landing point, return, transfer">
+      <Section id="advanced" title="More inputs: landing point, return, transfer">
         <div className="mp-fields flight-fields">
-          {padId === 'custom' && (
-            <div className="mp-field">
-              <span className="mp-label">Launch point</span>
-              <div className="flight-control">
-                <CoordFields value={p.customPad} testId="flight-pad" onChange={p.onCustomPad} />
-                <button
-                  type="button"
-                  className="link flight-pick"
-                  aria-pressed={picking === 'pad'}
-                  data-testid="flight-pick-pad"
-                  onClick={() => p.onPicking(picking === 'pad' ? null : 'pad')}
-                >
-                  Pick on Earth
-                </button>
-                <p className="quiet flight-hint">Latitude and longitude in degrees, or pick a point on Earth.</p>
-              </div>
-            </div>
-          )}
           <div className="mp-field">
             <span className="mp-label" id={`${uid}-site`}>
               Landing point
