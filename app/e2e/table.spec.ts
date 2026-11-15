@@ -252,7 +252,7 @@ test.describe('saved missions', () => {
 
     // Reload on a fresh link: both are still there.
     await page.goto('about:blank')
-    await page.goto(`/#site=${RIDGE}&period=${AUG}&drawer=details`)
+    await page.goto(`/#site=${RIDGE}&period=${AUG}&drawer=compare`) // the Compare tab of the Details drawer
     await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
     const table = page.getByTestId('site-table')
     await table.scrollIntoViewIfNeeded()
@@ -292,6 +292,7 @@ test.describe('saved missions', () => {
     await page.reload()
     await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
     await page.getByTestId('details').click()
+    await page.getByTestId('drawer-tab-compare').click() // 15 Nov: tabs in the Details drawer
     await page.getByTestId('site-table').scrollIntoViewIfNeeded()
     await expect(page.getByTestId('site-table').getByTestId('mission-rows').locator('tr[data-mission]')).toHaveCount(1)
   })

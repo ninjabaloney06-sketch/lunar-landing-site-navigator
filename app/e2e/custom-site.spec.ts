@@ -131,12 +131,15 @@ test.describe('custom landing site at 1440 × 900', () => {
     await expect(drawer.getByRole('heading', { level: 2 })).toHaveText('Mission 1')
     await expect(drawer.getByTestId('drawer-approx-note')).toHaveText(approx)
     await expect(drawer.getByTestId('horizon-strip').locator('svg')).toBeVisible()
+    await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
     await expect(drawer.getByTestId('compare-table').locator('tbody tr').first().locator('td').first()).toHaveText(`${f.litPct.toFixed(1)} %`)
+    await page.getByTestId('drawer-tab-site').click()
     const terrain = drawer.getByTestId('custom-terrain')
     await expect(terrain).toContainText(`${f.computed!.site_res_m} m at the site, up to ${f.computed!.near_res_m} m within ${f.computed!.rings.nearKm} km`)
     await expect(terrain).not.toContainText('20 m per pixel')
     await expect(drawer).toContainText("Frame: the user's own coordinates; MOON_ME assumed.")
     // The finder runs on the same horizon.
+    await page.getByTestId('drawer-tab-dates').click() // 15 Nov: tabs in the Details drawer
     await drawer.getByRole('button', { name: 'Find dates' }).click()
     await expect(drawer.locator('.finder-results')).toBeVisible({ timeout: 60_000 })
     await expect(drawer.locator('.finder')).not.toContainText('failed')

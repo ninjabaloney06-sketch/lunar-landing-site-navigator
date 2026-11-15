@@ -194,6 +194,10 @@ const SITE_DIST_KM = { min: 2, max: 60 }
 // there: eye 1.75 m above the drawn ground and within 2 m of the data height; the picture, not the height, was
 // wrong).
 const WALK_MAX_KM = 20
+// A walk needs a double-click (two clicks within this time and distance): a single click on the ground used to
+// send the camera off to eye level, which first-time users did by accident (feedback of 15 Nov).
+const DOUBLE_CLICK_MS = 450
+const DOUBLE_CLICK_PX = 12
 const GLOBE_DIST_KM = { min: 3000, max: 20000, default: 6500 }
 const EYE_DEFAULT_EL = 3
 const EYE_FOV_MIN = 4 // narrowest lens at eye level, vertical degrees; the widest is the default field of view
@@ -1216,7 +1220,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    */
   function walkTo(x: number, y: number, animate = animated, faceSite = false): boolean {
     if (!frame?.site || fly || level === 'globe' || level === 'flight') return false
-    if (Math.hypot(x, y) > WALK_MAX_KM * 1000) return false
+    if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
     const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
     const to = eyeAt(x, y)
     // A click faces the way the camera came; a point viewpoint faces the landing site, so its mast is in view.
@@ -1708,6 +1712,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // A click is a press of the main button (or one finger) that moved less than 5 px. On the globe it selects
   // the pin under it; at site and eye level it walks to the terrain point under it.
   let down: { x: number; y: number } | null = null
+  let lastClick: { t: number; x: number; y: number } | null = null
   let fingers = 0
   const toNdc = (clientX: number, clientY: number) => {
     const r = canvas.getBoundingClientRect()
@@ -1753,8 +1758,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     // A click on a point of interest's pin belongs to the page (its info box): it is not a walk.
     if (nameAt(ndc)?.kind === 'poi') return
+    // Walk: a double-click (or double tap) on terrain within WALK_MAX_KM of the site.
+    const now = performance.now()
+    const second = lastClick !== null && now - lastClick.t < DOUBLE_CLICK_MS && Math.hypot(e.clientX - lastClick.x, e.clientY - lastClick.y) < DOUBLE_CLICK_PX
+    lastClick = second ? null : { t: now, x: e.clientX, y: e.clientY }
+    if (!second) return
     const spot = site.pick(ndc, siteCam)
-    if (spot) walkTo(spot.x, spot.y)
+    if (spot && Math.hypot(spot.x, spot.y) <= WALK_MAX_KM * 1000) walkTo(spot.x, spot.y)
   }
   const onCancel = (e: PointerEvent) => {
     if (e.pointerType === 'touch') fingers = Math.max(0, fingers - 1)

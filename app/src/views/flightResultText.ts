@@ -30,7 +30,7 @@ const tonnes = (kg: number) => `${(kg / 1000).toFixed(kg < 10_000 ? 1 : 0)} t`
 export function payloadSentence(p: PayloadResult, shortElements: string[] = []): string {
   if ((p.verdict === 'payload' || p.verdict === 'extrapolated') && shortElements.length > 0) {
     const names = shortElements.join(' and ')
-    return `Max payload: not estimated — ${names} ${shortElements.length > 1 ? 'are' : 'is'} short of propellant for this flight.`
+    return `Max payload: not estimated — ${names} ${shortElements.length > 1 ? 'are' : 'is'} short of propellant for this flight. That limits the mission as planned, not the cargo.`
   }
   switch (p.verdict) {
     case 'payload': {

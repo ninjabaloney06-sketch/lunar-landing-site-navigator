@@ -617,7 +617,7 @@ function EnergyFactor({ plan }: { plan: MissionPlan }) {
         )}
         <li className="quiet">
           Exhaust energy of every burn from <Abbr>TLI</Abbr> on, divided by the same for this design's cheapest landing point (reference
-          mission: LC-39B, landing from 16 Aug 2027, the design's default stay, a grid of {m ? m.gridPoints : 108} points over the whole Moon).
+          mission: Launch Complex 39B at Kennedy Space Center, landing from 16 Aug 2027, the design's default stay, a grid of {m ? m.gridPoints : 108} points over the whole Moon).
         </li>
       </ul>
     </div>

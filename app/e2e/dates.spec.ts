@@ -209,6 +209,7 @@ for (const vp of [
     await page.screenshot({ path: `test-results/dates-drawer-top-${vp.width}.png` })
     await yt.scrollIntoViewIfNeeded()
     await page.screenshot({ path: `test-results/dates-year-timeline-${vp.width}.png` })
+    await page.getByTestId('drawer-tab-site').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
     await page.getByTestId('drawer').getByTestId('horizon-strip').evaluate((e) => e.scrollIntoView({ block: 'center' }))
     await page.screenshot({ path: `test-results/dates-horizon-${vp.width}.png` })
   })

@@ -649,3 +649,29 @@ select {
   user-select: text;
 }
 
+
+/* First-use hint: one quiet line between the title and the header buttons; gone at the first press or key. Wide
+   screens only: on a phone the header fills that row. */
+.hint {
+  position: absolute;
+  z-index: 5;
+  top: var(--s-5);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(46ch, 34vw);
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-align: center;
+  background: var(--bg-veil);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .hint {
+    display: none;
+  }
+}

@@ -8,7 +8,9 @@ import type { Page } from '@playwright/test'
 
 const URL = '/#view=flight&site=haworth&rocket=apollo&name=Haworth+flight'
 const SHOTS = process.env.SHOTS_DIR
-const INTERNALS = ['Access not assessed', 'ESTABLISHED', 'not retrieved', '.json', 'NaN', 'undefined', 'energy multiplier', 'Energy multiplier']
+// 'Energy multiplier' was in this list while the feature was removed (15 Nov 06:35); the team asked for it back at
+// 11:40 the same day, on top of the result, so it is no longer an internal.
+const INTERNALS = ['Access not assessed', 'ESTABLISHED', 'not retrieved', '.json', 'NaN', 'undefined']
 
 async function shot(page: Page, name: string) {
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}.png` })

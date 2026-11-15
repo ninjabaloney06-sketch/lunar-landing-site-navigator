@@ -165,6 +165,7 @@ test('UX-01: screen numbers agree with the integrator preview run (wiring check,
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('details').click()
+  await page.getByTestId('drawer-tab-compare').click() // 15 Nov: tabs in the Details drawer
   const drawer = page.getByTestId('drawer')
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 0)) - 91)).toBeLessThan(4)
   expect(Math.abs((await compareValue(drawer, 'Station coverage', 0)) - 98)).toBeLessThan(3)
@@ -223,6 +224,7 @@ test('basic comparison: Connecting Ridge â†” Malapert Massif, same period; Aug â
   // The drawer's Switch button changes context and results together too.
   await page.getByTestId('details').click()
   const drawer = page.getByTestId('drawer')
+  await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
   await drawer.getByLabel('Compare with site').selectOption(MASSIF)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
   await step(() => drawer.getByRole('button', { name: /^Switch to Malapert Massif,/ }).click(), MASSIF, AUG)
@@ -778,8 +780,9 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
 
-  // U4: Details is the one entry point; the drawer starts with the date search.
+  // U4: Details is the one entry point; 15 Nov: the date search is its Dates tab.
   await page.getByTestId('details').click()
+  await page.getByTestId('drawer-tab-dates').click()
   await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
   await expect(drawer.getByRole('spinbutton')).toHaveCount(5)
   await drawer.getByLabel('Sunlit at least (%)').fill('150')
@@ -827,8 +830,10 @@ for (const vp of [
     await page.getByTestId('details').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')
+    await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
     await page.getByTestId('drawer').getByRole('heading', { name: 'Compare' }).scrollIntoViewIfNeeded()
     await shot('drawer-compare')
+    await page.getByTestId('drawer-tab-site').click()
     await page.getByTestId('drawer').getByRole('heading', { name: 'How this is computed' }).scrollIntoViewIfNeeded()
     await shot('drawer-sources')
   })

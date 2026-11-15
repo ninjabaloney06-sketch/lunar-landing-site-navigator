@@ -193,7 +193,7 @@ test.describe('U8: the Full data switch in the site-details drawer', () => {
       await expect(drawer).not.toContainText('not a guaranteed radio link')
       await expect(drawer).not.toContainText('Access not assessed')
       await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toHaveCount(0)
-      await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeVisible()
+      await expect(page.getByTestId('drawer-tab-dates')).toBeVisible() // 15 Nov: the date search is the Dates tab
       await page.screenshot({ path: `${SHOTS}/${vp.width}-drawer-summary.png` })
       // full data
       await sw.click()

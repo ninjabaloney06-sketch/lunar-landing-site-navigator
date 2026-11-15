@@ -175,7 +175,7 @@ test.describe('walk: a left-click on terrain moves the camera only', () => {
     await page.evaluate(() => (window as unknown as { __scene: Scene }).__scene.setView({ site: 'connecting-ridge', utc: '2027-08-16T12:00:00Z', level: 'site' }))
     const spot = (await scene(page, (s) => s.terrainAt(700, 420)))!
     expect(spot, 'terrain under the click').not.toBeNull()
-    await page.mouse.click(700, 420)
+    await page.mouse.dblclick(700, 420) // 15 Nov: a walk needs a double-click
     await frames(page)
     const a = await camera(page)
     expect(a.level).toBe('eye')
@@ -185,7 +185,7 @@ test.describe('walk: a left-click on terrain moves the camera only', () => {
     // At eye level: click the ground ahead and the camera walks there.
     const ahead = (await scene(page, (s) => s.terrainAt(640, 600)))!
     expect(ahead).not.toBeNull()
-    await page.mouse.click(640, 600)
+    await page.mouse.dblclick(640, 600) // 15 Nov: a walk needs a double-click
     await frames(page)
     const b = await camera(page)
     expect(b.level).toBe('eye')
@@ -216,7 +216,7 @@ test.describe('walk: a left-click on terrain moves the camera only', () => {
     expect(a.level).toBe('site')
     const spot = (await scene(page, (s) => s.terrainAt(900, 430)))!
     expect(spot).not.toBeNull()
-    await page.mouse.click(900, 430)
+    await page.mouse.dblclick(900, 430) // 15 Nov: a walk needs a double-click
     await expect.poll(() => scene(page, (s) => s.level())).toBe('eye')
     const b = await camera(page)
     expect(Math.hypot(b.position[0] - spot.x, b.position[1] - spot.y)).toBeLessThan(1e-6)
@@ -847,7 +847,7 @@ test('without test mode: the walk and the viewpoint flights finish, with no page
   const view = (label: string) => chooseView(page, label)
   const hashView = () => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('view') ?? 'site')
   // Walk: the 1.5 s flight ends at eye level.
-  await page.mouse.click(900, 430)
+  await page.mouse.dblclick(900, 430) // 15 Nov: a walk needs a double-click
   await expect.poll(hashView, { timeout: 10_000 }).toBe('eye')
   await page.waitForTimeout(1800)
   await page.screenshot({ path: 'test-results/c4-live-walk-1440x900.png', animations: 'disabled' })

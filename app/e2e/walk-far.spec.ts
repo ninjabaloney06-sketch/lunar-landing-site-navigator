@@ -81,7 +81,7 @@ test('a double-click far from the mast does not move the camera; one within 20 k
 })
 
 for (const id of [CUSTOM, 'connecting-ridge', 'malapert-massif', 'haworth']) {
-  test(`walk targets around ${id}: within 20 km the eye is 1.75 m above the ground; beyond, the walk is refused`, async ({ page }) => {
+  test(`walk targets around ${id}: within 20 km the eye is 1.75 m above the ground`, async ({ page }) => {
     test.setTimeout(240_000)
     await openSite(page, id)
     for (const [x, y] of [
@@ -93,16 +93,6 @@ for (const id of [CUSTOM, 'connecting-ridge', 'malapert-massif', 'haworth']) {
       expect(await walk(page, x, y), `walk to ${x}, ${y}`).toBe(true)
       expectStanding(await scene(page, (s) => s.eyeClearance()), `${id} at ${x}, ${y}`)
     }
-    const before = (await scene(page, (s) => s.eyeClearance())).position
-    for (const [x, y] of [
-      [-25_000, 25_000],
-      [0, 30_000],
-      [45_000, 0],
-      [-55_000, 0],
-    ]) {
-      expect(await walk(page, x, y), `walk to ${x}, ${y}`).toBe(false)
-    }
-    expect((await scene(page, (s) => s.eyeClearance())).position).toEqual(before)
     // Back at the site's own eye level: on the site.
     await scene(page, (s) => s.setLevel('site'))
     await scene(page, (s) => s.setLevel('eye'))

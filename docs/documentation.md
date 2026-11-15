@@ -233,7 +233,7 @@ The existing tools did not answer this in a timed test on 27 Oct 2026: one produ
 
 - Left-drag orbits. Middle-drag looks around from where the camera is.
 - Wheel or pinch moves the camera and stops 1.75 m above the terrain; at eye level it narrows the lens (54° down to 4°).
-- A left-click on the terrain at site or eye level stands the camera on that spot.
+- A double-click (or double tap) on the terrain within 20 km of the site stands the camera on that spot, at eye level; Esc goes back. A single click does nothing.
 - "View", beside the timeline, lists Landing site, Eye level and Moon. A right-click on the scene lists Moon.
 - "Add point here" (right-click) or typed coordinates in the Mission menu add a user point with a name, kept in the link.
 - A user point has no horizon file: the app shows its marker and coordinates, never a value.

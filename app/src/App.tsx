@@ -159,6 +159,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     else if (playing) setSimMode(true)
   }, [playing, leftSite])
   const [webgl, setWebgl] = useState(() => webglAvailable())
+  // First-use hint (feedback of 15 Nov: "not clear what the user can do"): one line of what the main controls do,
+  // shown until the first press or key. Text only, nothing is stored.
+  const [hint, setHint] = useState(true)
+  useEffect(() => {
+    if (!hint) return
+    const off = () => setHint(false)
+    window.addEventListener('pointerdown', off, { once: true })
+    window.addEventListener('keydown', off, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', off)
+      window.removeEventListener('keydown', off)
+    }
+  }, [hint])
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
   const viewBtn = useRef<HTMLButtonElement>(null)
@@ -565,6 +578,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </div>
         )}
       </div>
+
+      {hint && !inFlight && hs.drawer === null && (
+        <p className="hint" data-testid="hint" role="note">
+          Drag to turn, scroll to zoom, double-click the ground to stand there. The date opens other mission dates; Simulate plays the
+          mission's Sun, Earth and station contact; Details compares sites and dates.
+        </p>
+      )}
 
       <header className="top">
         <div className="place">

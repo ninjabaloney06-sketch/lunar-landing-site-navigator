@@ -385,7 +385,10 @@ export const DOC_SECTIONS: DocSection[] = [
             The wheel or a two-finger pinch moves the camera and stops 1.75 m above the terrain. At eye level it narrows
             the lens instead (54° down to 4°).
           </li>
-          <li>A left-click on the terrain at site or eye level stands the camera on that spot.</li>
+          <li>
+            A double-click (or double tap) on the terrain within 20 km of the site stands the camera on that spot, at eye
+            level; Esc goes back. A single click does nothing.
+          </li>
           <li>Hovering or tapping a pin shows its name.</li>
         </ul>
         <p>
