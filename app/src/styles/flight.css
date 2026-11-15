@@ -236,8 +236,9 @@
   margin: var(--s-2) var(--s-4) 0;
 }
 
-/* The result first: the energy multiplier large, then four short bullets. Times are buttons into the playback. */
-.flight-energy {
+/* The result first: the payload in one sentence, then three short bullets, then the two analyses the user can
+   start. Times are buttons into the playback. */
+.flight-result {
   margin: var(--s-4) var(--s-4) 0;
   padding: var(--s-3);
   border: 1px solid var(--line);
@@ -245,17 +246,81 @@
   background: var(--surface-2);
 }
 
-.flight-factor {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-4);
+.flight-payload {
+  margin: 0;
+  font-family: var(--font-serif, inherit);
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--fg);
+  overflow-wrap: anywhere;
 }
 
-.flight-factor-value {
-  font-size: 1.75rem;
-  line-height: 1.1;
-  color: var(--fg);
+/* Every new number carries this marker: small, quiet, never dropped. */
+.flight-unvalidated {
+  font-family: var(--font-sans);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-payload .flight-unvalidated {
+  display: block;
+}
+
+/* The analyses the user starts: text links, progress in words with a thin bar, the answer as one sentence. */
+.flight-jobs {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.flight-job p {
+  margin: 0 0 var(--s-1);
+  overflow-wrap: anywhere;
+}
+
+.flight-job-answer {
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.flight-job-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+}
+
+.flight-progress {
+  width: 8rem;
+  height: 4px;
+  accent-color: var(--fg);
+}
+
+.flight-analysis-body {
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.flight-analysis-body p {
+  margin: 0 0 var(--s-2);
+}
+
+.flight-phases {
+  margin-bottom: var(--s-3);
+}
+
+.flight-phases caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: var(--s-1);
+}
+
+.flight-lower-bound {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
 }
 
 .flight-bullets {
@@ -469,20 +534,6 @@
 }
 
 .flight-own-tag {
-  display: block;
-  font-family: var(--font-sans);
-  color: var(--muted);
-}
-
-/* What the reader must not miss about the theoretical minimum: the same rule as a plan note. */
-.flight-prose .flight-caveat {
-  margin-bottom: var(--s-3);
-  padding-left: var(--s-3);
-  border-left: 2px solid var(--fg);
-  font-weight: 500;
-}
-
-.flight-fact-note {
   display: block;
   font-family: var(--font-sans);
   color: var(--muted);

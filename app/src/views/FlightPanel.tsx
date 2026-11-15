@@ -9,11 +9,16 @@ import '../styles/flight.css'
 import type { ArchitectureSpec } from '../flight/hardware'
 import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
 import { DESIGNS, SLS_LANDERS, designOf } from '../flight/designs'
-import { energyMultiplier, fmtFactor } from '../flight/energyBaseline'
+import { ARCHITECTURES, SPACECRAFT } from '../flight/spacecraft'
+import { useFullData } from './advanced'
 import { Glossary, HaloOrbit, LandingWays, SurfaceStay, rememberPlan } from './FlightExplain'
 import { fmtCoords, fmtDeg } from './format'
 import { fmtDayTime, fmtDays, fmtDuration, fmtKm, fmtKms, fmtMetres, fmtTonnes, fmtUtc } from './flightFormat'
+import { useFlightAnalysis } from './flightAnalysis'
 import { Abbr } from './flightGlossary'
+import { AnalysisActions, DispersionDetails, PayloadDetails, PayloadLine, RouteDetails, Unvalidated } from './flightResult'
+import { lowerBoundPropellant, lowerBoundShort } from './flightResultText'
+import { FullDataSwitch } from './FullDataSwitch'
 
 export type MissionStatus = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; plan: MissionPlan }
 
@@ -60,6 +65,8 @@ export interface FlightPanelProps {
   onSaveMission(): void
   missionSaved: boolean // the current mission is already in the saved list
   canSaveMission: boolean // false when the list is full
+  /** Back to the landing-site view (the menu's own way out once the Flight plan tab is gone). */
+  onClose?(): void
 }
 
 const TRANSFER_LIMITS: { value: string; label: string }[] = [
@@ -96,11 +103,21 @@ interface SectionProps {
   title: string
   count?: string // a short figure beside the title: how many notes, how many events
   defaultOpen?: boolean
+  /** A section of data (not an explanation): open by default in full data mode. */
+  data?: boolean
   children: ReactNode
 }
 
-function Section({ id, title, count, defaultOpen = false, children }: SectionProps) {
-  const [open, setOpen] = useState(() => openSections.get(id) ?? defaultOpen)
+function Section({ id, title, count, defaultOpen = false, data = false, children }: SectionProps) {
+  const [full] = useFullData()
+  const [open, setOpen] = useState(() => openSections.get(id) ?? (defaultOpen || (data && full)))
+  // Switching full data on or off opens or closes every data section; the reader's own choice after that.
+  const [seenFull, setSeenFull] = useState(full)
+  if (data && full !== seenFull) {
+    setSeenFull(full)
+    openSections.delete(id)
+    setOpen(full)
+  }
   return (
     <details
       className="flight-sec"
@@ -136,6 +153,12 @@ export function FlightPanel(p: FlightPanelProps) {
       <h2 id="flight-title" className="mp-title">
         Rocket flight
       </h2>
+      {!collapsed && <FullDataSwitch className="flight-full" />}
+      {p.onClose && (
+        <button type="button" className="link flight-close" data-testid="flight-close" onClick={p.onClose}>
+          Back to landing site
+        </button>
+      )}
       <button
         type="button"
         className="link flight-collapse"
@@ -165,11 +188,11 @@ export function FlightPanel(p: FlightPanelProps) {
         <li>
           <span className="quiet">Mission</span> <strong>{p.missionName}</strong>
         </li>
-        <li>
-          <span className="quiet">Landing site</span> {target.name}{' '}
+        <li className="flight-site-row">
+          <span className="quiet">Landing site</span> <span className="flight-site-name">{target.name}</span>
           {siteMode === 'mission' && (
-            <button type="button" className="link" onClick={p.onChangeSite}>
-              Change
+            <button type="button" className="link flight-change-site" onClick={p.onChangeSite}>
+              change site
             </button>
           )}
         </li>
@@ -185,7 +208,8 @@ export function FlightPanel(p: FlightPanelProps) {
           {status.message}
         </p>
       )}
-      {plan && <EnergyCard plan={plan} onSeek={p.onSeek} />}
+      {plan && <ResultCard plan={plan} onSeek={p.onSeek} />}
+      {plan && <AnalysisSections />}
 
       <fieldset className="flight-designs" data-testid="flight-designs">
         <legend className="mp-label">Rocket and lander</legend>
@@ -424,10 +448,11 @@ export function FlightPanel(p: FlightPanelProps) {
           </li>
           <li>Launch time, azimuth, burn lengths and ignition points searched for the least propellant</li>
           <li>
-            Energy multiplier: exhaust energy of every burn from <Abbr>TLI</Abbr> on, divided by the same for this design's cheapest landing
-            point (reference mission: LC-39B, landing from 16 Aug 2027, the design's default stay, on a grid over the whole Moon)
+            Max payload: the rocket equation per stage on the plan's burns, every element loaded with what it needs plus a 3 % reserve, the
+            error a root sum of squares of one-at-a-time changes (not yet validated by the science lead)
           </li>
-          <li>Not modelled: the Moon's uneven gravity, winds, engine transients, atmospheric entry after Entry Interface</li>
+          <li>Landing dispersion: 200 descents flown with small errors in thrust, specific impulse, pointing and launch time (not yet validated by the science lead)</li>
+          <li>Not modelled: the Moon's uneven gravity in the plans (its J2 term is in the landing dispersion only), winds, engine transients, atmospheric entry after Entry Interface</li>
         </ul>
         {plan && plan.sources.length > 0 && (
           <ul className="plain flight-sources">
@@ -445,32 +470,28 @@ export function FlightPanel(p: FlightPanelProps) {
   )
 }
 
-// ---------- the result: energy multiplier and the mission in four lines ----------
+// ---------- the result: the payload and the mission in three lines ----------
 
 const dvAfterLaunchOf = (plan: MissionPlan) =>
   plan.events.reduce((sum, e) => (e.kind === 'burn' && e.id !== 'ascent' && e.dvKms !== null ? sum + e.dvKms : sum), 0)
 
-function EnergyCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
-  const m = energyMultiplier(plan)
+/** The lander's propellant figure when the hardware data marks it as a lower bound (Blue Moon). */
+const lowerBoundOf = (architectureId: string) => {
+  const a = ARCHITECTURES.find((x) => x.id === architectureId)
+  return lowerBoundPropellant(SPACECRAFT.find((x) => x.id === a?.landerId))
+}
+
+/** The result: the payload line first, then the mission in three short bullets (times are buttons into the
+ *  playback), then the two analyses the user can start. */
+function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
+  const [full] = useFullData()
   const f = plan.facts
   const short = plan.propellant.filter((u) => u.usedKg > u.capacityKg)
+  const lb = lowerBoundOf(plan.architecture.id)
   return (
-    <section className="flight-energy" aria-label="Result" data-testid="flight-energy">
-      <div className="flight-factor">
-        <span className="quiet">Energy multiplier</span>
-        <span className="flight-factor-value mono" data-testid="flight-factor" data-factor={m ? m.factor.toFixed(4) : ''}>
-          {m ? fmtFactor(m.factor) : '–'}
-        </span>
-      </div>
+    <section className="flight-result" aria-label="Result" data-testid="flight-result">
+      <PayloadLine />
       <ul className="flight-bullets">
-        {m ? (
-          <li data-testid="flight-factor-note">
-            1.00× = this design's ideal landing point (<span className="mono">{fmtCoords(m.idealPoint.latDeg, m.idealPoint.lonDeg)}</span>); the
-            costliest point on the Moon: {fmtFactor(m.worstOnGrid)}
-          </li>
-        ) : (
-          <li>No baseline for this design in this build</li>
-        )}
         <li>
           <Abbr>Δv</Abbr> after launch: <span className="mono">{fmtKms(dvAfterLaunchOf(plan))}</span>
         </li>
@@ -487,7 +508,7 @@ function EnergyCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number)
         </li>
         <li data-testid="flight-glance-propellant">
           {short.length === 0 ? (
-            'Propellant: every stage has enough'
+            'Propellant: every stage has enough.'
           ) : (
             <>
               Propellant short:{' '}
@@ -500,9 +521,43 @@ function EnergyCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number)
               <span className="quiet">(why: Notes on this plan)</span>
             </>
           )}
+          {lb && (
+            <span className="flight-lower-bound quiet" data-testid="flight-lower-bound">
+              {' '}
+              {full ? lb.note : lowerBoundShort(lb.kg)}
+            </span>
+          )}
         </li>
       </ul>
+      <AnalysisActions />
     </section>
+  )
+}
+
+/** Details of the analyses, in sections that open by default in full data mode. */
+function AnalysisSections() {
+  const a = useFlightAnalysis()
+  return (
+    <>
+      {a.payload.state === 'ready' && (
+        <Section id="payload" title="Payload: propellant per phase, limit and assumptions" data>
+          <PayloadDetails p={a.payload.result} />
+          <p>
+            <Unvalidated />
+          </p>
+        </Section>
+      )}
+      {a.route.state === 'ready' && (
+        <Section id="route" title="Cheapest route: Δv per phase" data>
+          <RouteDetails r={a.route.result} />
+        </Section>
+      )}
+      {a.dispersion.state === 'ready' && (
+        <Section id="dispersion" title="Landing dispersion: the runs" data>
+          <DispersionDetails />
+        </Section>
+      )}
+    </>
   )
 }
 
@@ -614,7 +669,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
   return (
     <>
       {plan.notes.length > 0 && (
-        <Section id="notes" title="Notes on this plan" count={String(plan.notes.length)}>
+        <Section data id="notes" title="Notes on this plan" count={String(plan.notes.length)}>
           <ul className="plain flight-notes" aria-label="Notes on this mission" data-testid="flight-notes">
             {plan.notes.map((note, i) => (
               <li key={i}>
@@ -625,7 +680,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
         </Section>
       )}
 
-      <Section id="events" title="Events and burns" count={`${burnCount} burns, ${plan.events.length - burnCount} other`}>
+      <Section data id="events" title="Events and burns" count={`${burnCount} burns, ${plan.events.length - burnCount} other`}>
         <label className="check flight-filter">
           <input type="checkbox" checked={burnsOnly} onChange={(e) => setBurnsOnly(e.target.checked)} />
           <span>Engine burns only</span>
@@ -686,7 +741,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
         </table>
       </Section>
 
-      <Section id="propellant" title="Propellant" count={shortCount === 0 ? 'enough' : `${shortCount} short`}>
+      <Section data id="propellant" title="Propellant" count={shortCount === 0 ? 'enough' : `${shortCount} short`}>
         <table className="tbl flight-propellant" data-testid="flight-propellant">
           <thead>
             <tr>
@@ -724,7 +779,7 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
         </table>
       </Section>
 
-      <Section id="facts" title="Flight facts">
+      <Section data id="facts" title="Flight facts">
         <dl className="flight-facts">
           {facts.map(([id, label, lines]) => (
             <div key={id} data-fact={id}>
