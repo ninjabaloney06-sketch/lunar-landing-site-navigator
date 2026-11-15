@@ -1,13 +1,10 @@
-// U16 and U6 in the app (15 Nov). Both need a change in App.tsx, which the wave-2 `shell` agent applies from cam's
-// report: until then each test is marked fixme. Delete the `test.fixme(...)` line of a test when its App.tsx diff
-// is applied.
+// U16 and U6 in the app (15 Nov). Both needed a change in App.tsx from cam's report; both are applied, so the
+// tests run unconditionally.
 // Run: PW_GPU=1 PW_PORT=5181 npx playwright test e2e/cam-app.spec.ts
 import { expect, test, type Page } from '@playwright/test'
 
 const RIDGE = 'connecting-ridge'
 const AUG = 'shackleton-2027-08'
-const APP_DIFF_U16 = false // set false (or delete the fixme line) once the U16 diff to App.tsx onShowPoi is applied
-const APP_DIFF_U6 = false // the same for the U6 Esc diff
 
 type Scene = {
   ready: Promise<void>
@@ -28,7 +25,6 @@ async function openApp(page: Page, h: string) {
 // Team decision of 15 Nov (science lead): "Show" picks the point as the landing site and opens the landing-site view,
 // as "Select" does. This replaces U16's eye-level landing; eye level is one step away in the View menu.
 test('search → "Show" makes the point the landing site and opens the landing-site view, camera above the drawn terrain (replaces U16 eye level, team decision 15 Nov)', async ({ page }) => {
-  test.fixme(APP_DIFF_U16, 'needs the U16 App.tsx diff from the cam report')
   test.setTimeout(180_000)
   await openApp(page, `site=${RIDGE}&period=${AUG}`)
   await page.getByTestId('search-open').click()
@@ -47,7 +43,6 @@ test('search → "Show" makes the point the landing site and opens the landing-s
 })
 
 test('U6: Esc while the simulation plays returns to the landing site, not to the Moon; Esc otherwise still goes to the Moon', async ({ page }) => {
-  test.fixme(APP_DIFF_U6, 'needs the U6 App.tsx diff from the cam report')
   await openApp(page, `site=${RIDGE}&period=${AUG}&view=eye`)
   await page.getByTestId('simulate').click()
   await expect(page.getByTestId('simulate')).toHaveText('Pause')

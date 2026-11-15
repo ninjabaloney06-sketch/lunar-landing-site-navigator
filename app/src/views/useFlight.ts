@@ -1,4 +1,4 @@
-// The mission plan for the current choices and its playback clock (Flight plan tab).
+// The mission plan for the current choices and its playback clock (flight view).
 // The plan is computed from the same DE440 ephemeris files as everything else; nothing here invents a number:
 // missing ephemeris months give a plain message. Computing a mission takes seconds (every phase is integrated
 // and aimed by iteration), so it runs in a Web Worker. The clock advances on animation frames

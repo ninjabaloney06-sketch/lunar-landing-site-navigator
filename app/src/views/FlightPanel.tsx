@@ -66,7 +66,7 @@ export interface FlightPanelProps {
   onSaveMission(): void
   missionSaved: boolean // the current mission is already in the saved list
   canSaveMission: boolean // false when the list is full
-  /** Back to the landing-site view (the menu's own way out once the Flight plan tab is gone). */
+  /** Back to the landing-site view (the menu's own way out of the flight view). */
   onClose?(): void
 }
 

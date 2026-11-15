@@ -58,9 +58,8 @@ export interface SceneApi {
   setLevel(level: SceneLevel): void
 }
 
-/** The viewpoint entries (U14: only "Moon"), shared by the View button and the right-click menu. `points` is no
- *  longer read (it decided whether Point start / Point end were enabled); kept so App.tsx's call stays valid. */
-export function viewpointItems(_points: ScenePoint[], goTo: (v: Viewpoint) => void): ViewItem[] {
+/** The viewpoint entries (U14: only "Moon"), shared by the View button and the right-click menu. */
+export function viewpointItems(goTo: (v: Viewpoint) => void): ViewItem[] {
   return VIEWPOINTS.map((v) => ({ id: v.id, label: v.label, onSelect: () => goTo(v.id) }))
 }
 
@@ -771,7 +770,7 @@ export function SceneView(props: Props) {
             ...(ctxPoint && inPinRegion(ctxPoint.lat)
               ? [{ id: 'set-site', label: `Set ${ctxPoint.name} as landing site`, onSelect: () => onSetSite(ctxPoint.lat, ctxPoint.lon) }]
               : []),
-            ...viewpointItems(points, (v) => handle.current?.goTo(v)),
+            ...viewpointItems((v) => handle.current?.goTo(v)),
           ]}
           onClose={closeCtx}
         />

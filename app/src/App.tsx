@@ -112,7 +112,7 @@ function siteSubtitle(site: Site): string | null {
 
 const dayStart = (ms: number) => ms - (((ms % DAY_MS) + DAY_MS) % DAY_MS)
 const CONTEXT_DAYS = 3
-// Arrow keys on the Flight plan tab: ten minutes, or six hours with Shift.
+// Arrow keys in the flight view: ten minutes, or six hours with Shift.
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
 type LatLon = { latDeg: number; lonDeg: number }
@@ -144,7 +144,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const [panelAtStations, setPanelAtStations] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(DEFAULT_SPEED_H_PER_S) // hours of mission time per second
-  // Simulation mode: from the first play until the run reaches its last step, Esc or the Flight plan tab.
+  // Simulation mode: from the first play until the run reaches its last step, Esc or opening the flight view.
   // A pause stays in it, so the speed slider and "Reset to start" stay beside Simulate.
   const [simMode, setSimMode] = useState(false)
   const leftSite = hs.view === 'flight'
@@ -222,7 +222,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   )
   const poiCounts = useMemo(() => (poiData.status === 'ready' ? pinCounts(poiData.pois, sites) : null), [poiData, sites])
 
-  // ---------- Flight plan tab: launchpad → this mission's site, touching down at the mission start ----------
+  // ---------- Flight view: launchpad → this mission's site, touching down at the mission start ----------
   const inFlight = hs.view === 'flight'
   const [customPad, setCustomPad] = useState<LatLon | null>(null)
   const [customSite, setCustomSite] = useState<LatLon | null>(null)
@@ -437,7 +437,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     [hs.pts, patch],
   )
   // "Set as landing site" (typed coordinates, a user point's row, the right-click menu on a user point): only
-  // inside the pin region, where customSiteId gives an id. On the Flight plan tab the tab stays, as for a site
+  // inside the pin region, where customSiteId gives an id. In the flight view the view stays, as for a site
   // chosen in the Mission panel.
   const setLandingSite = useCallback(
     (lat: number, lon: number) => {
@@ -460,7 +460,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const viewItems: ViewItem[] = [
     { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
     { id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
-    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
+    ...viewpointItems((v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
   // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
