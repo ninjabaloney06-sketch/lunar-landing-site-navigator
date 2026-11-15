@@ -450,8 +450,17 @@ export function flyHomebound(inp: HomeboundInput): HomeboundResult {
   const tauOf = (dv: number) => (inp.massKg * (1 - Math.exp((-dv * 1000) / (G0 * engine.ispS)))) / flow
   const planeOffDeg = Math.asin(Math.min(1, Math.abs(dot(unit(cross(start.r, start.v)), unit(earth.moonState(inp.earliestMs).v))))) / DEG
 
+  // The coast to the ignition depends on waitS alone, and every trial burn of one solve() starts from the same
+  // one: the last coast is kept and handed out again for the same waitS (the same run, to the last bit).
+  let lastWait: { waitS: number; run: SimRun } | null = null
+  const waitRun = (waitS: number): SimRun => {
+    if (lastWait && lastWait.waitS === waitS) return lastWait.run
+    const run = integrate(moonF, start, inp.earliestMs, { maxSeconds: waitS, maxStepS: 60 })
+    lastWait = { waitS, run }
+    return run
+  }
   const fly = (waitS: number, tauS: number, yaw: number) => {
-    const wait = integrate(moonF, start, inp.earliestMs, { maxSeconds: waitS, maxStepS: 60 })
+    const wait = waitRun(waitS)
     const tIgnMs = inp.earliestMs + waitS * 1000
     const burn = integrate(moonF, wait.end, tIgnMs, { maxSeconds: tauS, maxStepS: 10, engine: constantThrust(engine.thrustN, engine.ispS, steer(yaw)) })
     const tCutMs = tIgnMs + tauS * 1000
@@ -471,6 +480,7 @@ export function flyHomebound(inp: HomeboundInput): HomeboundResult {
         maxStepS: 7200,
         tol: 1e-9,
         stop: (_t, s) => (norm(s.r) < 150000 ? dot(s.r, s.v) : -1),
+        path: false, // only where it ends is read
       })
     } catch {
       return NaN // a trial that falls into the Moon or leaves the tabulated span is not a return

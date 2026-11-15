@@ -194,7 +194,7 @@ const ORBIT_STEP_S = 1800 // cap on the step along the orbit; also the spacing o
 /** Ballistic flight of the six-vector x (r, v) from t0Ms to t1Ms. */
 function coast(field: Field, x: Float64Array, t0Ms: number, t1Ms: number): Float64Array {
   const s0: SimState = { r: [x[0], x[1], x[2]], v: [x[3], x[4], x[5]], m: 1 }
-  const run = integrate(field, s0, t0Ms, { maxSeconds: (t1Ms - t0Ms) / 1000, maxStepS: ORBIT_STEP_S, tol: COAST_TOL })
+  const run = integrate(field, s0, t0Ms, { maxSeconds: (t1Ms - t0Ms) / 1000, maxStepS: ORBIT_STEP_S, tol: COAST_TOL, path: false })
   const e = run.end
   return Float64Array.of(e.r[0], e.r[1], e.r[2], e.v[0], e.v[1], e.v[2])
 }
@@ -633,6 +633,7 @@ class Flight {
       maxStepS: COAST_STEP_S,
       tol: SHOT_TOL,
       stop: stop ? (_tS, s, utcMs) => stop(s, utcMs) : this.earth ? null : crashStop,
+      path: this.keep, // a solver's trial flight keeps only where it ends
     })
     if (!stop && run.stopped) throw new RangeError('the path runs into the Moon')
     this.store(run, t0, false)
@@ -658,6 +659,7 @@ class Flight {
       tol: SHOT_TOL,
       engine: constantThrust(engine.thrustN, engine.ispS, (_tS, s) => dir(s)),
       stop: stop ? (_tS, s) => stop(s) : null,
+      path: this.keep,
     })
     this.store(run, t0, true)
     this.s = run.end
@@ -699,6 +701,30 @@ function reversedField(field: Field, pivotMs: number): Field {
 // ---------- solvers ----------
 
 type Residual = (x: number[]) => number[] | null
+
+/** Exact key of a list of numbers: String() of a double reads back to the same double, and −0 is kept apart. */
+const exactKey = (x: ArrayLike<number>): string => {
+  let k = ''
+  for (let i = 0; i < x.length; i++) k += (Object.is(x[i], -0) ? '-0' : String(x[i])) + ','
+  return k
+}
+
+/** fn with its results kept for the arguments it has seen, compared bit for bit; for a pure fn (one shot of a
+ *  solver: the same arguments fly the same path) a repeated call returns the result of the first. Solvers ask
+ *  for the same point again: the converged point once more after Newton's method, the best point after the
+ *  simplex search, the same starting point and difference steps for every target. At most `max` results are
+ *  kept (then the store starts again). A call that throws keeps nothing and throws again the next time. */
+function remembered<A extends ArrayLike<number>, R>(fn: (x: A) => R, max = 512): (x: A) => R {
+  const seen = new Map<string, R>()
+  return (x) => {
+    const key = exactKey(x)
+    if (seen.has(key)) return seen.get(key) as R
+    const r = fn(x)
+    if (seen.size >= max) seen.clear()
+    seen.set(key, r)
+    return r
+  }
+}
 
 /** Jacobian of fn at x by forward differences with the steps h; rows = residuals. Null when a shot fails. */
 function jacobian(fn: Residual, x: number[], f0: number[], h: number[]): number[][] | null {
@@ -868,11 +894,11 @@ interface ApsisShot {
  *  perilune. Run in a reversed field it designs the way back. */
 function apsisTransfer(field: Field, t0Ms: number, r0: Vec3, v0: Vec3, rTarget: number, site: Vec3, what: string): ApsisShot {
   const vCirc = Math.sqrt(MU_MOON / rTarget)
-  const shoot = (dvMs: number[]): ApsisShot | null => {
+  const shoot = remembered((dvMs: number[]): ApsisShot | null => {
     const dv: Vec3 = [dvMs[0] / 1000, dvMs[1] / 1000, dvMs[2] / 1000]
     let run: SimRun
     try {
-      run = integrate(field, { r: r0, v: add(v0, dv), m: 1 }, t0Ms, { ...TO_PERILUNE, stop: (_tS, s) => dot(s.r, s.v) })
+      run = integrate(field, { r: r0, v: add(v0, dv), m: 1 }, t0Ms, { ...TO_PERILUNE, stop: (_tS, s) => dot(s.r, s.v), path: false })
     } catch (err) {
       if (err instanceof RangeError) return null
       throw err
@@ -880,7 +906,7 @@ function apsisTransfer(field: Field, t0Ms: number, r0: Vec3, v0: Vec3, rTarget: 
     if (!run.stopped || norm(run.end.r) < R_MOON) return null
     const dvCircKms = norm(run.end.v) - vCirc
     return { dv, flightS: run.endS, rp: run.end.r, vp: run.end.v, dvCircKms, totalKms: norm(dv) + Math.abs(dvCircKms) }
-  }
+  })
   // conditions: perilune radius (km) and the site's distance from the orbit plane (milliradians)
   const conditions = (dvMs: number[]): number[] | null => {
     const s = shoot(dvMs)
@@ -901,13 +927,13 @@ function apsisTransfer(field: Field, t0Ms: number, r0: Vec3, v0: Vec3, rTarget: 
     const free = unit(cross(J[0] as Vec3, J[1] as Vec3)) // the direction that changes neither condition, to first order
     const e1 = unit(J[0] as Vec3)
     const e2 = unit(cross(free, e1))
-    const along = (k: number): ApsisShot | null => {
-      const base = add(first.x as Vec3, scale(free, k))
+    const along = remembered((kk: number[]): ApsisShot | null => {
+      const base = add(first.x as Vec3, scale(free, kk[0]))
       const sol = newton((y) => conditions(add(base, add(scale(e1, y[0]), scale(e2, y[1])))), [0, 0], [1, 1], 1e-4)
       return sol ? shoot(add(base, add(scale(e1, sol.x[0]), scale(e2, sol.x[1])))) : null
-    }
-    const opt = nelderMead((k) => along(k[0])?.totalKms ?? Infinity, [0], [5], 0.01, 40)
-    const s = along(opt.x[0])
+    })
+    const opt = nelderMead((k) => along(k)?.totalKms ?? Infinity, [0], [5], 0.01, 40)
+    const s = along(opt.x)
     if (s && (!best || s.totalKms < best.totalKms)) best = s
   }
   if (!best) throw new NrhoError(`${what}: no path from the NRHO reaches a ${(rTarget - R_MOON).toFixed(0)} km perilune in a plane over the site`)
@@ -1348,7 +1374,9 @@ export function earthToNrho(input: ArrivalInput): FlybyTransfer {
   }
 
   // Coast from the start (after an instantaneous correction dv, km/s) to the closest approach to the Moon.
-  const approach = (dv: Vec3): { tMs: number; r: Vec3; v: Vec3 } | null => {
+  // Remembered: every aiming of step 3a starts Newton's method from the same correction with the same
+  // difference steps, whatever the target direction θ, and asks for the converged point once more at the end.
+  const approach = remembered((dv: Vec3): { tMs: number; r: Vec3; v: Vec3 } | null => {
     try {
       const fl = new Flight(field, t0, start.r, add(start.v, dv), 1, false)
       moonwardCoast(fl, geo)
@@ -1361,7 +1389,7 @@ export function earthToNrho(input: ArrivalInput): FlybyTransfer {
       if (err instanceof RangeError) return null
       throw err
     }
-  }
+  }, 4096)
   const natural = approach([0, 0, 0])
   const nat = natural && bPlane(natural.r, natural.v)
   if (!natural || !nat) throw new NrhoError('earthToNrho: the starting state does not lead to a flyby of the Moon (or the ephemeris ends first)')
@@ -1455,20 +1483,21 @@ export function earthToNrho(input: ArrivalInput): FlybyTransfer {
       const aim = aimAt(theta, cand.aim.otc)
       if (!aim || !(tArr > aim.per.tMs + 600e3) || tArr > nrho.endMs) return null
       const target = nrho.stateAt(tArr)
-      const coastFrom = (opfMs: number[]): SimState | null => {
+      const coastFrom = remembered((opfMs: number[]): SimState | null => {
         try {
           const run = integrate(field, { r: aim.per.r, v: add(aim.per.v, scale(opfMs as Vec3, 1e-3)), m: 1 }, aim.per.tMs, {
             maxSeconds: (tArr - aim.per.tMs) / 1000,
             maxStepS: COAST_STEP_S,
             tol: SHOT_TOL,
             stop: crashStop,
+            path: false,
           })
           return run.stopped ? null : run.end
         } catch (err) {
           if (err instanceof RangeError) return null
           throw err
         }
-      }
+      })
       const sol = newton((x) => {
         const end = coastFrom(x)
         return end ? sub(end.r, target.r) : null
@@ -1480,7 +1509,7 @@ export function earthToNrho(input: ArrivalInput): FlybyTransfer {
       return { otc: aim.otc, opf, nri, per: aim.per, tArr, total: norm(aim.otc) + norm(opf) + norm(nri) }
     }
     // simplex variables: θ in degrees, arrival instant in hours from the candidate's
-    const at = (x: number[]) => shotAt(cand.aim.theta + (x[0] * Math.PI) / 180, cand.tArr + x[1] * HOUR_MS)
+    const at = remembered((x: number[]) => shotAt(cand.aim.theta + (x[0] * Math.PI) / 180, cand.tArr + x[1] * HOUR_MS))
     const opt = nelderMead((x) => at(x)?.total ?? Infinity, [0, 0], [4, 1.5], 0.02, 70)
     return at(opt.x)
   }
@@ -1802,8 +1831,9 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
   /** Entry speed and heading (as backFromEntry takes them) for a flyby at the wanted altitude with the
    *  B-vector direction theta, by Newton iteration from `guess`. */
   const aimAt = (leg: EarthLeg, theta: number, guess: number[]): { x: number[]; per: Per } | null => {
+    const back = remembered((x: number[]) => backFromEntry(leg, x))
     const miss = (x: number[]): number[] | null => {
-      const per = backFromEntry(leg, x)
+      const per = back(x)
       const b = per && bPlane(per.r, per.v)
       if (!b) return null
       const { T, R } = bBasis(b.S)
@@ -1812,7 +1842,7 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
     }
     // 1 m/s of entry speed moves the far end of the orbit by thousands of kilometres: small units
     const sol = newton(miss, guess, [0.05, 0.05], 1e-3, 60)
-    const per = sol && backFromEntry(leg, sol.x)
+    const per = sol && back(sol.x)
     return sol && per ? { x: sol.x, per } : null
   }
   interface Shot {
@@ -1832,7 +1862,7 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
     const leg0 = earthLeg(cand.tpMs, 1, 0)
     const aim0 = leg0 && aimAt(leg0, cand.theta, [0, 0])
     if (!aim0) return null
-    return (z) => {
+    return remembered((z: number[]) => {
       const q = 1 + z[4]
       const tDepMs = cand.tDepMs + z[2] * HOUR_MS
       if (q < 1 || q > 3 || tDepMs < firstMs || tDepMs > lastMs) return null
@@ -1843,20 +1873,21 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
       if (!(tpMs > tDepMs + 600e3)) return null
       const from = nrho.stateAt(tDepMs)
       const back = reversedField(field, leg.tEiMs)
-      const coastFrom = (rpfMs: number[]): SimState | null => {
+      const coastFrom = remembered((rpfMs: number[]): SimState | null => {
         try {
           const run = integrate(back, { r: aim.per.r, v: add(aim.per.v, scale(rpfMs as Vec3, 1e-3)), m: 1 }, aim.per.tMs, {
             maxSeconds: (tpMs - tDepMs) / 1000,
             maxStepS: COAST_STEP_S,
             tol: SHOT_TOL,
             stop: crashStop,
+            path: false,
           })
           return run.stopped ? null : run.end
         } catch (err) {
           if (err instanceof RangeError) return null
           throw err
         }
-      }
+      })
       const sol = newton((x) => {
         const end = coastFrom(x)
         return end ? sub(end.r, from.r) : null
@@ -1866,7 +1897,7 @@ export function nrhoToEarth(input: ReturnInput): ReturnTransfer {
       const rpf = scale(sol.x as Vec3, 1e-3)
       const nrd = scale(add(end.v, from.v), -1)
       return { tDepMs, tpMs, rp: aim.per.r, vAfter: scale(aim.per.v, -1), rpf, nrd, total: norm(rpf) + norm(nrd) }
-    }
+    })
   }
   // The two-body costs are rough (Earth pulls hard on the far part of the NRHO): the best candidates are
   // costed in the real field as they stand, and the simplex search starts from the cheapest, and from the

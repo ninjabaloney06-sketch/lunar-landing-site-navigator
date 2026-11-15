@@ -52,6 +52,9 @@ export interface SimOptions {
   stop?: ((tS: number, s: SimState, utcMs: number) => number) | null
   /** Relative tolerance of the step control (default 1e-10; 1e-8 is plenty for an atmosphere flight). */
   tol?: number
+  /** false: do not store the accepted steps (t, r, v, m then hold the start only); for solver shots that read
+   *  only end, endS and stopped. The integration itself is the same, step for step. Default true. */
+  path?: boolean
 }
 
 export interface SimRun {
@@ -124,9 +127,15 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
     ks[5] = a[2]
     ks[6] = -flow
   }
+  // k[0] holds dy/dt at the start of the step when k0Valid. The first stage is evaluated at exactly (tS, y),
+  // whatever h is, so a rejected step, every trial of the event bisection and the step after an accepted one
+  // (whose last stage was evaluated at exactly the new (tS, y): C[6] = 1, the same sum tS + h, and out = tmp)
+  // can take it from there instead of evaluating it again. The derivative is a function of (tS, y) only, so the
+  // numbers are the same to the last bit.
+  let k0Valid = false
   /** One step of h from (tS, y) into out; returns the scaled error (≤ 1 passes). */
   const step = (tS: number, y: Float64Array, h: number, out: Float64Array): number => {
-    for (let s = 0; s < 7; s++) {
+    for (let s = k0Valid ? 1 : 0; s < 7; s++) {
       for (let i = 0; i < 7; i++) {
         let acc = y[i]
         for (let j = 0; j < s; j++) acc += h * A[s][j] * k[j][i]
@@ -135,6 +144,7 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
       if (s === 6) out.set(tmp)
       deriv(tS + C[s] * h, tmp, k[s])
     }
+    k0Valid = true
     const scR = 1e-6 + tol * Math.hypot(out[0], out[1], out[2])
     const scV = 1e-9 + tol * Math.hypot(out[3], out[4], out[5])
     const scM = 1e-6 + tol * out[6]
@@ -152,7 +162,9 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
   let y = Float64Array.of(s0.r[0], s0.r[1], s0.r[2], s0.v[0], s0.v[1], s0.v[2], s0.m)
   let yNew = new Float64Array(7)
   const run: SimRun = { t: [0], r: [[y[0], y[1], y[2]]], v: [[y[3], y[4], y[5]]], m: [y[6]], stopped: false, end: snap(y), endS: 0 }
+  const keepPath = opt.path !== false
   const push = (tS: number, yy: Float64Array) => {
+    if (!keepPath) return
     run.t.push(tS)
     run.r.push([yy[0], yy[1], yy[2]])
     run.v.push([yy[3], yy[4], yy[5]])
@@ -195,6 +207,10 @@ export function integrate(field: Field, s0: SimState, t0Ms: number, opt: SimOpti
     const swap = y
     y = yNew
     yNew = swap
+    // first stage of the next step = last stage of this one (first same as last)
+    const k0 = k[0]
+    k[0] = k[6]
+    k[6] = k0
     push(tS, y)
     h *= Math.min(5, Math.max(0.2, 0.9 * Math.pow(Math.max(err, 1e-10), -0.2)))
   }
