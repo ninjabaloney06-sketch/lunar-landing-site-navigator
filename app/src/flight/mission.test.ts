@@ -123,5 +123,5 @@ describe('whole mission: other choices', () => {
     console.log(summary(plan, performance.now() - t0))
     expect(plan.facts.landingMissM).toBeLessThan(10)
     expect(plan.facts.entry.fpaDeg).toBeCloseTo(-6.5, 1)
-  })
+  }, 60_000) // about 1.3 s alone; past the 5 s default when the whole suite runs in parallel (timed out three times on 15 Nov)
 })
