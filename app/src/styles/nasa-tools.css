@@ -16,12 +16,7 @@
   margin: var(--s-3) 0 0;
 }
 
-/* Touch targets at 375 px: the text links get a 44 px tall hit area without looking like buttons. */
+/* Touch targets at 375 px: inline padding gives the text links a 44 px tall hit area without moving the lines. */
 .nt-list a {
-  display: inline-block;
-  padding: 10px 0;
-}
-
-.nt-list abbr {
-  text-decoration: none;
+  padding: 12px 0;
 }

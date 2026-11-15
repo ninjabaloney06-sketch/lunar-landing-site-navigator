@@ -87,11 +87,16 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
                   <th scope="col">
                     <span className="sr-only">Value</span>
                   </th>
-                  {b.columns.map((c) => (
-                    <th key={c} scope="col">
-                      {c}
-                    </th>
-                  ))}
+                  {b.columns.map((c) => {
+                    // "Landing disk, 100 m radius": the radius on its own line, never split inside "2 km"
+                    const [name, ...rest] = c.split(', ')
+                    return (
+                      <th key={c} scope="col">
+                        {name}
+                        {rest.length > 0 && <span className="th-sub">{rest.join(', ')}</span>}
+                      </th>
+                    )
+                  })}
                 </tr>
               </thead>
             )}
@@ -167,7 +172,7 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
 }
 
 /** Can a lander set down here: the verdict with its rule, the value that decides it, the project-criteria line. */
-function HeadlineView({ h }: { h: Headline }) {
+function HeadlineView({ h, full }: { h: Headline; full: boolean }) {
   return (
     <div className="assess-head" data-testid="assess-headline">
       <p className="assess-verdict" data-testid="assess-verdict">
@@ -189,7 +194,7 @@ function HeadlineView({ h }: { h: Headline }) {
           {h.decider}.
         </p>
       )}
-      {h.criteria && (
+      {h.criteria && !full && (
         <p className="quiet assess-criteria" data-testid="assess-criteria">
           {h.criteria}
         </p>
@@ -245,10 +250,11 @@ export function SiteAssessment({ site }: { site: Site }) {
             )}
             {view?.state === 'ready' && (
               <>
-                <HeadlineView h={view.headline} />
+                <HeadlineView h={view.headline} full={full && view.thresholds !== null} />
                 <p className="quiet assess-status" data-testid="assess-status">
                   {view.status}.
                 </p>
+                {/* Full data: the file's rule line, which carries the same project-criteria words */}
                 {full && view.thresholds && (
                   <p className="quiet assess-thresholds" data-testid="assess-thresholds">
                     {view.thresholds}

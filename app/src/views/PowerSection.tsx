@@ -174,7 +174,7 @@ export function PowerSection(props: Props) {
           <dd>panel power at time t, W</dd>
           <dt>S</dt>
           <dd>
-            {SOLAR_CONSTANT_W_M2} W/m², total solar irradiance at 1 <Marked text="AU" /> (
+            {num(SOLAR_CONSTANT_W_M2, 0)} W/m², total solar irradiance at 1 <Marked text="AU" /> (
             <a href={SOLAR_CONSTANT_SOURCE} target="_blank" rel="noopener noreferrer">
               Kopp &amp; Lean 2011
             </a>
