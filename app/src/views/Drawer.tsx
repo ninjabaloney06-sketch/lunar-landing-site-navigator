@@ -274,7 +274,7 @@ export function Drawer(p: Props) {
             {site.name}
           </h2>
           <p className="quiet">
-            {period.label} · {fmtDateTime(p.cursorMs)}
+            <Marked text={`${period.label} · ${fmtDateTime(p.cursorMs)}`} />
           </p>
         </div>
         <div className="drawer-tools">
@@ -316,7 +316,7 @@ export function Drawer(p: Props) {
         <h3 id="sec-horizon">Horizon</h3>
         {ready && atCursor && (
           <p className="quiet sec-lead" data-testid="horizon-lead">
-            At {fmtDateTime(p.cursorMs)}: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
+            At <Marked text={fmtDateTime(p.cursorMs)} />: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
             {atCursor.earth.visible ? 'above' : 'below'} it.
           </p>
         )}
@@ -467,7 +467,7 @@ export function Drawer(p: Props) {
         </p>
         <div className="row">
           <button className="btn" type="button" disabled={!ready} title={ready ? undefined : 'Available once the results are computed'} onClick={download}>
-            Download CSV
+            Download <abbr title={ABBR.CSV}>CSV</abbr>
           </button>
           <button className="btn" type="button" onClick={copyLink}>
             Copy link
@@ -501,7 +501,7 @@ export function Drawer(p: Props) {
                 Sun and Earth: <abbr title={ABBR.JPL}>JPL</abbr> <abbr title={ABBR.DE440}>DE440</abbr> ephemeris, every 30
                 minutes, <abbr title={ABBR.UTC}>UTC</abbr>.
               </li>
-              <li>Comms: geometric line of sight at both ends, not a guaranteed radio link.</li>
+              <li>Comms: line of sight at both ends, not a guaranteed radio link.</li>
               <li data-testid="views-note">Views move the camera only; every value describes the landing site.</li>
             </ul>
             {approx && <p className="quiet">{approx}.</p>}
@@ -515,12 +515,12 @@ export function Drawer(p: Props) {
             <ul className="plain sources">
               <li>
                 Site: {site.source_url ? <a href={site.source_url} target="_blank" rel="noreferrer">{site.source_label}</a> : site.source_label}.
-                Frame: {site.frame_note}.
+                Frame: <Marked text={site.frame_note} />.
               </li>
               {custom ? (
                 // A custom site: every spacing and distance from the capHorizon record and the terrain's meta.cap.
                 <li data-testid="custom-terrain">
-                  Terrain: box means of the LOLA south-pole elevation model (
+                  Terrain: box means of the <abbr title={ABBR.LOLA}>LOLA</abbr> south-pole elevation model (
                   <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
                     Barker et al. 2023
                   </a>
@@ -549,7 +549,7 @@ export function Drawer(p: Props) {
                   {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM; its docstring: the
                       20 m DEM "is a 608 km square around the pole", the fill DEM covers 60-90 S) and
                       scripts/terrain_tiles.py (LEVELS); ray length and eye height come from the site's horizon file. */}
-                  Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
+                  Terrain: <abbr title={ABBR.LOLA}>LOLA</abbr> south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
                   beyond (
                   <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
                     Barker et al. 2023
@@ -567,11 +567,11 @@ export function Drawer(p: Props) {
                 </li>
               )}
               <li>
-                Sun and Earth: JPL DE440 ephemeris (
+                Sun and Earth: <abbr title={ABBR.JPL}>JPL</abbr> <abbr title={ABBR.DE440}>DE440</abbr> ephemeris (
                 <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/" target="_blank" rel="noreferrer">
-                  NAIF
+                  <abbr title={ABBR.NAIF}>NAIF</abbr>
                 </a>
-                ), Moon body-fixed frame MOON_ME, every 30 minutes, UTC. Sunlit and contact windows start and end where
+                ), Moon body-fixed frame <abbr title={ABBR.MOON_ME}>MOON_ME</abbr>, every 30 minutes, <abbr title={ABBR.UTC}>UTC</abbr>. Sunlit and contact windows start and end where
                 interpolation finds the change, to within about 10 seconds.
               </li>
               <li>

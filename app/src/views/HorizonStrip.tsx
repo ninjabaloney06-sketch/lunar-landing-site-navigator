@@ -223,8 +223,8 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
       <figcaption className="strip-readout">
         <span className="strip-key" data-testid="strip-key">
           {horizon
-            ? `Line: terrain horizon seen from ${horizon.observer_height_m} m above the ground. Up: elevation in °; across: azimuth from north.`
-            : 'Flat horizon: no terrain data for this site. Up: elevation in °; across: azimuth from north.'}
+            ? `Line: terrain horizon seen from ${horizon.observer_height_m} m above the ground. Up: angle above the horizontal, °; across: azimuth from north, °.`
+            : 'Flat horizon: no terrain data for this site. Up: angle above the horizontal, °; across: azimuth from north, °.'}
         </span>{' '}
         {readout || ' '}
         {tracks.length > 0 && <span className="strip-track-note"> · lines: paths over the mission dates, brighter for the part still to come</span>}

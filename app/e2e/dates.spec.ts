@@ -56,7 +56,7 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
     expect(headings).not.toContain('Simulation')
 
     const yt = drawer.getByTestId('year-timeline')
-    await expect(yt.getByTestId('year-kind').locator('option')).toHaveText(['Light', 'Communication'])
+    await expect(yt.getByTestId('year-kind').locator('option')).toHaveText(['Sunlight', 'Station contact'])
     await expect(yt.getByTestId('year-select').locator('option')).toHaveText(['2026', '2027', '2028', '2029', '2030'])
     await expect(yt.getByTestId('year-select')).toHaveValue('2027')
     await expect(yt.locator('.yt-month')).toHaveCount(12)
@@ -72,7 +72,7 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
 
     const y2027 = await windowCounts(page, RIDGE, Date.UTC(2027, 0, 1), Date.UTC(2028, 0, 1))
     await expect(rows.nth(0).getByTestId('year-seg')).toHaveCount(y2027.lit)
-    await expect(rows.nth(0).locator('.yt-bar')).toHaveAttribute('aria-label', /^Connecting Ridge: sunlit \d+ % of the time in 2027$/)
+    await expect(rows.nth(0).locator('.yt-bar')).toHaveAttribute('aria-label', /^Connecting Ridge: sunlit \d+ % of 2027$/)
     await yt.getByTestId('year-kind').selectOption('comms')
     await expect(rows.nth(0).getByTestId('year-seg')).toHaveCount(y2027.covered)
     await expect(rows.nth(0).locator('.yt-bar')).toHaveClass(/is-comms/)
@@ -118,8 +118,14 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
     const h = (await (await page.request.get('/data/horizons/connecting-ridge.json')).json()) as { ray_max_km: number; observer_height_m: number; mask: number[] }
     expect(h.mask).toHaveLength(720)
     const drawer = page.getByTestId('drawer')
+    // Summary mode (footer link): short bullets with the same figures; Full data: the full text.
+    await expect(drawer.getByTestId('method-short')).toContainText(`720 directions, up to ${h.ray_max_km} km, eye ${h.observer_height_m} m above ground`)
+    await drawer.getByTestId('full-data-switch').click()
     await expect(drawer).toContainText(`searched in 720 directions up to ${h.ray_max_km} km for an eye ${h.observer_height_m} m above the ground`)
     await expect(drawer).not.toContainText('80 m mesh')
+    // The 20 m model's edge as scripts/horizon.py states it (a 608 km square around the pole), not "about 80° S".
+    await expect(drawer).toContainText('a square about 608 km across, centred on the pole')
+    await expect(drawer).not.toContainText('about 80° S')
   })
 })
 

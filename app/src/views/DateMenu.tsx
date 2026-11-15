@@ -11,6 +11,7 @@ import { finderInputs } from '../data/results'
 import type { Period, Site, Station } from '../data/types'
 import { COVERAGE_END_MS, COVERAGE_START_MS, DAY_MS, inCoverage, isoMinute, RANGE_ERROR } from '../state'
 import { spanLabel } from './period'
+import { Marked } from './Drawer'
 
 const BEST_SHOWN = 5
 
@@ -185,7 +186,9 @@ export function DateMenu(p: Props) {
                       className={`opt${current ? ' is-selected' : ''}`}
                       onClick={() => p.onBest?.(s, best.days, s)}
                     >
-                      <span className="opt-name">{spanLabel(s, e)}</span>
+                      <span className="opt-name">
+                        <Marked text={spanLabel(s, e)} />
+                      </span>
                       <span className="opt-label mono">
                         sunlit {w.best.litPct.toFixed(0)} % · coverage {w.best.coveragePct.toFixed(0)} %
                       </span>
