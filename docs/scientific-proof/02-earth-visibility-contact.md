@@ -11,7 +11,7 @@ Contact here is geometry only. The code says so at the top of `geometry/index.ts
 
 ### 1. Earth visible
 
-The same disc rule as for the Sun (see `01-sunlight-horizon.md`), with Earth's position and radius. `discOf()` and `sampleAt()`:
+The same disc rule as for the Sun (see [01-sunlight-horizon.md](01-sunlight-horizon.md)), with Earth's position and radius. `discOf()` and `sampleAt()`:
 
 ```text
 u       = (r_earth − s) / |r_earth − s|
@@ -93,7 +93,7 @@ Edges are found as for sunlight: scan every 1 min (5 min above 31 days), bisect 
 | Earth position and Earth orientation | MOON_ME, LT+S, every 30 min, Nov 2026 – Dec 2030; IAU_EARTH rotation | `scripts/ephemeris.py` → `app/public/data/ephem/*.json` | NAIF kernels `de440s.bsp`, `pck00011.tpc`, `naif0012.tls`, `moon_pa_de440_200625.bpc`, `moon_de440_250416.tf`; URLs and SHA-256 in `docs/reference/data-sources.md` |
 | Earth radius | 6371.0 km | `EARTH_RADIUS_KM` | comment: "mean radius 6371.0 km (build-plan §4.4)"; no external source named in the code |
 | Ellipsoid | WGS 84, a = 6378.137 km, f = 1/298.257223563 | `WGS84_A_KM`, `WGS84_F` | comment: "NGA TR8350.2" |
-| Terrain skyline | per-site horizon mask | `app/public/data/horizons/*.json` | see `01-sunlight-horizon.md` |
+| Terrain skyline | per-site horizon mask | `app/public/data/horizons/*.json` | see [01-sunlight-horizon.md](01-sunlight-horizon.md) |
 | DSN Goldstone DSS-24, Madrid DSS-54, Canberra DSS-34 | coordinates WGS 84; minimum elevation 6.0° | `scripts/stations.csv` → `app/public/data/stations.json` | [DSN 810-005 Rev P, module 301](https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301P.pdf), Table 5; 6.0° is the generic receive limit of section 2.2.3; the per-antenna horizon masks (Figures 10–25) are not transcribed (`source_label`) |
 | JAXA Usuda 64 m (DSS-48) | GRS80 / ITRF2014; minimum elevation 12.5° | same files | [JAXA station coordinates page](https://ddor.nav.isas.jaxa.jp/station_coordinates/); 12.5° is the highest value of JAXA's downlink horizon mask for this antenna, applied at every azimuth ("so conservative"); 2026 operating status not confirmed (`source_label`) |
 | JAXA Uchinoura 34 m (DSS-38) | GRS80 / ITRF2014; minimum elevation 6.22° | same files | same page; 6.22° is the highest value of its horizon mask, applied at every azimuth |
@@ -107,7 +107,7 @@ No ESTRACK station is in `stations.json`. `scripts/stations.py` refuses a statio
 - Line of sight is geometric: no link budget, no antenna scheduling, no station downtime, no relay satellite.
 - The Earth-visible rule is any part of the disc above the skyline; the station test treats the station as a point.
 - GRS80 and WGS 84 are treated as the same ellipsoid (they differ by less than 0.1 mm at the surface, comment in `geometry/index.ts` and `stations.py`).
-- The terrain assumptions of `01-sunlight-horizon.md` apply unchanged: Earth sits very low in the sky at the south pole, so the skyline decides most of the result.
+- The terrain assumptions of [01-sunlight-horizon.md](01-sunlight-horizon.md) apply unchanged: Earth sits very low in the sky at the south pole, so the skyline decides most of the result.
 
 ## ε and how it propagates
 
@@ -121,7 +121,7 @@ No ESTRACK station is in `stations.json`. `scripts/stations.py` refuses a statio
 | Coverage % at 18 sites, app vs an independent 1-minute computation from the SPICE kernels | 35 of 36 values identical to 0.1 %; Connecting Ridge 98.1 % against 98.2 % | `docs/event/validation.md`, "Independent recomputation by AI", row 4 |
 | Our Earth-visible % against the published LOLA Earth-visibility maps | ours higher by about 1.5 points at most sites, largest +8.4 points; cause not established | `docs/event/validation.md`, V4 section |
 
-The 0.0763° station-end difference matters only when the site sits within that angle of a station's minimum elevation. At the site end, Earth's elevation error is far smaller than the skyline's (see `01-sunlight-horizon.md`), so the skyline dominates the Earth-visible and coverage edges. **Not quantified:** how these angle differences carry into coverage % and longest gap per site, and the effect of using the generic 6.0° DSN limit instead of each antenna's horizon mask. The uncertainty budget for numbers shown in the app is in `uncertainty.md`.
+The 0.0763° station-end difference matters only when the site sits within that angle of a station's minimum elevation. At the site end, Earth's elevation error is far smaller than the skyline's (see [01-sunlight-horizon.md](01-sunlight-horizon.md)), so the skyline dominates the Earth-visible and coverage edges. **Not quantified:** how these angle differences carry into coverage % and longest gap per site, and the effect of using the generic 6.0° DSN limit instead of each antenna's horizon mask. The uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 

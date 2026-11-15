@@ -5,7 +5,7 @@ The app ranks in two places, and in neither is there a weighted score. Rows are 
 - **Site search** (Search panel): candidate landing sites ordered by nearby points of interest, the slope limit, and sunlight and station coverage over the mission dates. Code: `searchSites()` in `app/src/geometry/poiSearch.ts`, which takes the slope rule from `rankSites()`.
 - **Landing-window finder** ("Find better dates", in the drawer and the date menu): landing times ranked by station coverage, then sunlight, over a mission of a set length. Code: `finder()` in `app/src/geometry/index.ts`.
 
-The sunlight and coverage values they rank by are the ones described in `01-sunlight-horizon.md` and `02-earth-visibility-contact.md`.
+The sunlight and coverage values they rank by are the ones described in [01-sunlight-horizon.md](01-sunlight-horizon.md) and [02-earth-visibility-contact.md](02-earth-visibility-contact.md).
 
 ## Equations
 
@@ -19,7 +19,7 @@ slope state = pass      if slope ≤ 5.0°
               unknown   if the slope is missing or not a finite number
 ```
 
-- `slope` — the site's `slope_deg`: for a prepared site, the DEM slope over a 100 m baseline at the site point, written by `scripts/horizon.py` (`atan(√(((h_E − h_W)/100 m)² + ((h_N − h_S)/100 m)²))`, see `01-sunlight-horizon.md`); for a custom point, the same rule in the browser on the south-cap rasters (`capHorizon()`)
+- `slope` — the site's `slope_deg`: for a prepared site, the DEM slope over a 100 m baseline at the site point, written by `scripts/horizon.py` (`atan(√(((h_E − h_W)/100 m)² + ((h_N − h_S)/100 m)²))`, see [01-sunlight-horizon.md](01-sunlight-horizon.md)); for a custom point, the same rule in the browser on the south-cap rasters (`capHorizon()`)
 
 An unknown slope is never counted as a pass.
 
@@ -69,14 +69,14 @@ These values come from the samples, not from the refined window edges of `window
 | Input | Value | Where | Source given in the code |
 |---|---|---|---|
 | Slope limit | 5.0° (exactly 5.0 passes) | `SLOPE_LIMIT_DEG`, `rankSites.ts` | the code comment calls it a project criterion of the team, "not a sourced safety limit. Passing it alone does not make a site safe to land." |
-| Slope at the site | per site, 100 m baseline | `slope_deg` in `app/public/data/horizons/*.json` | LDEM_80S_20MPP_ADJ (PGDA product 90), see `01-sunlight-horizon.md` |
+| Slope at the site | per site, 100 m baseline | `slope_deg` in `app/public/data/horizons/*.json` | LDEM_80S_20MPP_ADJ (PGDA product 90), see [01-sunlight-horizon.md](01-sunlight-horizon.md) |
 | Points of interest (positions, groups) | per record | `app/public/data/pois.json`, built from `docs/POIs/*.json` | the research sources cited per record; not individually checked by the science lead (see the README of this section) |
 | Default groups | water, cold trap, science | `DEFAULT_GROUPS`, `views/SearchPanel.tsx` | "UI defaults (not sourced values)" |
 | Default radius | 20 km (input 1 to 200 km) | `DEFAULT_RADIUS_KM` | UI default: "the reach of the 20 m terrain model around each site that the horizons use" |
 | Best marked | top 3 ranks | `BEST_COUNT` | source not recorded in the code |
 | Finder thresholds | mission 14 days, lit ≥ 70 %, coverage ≥ 50 %, longest gap ≤ 48 h, longest dark ≤ 72 h | `FINDER_DEFAULTS`, `geometry/index.ts` | "Proposed defaults (spec.md …, 14 Nov); [the science lead] reviews the values. Every value is editable in the UI." No external source |
 | Finder steps | candidates every 6 h, samples every 30 min | `CANDIDATE_STEP_MS`, `FINDER_STEP_MIN` | source not recorded in the code |
-| Ground stations | the five of `stations.json` | see `02-earth-visibility-contact.md` | DSN 810-005 module 301; JAXA station coordinates page |
+| Ground stations | the five of `stations.json` | see [02-earth-visibility-contact.md](02-earth-visibility-contact.md) | DSN 810-005 module 301; JAXA station coordinates page |
 
 ## Assumptions
 
@@ -94,9 +94,9 @@ The ranking itself is exact: integer counts, comparisons and a sum. Its uncertai
 - **Slope near 5°.** A site whose 100 m slope lies close to 5° can pass or fail on the DEM's height error. **Not quantified** in the code; the reading check in `docs/event/validation.md` found the 5 m and 20 m DEMs differ at one site by +0.98° in point slope (Shackleton Rim Site04, a 32° wall).
 - **Finder sampling.** Values over 30-minute samples, not refined edges: each window edge inside a mission can move a percentage by up to half a sample. The Python reference test asserts this bound for the summary (`test_summary_matches_samples` in `scripts/tests/test_windows.py`); for the finder it is not asserted.
 - **Candidate step.** Landing times are tried every 6 h; a better landing time between two candidates is not found. Not quantified.
-- **Custom points.** Their horizon and slope come from the coarser browser rasters (see `01-sunlight-horizon.md`), so their values carry that larger error into the ranking.
+- **Custom points.** Their horizon and slope come from the coarser browser rasters (see [01-sunlight-horizon.md](01-sunlight-horizon.md)), so their values carry that larger error into the ranking.
 
-The uncertainty budget for numbers shown in the app is in `uncertainty.md`.
+The uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 

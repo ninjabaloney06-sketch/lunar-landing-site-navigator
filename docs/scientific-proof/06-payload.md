@@ -5,7 +5,7 @@
 - **Maximum payload** (`maxPayload()`): for a mission already planned, the largest cargo the lander can set down when every element carries exactly the propellant the flight needs plus a stated reserve.
 - **Cheapest route** (`cheapestRoute()`, `planCheapestRoute()`): among the options the planner already offers (landing day within a window, transfer type, orbit design), the plan that burns the least propellant in total, and why it wins.
 
-Both are a layer over finished plans of `planMission()` / `planMissionNrho()` (`04-trajectory.md`, `05-descent.md`); they do not fly anything new, except the launch, which is flown twice to measure its sensitivity.
+Both are a layer over finished plans of `planMission()` / `planMissionNrho()` ([04-trajectory.md](04-trajectory.md), [05-descent.md](05-descent.md)); they do not fly anything new, except the launch, which is flown twice to measure its sensitivity.
 
 ## Equations
 
@@ -110,7 +110,7 @@ When the runner-up is a tie, the comparison also names the first clearly costlie
 | Touchdown thrust-to-weight | ≥ 1 | `MIN_TOUCHDOWN_THRUST_TO_WEIGHT` | physics: below 1 a vertical descent cannot be stopped |
 | Tie threshold | 0.5 % of the propellant burned from TLI on | `ROUTE_TIE_FRACTION` | **ASSUMPTION** |
 | Route options | days of a window × transfers: minimum energy, at most 4.5, 4, 3.5, 3, 2.5 days | `ROUTE_TRANSFER_CHOICES` | the Flight panel's choices |
-| Hardware: capacities, dry masses, Isp, thrust | per element | `spacecraft.ts`, `launchVehicles.ts` | as quoted there; see `04-trajectory.md` |
+| Hardware: capacities, dry masses, Isp, thrust | per element | `spacecraft.ts`, `launchVehicles.ts` | as quoted there; see [04-trajectory.md](04-trajectory.md) |
 
 ## Assumptions
 
@@ -142,12 +142,12 @@ The same run for the halo-orbit designs:
 
 What ε covers and what it does not:
 - Covered: dry masses and Isp of every module (with assumed σ by source grade), and the fixed-Δv approximation (calibrated on Apollo only).
-- **Not covered:** the trajectory's own Δv uncertainty (navigation, correction burns, the real approach profile; see `04-trajectory.md` and `05-descent.md`), the launch sensitivity s, the reserve choice itself, and correlations between terms (the root sum of squares assumes them independent).
+- **Not covered:** the trajectory's own Δv uncertainty (navigation, correction burns, the real approach profile; see [04-trajectory.md](04-trajectory.md) and [05-descent.md](05-descent.md)), the launch sensitivity s, the reserve choice itself, and correlations between terms (the root sum of squares assumes them independent).
 - The loss term is one-sided (the real figure is lower) but is added symmetrically to ε.
 
 Cheapest route, worked example (`payloadRoute.test.ts`, same Apollo case, landing day 16–18 Aug 2027, minimum energy or at most 3 days; values printed on 15 Nov 2026): 16 Aug with a minimum-energy transfer wins; 17 Aug costs 6 kg more, below the 475 kg tie threshold, so it is a tie; the first clearly costlier option, 18 Aug with at most 3 days, needs 816 kg more, mostly in lunar orbit insertion (109 m/s and 1.2 t less for the winner).
 
-The uncertainty budget for numbers shown in the app is in `uncertainty.md`.
+The uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 

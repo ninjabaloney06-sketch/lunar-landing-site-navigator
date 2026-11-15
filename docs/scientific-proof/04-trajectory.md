@@ -14,7 +14,7 @@ Both run in the web worker (`app/src/flight/planWorker.ts`). The phases and thei
 | Lunar Orbit Insertion (LOI), 100 km circular (Apollo design) | `transit.ts` | `moonField()`: Moon point mass, Earth and Sun as third bodies |
 | NRHO arrival, lander transfers NRHO ↔ low orbit, NRHO departure (Artemis design) | `nrho.ts` | the same Moon-centred ephemeris field |
 | Lunar Orbit Plane Change | `planeChange.ts` | Moon-centred field |
-| Descent, surface ascent, rendezvous | `lunar.ts` | see `05-descent.md` |
+| Descent, surface ascent, rendezvous | `lunar.ts` | see [05-descent.md](05-descent.md) |
 | Trans-Earth Injection (TEI), coast to Entry Interface (121.92 km, −6.5° by default) | `transit.ts`, `flyHomebound()` | as outbound |
 
 No burn anywhere in a plan is an instantaneous velocity change. Impulsive burns are used only as first guesses (`guess.ts`, and the header of `nrho.ts`).
@@ -50,7 +50,7 @@ a = −μ_E r/|r|³
 - `p` — Earth's spin axis (unit, J2000); `r_M, r_S` — Moon and Sun relative to Earth, km
 - the second bracket term of each body is the indirect term: the frame's centre falls toward that body too
 
-The Moon-centred field (`moonField()`) is the same with the roles exchanged and the Moon as a point mass (formula in `05-descent.md`).
+The Moon-centred field (`moonField()`) is the same with the roles exchanged and the Moon as a point mass (formula in [05-descent.md](05-descent.md)).
 
 ### 3. Positions of the Moon and Sun
 
@@ -121,7 +121,7 @@ For every burn, Δv is the rocket-equation equivalent of the propellant burned i
 
 ## Assumptions
 
-- Earth and Moon are point masses in the transfer, except Earth's J2. No solar radiation pressure. The Moon's J2 is off in every plan (see `05-descent.md`).
+- Earth and Moon are point masses in the transfer, except Earth's J2. No solar radiation pressure. The Moon's J2 is off in every plan (see [05-descent.md](05-descent.md)).
 - The launch leaves out the Moon and the Sun ("change the ten minutes of an ascent by a few metres", comment on `earthJ2Field`). Not modelled in the launch: winds, lift, engine start-up and shut-down transients, heating, a limit on dynamic pressure.
 - Perfect navigation and perfect burns: every solved burn is flown exactly. No midcourse correction is needed in the model, so none is budgeted, except the small outbound correction of the NRHO design.
 - The NRHO's phase is chosen to suit the launch (the planner puts the NRHO's perilune 3.5 h before the flyby). The code says: "A real mission flies to an orbit whose phase is given and waits for a launch day that fits" (header of `missionNrho.ts`).
@@ -141,7 +141,7 @@ For every burn, Δv is the rocket-equation equivalent of the propellant burned i
 | NRHO shape | perilune radius 3195–3557 km, apolune 70 005–71 849 km, 9:2 resonant period | `missionNrho.test.ts`, `nrho.test.ts` ("has the 9:2 resonant period [LEE]", "holds for at least six revolutions around the epoch, each inside the published ranges [DAVIS]") |
 | Independent check of the integrator | a separate RK4 integration follows the planned injection, coasts and flybys | `numeric.test.ts`, `nrho.test.ts`, the tests named "an independent RK4 integration …" |
 
-The published comparisons are for other dates and, for Whitley & Martinez, for an earlier candidate orbit; the test file says so and sets its tolerances to match (10 % for Orion, 5 % for the lander). The dominant error of a trajectory number is therefore the difference between this model mission and a real one (dates, orbit phase, navigation, correction burns, the vehicle data), not the integration. **Not quantified:** a Δv or propellant uncertainty per phase for the trajectory. The dispersion analysis (`07-dispersion.md`) covers the descent only, and the uncertainty budget for numbers shown in the app is in `uncertainty.md`.
+The published comparisons are for other dates and, for Whitley & Martinez, for an earlier candidate orbit; the test file says so and sets its tolerances to match (10 % for Orion, 5 % for the lander). The dominant error of a trajectory number is therefore the difference between this model mission and a real one (dates, orbit phase, navigation, correction burns, the vehicle data), not the integration. **Not quantified:** a Δv or propellant uncertainty per phase for the trajectory. The dispersion analysis ([07-dispersion.md](07-dispersion.md)) covers the descent only, and the uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 

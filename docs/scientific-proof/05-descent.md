@@ -45,7 +45,7 @@ a_J2 = −(3/2) · J2 · μ_M · R_ref² / |r|⁵ · [ r·(1 − 5 s²) + 2 s |r
 
 - `J2` — 203.3 × 10⁻⁶; `R_ref` — 1738.0 km; `p` — the Moon's spin axis (MOON_ME z axis at the middle of the span, held fixed)
 
-**J2 is off in every plan the app shows** (`MoonFieldOptions.j2`, default false). It is on only in the dispersion runs (`07-dispersion.md`) and in the tests that measure its effect.
+**J2 is off in every plan the app shows** (`MoonFieldOptions.j2`, default false). It is on only in the dispersion runs ([07-dispersion.md](07-dispersion.md)) and in the tests that measure its effect.
 
 ### 3. Descent Orbit Insertion
 
@@ -122,7 +122,7 @@ a_down   = (r_a + r_s)/2
 | Moon reference radius | 1737.4 km | `R_MOON` | "the app's reference sphere" (the DEM's sphere) |
 | g₀ | 9.80665 m/s² | `G0` | standard gravity; no source named in the code |
 | Moon J2, reference radius | 203.3 × 10⁻⁶, 1738.0 km | `J2_MOON`, `J2_MOON_REF_RADIUS_KM` in `sim.ts` | GRAIL fields (Konopliv et al. 2014, Lemoine et al. 2013, Williams et al. 2014) as tabulated in https://en.wikipedia.org/wiki/Gravitation_of_the_Moon; radius from the GL0660B label, https://pds-geosciences.wustl.edu/grail/grail-l-lgrs-5-rdr-v1/grail_1001/shadr/jggrx_0660b_sha.xml |
-| Earth and Sun positions | flight ephemeris | `FlightEphemeris` (`flight/ephemeris.ts`) | built from the same SPICE-derived data as `01-sunlight-horizon.md` |
+| Earth and Sun positions | flight ephemeris | `FlightEphemeris` (`flight/ephemeris.ts`) | built from the same SPICE-derived data as [01-sunlight-horizon.md](01-sunlight-horizon.md) |
 | Apollo LM descent stage | dry 4,483 lb; propellant loaded 18,184 lb; DPS thrust 9,870 lb; Isp 305 s; throttle 10 % to full | `apollo-lm` in `spacecraft.ts` | NASA SP-2000-4029 (Apollo by the Numbers), NASA TN D-7143, NASA TM X-58040, Apollo 11 Mission Report; each figure quoted in the comment above it |
 | Apollo LM ascent stage | dry 4,804 lb; propellant 5,238 lb; APS 3,500 lb fixed; Isp 309.4 s | same | same sources, quoted per figure |
 | Other landers (Starship HLS, Blue Moon Mark 2) | per `spacecraft.ts` | `SPACECRAFT` | mostly values marked FALLBACK (Wikipedia only) or ASSUMPTION; the file says to "treat what the simulators compute for them as an illustration, not as a prediction" |
@@ -137,7 +137,7 @@ a_down   = (r_a + r_s)/2
 - The thrust direction follows the steering law at once; attitude dynamics are not modelled. Isp does not change with the throttle setting. One main engine per module; no reaction control system.
 - The DPS could not run between 60 % and its fixed throttle position; the data contract has one continuous range, 10 % to full (comment in `spacecraft.ts`).
 - The braking phase brakes at full thrust down to the gate. Apollo 11 throttled down after 386 s and flew a slow piloted approach (comment in `lunar.ts`, citing the Apollo 11 Mission Report 5.3 and 9.8.1), so a flown mission needs more than the planner's descent.
-- Guidance is perfect: the shooting solution is flown exactly. Errors in thrust, Isp, pointing and timing are the subject of `07-dispersion.md`.
+- Guidance is perfect: the shooting solution is flown exactly. Errors in thrust, Isp, pointing and timing are the subject of [07-dispersion.md](07-dispersion.md).
 
 ## ε and how it propagates
 
@@ -154,7 +154,7 @@ a_down   = (r_a + r_s)/2
 
 Measured values, as the tests printed them in a run on 15 Nov 2026 (the assertions are the bounds in the table): Apollo LM from a 110 km equatorial orbit — DOI 21.6 m/s (Apollo 11: 23.3 m/s), powered descent 1811 m/s in 472.6 s (Apollo 11: 2065 m/s in 756.39 s), miss 1.3e-5 m, touchdown at 0.50 m/s, 1249 kg of propellant left, total 1833 m/s against the impulsive bound of 1726 m/s (+6.2 %). In the μ/r² proof: 63 274 field evaluations, largest deviation from μ/r² 8.93e-6, and the constant-g descent needs 64.9 m/s and 178 kg more.
 
-Dominant error of the descent numbers: **the model, not the arithmetic.** The integrator matches closed-form cases to many decimals and the shooting closes to 1 cm at the gate; what moves the result is what is left out — terrain, the Moon's gravity beyond the point mass, a real (piloted, throttled-down) final approach, and the lander data itself. Of these, only J2 is quantified (above, and in `07-dispersion.md`). **Not quantified:** the effect of mascons and higher harmonics, of the real approach profile, and of the uncertainty of the lander masses and Isp on the descent propellant (the payload method states σ for dry mass and Isp, see `06-payload.md`). The uncertainty budget for numbers shown in the app is in `uncertainty.md`.
+Dominant error of the descent numbers: **the model, not the arithmetic.** The integrator matches closed-form cases to many decimals and the shooting closes to 1 cm at the gate; what moves the result is what is left out — terrain, the Moon's gravity beyond the point mass, a real (piloted, throttled-down) final approach, and the lander data itself. Of these, only J2 is quantified (above, and in [07-dispersion.md](07-dispersion.md)). **Not quantified:** the effect of mascons and higher harmonics, of the real approach profile, and of the uncertainty of the lander masses and Isp on the descent propellant (the payload method states σ for dry mass and Isp, see [06-payload.md](06-payload.md)). The uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 

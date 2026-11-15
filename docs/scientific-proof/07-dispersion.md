@@ -2,7 +2,7 @@
 
 **Not yet validated by the science lead.** The dispersion analysis and the Moon's J2 term were built on 15 Nov 2026 (task P5). Every dispersion result carries `validated: false` and the marker text "not yet validated by the science lead" (`NOT_VALIDATED` in `app/src/flight/dispersion.ts`); the J2 constant carries the same statement in its comment (`J2_MOON` in `app/src/flight/sim.ts`).
 
-The analysis flies the planned descent (`05-descent.md`) again N times, 200 by default, with random errors in engine thrust, specific impulse, burn direction and launch time, in the Moon's gravity with its J2 term switched on. Output: a 1σ / 3σ tube around the descent path, the landing ellipse on the surface (km) and the spread of the propellant used. It runs in the web worker (`runDispersionRequest()` in `app/src/flight/planWorker.ts`) with progress after every run and can be cancelled.
+The analysis flies the planned descent ([05-descent.md](05-descent.md)) again N times, 200 by default, with random errors in engine thrust, specific impulse, burn direction and launch time, in the Moon's gravity with its J2 term switched on. Output: a 1σ / 3σ tube around the descent path, the landing ellipse on the surface (km) and the spread of the propellant used. It runs in the web worker (`runDispersionRequest()` in `app/src/flight/planWorker.ts`) with progress after every run and can be cancelled.
 
 **What it is the dispersion of.** Only the descent, from Descent Orbit Insertion (DOI) ignition to touchdown, and flown **unguided**: DOI and the braking burn keep their commanded lengths and steering and do not re-aim. The code says: "a real powered descent guidance re-aims the braking burn all the way down and lands far closer to its target. The numbers say how much the commanded flight depends on its errors, not how precisely a guided lander lands" (header of `dispersion.ts`). The translunar flight is not dispersed: an open-loop transfer without correction burns would give meaningless dispersions.
 
@@ -80,7 +80,7 @@ A separate zero-error run in the J2 field gives the shift by J2 alone (`j2Only`)
 | Pointing σ | 0.05° per axis per burn (0.15° at 3σ) | `DISPERSION_SIGMAS.pointingRad` | **ASSUMPTION** |
 | Launch-time σ | 1 s (3 s at 3σ) | `DISPERSION_SIGMAS.launchS` | **ASSUMPTION** |
 | Runs, seed, tube instants | 200, 1, 64 | `DispersionOptions` defaults | choices of the code |
-| The planned descent | per plan | `05-descent.md` | as there |
+| The planned descent | per plan | [05-descent.md](05-descent.md) | as there |
 
 For all four σ the code says: "every one is an ASSUMPTION of this file; no published dispersion of the modelled landers' engines was found. They are round numbers of the size commonly used in early mission studies and are meant to be replaced by sourced values." No study is cited for "commonly used".
 
@@ -114,7 +114,7 @@ What these numbers say:
 - **Sampling error of the statistics:** the test "the sample statistics converge: N = 50 and N = 200 agree within their sampling error" uses the standard error of a σ estimate, about σ/√(2N) (5 % at N = 200), and asserts N = 50 and N = 200 agree within 30 % on σ and within 3 standard errors on the mean propellant.
 - **Not quantified:** how the result depends on the assumed σ values (the output scales with them, but no sensitivity is computed); the dispersion of a guided descent; the effect of mascons.
 
-The uncertainty budget for numbers shown in the app, which uses these results for the landing error, is in `uncertainty.md`.
+The uncertainty budget for numbers shown in the app, which uses these results for the landing error, is in [uncertainty.md](uncertainty.md).
 
 ## Tests that check it
 
