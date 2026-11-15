@@ -151,7 +151,7 @@ test.describe('POI card at 1440 × 900', () => {
     const km = 2 * 1737.4 * Math.asin(Math.sqrt(h))
     await openApp(page)
     const box = await openCard(page, cabeus, 760, 200)
-    await expect(box.getByTestId('poi-distance')).toHaveText(`${Math.round(km)} km from ${ridge.name}`)
+    await expect(box.getByTestId('poi-distance')).toHaveText(new RegExp(`^${Math.round(km)} km (north|north-east|east|south-east|south|south-west|west|north-west) of ${ridge.name}$`))
     await expect(box.getByTestId('poi-bullets').locator('li').last()).toHaveAttribute('data-testid', 'poi-distance')
   })
 

@@ -5,10 +5,19 @@ import { useEffect, useRef, useState } from 'react'
 import { loadPois } from '../data/load'
 import { POI_GROUPS } from '../data/pois'
 import type { Poi, PoiGroup } from '../data/pois'
-import type { Site } from '../data/types'
+import { customSiteId } from '../data/customSite'
+import { loadMissionInputs, loadPoiSite } from '../data/poiHorizon'
+import type { SearchSite } from '../data/pois'
+import type { Period, Site, Station } from '../data/types'
 import type { ScenePoi } from '../scene3d'
 import { PIN_REGION_NORTH_LAT, inPinRegion } from '../scene3d/region'
-import { MOON_RADIUS_KM } from '../geometry'
+import { MOON_RADIUS_KM, rankSites } from '../geometry'
+import type { Summary } from '../geometry'
+import { parseHash } from '../state'
+import { fmtDeg, fmtPct } from './format'
+import { resolvePeriod } from './period'
+import { useSiteRows } from './useSiteRows'
+import type { RowEntry } from './useSiteRows'
 
 export type PoiData =
   | { status: 'idle' | 'loading' }
@@ -83,11 +92,106 @@ export function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lo
   return 2 * MOON_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-/** The summary card's last bullet: "12 km from Connecting Ridge" (computed in the app, not stored). */
+/** Initial great-circle bearing from a to b, degrees clockwise from north (0–360), on the same sphere as distanceKm.
+ *  At the pole itself every direction is north; a is never exactly the pole for an app site. */
+export function bearingDeg(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const r = Math.PI / 180
+  const dLon = (b.lon - a.lon) * r
+  const y = Math.sin(dLon) * Math.cos(b.lat * r)
+  const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos(dLon)
+  return ((Math.atan2(y, x) / r) % 360 + 360) % 360
+}
+
+const COMPASS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west']
+
+/** One of the eight compass directions for a bearing in degrees ("north-east"). */
+export const compassText = (deg: number) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]
+
+/** The summary card's last bullet: "12.4 km north-east of Connecting Ridge" (computed in the app, not stored):
+ *  distance and the direction from the landing site to the point. */
 export function distanceText(poi: { lat: number; lon: number }, from: { name: string; lat: number; lon: number }): string {
   const d = distanceKm(from, poi)
   if (d < 0.1) return `At ${from.name}`
-  return `${d < 10 ? d.toFixed(1) : Math.round(d).toLocaleString('en-US')} km from ${from.name}`
+  return `${d < 10 ? d.toFixed(1) : Math.round(d).toLocaleString('en-US')} km ${compassText(bearingDeg(from, poi))} of ${from.name}`
+}
+
+// ---------- abbreviations on the card (U17: every abbreviation shown expands on hover) ----------
+
+/** Every abbreviation and unit symbol the POI texts use (plain.json bullets and types, the record's summary, facts,
+ *  evidence and limitations), with its long form. The names are the instruments', missions' and methods' own. */
+export const POI_ABBR: Record<string, string> = {
+  PSR: 'Permanently shadowed region: never reached by direct sunlight',
+  PSRs: 'Permanently shadowed regions: never reached by direct sunlight',
+  LEND: 'Lunar Exploration Neutron Detector (LRO): maps hydrogen through neutrons',
+  LCROSS: 'Lunar Crater Observation and Sensing Satellite (NASA impact mission)',
+  LRO: 'Lunar Reconnaissance Orbiter (NASA)',
+  LROC: 'Lunar Reconnaissance Orbiter Camera',
+  NAC: 'Narrow Angle Camera (LROC)',
+  LAMP: 'Lyman Alpha Mapping Project (ultraviolet spectrograph on LRO)',
+  LOLA: 'Lunar Orbiter Laser Altimeter (LRO)',
+  WEH: 'Water-equivalent hydrogen',
+  M3: 'Moon Mineralogy Mapper (NASA instrument on Chandrayaan-1)',
+  DEM: 'Digital elevation model',
+  HLS: 'Human Landing System (Artemis)',
+  NRHO: 'Near-rectilinear halo orbit',
+  DTE: 'Direct to Earth (radio link without a relay)',
+  DSN: 'NASA Deep Space Network',
+  SPA: 'South Pole–Aitken basin',
+  PGDA: 'Planetary Geodesy Data Archive (NASA Goddard)',
+  CLPS: 'Commercial Lunar Payload Services (NASA)',
+  LUPEX: 'Lunar Polar Exploration mission (JAXA and ISRO)',
+  ESA: 'European Space Agency',
+  TOPSIS: 'Technique for Order of Preference by Similarity to Ideal Solution: a multi-criteria ranking method',
+  MABAC: 'Multi-Attributive Border Approximation area Comparison: a multi-criteria ranking method',
+  CoCoSo: 'Combined Compromise Solution: a multi-criteria ranking method',
+  VIKOR: 'VIseKriterijumska Optimizacija I Kompromisno Resenje: a multi-criteria ranking method',
+  Ri: 'TOPSIS closeness score, 0 to 1 (higher ranks better)',
+  LP: 'Lunar Prospector (NASA orbiter)',
+  'IM-1': 'Intuitive Machines mission 1 (CLPS lander)',
+  'IM-2': 'Intuitive Machines mission 2 (CLPS lander)',
+  'IM-4': 'Intuitive Machines mission 4 (CLPS lander)',
+  'IM-5': 'Intuitive Machines mission 5 (CLPS lander)',
+  mb: 'Body-wave magnitude of a quake',
+  'wt%': 'Percent by weight',
+  ppm: 'Parts per million',
+  Ga: 'Billion years (giga-annum)',
+  Ma: 'Million years (mega-annum)',
+  UTC: 'Coordinated Universal Time',
+  UT: 'Universal Time',
+  T_max: 'Maximum temperature',
+  K: 'Kelvin (0 K = −273.15 °C)',
+  CO2: 'Carbon dioxide',
+  NASA: 'National Aeronautics and Space Administration',
+  VIPER: 'Volatiles Investigating Polar Exploration Rover (NASA)',
+  FLIP: 'FLEX Lunar Innovation Platform (Astrolab rover)',
+  MK1: 'Mark 1 (Blue Moon cargo lander)',
+  MB: 'Megabytes',
+  SW: 'South-west',
+}
+
+const ABBR_RE = new RegExp(
+  `(?<![\\w-])(${Object.keys(POI_ABBR)
+    .sort((a, b) => b.length - a.length)
+    .map((k) => k.replace(/[.*+?^${}()|[\]\\%-]/g, '\\$&'))
+    .join('|')})(?![\\w-])`,
+  'g',
+)
+
+/** A text split into plain parts and abbreviations with their long form, for <abbr title>. "K" is marked only after
+ *  a number ("78 K"), so a capital K in a name is left alone. */
+export function abbrParts(text: string): { text: string; title?: string }[] {
+  const out: { text: string; title?: string }[] = []
+  let last = 0
+  for (const m of text.matchAll(ABBR_RE)) {
+    const k = m[1]
+    const at = m.index ?? 0
+    if (k === 'K' && !/\d\s?$/.test(text.slice(0, at))) continue
+    if (at > last) out.push({ text: text.slice(last, at) })
+    out.push({ text: k, title: POI_ABBR[k] })
+    last = at + k.length
+  }
+  if (last < text.length) out.push({ text: text.slice(last) })
+  return out
 }
 
 /** Evidence grades of the research notes and what they mean (definitions: "Evidence labels" in meta.source_meta_notes of
@@ -174,4 +278,117 @@ export const sourceHost = (u: string) => {
   } catch {
     return u
   }
+}
+
+// ---------- "At this point, for your mission dates" (U17, read-cards) ----------
+// Sunlight and station contact of a point that has a terrain horizon of its own (search-sites.json): the search's
+// values, from the same code (useSiteRows → data/results.computeRow → geometry summarize), never a second
+// implementation and never an estimate. A point without a horizon gets no values.
+
+/** The mission's dates and station choice, as the app holds them. */
+export interface PoiMission {
+  stations: Station[]
+  ids: string[] // selected station ids
+  startMs: number
+  endMs: number
+}
+
+/** The mission as the link describes it (when the card is not handed the app's own): the dates by views/period and
+ *  the stations by App.tsx's rule (the link's selection, all stations when it names none of them). */
+export function missionFromLink(hash: string, periods: Period[], stations: Station[]): PoiMission {
+  const hs = parseHash(hash)
+  const p = resolvePeriod(hs, periods)
+  const known = stations.map((s) => s.id)
+  const sel = hs.st ? known.filter((id) => hs.st!.includes(id)) : known
+  return { stations, ids: sel.length ? sel : known, startMs: p.startMs, endMs: p.endMs }
+}
+
+export type PoiConditions =
+  | { status: 'none' } // no horizon for this point (or its list could not load): nothing is shown
+  | { status: 'loading' }
+  | { status: 'ready'; site: SearchSite; mission: PoiMission; entry: RowEntry }
+
+/** The point's search row and its computed values for the mission. The work runs after the card is shown (one
+ *  task per site in useSiteRows); a value computed for the search or an earlier card is reused, not recomputed. */
+export function usePoiConditions(poiId: string, given: PoiMission | null): PoiConditions {
+  const [found, setFound] = useState<{ id: string; site: SearchSite | null } | null>(null)
+  const [linked, setLinked] = useState<PoiMission | null>(null)
+  useEffect(() => {
+    let alive = true
+    loadPoiSite(poiId).then(
+      (site) => alive && setFound({ id: poiId, site }),
+      () => alive && setFound({ id: poiId, site: null }),
+    )
+    return () => {
+      alive = false
+    }
+  }, [poiId])
+  useEffect(() => {
+    if (given) return
+    let alive = true
+    loadMissionInputs().then(
+      ([periods, stations]) => alive && setLinked(missionFromLink(window.location.hash, periods, stations)),
+      () => alive && setLinked(null),
+    )
+    return () => {
+      alive = false
+    }
+  }, [given === null, poiId])
+  const mission = given ?? linked
+  const site = found && found.id === poiId ? found.site : undefined
+  const rows = useSiteRows(site && mission ? [site] : [], mission?.stations ?? [], mission?.ids ?? [], mission?.startMs ?? 0, mission?.endMs ?? 0, false)
+  if (site === null) return { status: 'none' }
+  if (!site || !mission) return { status: 'loading' }
+  return { status: 'ready', site, mission, entry: rows[site.id] ?? { status: 'computing' } }
+}
+
+export interface ConditionLine {
+  key: 'lit' | 'comms' | 'slope'
+  label: string
+  value: string // mono, with its unit
+  note: string
+  status?: 'pass' | 'fail' // only where the app has a stated threshold (the 5° slope limit, geometry/rankSites.ts)
+}
+
+const DAY = 86_400_000
+
+/** At most three lines: sunlit, station contact and slope (from the shipped file). Percentages as the search shows
+ *  them (format.fmtPct); the days are the same share of the mission's length. While `computing`, sunlit and contact
+ *  hold the place with "…" and the same note, so the card keeps its height when the values arrive (a card that grew
+ *  under a still pointer for one frame covered its own pin). */
+export function conditionLines(site: SearchSite, mission: PoiMission, summary: Summary | null, computing = false): ConditionLine[] {
+  const out: ConditionLine[] = []
+  const days = (mission.endMs - mission.startMs) / DAY
+  const n = Math.round(days)
+  const ofDays = (pct: number | null) => (n >= 1 ? `about ${pct === null ? '…' : Math.round((pct / 100) * days)} of ${n} days` : '')
+  const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+  const lit = summary && finite(summary.litPct) ? summary.litPct : null
+  const cov = summary && finite(summary.coveragePct) ? summary.coveragePct : null
+  const wait = computing && !summary
+  if (lit !== null || wait) out.push({ key: 'lit', label: 'Sunlit', value: lit === null ? '…' : fmtPct(lit), note: ofDays(lit) })
+  // Contact: line of sight to at least one chosen ground station (geometry coverage), as the search's "Coverage".
+  if (cov !== null || wait) out.push({ key: 'comms', label: 'Station contact', value: cov === null ? '…' : fmtPct(cov), note: ofDays(cov) })
+  // The slope rule is rankSites' (5° limit, spec.md "Terrain slope"); the card only words its answer.
+  const r = rankSites([{ site, summary: null }], 'any')
+  const row = [...r.ranked, ...r.failed, ...r.unknown][0]
+  if (row && row.slopeDeg !== null) {
+    out.push({
+      key: 'slope',
+      label: 'Slope',
+      value: fmtDeg(row.slopeDeg),
+      note: row.slope === 'fail' ? 'steeper than the 5° limit' : 'within the 5° limit',
+      status: row.slope === 'fail' ? 'fail' : 'pass',
+    })
+  }
+  return out
+}
+
+// ---------- "Show as landing site" (science lead, 15 Nov) ----------
+
+/** What the card offers for going to the point: 'go' (it can be a custom landing site), 'here' (it already is the
+ *  current landing site), or null (outside the pin region: customSiteId gives no id, so no action). */
+export function goToState(poi: { lat: number; lon: number }, currentSiteId: string | null | undefined): 'go' | 'here' | null {
+  const id = customSiteId(poi.lat, poi.lon)
+  if (!id) return null
+  return id === currentSiteId ? 'here' : 'go'
 }

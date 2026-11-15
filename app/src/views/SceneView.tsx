@@ -84,6 +84,7 @@ interface Props {
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
   pois: ScenePoi[] // points of interest to draw ([] = layer off)
   poiById: Map<string, Poi> | null // records for the info box; null until pois.json is loaded
+  onGoToPoi?(poi: Poi): void // the info box's "Show as landing site" (App.tsx showPoi, as the search's "Show")
 }
 
 const HOVER_GRACE_MS = 350 // pointer from the pin onto its info box
@@ -172,7 +173,7 @@ const BODY_TEXT: Record<string, string> = { earth: 'Earth', moon: 'Moon', arriva
 
 export function SceneView(props: Props) {
   const { deps, siteId, utcMs, view, sunEl, earthEl, flight, onUnavailable, onPick, onFlightPick } = props
-  const { onLevel, clickGuard, points, api, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
+  const { onLevel, clickGuard, points, api, canAddPoint, onAddPoint, onSetSite, pois, poiById, onGoToPoi } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
@@ -680,6 +681,14 @@ export function SceneView(props: Props) {
           boxRef={box}
           from={deps.sites.find((s) => s.id === siteId) ?? null}
           onClose={dismissInfo}
+          currentSiteId={siteId}
+          onGoTo={
+            onGoToPoi &&
+            ((p) => {
+              dismissInfo()
+              onGoToPoi(p)
+            })
+          }
           onPointerEnter={() => {
             overBox.current = true
           }}

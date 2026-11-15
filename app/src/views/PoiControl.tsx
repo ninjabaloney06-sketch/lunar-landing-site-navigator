@@ -17,6 +17,16 @@ interface Props {
 
 const ALL = POI_GROUPS.map((g) => g.id)
 
+/** What each group holds (U17), from the record categories in pois.json: shown on hover over the group's name. */
+export const GROUP_HINT: Record<PoiGroup, string> = {
+  hazard: 'Thrust scarps, a shallow moonquake and landing outcomes from published studies',
+  water: 'Hydrogen maxima (LEND, Lunar Exploration Neutron Detector) and LCROSS impact points',
+  'cold-trap': 'Permanently shadowed regions (PSR) from two catalogues, and their host craters',
+  light: 'Modelled illumination points from published studies',
+  landing: 'Artemis III regions, points from published studies, and past or planned landing and impact sites',
+  science: 'Craters, massifs and crater ages from published sources',
+}
+
 export function PoiToggle({ groups, onChange }: Pick<Props, 'groups' | 'onChange'>) {
   // Switching off and on again brings back the groups chosen before (all of them the first time).
   const last = useRef<PoiGroup[]>(groups ?? ALL)
@@ -43,11 +53,15 @@ export function PoiKey({ groups, data, counts, webgl, onChange }: Props & { grou
       <ul className="plain poi-key-list">
         {POI_GROUPS.map((g) => (
           <li key={g.id}>
-            <label className="check poi-key-item" data-group={g.id}>
+            <label className="check poi-key-item" data-group={g.id} title={GROUP_HINT[g.id]}>
               <input type="checkbox" checked={groups.includes(g.id)} onChange={() => toggle(g.id)} />
               <span className="poi-swatch" style={{ background: g.color }} aria-hidden="true" />
               <span className="poi-key-name">{g.label}</span>
-              {counts && <span className="poi-key-n mono">{counts[g.id]}</span>}
+              {counts && (
+                <span className="poi-key-n mono" aria-label={`${counts[g.id]} pins`}>
+                  {counts[g.id]}
+                </span>
+              )}
             </label>
           </li>
         ))}
@@ -56,7 +70,7 @@ export function PoiKey({ groups, data, counts, webgl, onChange }: Props & { grou
         {data.status === 'error'
           ? `Could not load the points of interest. ${data.error}`
           : data.status === 'ready'
-            ? `${webgl ? 'Hover or tap a pin to read about it. ' : 'The 3D view is not available, so no pins are drawn. '}Only ${REGION_TEXT}.`
+            ? `Pins per group, ${REGION_TEXT}; the app's own sites are not counted. ${webgl ? 'Hover or tap a pin to read about it.' : 'The 3D view is not available, so no pins are drawn.'}`
             : 'Loading the points of interest…'}
       </p>
     </div>

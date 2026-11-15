@@ -1,9 +1,30 @@
 // The POI card's text rules (U8): the full data card cleans every record of pois.json; the summary card's distance.
 import poisJson from '../../public/data/pois.json'
-import { describe, expect, it } from 'vitest'
-import type { Poi } from '../data/pois'
+import searchSitesJson from '../../public/data/search-sites.json'
+import { describe, expect, it, vi } from 'vitest'
+import type { Poi, SearchSite } from '../data/pois'
+import type { Period, Station } from '../data/types'
+import { loadPoiSite } from '../data/poiHorizon'
+import { customSiteId } from '../data/customSite'
 import { MOON_RADIUS_KM } from '../geometry'
-import { cleanText, distanceKm, distanceText, evidenceText, fmtLatLon, fullFacts } from './poiLayer'
+import {
+  abbrParts,
+  bearingDeg,
+  cleanText,
+  compassText,
+  conditionLines,
+  distanceKm,
+  distanceText,
+  evidenceText,
+  fmtLatLon,
+  fullFacts,
+  goToState,
+  missionFromLink,
+  POI_ABBR,
+} from './poiLayer'
+
+// The search rows as shipped, without a fetch.
+vi.mock('../data/load', async (orig) => ({ ...(await orig<typeof import('../data/load')>()), loadSearchSites: async () => searchSitesJson }))
 
 const POIS = poisJson as Poi[]
 const byId = new Map(POIS.map((p) => [p.id, p]))
@@ -78,12 +99,103 @@ describe('summary card: distance from the current site', () => {
     expect(distanceKm({ lat: -85, lon: 10 }, { lat: -85, lon: 10 })).toBe(0)
   })
 
-  it('reads "<n> km from <site>"', () => {
+  it('reads "<n> km <direction> of <site>"', () => {
     const site = { name: 'Connecting Ridge', lat: -89.4588, lon: -137.31 }
-    const near = { lat: -89.5, lon: -137.31 } // under 10 km: one decimal
-    expect(distanceText(near, site)).toBe(`${distanceKm(site, near).toFixed(1)} km from Connecting Ridge`)
-    expect(distanceText({ lat: -90, lon: 0 }, site)).toBe(`${Math.round(distanceKm(site, { lat: -90, lon: 0 }))} km from Connecting Ridge`)
-    expect(distanceText(byId.get('science:feat_cabeus')!, site)).toMatch(/^\d{2,3} km from Connecting Ridge$/)
+    const near = { lat: -89.5, lon: -137.31 } // under 10 km: one decimal; same meridian, further south
+    expect(distanceText(near, site)).toBe(`${distanceKm(site, near).toFixed(1)} km south of Connecting Ridge`)
+    expect(distanceText({ lat: -90, lon: 0 }, site)).toBe(`${Math.round(distanceKm(site, { lat: -90, lon: 0 }))} km south of Connecting Ridge`)
+    expect(distanceText(byId.get('science:feat_cabeus')!, site)).toMatch(/^\d{2,3} km (north|north-east|east|south-east|south|south-west|west|north-west) of Connecting Ridge$/)
     expect(distanceText(site, site)).toBe('At Connecting Ridge')
+  })
+})
+
+describe('summary card: direction from the current site (U17)', () => {
+  it('initial great-circle bearing, eight compass words', () => {
+    expect(bearingDeg({ lat: 0, lon: 0 }, { lat: 1, lon: 0 })).toBeCloseTo(0, 9)
+    expect(bearingDeg({ lat: 0, lon: 0 }, { lat: 0, lon: 1 })).toBeCloseTo(90, 9)
+    expect(bearingDeg({ lat: -85, lon: 0 }, { lat: -86, lon: 0 })).toBeCloseTo(180, 9)
+    expect(bearingDeg({ lat: 0, lon: 0 }, { lat: 0, lon: -1 })).toBeCloseTo(270, 9)
+    expect([0, 44, 46, 90, 135, 180, 225, 270, 315, 338, 359].map(compassText)).toEqual([
+      'north', 'north-east', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north',
+    ])
+  })
+})
+
+describe('card texts: every abbreviation has its long form (U17)', () => {
+  it('marks WEH, wt%, M3, PSR and K after a number; leaves a K in a name alone', () => {
+    const text = 'Max WEH 0.24 wt%, 134 M3 ice detections; PSR floor 40 K; Kocher massif'
+    const parts = abbrParts(text)
+    expect(parts.filter((p) => p.title).map((p) => p.text)).toEqual(['WEH', 'wt%', 'M3', 'PSR', 'K'])
+    expect(parts.map((p) => p.text).join('')).toBe(text)
+  })
+
+  it('every capitalised abbreviation in the summary texts of pois.json has an expansion', () => {
+    const known = new Set(Object.keys(POI_ABBR))
+    const missing = new Set<string>()
+    for (const p of POIS) {
+      for (const t of [p.plain?.type ?? '', ...(p.plain?.bullets ?? [])]) {
+        for (const m of t.matchAll(/(?<![\w-])([A-Z][A-Za-z]*[A-Z][A-Za-z0-9]*(?:-\d+)?|[A-Z]\d)(?![\w-])/g)) {
+          if (!known.has(m[1])) missing.add(m[1])
+        }
+      }
+    }
+    // Names written in capitals, not abbreviations: a crater (Gill), a Roman numeral (Artemis III), an instrument.
+    for (const name of ['GILL', 'III', 'ShadowCam']) missing.delete(name)
+    expect([...missing].sort()).toEqual([])
+  })
+})
+
+describe('"At this point, for your mission dates" (U17)', () => {
+  const site = {
+    id: 'poi-x', name: 'X', group: 'poi', lat: -88, lon: 45, elev_m: 0, slope_deg: 2.6, horizon: 'poi-x.json', poi_id: 'cold-trap:x',
+  } as unknown as SearchSite
+  const mission = { stations: [], ids: ['a'], startMs: Date.UTC(2027, 7, 1), endMs: Date.UTC(2027, 7, 15) }
+  const summary = { litPct: 62.345, earthVisiblePct: 50, coveragePct: 41, unknownPct: 0, longestDarkH: 10, longestGapH: 5 }
+
+  it('three lines: sunlit and station contact as the search shows them, the slope with the 5° limit', () => {
+    const lines = conditionLines(site, mission, summary)
+    expect(lines.map((l) => [l.label, l.value, l.note])).toEqual([
+      ['Sunlit', '62.3 %', 'about 9 of 14 days'],
+      ['Station contact', '41.0 %', 'about 6 of 14 days'],
+      ['Slope', '2.6°', 'within the 5° limit'],
+    ])
+    expect(lines[2].status).toBe('pass')
+    expect(conditionLines({ ...site, slope_deg: 7.2 }, mission, summary)[2]).toMatchObject({ value: '7.2°', status: 'fail' })
+  })
+
+  it('while computing, "…" holds the place of sunlit and contact with the same notes; no slope in the file, no slope line; never NaN', () => {
+    const wait = conditionLines(site, mission, null, true)
+    expect(wait.map((l) => [l.value, l.note])).toEqual([
+      ['…', 'about … of 14 days'],
+      ['…', 'about … of 14 days'],
+      ['2.6°', 'within the 5° limit'],
+    ])
+    expect(conditionLines(site, mission, null).map((l) => l.key)).toEqual(['slope'])
+    expect(conditionLines({ ...site, slope_deg: null } as unknown as SearchSite, mission, null)).toEqual([])
+    const bad = { ...summary, litPct: Number.NaN, coveragePct: Number.NaN }
+    expect(conditionLines(site, mission, bad).map((l) => l.key)).toEqual(['slope'])
+  })
+
+  it('the mission from the link: named period, station selection, all stations when the link names none', () => {
+    const periods = [{ id: 'p1', start_utc: '2027-08-01T00:00:00Z', end_utc: '2027-08-15T00:00:00Z' }] as unknown as Period[]
+    const stations = [{ id: 'goldstone' }, { id: 'madrid' }] as unknown as Station[]
+    expect(missionFromLink('#period=p1&st=madrid', periods, stations)).toMatchObject({ ids: ['madrid'], startMs: Date.UTC(2027, 7, 1), endMs: Date.UTC(2027, 7, 15) })
+    expect(missionFromLink('#period=p1', periods, stations).ids).toEqual(['goldstone', 'madrid'])
+  })
+
+  it('"Show as landing site": go inside the pin region, "here" for the current site, nothing north of 80° S', () => {
+    const shoemaker = byId.get('cold-trap:atlas_01')!
+    expect(goToState(shoemaker, 'connecting-ridge')).toBe('go')
+    expect(goToState(shoemaker, customSiteId(shoemaker.lat, shoemaker.lon))).toBe('here')
+    expect(goToState({ lat: -79.5, lon: 10 }, 'connecting-ridge')).toBeNull()
+    // Every record north of the limit gets no action (pois.json has some; the app draws no pins for them).
+    const north = POIS.filter((x) => x.lat > -80)
+    expect(north.length).toBeGreaterThan(0)
+    for (const p of north) expect(goToState(p, null), p.id).toBeNull()
+  })
+
+  it('which points have a horizon: the search rows by poi_id; a point without one gets null (no values)', async () => {
+    expect(await loadPoiSite('cold-trap:atlas_01')).toMatchObject({ id: 'poi-cold-trap-atlas-01', horizon: 'poi-cold-trap-atlas-01.json' })
+    expect(await loadPoiSite('science:no_such_point')).toBeNull()
   })
 })
