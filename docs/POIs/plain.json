@@ -35,7 +35,7 @@
  "hazard:seismic_n9": {
   "type": "Shallow moonquake",
   "bullets": [
-   "Shallow moonquake, mb ~5-5.6, dated 1973-03-13",
+   "Shallow moonquake, body-wave magnitude mb ~5-5.6, 13 Mar 1973",
    "Event established; epicentre location uncertain, approximate",
    "Strongest Apollo-era; context 28 shallow moonquakes recorded 1969-1977"
   ]
@@ -720,9 +720,9 @@
  "landing:faustini_rim_a": {
   "type": "Artemis region",
   "bullets": [
-   "Among the largest suitable fractional areas, after Slater Plain and Nobile Rim 2",
+   "Among the largest shares of suitable area, after Slater Plain and Nobile Rim 2",
    "Size ~15 × 15 km, image mosaic ~20 km north-south",
-   "Dropped in 2024; best of 80 candidate points at rank 16"
+   "Dropped in 2024; best of its 80 points ranks 16th in a TOPSIS study"
   ]
  },
  "landing:peak_near_shackleton": {
@@ -744,15 +744,15 @@
  "landing:connecting_ridge_extension": {
   "type": "Artemis region",
   "bullets": [
-   "Among the smallest suitable fractional areas",
+   "Among the smallest shares of suitable area",
    "Size ~15 × 15 km",
-   "Dropped in 2024; none of its 36 points in the top 100"
+   "Dropped in 2024; none of its 36 points in a TOPSIS study's top 100"
   ]
  },
  "landing:de_gerlache_rim_1": {
   "type": "Artemis region",
   "bullets": [
-   "Among the smallest suitable fractional areas",
+   "Among the smallest shares of suitable area",
    "Size ~15 × 15 km",
    "Dropped in 2024"
   ]
@@ -762,7 +762,7 @@
   "bullets": [
    "Hazard: de Gerlache thrust scarp lies within this region",
    "Unstable slope of a permanently shadowed region lies to its north",
-   "Kept in 2024; best of 104 points at rank 19"
+   "Kept in 2024; best of its 104 points ranks 19th in a TOPSIS study"
   ]
  },
  "landing:de_gerlache_kocher_massif": {
@@ -774,7 +774,7 @@
   "bullets": [
    "Two Haworth sites exceed 25 days of simultaneous Sun and Earth visibility at midsummer",
    "Size ~15 × 15 km, image mosaic ~39 km north-south",
-   "Kept in 2024; none of its 20 points in the top 100"
+   "Kept in 2024; none of its 20 points in a TOPSIS study's top 100"
   ]
  },
  "landing:malapert_massif": {
@@ -803,23 +803,23 @@
  "landing:nobile_rim_2": {
   "type": "Artemis region",
   "bullets": [
-   "Second-largest suitable fractional area",
-   "Kept in 2024; best of its 473 points at rank 1; 36% of the top 100",
+   "Second-largest share of suitable area",
+   "Kept in 2024; 473 points, incl. a TOPSIS study's rank 1 and 36% of its top 100",
    "Size ~15 × 15 km, image mosaic ~27 km north-south"
   ]
  },
  "landing:amundsen_rim": {
   "type": "Artemis region",
   "bullets": [
-   "Dropped in 2024; best of 149 points at rank 10",
-   "13% of the top 100 points lie here",
+   "Dropped in 2024; best of its 149 points ranks 10th in a TOPSIS study",
+   "13% of that study's top 100 points lie here",
    "Size ~15 × 15 km, image mosaic ~26 km north-south"
   ]
  },
  "landing:peak_near_cabeus_b": {
   "type": "Artemis region",
   "bullets": [
-   "Among the smallest suitable fractional areas",
+   "Among the smallest shares of suitable area",
    "New region in 2024; image mosaic ~26 km north-south"
   ]
  },
@@ -833,7 +833,7 @@
   "type": "Artemis region",
   "bullets": [
    "2024 name for the area formerly called Leibnitz Beta Plateau",
-   "Among the smallest suitable fractional areas"
+   "Among the smallest shares of suitable area"
   ]
  },
  "landing:connecting_ridge_shackleton_junction": {
@@ -893,7 +893,7 @@
   "type": "Ranked landing point",
   "bullets": [
    "Rank 1 of 1,247 points in a modelled TOPSIS ranking",
-   "Ri = 0.6916, or 0.8453 in the sensitivity case",
+   "TOPSIS score Ri 0.6916, or 0.8453 in the sensitivity case",
    "First under TOPSIS, MABAC, CoCoSo and VIKOR"
   ]
  },
@@ -981,7 +981,7 @@
   "type": "Landing site",
   "bullets": [
    "Partial: within about 1.5 km of target; 100 m precision goal missed",
-   "Rested ~30 deg tilted after breaking a leg; degraded ~1 km crater",
+   "Rested ~30° tilted after breaking a leg; degraded ~1 km crater",
    "About seven days of data; power lost 28/29 Feb, sources differ"
   ]
  },
@@ -1003,7 +1003,7 @@
   "type": "Planned landing site",
   "bullets": [
    "Intended site at Mons Mouton; lander ended on its side",
-   "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+   "Shadowed crater about 20 m wide at about −173 °C (~100 K)",
    "Southernmost landing to date; over 400 MB returned"
   ]
  },
@@ -1011,7 +1011,7 @@
   "type": "Planned landing site",
   "bullets": [
    "Intended site at Mons Mouton; lander ended on its side",
-   "Shadowed crater about 20 m wide at about -173 C (~100 K)",
+   "Shadowed crater about 20 m wide at about −173 °C (~100 K)",
    "Southernmost landing to date; over 400 MB returned"
   ]
  },
@@ -1278,7 +1278,7 @@
   "type": "Crater",
   "bullets": [
    "PSR floor ~88-90 K; rim peaks sunlit ~80-90% of the time",
-   "Pole lies on its rim; D 21.0 km, depth 4.2 km"
+   "Pole lies on its rim; diameter 21.0 km, depth 4.2 km"
   ]
  },
  "science:feat_connecting_ridge_junction": {
@@ -1292,7 +1292,7 @@
   "type": "Crater",
   "bullets": [
    "PSR pocket incl. possible CO2 cold trap",
-   "D 32.4 km, depth 7.5 km",
+   "Diameter 32.4 km, depth 7.5 km",
    "2022 study of 'slope exposed ice'"
   ]
  },
@@ -1300,7 +1300,7 @@
   "type": "Crater · PSR",
   "bullets": [
    "Large PSR; coldest areas never exceed ~40 K",
-   "D 51.4 km (52 km in a second estimate)",
+   "Diameter 51.4 km (52 km in a second estimate)",
    "Pre-Nectarian age 4.18 ± 0.02 Ga (model age)"
   ]
  },
@@ -1325,7 +1325,7 @@
   "bullets": [
    "Former VIPER site on the west rim, Mons Mouton side",
    "Griffin Mission One planned to land nearby with Astrolab FLIP rover",
-   "D 79.27 km"
+   "Diameter 79.27 km"
   ]
  },
  "science:feat_mons_mouton": {
@@ -1348,21 +1348,21 @@
   "type": "Crater · PSR",
   "bullets": [
    "LCROSS ground truth: 5.6 ± 2.9 wt% H₂O, plus other volatiles",
-   "D 100.58 km, depth ~4 km"
+   "Diameter 100.58 km, depth ~4 km"
   ]
  },
  "science:feat_schrodinger": {
   "type": "Impact basin",
   "bullets": [
    "Volcanic vent and lava flows; target of the Farside Seismic Suite",
-   "D 312 km, depth 4.8 km",
+   "Diameter 312 km, depth 4.8 km",
    "Early Imbrian peak-ring basin"
   ]
  },
  "science:feat_southernmost_pit": {
   "type": "Lunar pit",
   "bullets": [
-   "No catalogued pit lies poleward of 80 S",
+   "No catalogued pit lies poleward of 80° S",
    "Catalogue: 281 impact-melt, 15 mare, 5 highland pits",
    "Polar imaging hampered by lighting"
   ]
