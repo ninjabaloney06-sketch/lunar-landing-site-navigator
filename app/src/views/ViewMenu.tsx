@@ -14,6 +14,7 @@ export interface ViewItem {
   label: string
   disabled?: boolean
   title?: string // why it is disabled, as a tooltip
+  hint?: string // one line under the label: what this entry shows (U17); not part of the entry's name
   current?: boolean // the level the scene is at
   separated?: boolean // a rule above this entry
   onSelect(): void
@@ -86,7 +87,10 @@ export function ViewMenu({ label, items, className, at, testId, note, onClose }:
           className={`view-item${it.separated ? ' is-separated' : ''}`}
           data-item={it.id}
           disabled={it.disabled}
-          title={it.title}
+          title={it.title ?? it.hint}
+          // With a hint the label is set as the name, so the hint drawn by CSS (data-hint) is not read as part of it.
+          aria-label={it.hint ? it.label : undefined}
+          data-hint={it.hint}
           aria-current={it.current ? 'true' : undefined}
           onClick={() => {
             onClose(true)

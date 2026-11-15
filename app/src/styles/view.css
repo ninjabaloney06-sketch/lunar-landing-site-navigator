@@ -367,10 +367,29 @@
     align-items: center;
   }
 
-  /* View and Simulate: 44 px tall targets on a phone (visual sweep 8), the text stays a quiet link */
+  /* View and Simulate: 44 px tall targets on a phone (visual sweep 8), the text stays a quiet link. The box reaches
+     12 px above and below the 20 px row (over the answer text, which is not a control), so the row itself stays
+     20 px tall and the scene keeps that height (read-header). */
   .tool {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    margin-block: -12px;
   }
+
+  .tl-tools {
+    min-height: 20px;
+  }
+}
+
+/* One-line hint under each View menu entry (read-header, U17). Drawn from data-hint, so the entry's name stays its
+   label alone; the same text is its title. */
+.view-item[data-hint]::after {
+  content: attr(data-hint);
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--t-small);
+  white-space: normal;
+  max-width: 30ch;
 }

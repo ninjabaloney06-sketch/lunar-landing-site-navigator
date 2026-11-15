@@ -445,10 +445,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (hs.view === view) scene.current?.setLevel(view)
     else patch({ view })
   }
+  // Each entry has a one-line hint under its label (read-header, U17): what the camera shows.
+  const VIEW_HINTS: Record<string, string> = { moon: 'Whole Moon with the candidate site pins' }
   const viewItems: ViewItem[] = [
-    { id: 'site', label: 'Landing site', current: hs.view === 'site', onSelect: () => goLevel('site') },
-    { id: 'eye', label: 'Eye level', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
-    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, separated: i === 0 })),
+    { id: 'site', label: 'Landing site', hint: 'Site and surrounding terrain from above', current: hs.view === 'site', onSelect: () => goLevel('site') },
+    { id: 'eye', label: 'Eye level', hint: 'Standing at the site: local horizon, Sun, Earth', current: hs.view === 'eye', onSelect: () => goLevel('eye') },
+    ...viewpointItems(scenePoints, (v: Viewpoint) => scene.current?.goTo(v)).map((it, i) => ({ ...it, hint: VIEW_HINTS[it.id], separated: i === 0 })),
   ]
 
   // The Simulate control beside the timeline: from the cursor, or from the start when the cursor is at the end.
@@ -560,32 +562,48 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               <span className="mission-name">{missionName}</span>
             </button>
           </h1>
-          <p className="site-line">
+          {/* read-header (wave 3): one line for site · date, then one small line for the secondary facts
+              (coordinates and the site's caveat), so the header takes three short rows on a phone, not five. */}
+          <div className="site-line">
             <span className="site-line-name" data-testid="site-name" data-site-id={site.id}>
               {site.name}
             </span>
-            <span className="site-line-sep" aria-hidden="true">
-              {' · '}
-            </span>
-            <span className="coords mono" data-testid="coords">
+            {!inFlight && (
+              <span className="site-line-sep" aria-hidden="true">
+                {' · '}
+              </span>
+            )}
+            <button
+              ref={dateBtn}
+              type="button"
+              hidden={inFlight}
+              className="date"
+              data-testid="date"
+              data-period-id={period.id}
+              data-menu-trigger=""
+              aria-haspopup="dialog"
+              aria-expanded={menu === 'date'}
+              title="Time shown in the scene and timeline (UTC); choose another mission period"
+              onClick={() => setMenu(menu === 'date' ? null : 'date')}
+            >
+              {fmtDateTime(cursor)}
+            </button>
+          </div>
+          <p className="site-meta">
+            <span className="coords mono" data-testid="coords" title="Latitude and longitude of the site point">
               {fmtCoords(site.lat, site.lon)}
             </span>
+            {siteSubtitle(site) && (
+              <>
+                <span className="site-line-sep" aria-hidden="true">
+                  {' · '}
+                </span>
+                <span className="site-label">
+                  {siteSubtitle(site)}
+                </span>
+              </>
+            )}
           </p>
-          {siteSubtitle(site) && <p className="site-label">{siteSubtitle(site)}</p>}
-          <button
-            ref={dateBtn}
-            type="button"
-            hidden={inFlight}
-            className="date"
-            data-testid="date"
-            data-period-id={period.id}
-            data-menu-trigger=""
-            aria-haspopup="dialog"
-            aria-expanded={menu === 'date'}
-            onClick={() => setMenu(menu === 'date' ? null : 'date')}
-          >
-            {fmtDateTime(cursor)}
-          </button>
           {menu === 'mission' && (
             <MissionPanel
               onCompareMissions={() => patch({ drawer: 'missions' })}
@@ -711,7 +729,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             {/* The flight view has no tab (U12): it opens from "Calculate flight" on a mission, and this link (or Esc)
                 goes back to the landing site. */}
             {inFlight && (
-              <button type="button" className="find" data-testid="back-to-site" onClick={() => patch({ view: 'site' })}>
+              <button
+                type="button"
+                className="find"
+                data-testid="back-to-site"
+                title="Leave the flight view: the site's sky, timeline and answer again (Esc)"
+                onClick={() => patch({ view: 'site' })}
+              >
                 Back to landing site
               </button>
             )}
@@ -725,6 +749,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
+              title="Find a landing site or point of interest by name or coordinates"
               onClick={() => patch({ drawer: 'search' })}
             >
               Search
@@ -739,6 +764,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources' || hs.drawer === 'missions'}
+              title="Better dates, stations, site comparison, power and sources for this site"
               onClick={() => patch({ drawer: 'details' })}
             >
               <Icon name="info" />
@@ -829,6 +855,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                     data-menu-trigger=""
                     aria-haspopup="menu"
                     aria-expanded={menu === 'view'}
+                    title="Camera: landing site from above, eye level at the site, or the whole Moon"
                     onClick={() => setMenu(menu === 'view' ? null : 'view')}
                   >
                     View
@@ -836,7 +863,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                   {menu === 'view' && <ViewMenu label="View" testId="view-menu" className="is-anchored" items={viewItems} onClose={closeMenu} />}
                 </span>
               )}
-              <button type="button" className="tool" data-testid="simulate" aria-pressed={playing} onClick={toggleSimulate}>
+              <button
+                type="button"
+                className="tool"
+                data-testid="simulate"
+                aria-pressed={playing}
+                title="Play the mission dates: Sun, Earth and the timeline cursor move (Space)"
+                onClick={toggleSimulate}
+              >
                 {playing ? 'Pause' : 'Simulate'}
               </button>
             </>
@@ -857,20 +891,28 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
         />
         <footer className="foot">
           <p data-testid="foot-sources">
-            {/* A custom site: the spacings capHorizon used (nothing while it computes); a prepared site: its fixed text. */}
-            {custom ? (customReady ? `${footTerrain(customReady.horizon.computed)} · ` : '') : 'Terrain LOLA 20 m (160 m beyond 20 km) · '}
-            ephemeris JPL DE440 ·{' '}
-            <button type="button" className="link" onClick={() => patch({ drawer: 'sources' })}>
+            {/* A custom site: the spacings capHorizon used (nothing while it computes); a prepared site: its fixed text.
+                On a phone the data line is not shown (one footer line; "how this is computed" names the same sources). */}
+            <span className="foot-data">
+              {custom ? (customReady ? `${footTerrain(customReady.horizon.computed)} · ` : '') : 'Terrain LOLA 20 m (160 m beyond 20 km) · '}
+              ephemeris JPL DE440 ·{' '}
+            </span>
+            <button type="button" className="link" title="Method, data and sources, in the Details drawer" onClick={() => patch({ drawer: 'sources' })}>
               how this is computed
             </button>
             {' · '}
-            <button type="button" className="link" data-testid="docs-open" aria-haspopup="dialog" onClick={() => patch({ drawer: 'docs' })}>
-              Docs
+            {/* One way to the documentation (read-header): the in-app view keeps the scene and the link state; it links
+                on to the full /docs page. "Full documentation" in this line was a second entry to the same text. */}
+            <button
+              type="button"
+              className="link"
+              data-testid="docs-open"
+              aria-haspopup="dialog"
+              title="What the tool answers, how to read it, data, limits"
+              onClick={() => patch({ drawer: 'docs' })}
+            >
+              Documentation
             </button>
-            {' · '}
-            <a className="link" href="/docs" data-testid="docs-page-link">
-              Full documentation
-            </a>
           </p>
           {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
