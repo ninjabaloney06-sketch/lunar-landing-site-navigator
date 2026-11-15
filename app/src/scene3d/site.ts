@@ -2,7 +2,9 @@
 // Terrain = the Track B tile (if any) inside 20 km, and beyond it a ring whose crest is built from the horizon
 // mask: crest vertex k sits at eye + mask_dist · dir(az_k, mask_k), so the silhouette seen from the eye is the
 // mask (linear between samples, great-circle arcs). Ground surfaces run straight from the inner edge to the
-// crest, which keeps them at or below every crest sight line. Shadows are not used for lit/dark anywhere.
+// crest, which keeps them at or below every crest sight line. No shadow maps: lit/dark comes from the computed
+// horizon mask (sunlight.ts: the site's disc fraction, and the mask's crest at the Sun's azimuth shading the ground
+// around the site; elsewhere the Sun without cast shadows).
 // Tile without a horizon file: a neutral skirt continues each azimuth's tile-edge height on the sphere (it never
 // rises above the edge's own sight line). Tile nodata (−32768) is a hole: no tile quad, no skirt column there.
 //
@@ -27,6 +29,7 @@ import {
   AmbientLight,
   BoxGeometry,
   BufferGeometry,
+  Color,
   DirectionalLight,
   DoubleSide,
   Float32BufferAttribute,
@@ -45,6 +48,7 @@ import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
 import { PinField, type PinItem } from './pins'
+import { LAMBERT_WRAP, SITE_DISC_M, crestShare, drawnShare, sunCrest, type SunCrest } from './sunlight'
 import { heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, surfaceZ, type Level, type LevelGrid } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
@@ -70,7 +74,67 @@ export interface SiteMarker {
 // MeshStandardMaterial family (roughness 1, metalness 0) with the specular lobe off: at grazing view and light
 // angles (low polar Sun, camera looking toward it) three's GGX specular reaches ~10× the diffuse term and turns
 // flat far ground into a bright glare. Regolith does not forward-scatter like that, so the surface is diffuse only.
-const regolith = () => new MeshPhysicalMaterial({ color: 0x8b8781, roughness: 1, metalness: 0, specularIntensity: 0 })
+// The Sun's light is added by the shader below, per fragment (sunlight.ts says what is computed and what is a
+// rendering choice); three's own lights in this scene are earthshine only.
+type SunUniforms = Record<string, { value: unknown }>
+const OBS_GLSL = OBSERVER_HEIGHT_M.toFixed(2)
+const SUN_GLSL = /* glsl */ `
+uniform vec3 uSunDir;
+uniform vec3 uSunH;
+uniform vec3 uCrest;
+uniform float uHalfW;
+uniform float uAngR;
+uniform float uSunI;
+uniform vec3 uSunColor;
+uniform float uHidden;
+uniform float uFill;
+uniform float uDelta;
+uniform float uSite;
+uniform float uWrap;
+varying vec3 vEnu;
+// sunlight.ts crestShare, per fragment: the share of the Sun's disc above the mask's crest at the Sun's azimuth,
+// seen from an eye OBSERVER_HEIGHT_M above this point (geometry.discFraction's formula), on the strip the crest is
+// taken to shade; 1 (no cast shadow known) off it; the site's own level uSite next to the site (sunlight.ts
+// drawnShare is this function). uDelta: the site's eased level minus its computed one (non-zero only during the
+// 500 ms fade after a jump of the time).
+float lunarSunShare(vec3 p) {
+  vec3 eye = p + vec3(0.0, 0.0, ${OBS_GLSL});
+  float along = dot(eye.xy, uSunH.xy);
+  float lateral = length(eye.xy - along * uSunH.xy);
+  float w = 1.0 - smoothstep(uHalfW, 2.0 * uHalfW, lateral);
+  float ahead = dot(uCrest.xy, uSunH.xy) - along;
+  float share = 1.0;
+  if (ahead > 1.0) {
+    float elSun = atan(uSunDir.z, length(uSunDir.xy));
+    float elCrest = atan(uCrest.z - eye.z, ahead);
+    float c = (elCrest - elSun) / uAngR;
+    share = c <= -1.0 ? 1.0 : (c >= 1.0 ? 0.0 : (acos(c) - c * sqrt(1.0 - c * c)) / PI);
+  }
+  float crest = mix(1.0, clamp(share + uDelta, 0.0, 1.0), w);
+  return mix(crest, uSite, 1.0 - smoothstep(${SITE_DISC_M.toFixed(1)}, ${(2 * SITE_DISC_M).toFixed(1)}, length(p.xy)));
+}
+`
+const SUN_APPLY_GLSL = /* glsl */ `#include <lights_fragment_end>
+  {
+    float sunShare = lunarSunShare(vEnu);
+    vec3 sunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xyz);
+    float lambert = clamp((dot(normal, sunView) + uWrap) / (1.0 + uWrap), 0.0, 1.0);
+    vec3 lambertBrdf = BRDF_Lambert(material.diffuseColor);
+    reflectedLight.directDiffuse += uSunColor * (uSunI * mix(uHidden, 1.0, sunShare) * lambert) * lambertBrdf;
+    reflectedLight.indirectDiffuse += vec3(uFill * (1.0 - sunShare * lambert)) * lambertBrdf;
+  }`
+const regolith = (u: SunUniforms) => {
+  const m = new MeshPhysicalMaterial({ color: 0x8b8781, roughness: 1, metalness: 0, specularIntensity: 0 })
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, u)
+    sh.vertexShader = sh.vertexShader
+      .replace('void main() {', 'varying vec3 vEnu;\nvoid main() {')
+      .replace('#include <project_vertex>', '#include <project_vertex>\n  vEnu = (modelMatrix * vec4(transformed, 1.0)).xyz;')
+    sh.fragmentShader = sh.fragmentShader.replace('void main() {', `${SUN_GLSL}\nvoid main() {`).replace('#include <lights_fragment_end>', SUN_APPLY_GLSL)
+  }
+  m.customProgramCacheKey = () => 'regolith-sun-1'
+  return m
+}
 const RAD_TO_DEG = 180 / Math.PI
 const PROXY_STRIDE = 4 // ray proxies use every 4th vertex of a level
 
@@ -185,6 +249,7 @@ function sightLine(h: Horizon): SightLine {
 
 
 const SUN_INTENSITY = 3 * Math.PI
+const SUN_COLOR = 0xfff4e6
 const HIDDEN_SUN_FRACTION = 0.12 // Sun hidden from the eye: dim, not black (see setLevels)
 // Even fill with the Sun hidden, fading out as the disc rises. Not a physical light: at a polar site the hidden
 // Sun's remaining 12 % arrives at a grazing angle and would leave flat ground black. 0.05·π puts flat regolith
@@ -205,9 +270,29 @@ export class SiteWorld {
   private readonly near = new PinField() // points of interest and other landing sites near this one
   private readonly mast: Mesh
   private readonly cross: Mesh[]
-  private readonly sunLight = new DirectionalLight(0xfff4e6, SUN_INTENSITY)
+  // The site's own sunlight and night fill levels (lights(), the eased disc share); the terrain shader applies them
+  // per fragment through sunU. Neither is added to the scene.
+  private readonly sunLight = new DirectionalLight(SUN_COLOR, SUN_INTENSITY)
   private readonly earthLight = new DirectionalLight(0x9fb6d8, 0)
   private readonly nightFill = new AmbientLight(0xffffff, 0)
+  private readonly sunU: SunUniforms = {
+    uSunDir: { value: new Vector3(0, 1, 0) },
+    uSunH: { value: new Vector3(0, 1, 0) },
+    uCrest: { value: new Vector3(0, 5000, 0) },
+    uHalfW: { value: 1000 },
+    uAngR: { value: 0.0047 },
+    uSunI: { value: SUN_INTENSITY },
+    uSunColor: { value: new Color(SUN_COLOR) },
+    uHidden: { value: HIDDEN_SUN_FRACTION },
+    uFill: { value: NIGHT_FILL },
+    uDelta: { value: 0 },
+    uSite: { value: 1 },
+    uWrap: { value: LAMBERT_WRAP },
+  }
+  private horizon: Horizon | null = null
+  private readonly sunDir = new Vector3(0, 1, 0)
+  private sunAngRadDeg = 0.27
+  private crest: SunCrest | null = null
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
@@ -228,7 +313,7 @@ export class SiteWorld {
 
   constructor() {
     this.scene.add(this.terrain, this.orbitOnly, this.eyeOnly, this.marker, this.marks, this.near.group)
-    this.scene.add(this.sunLight, this.sunLight.target, this.earthLight, this.earthLight.target, this.nightFill)
+    this.scene.add(this.earthLight, this.earthLight.target)
     this.setEyeMode(false)
     const mk = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
     this.mast = new Mesh(new BoxGeometry(1, 1, 1).translate(0, 0, 0.5), mk)
@@ -253,6 +338,8 @@ export class SiteWorld {
     }
     this.rays.both.length = this.rays.orbit.length = this.rays.eye.length = 0
     this.levelNames = []
+    this.horizon = horizon
+    this.updateSun()
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
     const levels = tile ? nestedLevels(tile) : null
@@ -279,7 +366,7 @@ export class SiteWorld {
 
   private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both'): Mesh {
     const grp = where === 'both' ? this.terrain : where === 'orbit' ? this.orbitOnly : this.eyeOnly
-    grp.add(new Mesh(g, regolith()))
+    grp.add(new Mesh(g, regolith(this.sunU)))
     // Occlusion tests use an invisible double-sided twin (coarse for the tile, so project() stays cheap).
     const p = new Mesh(rayProxy ?? g, this.rayMat)
     p.visible = false
@@ -610,22 +697,48 @@ export class SiteWorld {
     this.addMesh(make(1), make(4))
   }
 
-  /** Directions of the two lights (unit vectors, ENU). */
-  setLights(sunDir: Vector3, earthDir: Vector3) {
+  /** Directions of the two lights (unit vectors, ENU) and the Sun's angular radius (deg). */
+  setLights(sunDir: Vector3, earthDir: Vector3, sunAngRadDeg = this.sunAngRadDeg) {
     this.sunLight.position.copy(sunDir).multiplyScalar(1e5)
     this.earthLight.position.copy(earthDir).multiplyScalar(1e5)
+    this.sunDir.copy(sunDir).normalize()
+    this.sunAngRadDeg = sunAngRadDeg
+    this.updateSun()
+  }
+
+  /** The shader's Sun: direction, the mask's crest at the Sun's azimuth, and the site's eased level (sunlight.ts). */
+  private updateSun() {
+    const c = sunCrest(this.horizon, this.sunDir, this.sunAngRadDeg)
+    this.crest = c
+    const u = this.sunU
+    ;(u.uSunDir.value as Vector3).copy(c.sun)
+    ;(u.uSunH.value as Vector3).copy(c.horiz)
+    ;(u.uCrest.value as Vector3).copy(c.crest)
+    u.uHalfW.value = c.halfWidth
+    u.uAngR.value = (c.angRadDeg * Math.PI) / 180
+    // At the site the shader gives the eased level exactly: the drawn light there is the site's computed share.
+    const level = (this.sunLight.intensity / SUN_INTENSITY - HIDDEN_SUN_FRACTION) / (1 - HIDDEN_SUN_FRACTION)
+    u.uDelta.value = level - crestShare(c, new Vector3()).share
+    u.uSite.value = level
+  }
+
+  /** Test helper: the share of the Sun the terrain shader gives the ground point (x, y, z) (ENU m), 0..1. */
+  sunShareAt(x: number, y: number, z: number): number {
+    if (!this.crest) return 1
+    return drawnShare(this.crest, new Vector3(x, y, z), this.sunU.uSite.value as number, this.sunU.uDelta.value as number)
   }
 
   /**
-   * sunFrac = share of the Sun's disc above the terrain mask seen from the eye, 0..1 (there is no shadow map, so
-   * without this the terrain would be drawn sunlit while the answer says "Dark"). The sunlight follows it in
-   * proportion, from full down to HIDDEN_SUN_FRACTION: dimmed, not switched off, so the terrain stays faintly
-   * visible (sunlit distant peaks cannot be told apart without shadows), with the even night fill taking over.
+   * sunFrac = share of the Sun's disc above the terrain mask seen from the eye, 0..1, eased (index.ts): the site's
+   * own level, from full down to HIDDEN_SUN_FRACTION (dimmed, not switched off). The shader draws it at the site
+   * and on the ground around it; elsewhere it follows the mask's crest or, off the crest's strip, the Sun
+   * (sunlight.ts). Before 15 Nov night this one level lit the whole scene.
    */
   setLevels(sunFrac: number, earthFill: number) {
     this.sunLight.intensity = SUN_INTENSITY * (HIDDEN_SUN_FRACTION + (1 - HIDDEN_SUN_FRACTION) * sunFrac)
     this.nightFill.intensity = NIGHT_FILL * (1 - sunFrac)
     this.earthLight.intensity = earthFill
+    this.updateSun()
   }
 
   /** Test helper: the light levels as drawn, the sunlight as a share of full sunlight. */
