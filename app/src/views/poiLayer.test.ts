@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Poi, SearchSite } from '../data/pois'
 import type { Period, Station } from '../data/types'
 import { loadPoiSite } from '../data/poiHorizon'
+import { customSiteId } from '../data/customSite'
 import { MOON_RADIUS_KM } from '../geometry'
 import {
   abbrParts,
@@ -17,6 +18,7 @@ import {
   evidenceText,
   fmtLatLon,
   fullFacts,
+  goToState,
   missionFromLink,
   POI_ABBR,
 } from './poiLayer'
@@ -179,6 +181,17 @@ describe('"At this point, for your mission dates" (U17)', () => {
     const stations = [{ id: 'goldstone' }, { id: 'madrid' }] as unknown as Station[]
     expect(missionFromLink('#period=p1&st=madrid', periods, stations)).toMatchObject({ ids: ['madrid'], startMs: Date.UTC(2027, 7, 1), endMs: Date.UTC(2027, 7, 15) })
     expect(missionFromLink('#period=p1', periods, stations).ids).toEqual(['goldstone', 'madrid'])
+  })
+
+  it('"Show as landing site": go inside the pin region, "here" for the current site, nothing north of 80° S', () => {
+    const shoemaker = byId.get('cold-trap:atlas_01')!
+    expect(goToState(shoemaker, 'connecting-ridge')).toBe('go')
+    expect(goToState(shoemaker, customSiteId(shoemaker.lat, shoemaker.lon))).toBe('here')
+    expect(goToState({ lat: -79.5, lon: 10 }, 'connecting-ridge')).toBeNull()
+    // Every record north of the limit gets no action (pois.json has some; the app draws no pins for them).
+    const north = POIS.filter((x) => x.lat > -80)
+    expect(north.length).toBeGreaterThan(0)
+    for (const p of north) expect(goToState(p, null), p.id).toBeNull()
   })
 
   it('which points have a horizon: the search rows by poi_id; a point without one gets null (no values)', async () => {

@@ -63,6 +63,10 @@ function unexpandedAbbr(box: Locator): Promise<string[]> {
   }, ABBR_TOKEN.source)
 }
 
+/** "cap:<lat>,<lon>" with five decimals: data/customSite.customSiteId for a point inside the pin region. */
+const capId = (p: { lat: number; lon: number }) => `cap:${p.lat.toFixed(5)},${(((((p.lon + 180) % 360) + 360) % 360) - 180).toFixed(5)}`
+const hashOf = (page: Page) => page.evaluate(() => decodeURIComponent(window.location.hash))
+
 test.describe('POI card, read at a glance, 1280 × 720', () => {
   test.use({ viewport: { width: 1280, height: 720 } })
 
@@ -153,6 +157,27 @@ test.describe('POI card, read at a glance, 1280 × 720', () => {
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/poi-card-full-1280.png`, animations: 'disabled' })
   })
 
+  test('"Show as landing site" makes the point the landing site and opens its landing-site view; the card closes', async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem('llsn.fullData', '0'))
+    const byId = await pois(page)
+    const poi = byId.get(SHOEMAKER)!
+    await openApp(page)
+    const box = await openCard(page, poi, 760, 200)
+    await expect(box.getByTestId('poi-goto-here')).toHaveCount(0)
+    await box.getByTestId('poi-goto').click()
+    await expect.poll(() => hashOf(page)).toContain(`site=${capId(poi)}`)
+    expect(await hashOf(page)).not.toContain('view=globe')
+    await expect(box).toHaveCount(0)
+    // The same point's card now says it is the landing site.
+    await page.waitForFunction(() => (window as unknown as { __views?: unknown }).__views !== undefined)
+    await show(page, null) // the pointer leaves the pin it went to (a closed card stays closed while it is named)
+    await page.waitForTimeout(100)
+    await show(page, poi, 760, 200)
+    await expect(page.getByTestId('poi-info')).toHaveAttribute('data-poi-id', poi.id)
+    await expect(page.getByTestId('poi-goto-here')).toHaveText('This is your landing site')
+    await expect(page.getByTestId('poi-goto')).toHaveCount(0)
+  })
+
   test('cost: the card opens at once and fills in after', async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem('llsn.fullData', '0'))
     const byId = await pois(page)
@@ -180,6 +205,19 @@ test.describe('POI card, read at a glance, 1280 × 720', () => {
 
 test.describe('POI card and key at 375 × 812, touch', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true })
+
+  test('"Show as landing site" by touch: the action is 44 px tall and goes to the point', async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem('llsn.fullData', '0'))
+    const byId = await pois(page)
+    const poi = byId.get(SHOEMAKER)!
+    await openApp(page)
+    const box = await openCard(page, poi, 190, 560, true)
+    const go = box.getByTestId('poi-goto')
+    expect((await go.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    await go.tap()
+    await expect.poll(() => hashOf(page)).toContain(`site=${capId(poi)}`)
+    await expect(box).toHaveCount(0)
+  })
 
   test('card and key never stack, a tap toggles the switch, no horizontal scroll, the block fits', async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem('llsn.fullData', '0'))

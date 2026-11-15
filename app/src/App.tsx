@@ -58,6 +58,7 @@ import type { MissionState } from './missions'
 import { SLOPE_BASELINE, slopeOf } from './views/slope'
 import { approxText, footTerrain, useCustomSite } from './views/custom'
 import { customSiteId } from './data/customSite'
+import type { Poi, PoiGroup } from './data/pois'
 import { defaultSurfaceStayDays, useFlight } from './views/useFlight'
 import './styles/mission.css'
 import './styles/view.css'
@@ -402,6 +403,14 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     else patch({ period: 'custom', from: startMs, days, t: null })
   }
 
+  // A point of interest as the landing site: the search's "Show" and the POI card's "Show as landing site". It opens
+  // the point as a custom landing site at eye level, as opening a landing site does (U16); its group stays shown.
+  const showPoi = (poi: Poi, groups: PoiGroup[]) => {
+    const id = customSiteId(poi.lat, poi.lon)
+    const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
+    patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
+  }
+
   // A pin on the globe: the scene reports a pin within its pick radius as that site's own source coordinates.
   // A click elsewhere on the globe chooses no site; custom landing sites come from setLandingSite below.
   const onPick = useCallback(
@@ -519,6 +528,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             onSetSite={setLandingSite}
             pois={visiblePois}
             poiById={poiData.status === 'ready' ? poiData.byId : null}
+            onGoToPoi={(poi) => showPoi(poi, [])}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -898,12 +908,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             pois={poiData}
             // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
             onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
-            // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
-            onShowPoi={(poi, groups) => {
-              const id = customSiteId(poi.lat, poi.lon)
-              const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
-              patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
-            }}
+            onShowPoi={showPoi}
             onClose={() => patch({ drawer: null })}
           />
         )}

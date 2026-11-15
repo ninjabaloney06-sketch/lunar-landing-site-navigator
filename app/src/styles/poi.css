@@ -191,6 +191,25 @@
   font-size: var(--t-small);
 }
 
+/* The name, and beside it the card's one action: "Show as landing site" (or "This is your landing site"). */
+.poi-info-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--s-3);
+}
+
+.poi-goto,
+.poi-goto-here {
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+}
+
+.poi-goto-here {
+  color: var(--muted);
+}
+
 .poi-info-name {
   margin: var(--s-1) 0 0;
   font: 500 var(--t-ui) / 1.35 var(--font-sans);
@@ -303,15 +322,9 @@
   margin: 0;
 }
 
-.poi-here-row[data-key='lit'] .poi-here-value {
-  color: var(--sun);
-}
 
-.poi-here-row[data-key='comms'] .poi-here-value {
-  color: var(--comms);
-}
-
-.poi-here-row[data-status='fail'] .poi-here-value {
+/* The slope only: red when it is steeper than the 5° limit (its words say so too). */
+.poi-here-row[data-key='slope'][data-status='fail'] .poi-here-value {
   color: var(--error);
 }
 
@@ -504,5 +517,10 @@
 
   body:has(.poi-info) .poi-key {
     visibility: hidden;
+  }
+
+  /* Touch target of the card's action: at least 44 px tall. */
+  .poi-goto {
+    min-height: 44px;
   }
 }

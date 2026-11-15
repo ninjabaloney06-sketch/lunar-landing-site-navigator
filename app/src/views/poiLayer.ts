@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { loadPois } from '../data/load'
 import { POI_GROUPS } from '../data/pois'
 import type { Poi, PoiGroup } from '../data/pois'
+import { customSiteId } from '../data/customSite'
 import { loadMissionInputs, loadPoiSite } from '../data/poiHorizon'
 import type { SearchSite } from '../data/pois'
 import type { Period, Site, Station } from '../data/types'
@@ -380,4 +381,14 @@ export function conditionLines(site: SearchSite, mission: PoiMission, summary: S
     })
   }
   return out
+}
+
+// ---------- "Show as landing site" (science lead, 15 Nov) ----------
+
+/** What the card offers for going to the point: 'go' (it can be a custom landing site), 'here' (it already is the
+ *  current landing site), or null (outside the pin region: customSiteId gives no id, so no action). */
+export function goToState(poi: { lat: number; lon: number }, currentSiteId: string | null | undefined): 'go' | 'here' | null {
+  const id = customSiteId(poi.lat, poi.lon)
+  if (!id) return null
+  return id === currentSiteId ? 'here' : 'go'
 }

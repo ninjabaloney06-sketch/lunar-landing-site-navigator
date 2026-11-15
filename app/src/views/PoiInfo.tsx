@@ -22,6 +22,7 @@ import {
   evidenceText,
   fmtLatLon,
   fullFacts,
+  goToState,
   groupInfo,
   sourceHost,
   usePoiConditions,
@@ -39,6 +40,10 @@ interface Props {
   mission?: PoiMission | null
   /** Called when the card is used (a press inside it) while it is open by hover only, so the place can keep it. */
   onKeep?(): void
+  /** "Show as landing site": the same handler as the search's "Show" (App.tsx showPoi). Absent: no action. */
+  onGoTo?(poi: Poi): void
+  /** The mission's landing site id, so the card of that very point says it is the landing site. */
+  currentSiteId?: string | null
   onClose(): void
   onPointerEnter: PointerEventHandler
   onPointerLeave: PointerEventHandler
@@ -69,10 +74,11 @@ function T({ text }: { text: string }) {
   )
 }
 
-export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onClose, onPointerEnter, onPointerLeave }: Props) {
+export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onGoTo, currentSiteId, onClose, onPointerEnter, onPointerLeave }: Props) {
   const [full] = useFullData()
   const g = groupInfo(poi.group)
   const type = poi.plain?.type ?? g.label
+  const go = onGoTo ? goToState(poi, currentSiteId) : null
   const own = useRef<HTMLElement | null>(null)
   const setRef = (el: HTMLElement | null) => {
     own.current = el
@@ -119,9 +125,21 @@ export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onClose, o
           )}
         </div>
       </div>
-      <h3 className="poi-info-name">
-        <T text={poi.name} />
-      </h3>
+      <div className="poi-info-title">
+        <h3 className="poi-info-name">
+          <T text={poi.name} />
+        </h3>
+        {go === 'go' && (
+          <button type="button" className="link poi-goto" data-testid="poi-goto" onClick={() => onGoTo!(poi)}>
+            Show as landing site
+          </button>
+        )}
+        {go === 'here' && (
+          <span className="poi-goto-here" data-testid="poi-goto-here">
+            This is your landing site
+          </span>
+        )}
+      </div>
       {full ? <FullBody poi={poi} /> : <SummaryBody poi={poi} from={from ?? null} />}
       {/* The app's own values, after the record (and, in full data, after the record's sources). */}
       <Here poiId={poi.id} mission={mission ?? null} full={full} />
