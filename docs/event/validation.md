@@ -674,3 +674,51 @@ limits are not modelled. A custom site (site=cap:…) uses the app's approximate
 - [ ] Test cases 1–8: the arithmetic as written.
 - [ ] The survival rule C ≥ L × D (equal counts as survives) and "battery full at the start of the window".
 - [ ] Whether the not-modelled list is complete enough for a first estimate.
+
+## NASA-tools link check — "Open in NASA tools" (AI, 15 Nov 2026 07:00–07:30, not validated)
+
+Agent `nasa-links` (Claude Code, Opus 5.5) for add-on Task 3. Not a sign-off; nothing above is changed. Code: `app/src/views/nasaTools.ts` (URL builder, unit tests in `nasaTools.test.ts`), section `app/src/views/NasaToolsSection.tsx` in the Details drawer. Every link was opened in Playwright's Chromium (headless, GPU) on this laptop from the running app: the agent read each link's `href` from the drawer and opened it. No account, no login wall, no CAPTCHA was met. Evidence files (screenshots and the returned Horizons text) are in the build run's `reports/nasa-links/` folder, not in git.
+
+### URL formats, as read from the tools (neither map tool documents one)
+
+- **Moon Trek** (<https://trek.nasa.gov/moon/>): the view is in the hash, `#v=0.1&x=…&y=…&z=…&p=<CRS URN>&…`. Found by switching the projection menu to "South Pole Map" (`p=urn:ogc:def:crs:IAU2000::30120`) and dragging: `x`, `y` change by the dragged distance in metres (map centre, polar stereographic), `z` by one per zoom step. In "Global Map" (`p=urn:ogc:def:crs:EPSG::104903`) `x`, `y` are east longitude and latitude in degrees. Confirmed by opening built links and reading Moon Trek's own mouse-position readout at the centre of the 1400 × 900 window. Moon Trek's FlyTo box still did nothing with typed coordinates (as on 25 Oct). After the view has opened, Moon Trek rewrites its hash to its default text, but the view stays where the link put it.
+- **LROC QuickMap** (<https://quickmap.lroc.asu.edu/> now redirects to <https://quickmap.lroc.im-ldi.com/>, which the links use): the view is in the query, `?prjExtent=xmin,ymin,xmax,ymax&proj=<id>`, extent in projected metres. Projection ids read from the projection menu: 27 Stereographic (South Pole), 16 Equidistant Cylindrical (< 75 deg.), 17 Orthographic (South Pole), 26 Stereographic (North Pole), 10 Orthographic (Nearside), 7 Orthographic (Farside), 22 Lunar Globe (3D). Found with "Go to −89.46° LAT, −136.68° LON" from QuickMap's own search box in proj 27: the resulting extent's centre was (−11 234, −11 913) m, the value of the formula below. Confirmed by opening built links and reading QuickMap's LAT/LON readout at the centre of the map viewport. A 40 km box opens at 44.44 m/px.
+- Polar stereographic metres (both tools, R = 1737.4 km): x = 2R·tan((90° + lat)/2)·sin(lon), y = 2R·tan((90° + lat)/2)·cos(lon). Equidistant Cylindrical (QuickMap): x = R·lon, y = R·lat (radians).
+- Views: south of 80° S both tools open in the south polar view. QuickMap's cylindrical view ends at 75°: a link to 78° S, 10° E in proj 16 opened the whole Moon, in proj 27 it opened on −78.00000, 10.00000; so QuickMap uses the polar view south of 75° S. North of 75° N QuickMap gets no position (north polar view not checked) and the section says "opens the tool; enter <lat>, <lon>". All 18 listed sites and every custom site (pin region, south of 80° S) are polar.
+- Non-polar and ±180° checks of the format (opened, centre readouts): Moon Trek Global Map 45° S 30° E → "Lat: −45°, Lon: 30.00091°"; 45° S 179.9° E → "Lat: −45°, Lon: 179.9°" (the map ends at the antimeridian, right half black). QuickMap proj 16 45° S 30° E → −45.00037, 30.00025; 45° S 179.9° E → −45.00000, 179.90000.
+- **JPL Horizons**: the documented API (<https://ssd-api.jpl.nasa.gov/doc/horizons.html>), settings copied from V1 above: `COMMAND` 10 (Sun) or 399 (Earth), `EPHEM_TYPE=OBSERVER`, `CENTER=coord@301`, `COORD_TYPE=GEODETIC`, `QUANTITIES=4`, `ANG_FORMAT=DEG`, `EXTRA_PREC=YES`, `TIME_DIGITS=MINUTES`, `APPARENT=AIRLESS`, `STEP_SIZE=6 h`, UTC, every value quoted and URL-encoded. One difference from the V1 links: the altitude is the app's own eye height (terrain height from `sites.json` or the custom site's computed height, + 1.75 m) instead of 1.75 m on the sphere, so the table is for the same point the app computes. Start and stop are the mission period.
+
+### Map links: did each land on the site?
+
+Judged by each tool's own coordinate readout at the map centre (hover); the screenshots also show the terrain there.
+
+| Site (app) | Tool | Link | What the tool showed at the centre | Right place? |
+|---|---|---|---|---|
+| Connecting Ridge −89.46°, −136.68° | Moon Trek | `https://trek.nasa.gov/moon/#v=0.1&x=-11234.2&y=-11913.2&z=8&p=urn%3Aogc%3Adef%3Acrs%3AIAU2000%3A%3A30120&d=&locale=&b=moon&e=&sfz=&w=` | South Pole Map, 3 km scale bar; "Lat: −89.46009°, Lon: −136.65549°" | yes (Moon Trek snaps the centre to its pixel grid) |
+| Connecting Ridge | QuickMap | `https://quickmap.lroc.im-ldi.com/?prjExtent=-31234.2%2C-31913.2%2C8765.8%2C8086.8&proj=27` | Stereographic South Pole, 44.44 m/px; LAT −89.46000, LON 223.31978; Shackleton's shadowed floor in the right half of the window | yes |
+| Malapert Massif −85.98°, −0.26° | Moon Trek | `https://trek.nasa.gov/moon/#v=0.1&x=-553.4&y=121948.6&z=8&p=urn%3Aogc%3Adef%3Acrs%3AIAU2000%3A%3A30120&d=&locale=&b=moon&e=&sfz=&w=` | "Lat: −85.98025°, Lon: −0.26715°" | yes |
+| Malapert Massif | QuickMap | `https://quickmap.lroc.im-ldi.com/?prjExtent=-20553.4%2C101948.6%2C19446.6%2C141948.6&proj=27` | LAT −85.98000, LON 359.73999 | yes |
+| Custom site `cap:-87.50000,60.00000` | Moon Trek | `https://trek.nasa.gov/moon/#v=0.1&x=65662.4&y=37910.2&z=8&p=urn%3Aogc%3Adef%3Acrs%3AIAU2000%3A%3A30120&d=&locale=&b=moon&e=&sfz=&w=` | "Lat: −87.5°, Lon: 59.98552°" | yes |
+| Custom site | QuickMap | `https://quickmap.lroc.im-ldi.com/?prjExtent=45662.4%2C17910.2%2C85662.4%2C57910.2&proj=27` | LAT −87.50000, LON 60.00000 | yes |
+
+### Horizons: first row against the app
+
+Links (Sun; the Earth link is the same with `COMMAND=%27399%27`):
+- Connecting Ridge, 14–28 Nov 2026: `https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27coord%40301%27&COORD_TYPE=%27GEODETIC%27&SITE_COORD=%27223.32%2C-89.46%2C1.94635%27&START_TIME=%272026-11-14%2000%3A00%27&STOP_TIME=%272026-11-29%2000%3A00%27&STEP_SIZE=%276%20h%27&QUANTITIES=%274%27&ANG_FORMAT=%27DEG%27&EXTRA_PREC=%27YES%27&TIME_DIGITS=%27MINUTES%27&APPARENT=%27AIRLESS%27`
+- Malapert Massif, 21–27 Dec 2026: same with `SITE_COORD=%27359.74%2C-85.98%2C4.81935%27&START_TIME=%272026-12-21%2000%3A00%27&STOP_TIME=%272026-12-28%2000%3A00%27`
+- Custom site, 14–28 Nov 2026: same with `SITE_COORD=%2760%2C-87.5%2C-0.42195%27` (computed height −423.7 m + 1.75 m)
+
+Every result header read: `Target body name: Sun (10)` or `Earth (399)` `{source: DE441}`, `Center body name: Moon (301)`, `Center geodetic` = the link's values (e.g. `223.32, -89.46, 1.94635`), `Center pole/equ : MEAN_ME (high precision)`, `Center radii : 1737.4, 1737.4, 1737.4 km`, `Atmos refraction: NO (AIRLESS)`, `Step-size : 360 minutes`, column `Azimuth__(a-app)__Elevation`; 61 rows (Nov) and 29 rows (Dec). Conventions are the same on both sides, as V1 records: azimuth from north, clockwise; elevation above the local horizontal plane; apparent direction (light time and stellar aberration: Horizons "a-app", ours LT+S); no refraction. App values: the series sample at the period start as the section shows it (Sun), and `computeSeries` in the running app for Earth. Δ = Horizons − app.
+
+| Site | UTC | Body | Horizons az | Horizons el | App az | App el | Δaz | Δel |
+|---|---|---|---|---|---|---|---|---|
+| Connecting Ridge | 14 Nov 2026 00:00 | Sun | 263.283183767 | 1.493511314 | 263.283183730 | 1.493511233 | +0.0000000 | +0.0000001 |
+| Connecting Ridge | 14 Nov 2026 00:00 | Earth | 135.422185291 | −5.033144280 | 135.422184552 | −5.033163463 | +0.0000007 | +0.0000192 |
+| Malapert Massif | 21 Dec 2026 00:00 | Sun | 36.984460248 | 4.477076273 | 36.984460297 | 4.477076337 | −0.0000000 | −0.0000001 |
+| Malapert Massif | 21 Dec 2026 00:00 | Earth | 354.015646900 | 10.323816962 | 354.015645800 | 10.323799212 | +0.0000011 | +0.0000178 |
+| Custom −87.5°, 60° | 14 Nov 2026 00:00 | Sun | 66.699748857 | 2.547260881 | 66.699748798 | 2.547260803 | +0.0000001 | +0.0000001 |
+| Custom −87.5°, 60° | 14 Nov 2026 00:00 | Earth | 298.918135004 | −3.442304280 | 298.918134223 | −3.442323512 | +0.0000008 | +0.0000192 |
+
+Largest |Δ|: Sun 0.0000001°, Earth 0.0000192° (task bar 0.05°). The Earth elevation offset of about +0.00002° at all three sites is far below the bar; no cause was looked for. The Connecting Ridge Earth elevation differs from V1 row 2 (−5.0329°) by 0.0002° because the observer is now 1.946 km higher (parallax), not because of a change in the code.
+
+For Leo: whether this link check, done by an AI, counts as the check the task asks for, and whether the eye height in the links (terrain + 1.75 m, not V1's 1.75 m on the sphere) is the right choice.

@@ -9,6 +9,7 @@ import { makeLoadFrame, useResults } from './data/results'
 import type { ResultsState } from './data/results'
 import type { Period, Site, Station } from './data/types'
 import { NOT_VALIDATED, VALIDATED } from './data/validation'
+import { OTHER_CHECKS, RECORD_HREF, RECORD_LABEL, V1_CLAIM } from './views/validationClaim'
 import { LAUNCH_VEHICLES } from './flight/launchVehicles'
 import { DEFAULT_PAD_ID, LAUNCHPADS } from './flight/pads'
 import { DEFAULT_ARCHITECTURE_ID } from './flight/designs'
@@ -876,6 +877,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               {NOT_VALIDATED}
             </p>
           )}
+          <p className="foot-sample" data-testid="validation-claim">
+            {V1_CLAIM}; {OTHER_CHECKS}:{' '}
+            <a href={RECORD_HREF} target="_blank" rel="noopener noreferrer">
+              {RECORD_LABEL}
+            </a>
+          </p>
         </footer>
       </div>
 

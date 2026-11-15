@@ -10,6 +10,7 @@ import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
+import { NasaToolsSection } from './NasaToolsSection'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteAssessment } from './SiteAssessment'
 import { SiteTable } from './SiteTable'
@@ -376,6 +377,7 @@ export function Drawer(p: Props) {
 
       <SiteAssessment key={site.id} site={site} />
       <PowerSection results={results} custom={custom} approx={approx} inputs={p.power} onChange={p.onPower} />
+      <section className="drawer-sec" aria-labelledby="sec-nasa"><h3 id="sec-nasa">Open in NASA tools</h3><NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} /></section>
 
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
