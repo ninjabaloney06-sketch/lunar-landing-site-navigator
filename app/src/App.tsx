@@ -385,7 +385,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   }
 
   // A pin on the globe: the scene reports a pin within its pick radius as that site's own source coordinates.
-  // Any other point on the surface matches no site and is ignored (no arbitrary coordinates before step 7).
+  // A click elsewhere on the globe chooses no site; custom landing sites come from setLandingSite below.
   const onPick = useCallback(
     (lat: number, lon: number) => {
       const hit = sites.find((s) => Math.abs(s.lat - lat) < 1e-9 && Math.abs(s.lon - lon) < 1e-9)
@@ -440,7 +440,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     setPlaying(true)
   }
 
-  // "Calculate flight" on a saved mission: its site, dates, launchpad, rocket and stay, in the Flight plan tab.
+  // "Calculate flight" on a mission: its site, dates, launchpad, rocket, stay and transfer cap, in the flight view
+  // (a mission saved without a cap patches tmax: null, so the cap on screen never carries over).
   const calculateFlight = (m: MissionState) => {
     setMenu(null)
     setPlaying(false)
