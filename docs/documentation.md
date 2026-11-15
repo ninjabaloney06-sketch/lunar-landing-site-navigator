@@ -342,8 +342,8 @@ Order (`app/src/geometry/poiSearch.ts`, header comment):
 A place south of 80° S can be the landing site: typed coordinates in the Mission menu, a user point ("Set as landing site", also in its right-click menu) and "Show" in the search. The link carries it as `site=cap:<lat>,<lon>` with five decimals (`app/src/state.ts`).
 
 - Terrain and horizon are computed in the browser from the south-cap rasters (`app/src/data/southcap.ts`, written by `scripts/south_cap.py` from `LDEM_80S_20MPP_ADJ.TIF` and `LDEM_60S_120MPP_ADJ.TIF`): 40 m and 80 m tiles on demand, a 400 m base, a 1920 m outer raster. Same conventions as `scripts/horizon.py` (720 directions, eye 1.75 m, rays to 300 km).
-- All results come from the same functions as for a listed site, marked "Approximate: from 40 m / 80 m terrain, not validated."
-- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record); the app still labels these results "approximate … not validated".
+- All results come from the same functions as for a listed site, marked "Approximate: from 40 m / 80 m terrain."
+- Against the pipeline horizons of the 18 listed sites (14 Nov 2026, `app/src/data/southcap.test.ts`): 0.013° median difference over sites, up to 1.68° in single directions. That can move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record); the app labels these results "Approximate" because they come from coarser terrain.
 - A custom site is not a row in the site list, the all-sites table or the search. Site assessment is not computed for it.
 
 ### What is not covered

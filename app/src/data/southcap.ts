@@ -765,7 +765,7 @@ export class SouthCap {
       dem:
         `approximate: computed in the browser from the south-cap rasters (box means of ${this.meta.source.file}): ` +
         `${siteRes} m at the point, up to ${nearRes} m within ${rings.nearKm} km, ${farRes || this.outer.spacing} m beyond` +
-        `${outerUsed || nearRes === this.outer.spacing ? `; ${this.outer.spacing} m means of ${this.meta.outer.source.file} outside that DEM's square` : ''}; not validated`,
+        `${outerUsed || nearRes === this.outer.spacing ? `; ${this.outer.spacing} m means of ${this.meta.outer.source.file} outside that DEM's square` : ''}`,
       slope_deg: Math.round(slope * 10) / 10,
       computed: {
         from: 'south-cap raster',

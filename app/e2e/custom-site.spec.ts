@@ -109,7 +109,7 @@ test.describe('custom landing site at 1440 × 900', () => {
 
     // Slope line and the approximate line, built from computed.
     const res = [...new Set([f.computed!.site_res_m, f.computed!.near_res_m])].map((v) => `${v} m`).join(' / ')
-    const approx = `Approximate: from ${res} terrain, not validated.`
+    const approx = `Approximate: from ${res} terrain.`
     expect(f.slope).toBeLessThanOrEqual(5)
     await expect(page.getByTestId('custom-slope')).toHaveText(`Slope ${f.slope.toFixed(1)}° over 100 m, limit 5°.`)
     await expect(page.getByTestId('slope-warning')).toHaveCount(0)

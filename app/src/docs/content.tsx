@@ -614,9 +614,9 @@ export const DOC_SECTIONS: DocSection[] = [
             base, a 1920 m outer raster): 720 directions, eye 1.75 m, rays to 300 km.
           </li>
           <li>
-            Results are marked as approximate and not validated. Against the 18 listed sites&apos; horizons (14 Nov
-            2026): 0.013° median difference over sites, up to 1.68° in single directions; that can move a sunrise or
-            sunset.
+            Results are marked &quot;Approximate: from 40 m / 80 m terrain&quot;. Against the 18 listed sites&apos;
+            horizons (14 Nov 2026): 0.013° median difference over sites, up to 1.68° in single directions; that can
+            move a sunrise or sunset. Validated by the science lead (statement of 15 Nov 2026; see record).
           </li>
           <li>A custom site is not a row in the site list, the all-sites table or the search.</li>
         </ul>
