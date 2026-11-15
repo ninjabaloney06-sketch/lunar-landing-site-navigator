@@ -12,6 +12,20 @@ export function spanLabel(startMs: number, endMs: number): string {
   return startMs % DAY_MS === 0 ? fmtRange(startMs, endMs) : `${fmtShort(startMs)} – ${fmtShort(endMs)} UTC`
 }
 
+/** A duration in hours as a planner reads it: "18.5 h" under two days, "3 days 4 h" from two days on (whole
+ *  hours; the hours part left out when it rounds to 0). Never NaN: a non-finite value reads "unknown". */
+export function fmtDuration(hours: number): string {
+  if (!Number.isFinite(hours)) return 'unknown'
+  if (hours < 48) return `${hours.toFixed(1)} h`
+  let d = Math.floor(hours / 24)
+  let h = Math.round(hours - d * 24)
+  if (h === 24) {
+    d += 1
+    h = 0
+  }
+  return h === 0 ? `${d} days` : `${d} days ${h} h`
+}
+
 export function resolvePeriod(s: Pick<HashState, 'period' | 'from' | 'days'>, periods: Period[]): ViewPeriod {
   if (s.period === 'custom' && s.from !== null) {
     const end = Math.min(s.from + s.days * DAY_MS, COVERAGE_END_MS)

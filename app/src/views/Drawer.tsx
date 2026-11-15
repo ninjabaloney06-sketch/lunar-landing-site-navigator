@@ -70,6 +70,59 @@ const CATEGORY: Record<SitePotential['category'], string> = {
   other: 'Other',
 }
 
+// What each evidence kind of a site-potential record means, in a short plain phrase (U17). Never more than the
+// record says: 'unknown' is the explicit entry for a site without site-specific evidence (data/types.ts).
+export const EVIDENCE: Record<SitePotential['evidence'], string> = {
+  'direct measurement': 'measured directly',
+  'remote observation': 'seen in remote-sensing data',
+  'modeled condition': 'from a model, not measured here',
+  hypothesis: 'an interpretation, not confirmed',
+  unknown: 'no site-specific data yet',
+}
+
+// Abbreviations in the drawer's own text and in the station names, with their long form for the hover (U17).
+const ABBR: Record<string, string> = {
+  DSN: 'Deep Space Network (NASA)',
+  JAXA: 'Japan Aerospace Exploration Agency',
+  DSS: 'Deep Space Station (antenna number)',
+  BWG: 'beam waveguide antenna',
+  UTC: 'Coordinated Universal Time',
+  LOLA: 'Lunar Orbiter Laser Altimeter (LRO)',
+  JPL: 'Jet Propulsion Laboratory',
+  DE440: 'Development Ephemeris 440 (JPL)',
+  NAIF: "Navigation and Ancillary Information Facility (JPL's SPICE data)",
+  MOON_ME: 'Moon mean-Earth / polar-axis body-fixed frame',
+  CSV: 'comma-separated values, opens in any spreadsheet',
+}
+const ABBR_RE = new RegExp(String.raw`\b(${Object.keys(ABBR).join('|')})\b`, 'g')
+
+/** Text with each known abbreviation marked <abbr title="long form">. */
+export function Marked({ text }: { text: string }) {
+  const out: React.ReactNode[] = []
+  let last = 0
+  for (const m of text.matchAll(ABBR_RE)) {
+    if (m.index > last) out.push(text.slice(last, m.index))
+    out.push(
+      <abbr key={m.index} title={ABBR[m[1]]}>
+        {m[1]}
+      </abbr>,
+    )
+    last = m.index + m[0].length
+  }
+  out.push(text.slice(last))
+  return <>{out}</>
+}
+
+/** The stations section's one line: how many selected stations have line of sight at the cursor. */
+function stationLead(ls: (StationLos | undefined)[]): string {
+  const n = ls.length
+  if (n === 0) return 'No station selected.'
+  const known = ls.filter((l): l is StationLos => !!l)
+  if (known.length < n) return 'Station contact unknown: an input is missing.'
+  const k = known.filter((l) => l.state === 'los').length
+  return k === 0 ? `No line of sight to any of the ${n} selected stations now.` : `Line of sight to ${k} of ${n} selected ${n === 1 ? 'station' : 'stations'} now.`
+}
+
 function losText(l: StationLos | undefined): string {
   if (!l) return 'unknown'
   if (l.state === 'los') return 'line of sight'
@@ -261,6 +314,12 @@ export function Drawer(p: Props) {
 
       <section className="drawer-sec" aria-labelledby="sec-horizon">
         <h3 id="sec-horizon">Horizon</h3>
+        {ready && atCursor && (
+          <p className="quiet sec-lead" data-testid="horizon-lead">
+            At {fmtDateTime(p.cursorMs)}: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
+            {atCursor.earth.visible ? 'above' : 'below'} it.
+          </p>
+        )}
         <HorizonStrip
           horizon={ready ? results.results.series.horizon : null}
           sample={ready ? atCursor : null}
@@ -271,6 +330,11 @@ export function Drawer(p: Props) {
 
       <section className="drawer-sec" aria-labelledby="sec-stations">
         <h3 id="sec-stations">Stations</h3>
+        {ready && atCursor && (
+          <p className="quiet sec-lead" data-testid="stations-lead">
+            {stationLead(p.ids.map((id) => atCursor.stations[id]))}
+          </p>
+        )}
         {full && (
           <p className="quiet">
             Comms means geometric line of sight between the site and at least one selected station, not a guaranteed radio
@@ -282,8 +346,16 @@ export function Drawer(p: Props) {
             <tr>
               <th scope="col">Station</th>
               <th scope="col">State</th>
-              {full && <th scope="col">Elev. from site</th>}
-              {full && <th scope="col">Moon elev. at station</th>}
+              {full && (
+                <th scope="col" title="The station's elevation above the site's horizon plane">
+                  Station elevation at site
+                </th>
+              )}
+              {full && (
+                <th scope="col" title="The site's elevation above the station's horizon; the station mask must be cleared">
+                  Moon elevation at station
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -296,7 +368,7 @@ export function Drawer(p: Props) {
                     <td>
                       {s.complex}
                       <span className="th-sub">
-                        {s.name} · {s.network}
+                        <Marked text={`${s.name} · ${s.network}`} />
                       </span>
                     </td>
                     <td>{ready ? losText(l) : '…'}</td>
@@ -357,18 +429,27 @@ export function Drawer(p: Props) {
         {site.potential.length === 0 && <p className="quiet">No sourced site potential for this site yet.</p>}
         <ul className="plain potential">
           {site.potential.map((x, i) => (
-            <li key={i}>
-              <span className="th-sub">{CATEGORY[x.category]}</span>
-              <p>{x.text}</p>
-              {full && (
-                <p className="quiet">
-                  Evidence: {x.evidence}. Access not assessed.{' '}
+            <li key={i} data-testid="potential-item">
+              <p className="potential-head">
+                <span className="potential-cat">{CATEGORY[x.category]}</span>{' '}
+                <span className="quiet" data-testid="potential-evidence">
+                  · {EVIDENCE[x.evidence]}
+                </span>
+              </p>
+              {full ? (
+                <p>
+                  {x.text}{' '}
                   {x.source_url && (
                     <a href={x.source_url} target="_blank" rel="noreferrer">
                       Source
                     </a>
                   )}
                 </p>
+              ) : (
+                <details className="more">
+                  <summary>What the source says</summary>
+                  <p>{x.text}</p>
+                </details>
               )}
             </li>
           ))}
@@ -381,8 +462,11 @@ export function Drawer(p: Props) {
 
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>
+        <p className="quiet sec-lead">
+          <Marked text="CSV: every sunlit and contact window of this period, plus its summary values." />
+        </p>
         <div className="row">
-          <button className="btn" type="button" disabled={!ready} onClick={download}>
+          <button className="btn" type="button" disabled={!ready} title={ready ? undefined : 'Available once the results are computed'} onClick={download}>
             Download CSV
           </button>
           <button className="btn" type="button" onClick={copyLink}>
@@ -397,7 +481,35 @@ export function Drawer(p: Props) {
       </section>
 
       <section ref={sourcesRef} className="drawer-sec" aria-labelledby={method ? 'sec-sources' : undefined}>
-        {method && (
+        {method && !full && (
+          // Summary mode, opened from the footer link: the method in short bullets; Full data shows the full text.
+          <>
+            <h3 id="sec-sources">How this is computed</h3>
+            <ul className="sources" data-testid="method-short">
+              <li>
+                Terrain: <abbr title={ABBR.LOLA}>LOLA</abbr> south-pole elevation model (
+                <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
+                  Barker et al. 2023
+                </a>
+                ).
+              </li>
+              <li>
+                Horizon: 720 directions, up to {p.customHorizon?.ray_max_km ?? horizonFile?.ray_max_km ?? 300} km, eye{' '}
+                {p.customHorizon?.observer_height_m ?? horizonFile?.observer_height_m ?? 1.75} m above ground.
+              </li>
+              <li>
+                Sun and Earth: <abbr title={ABBR.JPL}>JPL</abbr> <abbr title={ABBR.DE440}>DE440</abbr> ephemeris, every 30
+                minutes, <abbr title={ABBR.UTC}>UTC</abbr>.
+              </li>
+              <li>Comms: geometric line of sight at both ends, not a guaranteed radio link.</li>
+              <li data-testid="views-note">Views move the camera only; every value describes the landing site.</li>
+            </ul>
+            {approx && <p className="quiet">{approx}.</p>}
+            {truncated && <p className="quiet">{truncated}</p>}
+            <p className="quiet">Turn on Full data for resolutions, frames and sources.</p>
+          </>
+        )}
+        {full && (
           <>
             <h3 id="sec-sources">How this is computed</h3>
             <ul className="plain sources">
@@ -434,7 +546,8 @@ export function Drawer(p: Props) {
                 </li>
               ) : (
                 <li>
-                  {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM) and
+                  {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM; its docstring: the
+                      20 m DEM "is a 608 km square around the pole", the fill DEM covers 60-90 S) and
                       scripts/terrain_tiles.py (LEVELS); ray length and eye height come from the site's horizon file. */}
                   Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
                   beyond (
@@ -447,7 +560,8 @@ export function Drawer(p: Props) {
                   </a>
                   ). The horizon is searched in 720 directions up to {horizonFile?.ray_max_km ?? 300} km for an eye{' '}
                   {horizonFile?.observer_height_m ?? 1.75} m above the ground. Where that reaches past the edge of the 20 m
-                  model (about 80° S), a 120 m model from the same data set continues it. The 3D scene draws the terrain at
+                  model (a square about 608 km across, centred on the pole), the 120 m model of the same data set, which
+                  reaches 60° S, continues it. The 3D scene draws the terrain at
                   20 m within 2.5 km of the site, 80 m within 20 km, then 400 m and 2 km means out to 300 km.
                   {truncated}
                 </li>

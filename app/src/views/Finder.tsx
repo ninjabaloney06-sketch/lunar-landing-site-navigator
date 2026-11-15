@@ -8,25 +8,40 @@ import { finderInputs } from '../data/results'
 import type { Site, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
 import { DAY_MS } from '../state'
-import { capital, fmtDate, fmtHours, fmtPct, fmtShort } from './format'
+import { capital, fmtDate, fmtPct, fmtShort } from './format'
+import { fmtDuration } from './period'
 import { landingSpan } from './finderSpan'
 
-const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: number; integer?: true }[] = [
+// Label in NASA's terms with its unit; `short` names the threshold in the nearest-miss sentence; `hint` says what a
+// planner sets it to (one line, the default named from FINDER_DEFAULTS).
+const FIELDS: { key: keyof FinderThresholds; label: string; short: string; hint: string; min: number; max: number; integer?: true }[] = [
   // whole days: the custom period in the URL only accepts whole days, so "Show" must open exactly what was scored
-  { key: 'missionDays', label: 'Mission length, days', min: 1, max: 60, integer: true },
-  { key: 'minLitPct', label: 'Sunlit at least, %', min: 0, max: 100 },
-  { key: 'minCoveragePct', label: 'Station coverage at least, %', min: 0, max: 100 },
-  { key: 'maxGapH', label: 'Longest coverage gap at most, h', min: 0, max: 720 },
-  { key: 'maxDarkH', label: 'Longest darkness at most, h', min: 0, max: 720 },
+  { key: 'missionDays', label: 'Mission length (days)', short: 'mission length', hint: 'Your planned surface stay, whole days.', min: 1, max: 60, integer: true },
+  { key: 'minLitPct', label: 'Sunlit at least (%)', short: 'sunlit share', hint: 'Any part of the Sun disc above the terrain. Raise for solar power.', min: 0, max: 100 },
+  { key: 'minCoveragePct', label: 'Station coverage at least (%)', short: 'station coverage', hint: 'Line of sight to at least one selected station.', min: 0, max: 100 },
+  { key: 'maxGapH', label: 'Longest coverage gap at most (h)', short: 'coverage gap', hint: 'Longest time with no station in view; your loss-of-signal limit.', min: 0, max: 720 },
+  { key: 'maxDarkH', label: 'Longest darkness at most (h)', short: 'darkness', hint: 'Longest night the lander must survive on batteries.', min: 0, max: 720 },
 ]
+
+const unitOf = (k: keyof FinderThresholds) => (k === 'missionDays' ? ' days' : k === 'maxGapH' || k === 'maxDarkH' ? ' h' : ' %')
+
+/** "the sunlit share and coverage gap" */
+const joinAnd = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
 
 
 /** Landing times are candidates 30 min apart and the window's end is the LAST qualifying landing time
  *  (inclusive), so fmtRange (exclusive end) would drop or add a day. "16 Aug 2027, 18:00 UTC" for one
  *  candidate, "16 Aug 2027, 06:00 – 18 Aug 2027, 00:00 UTC" for a range. */
-function fmtLandingRange(startMs: number, endMs: number): string {
-  return endMs <= startMs ? `${fmtShort(startMs)} UTC` : `${fmtShort(startMs)} – ${fmtShort(endMs)} UTC`
+function fmtLandingRange(startMs: number, endMs: number): React.ReactNode {
+  return (
+    <>
+      {endMs <= startMs ? fmtShort(startMs) : `${fmtShort(startMs)} – ${fmtShort(endMs)}`} <abbr title={UTC_LONG}>UTC</abbr>
+    </>
+  )
 }
+
+const UTC_LONG = 'Coordinated Universal Time'
+
 
 interface Props {
   site: Site
@@ -84,25 +99,34 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
     }
   }
 
+  const n = ids.length
   return (
     <div className="finder">
-      <p className="quiet">
-        Landing between {fmtDate(startMs)} and {fmtDate(latestMs)}, with the selected stations.
+      <p className="quiet sec-lead" data-testid="finder-lead">
+        Landing between {fmtDate(startMs)} and {fmtDate(latestMs)}, with {n} selected {n === 1 ? 'station' : 'stations'}.
+        Landing times tried every 30 minutes; best station coverage first.
       </p>
       <form className="finder-form" onSubmit={submit} noValidate>
         {FIELDS.map((f) => (
-          <label key={f.key} className="finder-field">
-            <span>{f.label}</span>
+          <div key={f.key} className="finder-field">
+            <label htmlFor={`finder-${f.key}`}>{f.label}</label>
             <input
+              id={`finder-${f.key}`}
               className="field mono"
               type="number"
               inputMode="decimal"
               min={f.min}
               max={f.max}
+              aria-describedby={`finder-${f.key}-hint`}
+              data-testid={`finder-${f.key}`}
               value={values[f.key]}
               onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
             />
-          </label>
+            <span id={`finder-${f.key}-hint`} className="finder-hint" data-testid="finder-hint">
+              {f.hint} Default {FINDER_DEFAULTS[f.key]}
+              {unitOf(f.key)}.
+            </span>
+          </div>
         ))}
         <button className="btn" type="submit" disabled={run.status === 'running'}>
           {run.status === 'running' ? 'Searching…' : 'Find dates'}
@@ -121,43 +145,49 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
       {run.status === 'done' && (
         <div className="finder-results" role="status">
           {run.result.windows.length === 0 && (
-            <p className="msg">
-              No landing date meets every threshold.
+            <p className="msg" data-testid="finder-none">
+              No landing time meets every threshold.
               {run.result.nearestMiss &&
-                ` Closest: ${fmtShort(run.result.nearestMiss.landingMs)} UTC, which misses ${run.result.nearestMiss.failed
-                  .map((k) => FIELDS.find((f) => f.key === k)?.label.split(',')[0].toLowerCase())
-                  .join(', ')}.`}
+                ` Closest: ${fmtShort(run.result.nearestMiss.landingMs)} UTC, which misses the ${joinAnd(
+                  run.result.nearestMiss.failed.map((k) => FIELDS.find((f) => f.key === k)?.short ?? k),
+                )} ${run.result.nearestMiss.failed.length === 1 ? 'threshold' : 'thresholds'}.`}
             </p>
           )}
           {run.result.windows.length > 0 && (
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th scope="col">Land between</th>
-                  <th scope="col">Sunlit</th>
-                  <th scope="col">Coverage</th>
-                  <th scope="col">Gap</th>
-                  <th scope="col">
-                    <span className="sr-only">Show</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {run.result.windows.slice(0, 5).map((w) => (
-                  <tr key={w.startMs}>
-                    <td>{fmtLandingRange(w.startMs, w.endMs)}</td>
-                    <td className="mono">{fmtPct(w.best.litPct)}</td>
-                    <td className="mono">{fmtPct(w.best.coveragePct)}</td>
-                    <td className="mono">{fmtHours(w.best.longestGapH)}</td>
-                    <td>
-                      <button className="link" type="button" onClick={() => onShow(w.best.landingMs, run.t.missionDays, w.best.landingMs)}>
-                        Show
-                      </button>
-                    </td>
+            <>
+              <p className="quiet">
+                {run.result.windows.length} landing {run.result.windows.length === 1 ? 'window meets' : 'windows meet'} every threshold
+                {run.result.windows.length > 5 ? '; the best 5 are shown' : ''}. Values for the best landing time in each window.
+              </p>
+              <table className="tbl" data-testid="finder-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Land between</th>
+                    <th scope="col">Sunlit</th>
+                    <th scope="col">Station coverage</th>
+                    <th scope="col">Longest gap</th>
+                    <th scope="col">
+                      <span className="sr-only">Show</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {run.result.windows.slice(0, 5).map((w) => (
+                    <tr key={w.startMs}>
+                      <td>{fmtLandingRange(w.startMs, w.endMs)}</td>
+                      <td className="mono">{fmtPct(w.best.litPct)}</td>
+                      <td className="mono">{fmtPct(w.best.coveragePct)}</td>
+                      <td className="mono">{fmtDuration(w.best.longestGapH)}</td>
+                      <td>
+                        <button className="link" type="button" onClick={() => onShow(w.best.landingMs, run.t.missionDays, w.best.landingMs)}>
+                          Show
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
           {!VALIDATED && <p className="quiet">{capital(NOT_VALIDATED)}.</p>}
         </div>

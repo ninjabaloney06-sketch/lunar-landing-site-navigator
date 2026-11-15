@@ -207,6 +207,7 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
                   className={`strip-body strip-${b.key}${b.el < EL_MIN ? ' is-below' : ''}`}
                   data-testid={`strip-${b.key}`}
                 >
+                  <title>{`${b.name}: elevation ${fmtDeg(b.el)}, azimuth ${b.az.toFixed(1)}°`}</title>
                   {l.raised && <line className="strip-leader" x1={cx} y1={cy - 5} x2={l.right ? l.x + 4 : l.x - 4} y2={l.y - 4} />}
                   <circle cx={cx} cy={cy} r={4} />
                   <text x={l.x} y={l.y} textAnchor={l.right ? 'end' : 'start'}>
@@ -220,8 +221,12 @@ export function HorizonStrip({ horizon, sample, height, className, track }: Prop
         )}
       </div>
       <figcaption className="strip-readout">
+        <span className="strip-key" data-testid="strip-key">
+          {horizon
+            ? `Line: terrain horizon seen from ${horizon.observer_height_m} m above the ground. Up: elevation in °; across: azimuth from north.`
+            : 'Flat horizon: no terrain data for this site. Up: elevation in °; across: azimuth from north.'}
+        </span>{' '}
         {readout || ' '}
-        {!horizon && <span> · flat horizon, no terrain data</span>}
         {tracks.length > 0 && <span className="strip-track-note"> · lines: paths over the mission dates, brighter for the part still to come</span>}
       </figcaption>
     </figure>

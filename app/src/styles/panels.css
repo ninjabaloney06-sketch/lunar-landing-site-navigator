@@ -694,3 +694,80 @@
   justify-self: start;
   font-size: var(--t-small);
 }
+
+/* ---------- U17: drawer sections read at a glance ---------- */
+
+/* A section's one-line decision value, right under its heading. */
+.drawer-sec .sec-lead {
+  margin: 0 0 var(--s-3);
+}
+
+/* Abbreviations carry their long form: a dotted line says so. */
+.drawer abbr[title],
+.date-menu abbr[title] {
+  text-decoration: underline dotted var(--faint);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* Finder: each input's one-line hint under it. */
+.finder-field label {
+  color: var(--fg);
+}
+
+.finder-hint {
+  color: var(--faint);
+  line-height: 1.35;
+}
+
+.finder-form {
+  align-items: start;
+}
+
+.finder-form .btn {
+  align-self: end;
+}
+
+/* Site potential: category and evidence on one line, the source's text behind "What the source says". */
+.potential-head {
+  margin: 0;
+}
+
+.potential-cat {
+  font-weight: 500;
+}
+
+.potential .more summary {
+  color: var(--muted);
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+
+/* Year timeline: what the bar, the number and the outline mean, once, under the selects. */
+.yt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-small);
+}
+
+.yt-swatch.is-mission {
+  height: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--fg);
+}
+
+/* Horizon chart: what the line and the axes are, on its own line above the readout. */
+.strip-key {
+  display: block;
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 640px) {
+  .potential .more summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}

@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 import type { Window } from '../geometry'
 import type { Site, Station } from '../data/types'
 import { DAY_MS, SPEEDS_H_PER_S } from '../state'
-import { fmtDateTime, fmtDay } from './format'
+import { fmtDate, fmtDateTime, fmtDay } from './format'
 import { useYearBars, yearSpan, YEARS } from './yearBars'
 
 interface Props {
@@ -135,8 +135,8 @@ export function Timeline({ startMs, endMs, missionStartMs, missionEndMs, mission
       )}
       <div className="tl-answer">{answer}</div>
       <div className="tl-names" aria-hidden="true">
-        <span>Light</span>
-        <span>Comms</span>
+        <span title="Sunlight: yellow while any part of the Sun is above the terrain">Light</span>
+        <span title="Communications: blue while a selected station has line of sight; hatched = unknown">Comms</span>
       </div>
       <div
         ref={body}
@@ -229,13 +229,16 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
   const pct = (ms: number) => `${(100 * (Math.min(yearEndMs, Math.max(yearStartMs, ms)) - yearStartMs)) / span}%`
   const width = (a: number, b: number) => `${(100 * (Math.min(yearEndMs, b) - Math.max(yearStartMs, a))) / span}%`
   const what = kind === 'light' ? 'sunlit' : 'in line of sight of a selected station'
+  // What the number at a row's end is a share of: the year, or its part with data (2026: from 1 Nov).
+  const of = startMs > yearStartMs ? `${fmtDate(startMs)} – 31 Dec ${year}` : String(year)
+  const outlined = rows.some((r) => r.missions.some((m) => m.endMs > yearStartMs && m.startMs < yearEndMs))
 
   return (
     <div className="yt" data-testid="year-timeline">
       <div className="yt-controls">
         <select className="field" aria-label="Show" data-testid="year-kind" value={kind} onChange={(e) => setKind(e.target.value as 'light' | 'comms')}>
-          <option value="light">Light</option>
-          <option value="comms">Communication</option>
+          <option value="light">Sunlight</option>
+          <option value="comms">Station contact</option>
         </select>
         <select className="field mono" aria-label="Year" data-testid="year-select" value={year} onChange={(e) => setYear(Number(e.target.value))}>
           {YEARS.map((y) => (
@@ -244,11 +247,20 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
             </option>
           ))}
         </select>
+      </div>
+      <p className="yt-legend" data-testid="year-legend">
         <span className="yt-key">
           <i className={`yt-swatch is-${kind}`} aria-hidden="true" />
-          {what}
+          bar: {what}
         </span>
-      </div>
+        <span className="yt-key">number: share of {of} {kind === 'light' ? 'sunlit' : 'in contact'}</span>
+        {outlined && (
+          <span className="yt-key">
+            <i className="yt-swatch is-mission" aria-hidden="true" />
+            outline: mission dates
+          </span>
+        )}
+      </p>
       <div className="yt-grid">
         <span />
         <div className="yt-axis" aria-hidden="true">
@@ -265,7 +277,7 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
           const share = e.status === 'done' && endMs > startMs ? (100 * spans.reduce((t, [a, b]) => t + (b - a), 0)) / (endMs - startMs) : null
           const label =
             e.status === 'done'
-              ? `${r.site.name}: ${what} ${share!.toFixed(0)} % of the time in ${year}`
+              ? `${r.site.name}: ${what} ${share!.toFixed(0)} % of ${of}`
               : e.status === 'none'
                 ? `${r.site.name}: ${e.reason}`
                 : `${r.site.name}: computing`
@@ -285,7 +297,9 @@ export function YearTimeline({ rows, stations, ids, initialYear }: { rows: YearR
                     <span key={`${m.name}|${m.startMs}`} className="yt-mission" title={m.name} style={{ left: pct(m.startMs), width: width(m.startMs, m.endMs) }} />
                   ))}
               </div>
-              <span className="yt-val mono">{share !== null ? `${share.toFixed(0)} %` : e.status === 'none' ? 'no data' : '…'}</span>
+              <span className="yt-val mono" title={share !== null ? `${what} ${share.toFixed(0)} % of ${of}` : undefined}>
+                {share !== null ? `${share.toFixed(0)} %` : e.status === 'none' ? 'no data' : '…'}
+              </span>
             </div>
           )
         })}
