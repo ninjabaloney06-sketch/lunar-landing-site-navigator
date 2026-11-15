@@ -136,3 +136,15 @@ describe('supported touchdown range', () => {
     )
   })
 })
+
+describe('missionStay: the flight starts with a stay as long as the mission dates', () => {
+  it('uses the mission length inside 0.5–30 days', async () => {
+    const { missionStay } = await import('./useFlight')
+    expect(missionStay(14)).toEqual({ days: 14, capped: false })
+    expect(missionStay(21)).toEqual({ days: 21, capped: false })
+  })
+  it('caps a longer mission at 30 days and says so', async () => {
+    const { missionStay } = await import('./useFlight')
+    expect(missionStay(45)).toEqual({ days: 30, capped: true })
+  })
+})

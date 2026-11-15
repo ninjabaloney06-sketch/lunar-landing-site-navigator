@@ -50,6 +50,8 @@ export interface FlightPanelProps {
   surfaceStayDays: number // the stay asked for; the plan's own stay can differ
   onSurfaceStayDays(v: number): void
   missionDays?: number // length of the mission dates, days: offered as the surface stay when it differs
+  /** The stay follows the mission's length (no stay of the user's own); capped: the mission is outside 0.5–30 days. */
+  stayFromMission?: { days: number; capped: boolean } | null
   surfaceStay: ArchitectureSpec['surfaceStay'] // what the chosen design documents about its stay, when it does
   returnWindowDays: number // 0 = leave when the stay ends; 7 or 14 = cheapest departure within that many days after
   onReturnWindowDays(v: number): void
@@ -251,7 +253,7 @@ export function FlightPanel(p: FlightPanelProps) {
         </p>
       )}
       {status.state === 'error' && <PlanError message={status.message} />}
-      {plan && <ResultCard plan={plan} onSeek={p.onSeek} />}
+      {plan && <ResultCard plan={plan} onSeek={p.onSeek} missionStartMs={p.earliestTouchdownMs} missionDays={p.missionDays} fromMission={!!p.stayFromMission} />}
       {plan && <AnalysisSections />}
 
       <fieldset className="flight-designs" data-testid="flight-designs">
@@ -348,10 +350,15 @@ export function FlightPanel(p: FlightPanelProps) {
           <div className="flight-control">
             <StayField id={`${uid}-stay`} value={p.surfaceStayDays} onChange={p.onSurfaceStayDays} />
             <p className="quiet flight-hint">Touchdown to liftoff, 0.5 to 30 days.</p>
-            {p.missionDays !== undefined && Math.abs(Math.min(30, p.missionDays) - p.surfaceStayDays) > 0.05 && (
+            {p.stayFromMission?.capped && p.missionDays !== undefined && (
+              <p className="quiet" data-testid="flight-stay-capped">
+                Your mission dates are {p.missionDays} {p.missionDays === 1 ? 'day' : 'days'}; the stay is capped at {Number(p.stayFromMission.days.toFixed(1))} days, the
+                limit of this flight plan.
+              </p>
+            )}
+            {!p.stayFromMission && p.missionDays !== undefined && Math.abs(Math.min(30, p.missionDays) - p.surfaceStayDays) > 0.05 && (
               <p className="quiet" data-testid="flight-stay-mission">
-                Your mission dates are {p.missionDays} {p.missionDays === 1 ? 'day' : 'days'}; this flight stays {fmtDays(p.surfaceStayDays, 1)} (the
-                design's own stay unless you change it).{' '}
+                Your mission dates are {p.missionDays} {p.missionDays === 1 ? 'day' : 'days'}; this flight stays {Number(p.surfaceStayDays.toFixed(1))} days, as you set it.{' '}
                 <button type="button" className="btn" data-testid="flight-stay-use-mission" onClick={() => p.onSurfaceStayDays(Math.min(30, p.missionDays!))}>
                   Use {Math.min(30, p.missionDays)} days
                 </button>
@@ -634,13 +641,29 @@ function EnergyFactor({ plan }: { plan: MissionPlan }) {
   )
 }
 
-function ResultCard({ plan, onSeek }: { plan: MissionPlan; onSeek(utcMs: number): void }) {
+/** One line tying the flight's dates to the mission's (reported bug, 15 Nov: the launch, days before the landing, was
+ *  read as the flight ignoring the mission dates). */
+function MissionDatesLine({ plan, missionStartMs, missionDays, fromMission }: { plan: MissionPlan; missionStartMs: number; missionDays?: number; fromMission: boolean }) {
+  const sameDay = Math.floor(plan.touchdownMs / 86_400_000) === Math.floor(missionStartMs / 86_400_000)
+  const day = (ms: number) => fmtDayTime(ms).split(',')[0]
+  return (
+    <p className="flight-dates-line" data-testid="flight-dates-line">
+      Lands {day(plan.touchdownMs)}
+      {sameDay ? ', the first day of your mission' : ', the first landing chance after your mission starts'}; lifts off {day(plan.lunarLiftoffMs)}
+      {fromMission && missionDays !== undefined ? `, after a stay as long as your mission dates` : ''}. Launch is {day(plan.launchMs)}, because the trip to
+      the Moon takes days.
+    </p>
+  )
+}
+
+function ResultCard({ plan, onSeek, missionStartMs, missionDays, fromMission }: { plan: MissionPlan; onSeek(utcMs: number): void; missionStartMs: number; missionDays?: number; fromMission: boolean }) {
   const [full] = useFullData()
   const f = plan.facts
   const lb = lowerBoundOf(plan.architecture.id)
   const status = propellantStatus(plan.propellant, lb?.element ?? null)
   return (
     <section className="flight-result" aria-label="Result" data-testid="flight-result">
+      <MissionDatesLine plan={plan} missionStartMs={missionStartMs} missionDays={missionDays} fromMission={fromMission} />
       <EnergyFactor plan={plan} />
       <PayloadLine shortElements={shortElementsOf(plan.propellant, lb?.element ?? null)} />
       <ul className="flight-glance">

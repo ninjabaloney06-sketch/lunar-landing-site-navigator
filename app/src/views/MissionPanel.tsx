@@ -759,7 +759,7 @@ export function MissionPanel(p: Props) {
                     {where} · {resolvePeriod(m, p.periods).label}
                   </span>
                   <span className="quiet ms-what">
-                    <Abbr>{flightSummary(m)}</Abbr> · {transferText(m.tmax)}
+                    <Abbr>{flightSummary(m, Math.round((resolvePeriod(m, p.periods).endMs - resolvePeriod(m, p.periods).startMs) / DAY_MS))}</Abbr> · {transferText(m.tmax)}
                   </span>
                 </li>
               )

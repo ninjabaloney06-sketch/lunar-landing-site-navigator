@@ -43,7 +43,7 @@ export interface HashState {
   pad: string | null // flight plan: launchpad id; null = the default pad
   rocket: string | null // flight plan: vehicle id; null = the default vehicle
   tmax: number | null // flight plan: longest transfer in days; null = minimum energy
-  stay: number | null // flight plan: surface stay in days; null = the chosen design's default
+  stay: number | null // flight plan: surface stay in days; null = the mission's length (within STAY_RANGE)
   power: PowerInputs // power estimate inputs (link keys panel, eff, load, batt); absent or invalid = POWER_DEFAULTS
 }
 
@@ -76,8 +76,9 @@ export const DEFAULT_MISSION_NAME = 'Mission 1'
 const DEFAULT_GOAL: ScienceGoal = 'light'
 // Transfer-time caps the flight plan offers (days); anything else in a link falls back to minimum energy.
 const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
-// Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the design's default.
-const STAY_RANGE = { min: 0.5, max: 30 }
+// Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the default (the mission's own
+// length within this range, views/useFlight.ts missionStay).
+export const STAY_RANGE = { min: 0.5, max: 30 }
 const validStay = (v: number) => Number.isFinite(v) && v >= STAY_RANGE.min && v <= STAY_RANGE.max
 
 export const EMPTY_STATE: HashState = {
