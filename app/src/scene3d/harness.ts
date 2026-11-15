@@ -52,7 +52,7 @@ const handle = mountScene(document.getElementById('scene')!, deps)
 let level: SceneLevel = 'globe'
 window.addEventListener('keydown', (e) => {
   if (e.altKey || e.ctrlKey || e.metaKey) return
-  const next = e.key === 'e' || e.key === 'E' ? (level === 'site' ? 'eye' : null) : e.key === 'Escape' ? ({ eye: 'site', site: 'globe', globe: null } as const)[level] : null
+  const next = e.key === 'e' || e.key === 'E' ? (level === 'site' ? 'eye' : null) : e.key === 'Escape' ? ({ eye: 'site', site: 'globe', globe: null, flight: null } as const)[level] : null
   if (next) handle.setLevel((level = next))
 })
 handle.onLevel((l) => (level = l)) // a walk ends at eye level

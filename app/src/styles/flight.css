@@ -1,0 +1,1090 @@
+/* ui · shape: Workbench (3D stage is the screen) · theme: custom, Brief C2 tokens · nav: N4 masthead · footer: F1 · tone: technical */
+/* Flight plan tab: the docked panel (FlightPanel) and the playback bar (FlightTransport). Tokens: tokens.css. */
+
+/* Two colours that carry meaning in this tab only, the same ones the 3D flight scene draws with (flight.ts):
+   an engine burn is warm orange, the lander is green. Everything else uses tokens.css. */
+:root {
+  --burn: oklch(78% 0.14 52);
+  --lander: oklch(83% 0.11 165);
+}
+
+/* ---------- tabs: Landing site | Flight plan, beside the header actions ---------- */
+
+.tabs {
+  flex: none;
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-veil);
+}
+
+.tab {
+  padding: var(--s-2) var(--s-4);
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.tab + .tab {
+  border-left: 1px solid var(--line);
+}
+
+.tab:hover {
+  color: var(--fg);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
+.actions [hidden],
+.place [hidden] {
+  display: none;
+}
+
+/* ---------- labels on the flight scene ---------- */
+
+/* Earth and Moon: the name above the body, no elevation number and no tick. */
+.obj-body {
+  bottom: var(--s-1);
+  padding-bottom: 0;
+}
+
+.obj-ghost {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Launchpad and landing point: small text beside the dot. */
+.obj-tag {
+  position: absolute;
+  left: var(--s-2);
+  top: 0;
+  transform: translateY(-50%);
+  font: 400 var(--t-small) / 1.2 var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* The capsule and the lander: a name that is always readable, on a veil, with the marker's shape in front of
+   it. The capsule's label sits above its point and the lander's below, so the two never cover each other when
+   the craft are close. A second line says "docked", "engine firing" or the lander's phase. */
+.obj-craft {
+  position: absolute;
+  left: var(--s-3);
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  width: max-content; /* the anchor it hangs on has no width to offer */
+  align-items: center;
+  gap: 0 var(--s-1);
+  padding: 0 var(--s-1);
+  border-radius: 2px;
+  background: var(--bg-veil);
+  font: 500 var(--t-small) / var(--s-4) var(--font-mono);
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* The corner of its marker that the label takes (SceneView picks a free one). */
+.obj-craft[data-pos^='n'] {
+  bottom: 6px;
+}
+
+.obj-craft[data-pos^='s'] {
+  top: 6px;
+}
+
+.obj-craft[data-pos$='w'] {
+  left: auto;
+  right: var(--s-3);
+}
+
+.obj-craft-lander {
+  color: var(--lander);
+}
+
+.obj-glyph {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.obj-craft-lander .obj-glyph {
+  box-sizing: border-box;
+  border: 1.5px solid var(--lander);
+  border-radius: 0;
+  background: none;
+  transform: rotate(45deg);
+}
+
+.obj-craft-sub {
+  grid-column: 1 / -1;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.obj-craft-sub[hidden] {
+  display: none;
+}
+
+.obj-craft.is-firing .obj-craft-sub {
+  color: var(--burn);
+}
+
+/* A burn: its name in the burn colour, the stage that fires under it. Beside the ring, or under or over it when
+   both sides are taken (SceneView decides). */
+.obj-burn {
+  position: absolute;
+  left: 13px;
+  top: 0;
+  transform: translateY(-50%);
+  display: grid;
+  width: max-content;
+  padding: 0 2px;
+  border-radius: 2px;
+  background: var(--bg-veil);
+  font: 400 var(--t-small) / var(--s-4) var(--font-mono);
+  white-space: nowrap;
+}
+
+.obj[data-side='left'] > .obj-burn {
+  left: auto;
+  right: 13px;
+  text-align: right;
+}
+
+.obj[data-side='below'] > .obj-burn,
+.obj[data-side='above'] > .obj-burn {
+  left: 0;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.obj[data-side='below'] > .obj-burn {
+  top: 13px;
+}
+
+.obj[data-side='above'] > .obj-burn {
+  top: auto;
+  bottom: 13px;
+}
+
+.obj-burn-name {
+  font-weight: 500;
+  color: var(--burn);
+}
+
+.obj-burn-by,
+.obj-more {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ---------- Flight panel: docked under the header, ends above the playback bar, scrolls inside itself ---------- */
+
+/* As wide as the Mission panel: the events table has five columns. */
+.flight-panel {
+  width: min(440px, calc(100vw - var(--s-8)));
+  max-height: max(240px, calc(100dvh - 400px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--s-4);
+}
+
+/* Collapsed: only the head, as wide as its text, so the 3D view stays free in small windows. */
+.flight-panel.is-collapsed {
+  width: max-content;
+  max-width: calc(100vw - var(--s-8));
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  padding-bottom: var(--s-3);
+}
+
+/* The playback bar replaces the timeline; the scene stays draggable above it. */
+.flight-bottom {
+  padding-top: var(--s-10);
+}
+
+.bottom[hidden] {
+  display: none;
+}
+
+/* Title at the left, "Hide" / "Show" at the right. */
+.flight-head {
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-6);
+  padding-bottom: 0;
+}
+
+.flight-collapse {
+  flex: none;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-intro {
+  margin: var(--s-1) 0 0;
+  padding: 0 var(--s-4);
+}
+
+/* At a glance: the six things to know, before any section. Times are buttons that jump the playback there. */
+.flight-glance {
+  margin: var(--s-4) var(--s-4) 0;
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.flight-glance dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+}
+
+.flight-glance dl > div {
+  display: contents;
+}
+
+.flight-glance dt {
+  padding-top: 1px;
+}
+
+.flight-glance dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.flight-glance-note {
+  display: block;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-glance-short {
+  display: block;
+  color: var(--error);
+}
+
+/* A section that opens and closes: a rule, the title, a short figure, and a plus or minus sign. */
+.flight-sec {
+  border-top: 1px solid var(--line);
+}
+
+:not(.flight-sec) + .flight-sec {
+  margin-top: var(--s-4);
+}
+
+.flight-sec > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+}
+
+.flight-sec > summary::-webkit-details-marker {
+  display: none;
+}
+
+.flight-sec > summary::after {
+  content: '+';
+  flex: none;
+  width: 1ch;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.flight-sec[open] > summary::after {
+  content: '\2212';
+}
+
+.flight-sec > summary:hover::after {
+  color: var(--fg);
+}
+
+.flight-sec-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.flight-sec-count {
+  flex: none;
+  font-size: var(--t-small);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.flight-sec-body {
+  padding: 0 var(--s-4) var(--s-4);
+}
+
+/* The fields bring their own padding in the Mission panel; inside a section the section's padding is enough. */
+.flight-panel .flight-fields {
+  padding: 0;
+}
+
+.flight-filter {
+  margin-bottom: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Surface stay: a short number field and its unit. */
+.flight-stay {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.flight-stay .field {
+  flex: none;
+  width: var(--s-16);
+  padding: var(--s-1) var(--s-2);
+}
+
+.flight-stay span {
+  white-space: nowrap;
+}
+
+.flight-stay .field[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+/* Abbreviations carry their long form: a dotted line says so. */
+.flight-panel abbr[title],
+.flight-tick-text abbr[title] {
+  text-decoration: underline dotted var(--faint);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* Explanations: running text at the small size in the text colour, with quiet subheads. */
+.flight-prose {
+  font-size: var(--t-small);
+  line-height: 1.55;
+}
+
+.flight-prose h4 {
+  margin: var(--s-4) 0 var(--s-1);
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.flight-prose > h4:first-child,
+.flight-prose > section:first-child > h4 {
+  margin-top: 0;
+}
+
+.flight-prose p {
+  margin: 0 0 var(--s-2);
+}
+
+.flight-prose ul:not(.plain) {
+  margin: 0 0 var(--s-2);
+  padding-left: var(--s-4);
+}
+
+.flight-prose li {
+  margin-bottom: var(--s-1);
+}
+
+.flight-prose strong {
+  font-weight: 500;
+}
+
+/* A number this plan computed, set apart from the published ones by a rule. */
+.flight-prose .flight-own {
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--muted);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.flight-own-tag {
+  display: block;
+  font-family: var(--font-sans);
+  color: var(--muted);
+}
+
+/* What the reader must not miss about the theoretical minimum: the same rule as a plan note. */
+.flight-prose .flight-caveat {
+  margin-bottom: var(--s-3);
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--fg);
+  font-weight: 500;
+}
+
+.flight-fact-note {
+  display: block;
+  font-family: var(--font-sans);
+  color: var(--muted);
+}
+
+.flight-compare th,
+.flight-compare td {
+  overflow-wrap: anywhere;
+}
+
+.flight-compare tbody th {
+  color: var(--muted);
+}
+
+.flight-compare,
+.flight-stays {
+  margin-bottom: var(--s-3);
+}
+
+.flight-glossary {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--s-2) var(--s-3);
+  margin: 0;
+}
+
+.flight-glossary > div {
+  display: contents;
+}
+
+.flight-glossary dt {
+  color: var(--fg);
+}
+
+.flight-glossary dd {
+  margin: 0;
+  color: var(--muted);
+}
+
+.flight-glossary dd strong {
+  color: var(--fg);
+}
+
+/* Legend of the 3D view: each line starts with the shape it explains. */
+.flight-legend {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-legend li {
+  display: grid;
+  grid-template-columns: var(--s-5) minmax(0, 1fr);
+  gap: var(--s-2);
+  align-items: start;
+}
+
+.flight-key {
+  justify-self: center;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.flight-key.is-capsule {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.flight-key.is-lander {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--lander);
+  transform: rotate(45deg);
+}
+
+.flight-key.is-burn {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--burn);
+  border-radius: 50%;
+}
+
+.flight-key.is-path {
+  width: var(--s-4);
+  height: 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--fg);
+}
+
+.flight-key.is-ring {
+  width: 12px;
+  height: 12px;
+  border: 1px dashed var(--muted);
+  border-radius: 50%;
+}
+
+/* Labels are wider than the Mission panel's: "Mission design", "Landing point" */
+.flight-panel .mp-field {
+  grid-template-columns: calc(var(--s-24) + var(--s-3)) minmax(0, 1fr);
+  align-items: start;
+}
+
+.flight-panel .mp-label {
+  padding-top: var(--s-2);
+}
+
+.flight-control {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+  justify-items: start;
+}
+
+.flight-control .field {
+  width: 100%;
+}
+
+.flight-note,
+.flight-foot {
+  margin: var(--s-2) 0 0;
+}
+
+.flight-line {
+  margin: 0;
+  padding-top: var(--s-2);
+  overflow-wrap: anywhere;
+}
+
+/* A second value line under the first: "planned …" under "not before …" */
+.flight-line-next {
+  padding-top: 0;
+}
+
+.flight-sub {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Landing point: the mission's site (with "Change") or free coordinates. */
+.flight-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s-3);
+}
+
+/* Latitude and longitude of a free point: two short number fields in one row. */
+.flight-coords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+}
+
+.flight-coord {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.flight-coord .field {
+  width: var(--s-24);
+  padding: var(--s-1) var(--s-2);
+}
+
+.flight-coord .field[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+/* "Pick on Earth", "Pick on the Moon": in the text colour while the 3D view waits for the click. */
+.flight-pick {
+  color: var(--muted);
+}
+
+.flight-pick[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration-color: var(--fg);
+}
+
+.flight-hint {
+  margin: 0;
+}
+
+/* The coordinates in use, under the choice that produced them. */
+.flight-used {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-status {
+  padding-top: var(--s-4);
+}
+
+/* Notes of the plan are warnings (a propellant shortfall, an expensive return): text colour and a rule, no fill. */
+.flight-notes {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--fg);
+}
+
+.flight-notes li {
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--fg);
+  overflow-wrap: anywhere;
+}
+
+/* Events and propellant tables: the name wraps, the numbers do not. */
+.flight-burns th,
+.flight-burns td,
+.flight-propellant th,
+.flight-propellant td {
+  white-space: nowrap;
+}
+
+.flight-burns thead th {
+  white-space: normal;
+}
+
+.flight-burns .flight-name,
+.flight-propellant .flight-name {
+  white-space: normal;
+  font-weight: 400;
+  color: var(--fg);
+}
+
+/* An event without a burn (touchdown, docking, Entry Interface) is lighter than a burn. */
+.flight-burns tr[data-kind='event'] .flight-name {
+  color: var(--muted);
+}
+
+/* The time is a button that jumps the playback there: date above time, to leave the name its width. */
+.flight-time span {
+  display: block;
+}
+
+/* Numbers are right-aligned (.tbl aligns its cells left). */
+.flight-num,
+.tbl .flight-num {
+  text-align: right;
+}
+
+.flight-burns tfoot th,
+.flight-burns tfoot td {
+  padding-top: var(--s-3);
+  color: var(--muted);
+}
+
+.flight-burns tfoot .flight-num {
+  color: var(--fg);
+}
+
+/* Propellant: quiet rows; a stage that needs more than it carries is in the text colour. */
+.flight-propellant tbody .flight-name,
+.flight-propellant tbody td {
+  color: var(--muted);
+}
+
+.flight-propellant tbody .is-short .flight-name,
+.flight-propellant tbody .is-short td {
+  color: var(--fg);
+}
+
+.flight-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  font-size: var(--t-small);
+}
+
+.flight-facts > div {
+  display: contents;
+}
+
+.flight-facts dt,
+.flight-facts dd {
+  margin: 0;
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.flight-facts dd {
+  overflow-wrap: anywhere;
+  color: var(--fg);
+}
+
+.flight-fact-line {
+  display: block;
+}
+
+.flight-sources {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+}
+
+.flight-sources li {
+  margin-bottom: var(--s-2);
+}
+
+/* ---------- Flight transport: the bottom bar. Row 1: play, readout, scrubber. Row 2: Look at, speed. ---------- */
+
+.flight-transport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-veil);
+  border-top: 1px solid var(--line);
+}
+
+.flight-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-6);
+  min-width: 0;
+}
+
+.flight-play {
+  flex: none;
+  min-width: var(--s-16);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+/* Elapsed time and UTC on one line, the phase under them. The two widths are fixed in characters and the
+   phase adds none, so the scrubber beside the readout does not move while the flight plays. */
+.flight-readout {
+  display: grid;
+  flex: none;
+  grid-template-columns: max-content max-content;
+  align-items: baseline;
+  gap: 0 var(--s-4);
+}
+
+.flight-readout p {
+  margin: 0;
+}
+
+.flight-elapsed {
+  min-width: 16ch;
+  font-size: var(--t-ui);
+  color: var(--fg);
+}
+
+.flight-utc {
+  min-width: 22ch;
+}
+
+.flight-phase {
+  grid-column: 1 / -1;
+  contain: inline-size;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-track {
+  position: relative;
+  flex: 1 1 calc(var(--s-24) * 3);
+  min-width: 0;
+  padding-top: var(--s-10);
+}
+
+.flight-ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--s-10);
+}
+
+/* A 1px tick above the track; the button is the hit area. Labels sit above the tick, one line higher when
+   the neighbouring label is in the way (LOI and touchdown, docking and TEI). An engine burn is a block in the
+   burn colour instead: it starts at the ignition and is as long as the burn, never thinner than a few pixels. */
+.flight-tick {
+  position: absolute;
+  top: var(--s-6);
+  bottom: 0;
+  width: var(--s-2);
+  transform: translateX(-50%);
+}
+
+.flight-tick::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--faint);
+}
+
+.flight-tick:hover::before,
+.flight-tick:focus-visible::before {
+  background: var(--fg);
+}
+
+.flight-tick.is-burn::before {
+  content: none;
+}
+
+.flight-burn-span {
+  position: absolute;
+  left: 50%;
+  top: var(--s-1);
+  bottom: 0;
+  min-width: var(--s-1);
+  border-radius: 1px;
+  background: var(--burn);
+}
+
+.flight-tick.is-burn:hover .flight-burn-span,
+.flight-tick.is-burn:focus-visible .flight-burn-span {
+  background: var(--fg);
+}
+
+.flight-tick.is-burn .flight-tick-text {
+  color: var(--burn);
+}
+
+.flight-tick-text {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  padding-bottom: 2px;
+  font: 400 var(--t-small) / 1 var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.flight-tick-text.is-raised {
+  bottom: calc(100% + var(--s-3));
+}
+
+/* Scrubber: a 1px --track line with a 2px --fg bar for the thumb */
+.flight-scrub {
+  display: block;
+  width: 100%;
+  height: var(--s-3);
+  margin: 0;
+  background: transparent;
+  cursor: ew-resize;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.flight-scrub::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--track);
+}
+
+.flight-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 2px;
+  height: var(--s-3);
+  margin-top: calc((1px - var(--s-3)) / 2);
+  border: 0;
+  background: var(--fg);
+}
+
+.flight-scrub::-moz-range-track {
+  height: 1px;
+  background: var(--track);
+}
+
+.flight-scrub::-moz-range-thumb {
+  width: 2px;
+  height: var(--s-3);
+  border: 0;
+  border-radius: 0;
+  background: var(--fg);
+}
+
+/* Look at: what the camera follows. The header tabs' segmented control, used as a radio group. */
+.flight-look-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  min-width: 0;
+}
+
+.flight-look .tab[aria-checked='true'] {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
+/* Layers: a small menu of checkboxes that opens upward from the bar. */
+.flight-layers {
+  position: relative;
+  flex: none;
+}
+
+.flight-layers > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  list-style: none;
+  cursor: pointer;
+}
+
+.flight-layers > summary::-webkit-details-marker {
+  display: none;
+}
+
+.flight-layers[open] > summary {
+  border-color: var(--muted);
+}
+
+.flight-layers-count {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.flight-layers-menu {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  bottom: calc(100% + var(--s-2));
+  display: grid;
+  gap: var(--s-2);
+  width: max-content;
+  max-width: calc(100vw - var(--s-8));
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.flight-trail {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-left: var(--s-5);
+}
+
+.flight-trail .field {
+  width: auto;
+  padding: var(--s-1) var(--s-2);
+}
+
+.flight-speed-field {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s-3);
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* Room for the longest step, "real time" */
+.flight-speed-field .mono {
+  min-width: 9ch;
+}
+
+.flight-speed {
+  width: var(--s-24);
+  margin: 0;
+  accent-color: var(--fg);
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 640px) {
+  /* The header is one column here, and the docked panel would lie over the tabs under it. While the panel is
+     shown, the header's parts are laid out as one list instead: title and site, the tabs, then the panel in the
+     flow, short enough to leave some of the 3D view free above the playback bar. */
+  .top:has(> .place > .flight-panel) > .place {
+    display: contents;
+  }
+
+  .top:has(> .place > .flight-panel) > .actions {
+    order: 1;
+  }
+
+  .flight-panel {
+    position: static;
+    order: 2;
+    width: auto;
+    max-height: max(200px, calc(100dvh - 540px));
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  /* Collapsed it is a small box again, not a full-width sheet. */
+  .flight-panel.is-collapsed {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .flight-row {
+    gap: var(--s-3) var(--s-4);
+  }
+
+  /* Play and the readout share the first line (the readout wraps inside itself on phones), the scrubber takes
+     the next one, then Look at over the full width, then the speed. */
+  .flight-readout {
+    display: flex;
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .flight-elapsed,
+  .flight-utc {
+    min-width: 0;
+  }
+
+  .flight-phase {
+    flex-basis: 100%;
+  }
+
+  .flight-track {
+    flex-basis: 100%;
+  }
+
+  .flight-look-field {
+    flex: 1 1 100%;
+  }
+
+  .flight-look {
+    flex: 1 1 auto;
+  }
+
+  .flight-look .tab {
+    flex: 1 1 auto;
+    padding: var(--s-2);
+    font-size: var(--t-small);
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .flight-play,
+  .flight-tick::before {
+    transition: none;
+  }
+
+  .flight-panel {
+    animation: none;
+  }
+}
+
+/* The 3D view waits for a click on Earth or the Moon. */
+.scene.is-picking canvas {
+  cursor: crosshair;
+}

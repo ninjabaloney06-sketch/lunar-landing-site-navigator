@@ -38,7 +38,7 @@ const D_STARS = 5000
 // Magellanic Clouds at RA 81°/Dec −70° and RA 13°/Dec −73° only under this convention.
 const STARMAP_RA_INCREASES_LEFT = true
 
-const ATMO_VERT = /* glsl */ `
+export const ATMO_VERT = /* glsl */ `
 #include <common>
 #include <logdepthbuf_pars_vertex>
 varying vec3 vN;
@@ -51,7 +51,7 @@ void main() {
   #include <logdepthbuf_vertex>
 }`
 
-const ATMO_FRAG = /* glsl */ `
+export const ATMO_FRAG = /* glsl */ `
 #include <logdepthbuf_pars_fragment>
 uniform vec3 uSun;
 varying vec3 vN;
@@ -83,6 +83,7 @@ export class Sky {
   // Nearer to the observer than the Moon's centre is: drawn after the Moon, over it (never so from the Moon's surface).
   private readonly front = { sun: false, earth: false }
   private bodiesOn = true
+  private earthOn = true // false on the flight level, whose scene draws its own Earth (setEarthVisible)
 
   constructor(tex: TextureSet) {
     this.scene.add(this.root)
@@ -181,9 +182,14 @@ export class Sky {
     return (b === 'sun' ? this.sun : this.earth).getWorldPosition(new Vector3())
   }
 
+  setEarthVisible(v: boolean) {
+    this.earthOn = v
+  }
+
   /** The top view draws its own bodies over the star field: the sky's Sun and Earth are hidden meanwhile. */
   showBodies(on: boolean) {
     this.bodiesOn = on
+    this.earthOn = true // as before render() chose the parts: showing or hiding the bodies also undoes setEarthVisible
   }
 
   /** True when Earth or the Sun is nearer than the Moon and has to be drawn over it: render(…, 'front') after the Moon. */
@@ -216,7 +222,7 @@ export class Sky {
     const front = part === 'front'
     if (this.stars) this.stars.visible = !front
     this.sun.visible = this.glow.visible = this.bodiesOn && this.front.sun === front
-    this.earth.visible = this.atmo.visible = this.bodiesOn && this.front.earth === front
+    this.earth.visible = this.atmo.visible = this.bodiesOn && this.earthOn && this.front.earth === front
     renderer.render(this.scene, this.camera)
   }
 }
