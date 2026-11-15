@@ -363,6 +363,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let follow: { body: 'earth' | 'sun'; at: Vector3; dest: { p: Vector3; target: Vector3 } | null } | null = null
   // Where the eye-level camera stands after a walk (ENU m, eye point); null = on the landing site.
   let stand: Vector3 | null = null
+  // The eye point of the eye-level camera as last placed (eyeAt), on the site or where it stands; settleEye keeps it there.
+  const eyeBase = new Vector3(0, 0, OBSERVER_HEIGHT_M)
   let dirty = true
   let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
   let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
@@ -664,6 +666,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     ) {
       if (f.site) site.build(f.horizon, f.terrain, f.site.elev_m)
       builtFor = { site: f.site, horizon: f.horizon, terrain: f.terrain }
+      settleEye()
       placeMarkers()
       placePois()
       requestNear()
@@ -732,16 +735,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     builtFor = { ...builtFor, terrain: t }
     placeMarkers()
     placePois()
-    // A camera standing on the ground beyond the 80 m tile (after a walk) stands on the new ground.
-    if (stand && level === 'eye') {
-      const dz = site.groundZ(stand.x, stand.y) + site.eyeHeight - stand.z
-      if (dz !== 0) {
-        stand.z += dz
-        siteCam.position.z += dz
-        siteControls.target.z += dz
-        siteCam.updateMatrixWorld(true)
-      }
-    }
+    // The eye-level camera stands on the new ground (a finer level may be higher under it).
+    settleEye()
     markDirty()
   }
 
@@ -830,14 +825,46 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     siteControls.update()
   }
 
+  /**
+   * THE eye-level placement (U5, U16, U19): the eye point OBSERVER_HEIGHT_M above the drawn terrain at ENU (x, y)
+   * (site.groundZ: the triangles of the finest level loaded there, not the bilinear data height). On the landing
+   * site never lower than the eye the horizon mask and the eye-level crests were computed for (1.75 m above the
+   * site's ground height): where the site is a quad centre (the south-cap 80 m grid of a custom point) the drawn
+   * ground there may lie below or above that height.
+   */
+  function eyeAt(x: number, y: number): Vector3 {
+    const z = site.groundZ(x, y) + site.eyeHeight
+    return new Vector3(x, y, x === 0 && y === 0 ? Math.max(z, site.eyeHeight) : z)
+  }
+
+  /**
+   * Keeps the eye-level camera at eye height over the ground under it when that ground changes under a camera at
+   * rest: a terrain rebuild for the same site, the near level arriving later (applyNear). Moves the camera and its
+   * target by the same step, so the view direction is kept. Not during a fly, which owns the camera.
+   */
+  function settleEye(): boolean {
+    if (level !== 'eye' || fly) return false
+    const dz = eyeAt(eyeBase.x, eyeBase.y).z - eyeBase.z
+    if (Math.abs(dz) < 1e-6) return false
+    eyeBase.z += dz
+    if (stand) stand.z += dz
+    siteCam.position.z += dz
+    siteControls.target.z += dz
+    siteCam.updateMatrixWorld(true)
+    viewVersion++
+    return true
+  }
+
+  /** Eye level at the site (at = null) or standing at ENU (at.x, at.y), looking toward az at elevation el; the height is eyeAt's. */
   function placeEyeCam(az: number, el: number, at: Vector3 | null = null) {
     viewVersion++
     freeCam.cancel()
     free.site = { dist: false, look: false }
     follow = null
     setTop(false)
-    stand = at
-    const eye = at ?? new Vector3(0, 0, site.eyeHeight)
+    const eye = at ? eyeAt(at.x, at.y) : eyeAt(0, 0)
+    stand = at ? eye.clone() : null
+    eyeBase.copy(eye)
     siteCam.position.copy(eye)
     siteControls.target.copy(eye).addScaledVector(enuDir(az, el), 0.01)
     siteCam.lookAt(siteControls.target)
@@ -1240,7 +1267,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!frame?.site || fly || level === 'globe' || level === 'flight') return false
     if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
     const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
-    const to = new Vector3(x, y, site.groundZ(x, y) + site.eyeHeight)
+    const to = eyeAt(x, y)
     // A click faces the way the camera came; a point viewpoint faces the landing site, so its mast is in view.
     const way = faceSite ? new Vector3(-x, -y, 0) : to.clone().sub(from.p).setZ(0)
     const az = way.lengthSq() > 1 ? azElOfEnu(way.normalize()).az : currentHeading()
@@ -1720,6 +1747,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     // to apply. Every placement of a camera calls update() itself.
     if (orbitBusy(ctl) && ctl.update()) markDirty()
     if (keepAboveGround()) markDirty()
+    if (settleEye()) markDirty()
   }
 
   let lastMs = performance.now()
@@ -2102,6 +2130,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       skySize: (b) => sky?.sizeRatio(b) ?? null,
       walkTo: (x, y) => walkTo(x, y),
+      eyeClearance() {
+        site.setEyeMode(eyeTerrain()) // the terrain drawn at this level (render() does the same)
+        const p = siteCam.position
+        const drawn = site.drawnZ(p.x, p.y)
+        return { level, position: p.toArray(), drawn, ground: site.groundZ(p.x, p.y), clearance: drawn === null ? null : p.z - drawn }
+      },
       capInfo: () => globe?.capInfo() ?? null,
       globeHit(x, y) {
         const r = canvas.getBoundingClientRect()
