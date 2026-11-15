@@ -11,6 +11,7 @@ import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { HorizonStrip } from './HorizonStrip'
+import { SiteAssessment } from './SiteAssessment'
 import { SiteTable } from './SiteTable'
 import { Terms } from './Terms'
 import { YearTimeline } from './Timeline'
@@ -368,6 +369,8 @@ export function Drawer(p: Props) {
           ))}
         </ul>
       </section>
+
+      <SiteAssessment key={site.id} site={site} />
 
       <section className="drawer-sec" aria-labelledby="sec-export">
         <h3 id="sec-export">Export</h3>

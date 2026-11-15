@@ -1,0 +1,166 @@
+/* Site assessment section of the Details drawer (views/SiteAssessment.tsx). Tokens: tokens.css.
+   Dense where data lives: compact tables, mono numbers. Colour only for the landing-rule verdict, and the word
+   (Passes / Fails) always stands beside it with the rule. */
+
+.assess {
+  /* pass has no token of its own: a green at the lightness of --comms, used only for "Passes" */
+  --assess-pass: oklch(78% 0.13 150);
+  --assess-fail: var(--error);
+}
+
+.assess-summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  list-style: none;
+  cursor: pointer;
+}
+
+.assess-summary::-webkit-details-marker {
+  display: none;
+}
+
+.assess-summary h3 {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.assess-summary::after {
+  content: '+';
+  flex: none;
+  width: 1ch;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+details[open] > .assess-summary::after {
+  content: '\2212';
+}
+
+.assess-summary:hover::after {
+  color: var(--fg);
+}
+
+.assess-summary:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.assess-body {
+  margin-top: var(--s-3);
+}
+
+.assess-tools {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.assess-status {
+  margin: var(--s-2) 0 var(--s-1);
+  font-size: var(--t-small);
+}
+
+.assess-body > .quiet {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-small);
+}
+
+.assess-block {
+  margin-top: var(--s-5);
+}
+
+.assess-block h4 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-ui);
+  font-weight: 500;
+}
+
+.assess-msg {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.assess-tbl th,
+.assess-tbl td {
+  padding-top: var(--s-1);
+  padding-bottom: var(--s-1);
+  overflow-wrap: anywhere;
+}
+
+.assess-tbl tbody th {
+  color: var(--muted);
+  width: 38%;
+}
+
+.assess-tbl .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.assess-verdict {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-small);
+}
+
+.assess-verdict strong {
+  font-weight: 500;
+}
+
+.assess-verdict .is-pass {
+  color: var(--assess-pass);
+}
+
+.assess-verdict .is-fail {
+  color: var(--assess-fail);
+}
+
+.assess-notes {
+  margin-top: var(--s-2);
+}
+
+.assess-notes li {
+  margin-bottom: var(--s-1);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.assess-src {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.assess-src > summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.assess-src > summary:hover {
+  color: var(--fg);
+}
+
+.assess-src p,
+.assess-src ul {
+  margin: var(--s-2) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.assess-src ul {
+  padding-left: var(--s-4);
+}
+
+.assess-src a,
+.assess-notes a {
+  color: var(--muted);
+}
+
+.assess-src a:hover,
+.assess-notes a:hover {
+  color: var(--fg);
+}

@@ -106,7 +106,7 @@ const DATASETS: Dataset[] = [
   },
   {
     title: 'Terrain detail: LOLA 5 m polar model',
-    about: <>Used for the site assessments of 7 sites, which are computed but not shown in the app.</>,
+    about: <>Used for the site assessments of 7 sites (Details drawer, Site assessment).</>,
     files: [
       {
         name: 'ldem_875s_5m.img',
@@ -448,6 +448,20 @@ export const DOC_SECTIONS: DocSection[] = [
             Site potential: sourced statements about the site, each with a category, an evidence label and a source
             link. Access is not assessed.
           </li>
+          <li>
+            Site assessment (collapsed; its data file is fetched the first time it is opened): slope, roughness, the
+            nearest permanent shadow and temperature for the selected site, as the data file has them, labelled
+            &quot;Accepted by the science lead at 6650ed1 (reported, no written sign-off)&quot;. Slope: median, maximum, %
+            ≤ 5° and % &lt; 20° over the 100 m landing disk and the 2 km exploration disk, and whether the landing disk
+            passes the landing rule (every valid pixel ≤ 5.0°). The 5° and 20° thresholds are project criteria set by
+            the team, not NASA or vehicle limits. Roughness: RMS height; obstacles unknown, with the reason (below
+            the terrain model&apos;s detection limit). Nearest cluster of zero average Sun visibility: distance, bearing
+            (compass point and degrees), area and a straight-line slope check, which is not a route. Temperature:
+            Diviner annual mean (2 cm depth) and annual maximum (surface) in K; no annual minimum exists in the
+            product. Each block has its source, method and limitations behind a disclosure; Full data adds the
+            terrain model, pixel counts and the block status. A custom site shows &quot;Not computed for this
+            place&quot;.
+          </li>
           <li>Export: the windows and the summary as CSV, and a link that reproduces the view.</li>
           <li>
             How this is computed: the site's source and frame, the terrain and ephemeris sources, the comms definition,
@@ -734,10 +748,6 @@ export const DOC_SECTIONS: DocSection[] = [
             does not enter any site value or ranking.
           </li>
           <li>Uncertainty. No error bars are computed; errors of the terrain model are not propagated.</li>
-          <li>
-            Site assessments (slope statistics, roughness, shadow clusters, temperature) are computed for all 18 sites
-            but not yet shown in the app.
-          </li>
         </ul>
 
         <h4>Resolution of each result</h4>
