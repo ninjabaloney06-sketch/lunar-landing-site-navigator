@@ -919,6 +919,40 @@ button.yt-name {
   color: var(--muted);
 }
 
+/* What the row's value means, in one quiet line under it. */
+.site-summary-why {
+  display: block;
+  grid-column: 2;
+  margin-top: 2px;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* Stations: what each state in the table means. */
+.state-key {
+  display: grid;
+  gap: var(--s-1);
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+}
+
+.state-key dt {
+  display: inline;
+  color: var(--fg);
+}
+
+.state-key dt::after {
+  content: ': ';
+}
+
+.state-key dd {
+  display: inline;
+  margin: 0;
+}
+
 /* Folds: heading, then its one-line summary under it, the +/− at the right; one rule between folds. */
 .drawer-fold,
 .drawer-sec.assess {

@@ -352,19 +352,23 @@ export function Drawer(p: Props) {
             <li data-testid="summary-sun">
               <span className="site-summary-k">Sunlit</span> {fmtPct(results.results.summary.litPct)} of the mission dates · longest darkness{' '}
               {fmtSpanH(results.results.summary.longestDarkH)}
+              <span className="site-summary-why">Sunlit: part of the Sun is above the terrain around the site. Solar panels need it.</span>
             </li>
             <li data-testid="summary-contact">
               <span className="site-summary-k">Station contact</span> {fmtPct(results.results.summary.coveragePct)} · longest gap{' '}
               {fmtSpanH(results.results.summary.longestGapH)}
+              <span className="site-summary-why">Share of the mission dates with a free line of sight to at least one selected antenna on Earth. Line of sight only, not a guaranteed radio link.</span>
             </li>
             <li data-testid="summary-slope">
               <span className="site-summary-k">Slope</span> <SlopeValue site={site} />
+              <span className="site-summary-why">How steep the ground is at the site's point, against the project's 5° landing criterion. Landing site assessment below checks the whole landing area and is stricter, so it can fail where this passes.</span>
             </li>
             <li data-testid="summary-science">
               <span className="site-summary-k">Science</span>{' '}
               {site.potential.length
                 ? `${[...new Set(site.potential.map((x) => CATEGORY[x.category]))].join(', ')} (sourced; see Site potential)`
                 : 'no sourced site potential yet'}
+              <span className="site-summary-why">What published sources say this place offers for research. Details under Site potential.</span>
             </li>
           </ul>
         ) : (
@@ -424,6 +428,21 @@ export function Drawer(p: Props) {
               })}
           </tbody>
         </table>
+        {/* The three state strings stay as they are (pinned by e2e and quoted in the docs); this key explains them. */}
+        <dl className="quiet state-key" data-testid="stations-key">
+          <div>
+            <dt>line of sight</dt>
+            <dd>nothing stands between the site and this antenna.</dd>
+          </div>
+          <div>
+            <dt>blocked by terrain</dt>
+            <dd>seen from the site, lunar hills or crater walls hide the antenna.</dd>
+          </div>
+          <div>
+            <dt>Moon below station mask</dt>
+            <dd>the Moon is too low in this antenna&apos;s sky, below the lowest angle it is counted from.</dd>
+          </div>
+        </dl>
         <p className="quiet drawer-note">
           {p.ids.length} of {p.stations.length} stations selected.{' '}
           <button type="button" className="link" onClick={p.onChooseStations}>
@@ -476,7 +495,7 @@ export function Drawer(p: Props) {
         title="Site potential"
         testId="fold-potential"
         hint="Why this place is worth visiting: water ice, permanently cold ground, long sunlight or other science, each with its source."
-        summary={site.potential.length ? `${site.potential.length} sourced ${site.potential.length === 1 ? 'entry' : 'entries'}` : 'none yet'}
+        summary={site.potential.length ? `${site.potential.length} ${site.potential.length === 1 ? 'statement' : 'statements'} from published sources` : 'none yet'}
       >
         {site.potential.length === 0 && <p className="quiet">No sourced site potential for this site yet.</p>}
         <ul className="plain potential">

@@ -166,7 +166,7 @@ export function PowerSection(props: Props) {
       {body}
       <p className="quiet power-limits">{NOT_MODELLED}</p>
       <details className="power-model" data-testid="power-model">
-        <summary>Model</summary>
+        <summary>How this is calculated</summary>
         <p className="quiet">One panel that always faces the Sun:</p>
         <p className="power-formula mono">P(t) = S × A × η × f(t) × (1 AU / r(t))²</p>
         <dl className="power-symbols">
