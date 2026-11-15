@@ -310,6 +310,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // Easing (input smoothing, flights). Off in test mode, where every change lands in the frame that asks for it;
   // a test turns it on through the debug API and then steps the clock itself.
   let animated = !testMode
+  // prefers-reduced-motion: no easing, no fly between the scenes, no fade of the light: every change lands at once
+  // (the same as test mode without setAnimated). Followed live: the query's change event re-applies the damping.
+  const reducedQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
+  const motion = () => animated && !reducedQuery?.matches
   // The animation clock: the wall clock, except in test mode, where it stands still until debug.advance(ms).
   let clockMs = 0
   const nowMs = () => (testMode ? clockMs : performance.now())
@@ -342,7 +346,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   const globeControls = new OrbitControls(globeCam, canvas)
   for (const c of [siteControls, globeControls]) {
     c.enablePan = false
-    c.enableDamping = animated
+    c.enableDamping = motion()
     c.dampingFactor = 0.1 // replaced every frame by the share for that frame's length (tick)
     // OrbitControls keeps the left drag and the one-finger drag only. Middle, right, wheel and pinch belong
     // to controls.ts and the viewpoint menu (three 0.170: a null action leaves the control idle).
@@ -426,6 +430,26 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   const ro = new ResizeObserver(resize)
   ro.observe(container)
   resize()
+
+  // A lost WebGL context takes the picture with it; three restores its own state and re-uploads on the next draw,
+  // but the loop draws only a dirty frame, so after a restore the canvas stayed black until the user moved.
+  const onContextRestored = () => markDirty()
+  canvas.addEventListener('webglcontextrestored', onContextRestored)
+
+  // Another screen (a window dragged between monitors, a browser zoom step) changes devicePixelRatio without
+  // changing the container's CSS size, so the ResizeObserver stays silent: the canvas kept the old buffer size.
+  let dprQuery: MediaQueryList | null = null
+  const onPixelRatio = () => {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
+    resize()
+    watchPixelRatio()
+  }
+  function watchPixelRatio() {
+    dprQuery?.removeEventListener('change', onPixelRatio)
+    dprQuery = typeof window.matchMedia === 'function' ? window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`) : null
+    dprQuery?.addEventListener('change', onPixelRatio)
+  }
+  watchPixelRatio()
 
   const inSpace = () => level === 'globe' || (fly !== null && fly.cam === globeCam)
   const activeCam = () => (level === 'flight' ? flightCam : inSpace() ? globeCam : siteCam)
@@ -593,7 +617,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // the time plays, is followed without stalling). The directions and every computed number are never eased.
   const light = { sun: 1, earth: 0, from: { sun: 1, earth: 0 }, to: { sun: 1, earth: 0 }, t0: 0, easing: false }
   function setLightLevels(sun: number, earth: number, snap: boolean) {
-    if (snap || !animated) {
+    if (snap || !motion()) {
       light.easing = false
       light.sun = sun
       light.earth = earth
@@ -816,9 +840,33 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     resetZoom()
     setControls()
     siteCam.position.copy(enuDir(az + 180, el)).multiplyScalar(distKm * 1000)
+    // A pose set from outside (setView, a saved or linked camera) may lie under the terrain: raise the elevation on
+    // the same orbit until the camera clears the ground by the floor the mouse input keeps (siteRig.allowed).
+    if (!siteRig.allowed(siteCam.position)) {
+      let lo = el
+      let hi = 90
+      const at = (e: number) => enuDir(az + 180, e).multiplyScalar(distKm * 1000)
+      if (siteRig.allowed(at(hi - 0.01))) {
+        for (let i = 0; i < 30; i++) {
+          const mid = (lo + hi) / 2
+          if (siteRig.allowed(at(mid))) hi = mid
+          else lo = mid
+        }
+        siteCam.position.copy(at(hi))
+      } else siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
+    }
     siteControls.target.set(0, 0, 0)
     siteCam.lookAt(siteControls.target)
     siteControls.update()
+  }
+
+  /** The site camera at rest under ground that was just rebuilt (finer level arrived): back onto the floor. */
+  function settleSite(): boolean {
+    if (level !== 'site' || fly || siteRig.allowed(siteCam.position)) return false
+    siteCam.position.z = groundBelow(siteCam.position) + site.eyeHeight
+    siteCam.updateMatrixWorld(true)
+    viewVersion++
+    return true
   }
 
   /**
@@ -923,7 +971,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     flightControls?.dispose()
     flightCam.up.copy(vf.normal)
     const c = new OrbitControls(flightCam, canvas)
-    c.enableDamping = !testMode
+    c.enableDamping = !testMode && !reducedQuery?.matches
     c.dampingFactor = 0.1
     c.rotateSpeed = 0.5
     c.zoomSpeed = 2.5 // from the whole transfer down to a launchpad is a factor of a million
@@ -1236,7 +1284,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
    * above it, facing the way it came. A camera move only: the site, the sky directions and every number stay
    * those of the landing site.
    */
-  function walkTo(x: number, y: number, animate = animated, faceSite = false): boolean {
+  function walkTo(x: number, y: number, animate = motion(), faceSite = false): boolean {
     if (!frame?.site || fly || level === 'globe' || level === 'flight') return false
     if (Math.hypot(x, y) > SITE_DIST_KM.max * 1000) return false
     const from = { p: siteCam.position.clone(), q: siteCam.quaternion.clone() }
@@ -1350,14 +1398,14 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   }
 
   /** The Moon viewpoint (U14: the only one left): the default globe view, flown to from wherever the camera is. */
-  function goTo(v: Viewpoint, animate = animated): boolean {
+  function goTo(v: Viewpoint, animate = motion()): boolean {
     if (!frame || !sky || !globe || fly || level === 'flight' || v !== 'moon') return false
     flyInSpace(() => setGlobeView(), animate)
     return true
   }
 
   /** The space camera to above (lat, lon): at the distance it has in space, the default one from the surface. */
-  function goToPoint(lat: number, lon: number, animate = animated): boolean {
+  function goToPoint(lat: number, lon: number, animate = motion()): boolean {
     if (!frame || !sky || !globe || fly || level === 'flight') return false
     const dist = level === 'globe' ? globeCam.position.length() : GLOBE_DIST_KM.default
     flyInSpace(() => setGlobeView(lat, lon, dist), animate)
@@ -1376,7 +1424,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     awaiting = { id, until: Infinity }
     // From space the wait is spent turning to above the new site, so the descent starts over the right place.
-    if (level === 'globe' && !fly && animated && globe && sky && lat !== undefined && lon !== undefined) {
+    if (level === 'globe' && !fly && motion() && globe && sky && lat !== undefined && lon !== undefined) {
       const keep = wanted
       const dist = globeCam.position.length()
       flyInSpace(() => setGlobeView(lat, lon, dist), true)
@@ -1384,7 +1432,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
   }
 
-  function setLevel(next: SceneLevel, animate = animated) {
+  function setLevel(next: SceneLevel, animate = motion()) {
     // C2 may ask for 'site' before the first frame or while a fly runs: remember it and apply it then.
     if ((!frame?.site && next !== 'globe' && next !== 'flight') || fly) {
       wanted = next
@@ -1697,7 +1745,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     // to apply. Every placement of a camera calls update() itself.
     if (orbitBusy(ctl) && ctl.update()) markDirty()
     if (keepAboveGround()) markDirty()
-    if (settleEye()) markDirty()
+    if (settleEye() || settleSite()) markDirty()
   }
 
   let lastMs = performance.now()
@@ -1738,6 +1786,14 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return true
   }
   const freeCam = installFreeCam({ canvas, testMode, rig, heightPx: () => size.y, changed: markDirty, pushed: zoomPushed })
+  function onMotionChange() {
+    const on = motion()
+    siteControls.enableDamping = globeControls.enableDamping = on
+    if (flightControls) flightControls.enableDamping = on && !testMode
+    freeCam.setSmooth(on)
+  }
+  reducedQuery?.addEventListener('change', onMotionChange)
+  onMotionChange()
 
   // ---------- input: globe picking ----------
 
@@ -1986,6 +2042,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       disposed = true
       cancelAnimationFrame(raf)
       ro.disconnect()
+      dprQuery?.removeEventListener('change', onPixelRatio)
+      reducedQuery?.removeEventListener('change', onMotionChange)
+      canvas.removeEventListener('webglcontextrestored', onContextRestored)
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointerdown', onTurnDown)
       canvas.removeEventListener('pointermove', onTurnMove)
@@ -2127,14 +2186,20 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         site.setFlat(on)
         markDirty()
       },
-      renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }),
+      frameInfo: () => (frame ? { state: frame.state, site: frame.site ? { lat: frame.site.lat, lon: frame.site.lon, elev_m: frame.site.elev_m } : null } : null),
+      renderInfo: () => ({
+        calls: renderer.info.render.calls,
+        triangles: renderer.info.render.triangles,
+        geometries: renderer.info.memory.geometries,
+        textures: renderer.info.memory.textures,
+        programs: renderer.info.programs?.length ?? 0,
+      }),
       surfaceDist: () => (inSpace() ? globeRig : siteRig).surface(activeCam().position),
       goTo: (v) => goTo(v, false),
       handle: () => handle,
       setAnimated(on) {
         animated = on
-        siteControls.enableDamping = globeControls.enableDamping = on
-        freeCam.setSmooth(on)
+        onMotionChange()
       },
       advance(ms) {
         clockMs += ms
