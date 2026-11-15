@@ -139,7 +139,10 @@ test.describe('search at 1440 × 900', () => {
     test.info().annotations.push({ type: 'search time', description: `${expected} places computed and ranked in ${ms} ms (mission dates, 14 days)` })
     console.log(`search: ${expected} places computed and ranked in ${ms} ms`)
     const items = panel.getByTestId('search-results').locator('li')
-    await expect(items).toHaveCount(expected)
+    // Several records of one place are one row (geometry/poiSearch SAME_PLACE_KM); the merged ones are in data-records.
+    const listed = await items.evaluateAll((li) => li.flatMap((x) => [x.getAttribute('data-site-id'), ...(x.getAttribute('data-records') ?? '').split(' ').filter(Boolean)]))
+    expect(listed).toHaveLength(expected)
+    expect(new Set(listed).size).toBe(expected)
     // A POI that is an app site appears once, as the site; a POI outside the pin region is not a candidate.
     await expect(row(page, 'poi-landing-connecting-ridge')).toHaveCount(0)
     const north = pois.find((p) => p.lat > PIN_REGION_NORTH_LAT)!
