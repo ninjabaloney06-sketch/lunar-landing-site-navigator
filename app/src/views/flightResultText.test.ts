@@ -128,4 +128,9 @@ describe('routeText', () => {
   it('writes delta-v as Δv', () => {
     expect(routeText('The largest saving is in LOI: 109 m/s less delta-v, 1.2 t less propellant.')).toBe('The largest saving is in LOI: 109 m/s less Δv, 1.2 t less propellant.')
   })
+  it('groups thousands in m/s figures, leaves dates alone', () => {
+    expect(routeText('Least propellant: 16 Aug 2027. The largest saving is in TLI: 1945 m/s less delta-v.')).toBe(
+      'Least propellant: 16 Aug 2027. The largest saving is in TLI: 1,945 m/s less Δv.',
+    )
+  })
 })

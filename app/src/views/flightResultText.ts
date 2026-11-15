@@ -106,9 +106,10 @@ export function shortElementsOf(uses: { element: string; usedKg: number; capacit
   return uses.filter((u) => u.usedKg > u.capacityKg && u.element !== lowerBoundElement).map((u) => u.element)
 }
 
-/** The route search's sentence as the menu shows it: NASA's symbol for delta-v. */
+/** The route search's sentence as the menu shows it: NASA's symbol for delta-v, and m/s figures with a thousands
+ *  separator as everywhere else in the menu ("1945 m/s" → "1,945 m/s"; the number itself is unchanged). */
 export function routeText(sentence: string): string {
-  return sentence.replace(/delta-v/g, 'Δv')
+  return sentence.replace(/delta-v/g, 'Δv').replace(/\b(\d{4,}) m\/s/g, (_, d: string) => `${Number(d).toLocaleString('en-US')} m/s`)
 }
 
 // ---- errors: one plain sentence with what the user can do; the planner's own reason only in full data mode
