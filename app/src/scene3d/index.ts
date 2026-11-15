@@ -48,13 +48,13 @@ import { Dissolve } from './dissolve'
 import { DEFAULT_LAYERS, FlightWorld, type BodyPick, type FlightAnchor, type FlightLayers } from './flight'
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, quat, v3 } from './frames'
 import { GlobeWorld } from './globe'
-import { POI_NEAR_KM, type PinItem } from './pins'
+import { POI_AT_SITE_KM, POI_NEAR_KM, type PinItem } from './pins'
 import { SiteWorld } from './site'
 import { inPinRegion } from './region'
 import { Sky } from './sky'
 
 export { TOP_VIEW } from './topview'
-export { POI_NEAR_KM } from './pins'
+export { POI_AT_SITE_KM, POI_NEAR_KM } from './pins'
 
 export type SceneLevel = 'globe' | 'site' | 'eye' | 'flight'
 /** What the flight camera turns about: the whole transfer, or a body or a craft, which it then follows. */
@@ -744,8 +744,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (here) {
       const at = v3(siteVector(here.lat, here.lon, 0))
       const add = (kind: PinItem['kind'], id: string, name: string, lat: number, lon: number, color: string | number, shape: PinItem['shape']) => {
-        // Ground distance as the chord on the 1737.4 km sphere (shorter than the arc by 0.005 % at 60 km).
-        if (v3(siteVector(lat, lon, 0)).distanceTo(at) > POI_NEAR_KM) return
+        // Ground distance as the chord on the 1737.4 km sphere (shorter than the arc by 0.005 % at 60 km). A pin on the
+        // site itself is left to the mast (POI_AT_SITE_KM).
+        const km = v3(siteVector(lat, lon, 0)).distanceTo(at)
+        if (km > POI_NEAR_KM || km < POI_AT_SITE_KM) return
         const grid = gridOf(lat, lon)
         if (!grid) return
         const { pos, up } = site.groundAt(grid.x, grid.y)

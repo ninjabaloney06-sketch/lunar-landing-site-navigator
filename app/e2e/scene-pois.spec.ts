@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { PNG } from 'pngjs'
 import type { Site } from '../src/data/types'
 import { siteVector } from '../src/geometry'
-import { POI_NEAR_KM } from '../src/scene3d/pins'
+import { POI_AT_SITE_KM, POI_NEAR_KM } from '../src/scene3d/pins'
 import { PIN_REGION_NORTH_LAT, inPinRegion } from '../src/scene3d/region'
 
 const APP = fileURLToPath(new URL('..', import.meta.url))
@@ -184,8 +184,9 @@ test.describe('S4: points of interest', () => {
     await setPois(page, POIS)
     const drawn = await scene(page, (s) => s.pins())
     // Expected sets, computed here from the coordinates.
-    const nearPois = POIS.filter((p) => kmBetween(p, RIDGE) <= POI_NEAR_KM).map((p) => p.id).sort()
-    const nearSites = sites.filter((s) => s.id !== RIDGE.id && kmBetween(s, RIDGE) <= POI_NEAR_KM).map((s) => s.id).sort()
+    // A pin on the site itself (closer than POI_AT_SITE_KM) is left to the mast (visual sweep 20).
+    const nearPois = POIS.filter((p) => kmBetween(p, RIDGE) <= POI_NEAR_KM && kmBetween(p, RIDGE) >= POI_AT_SITE_KM).map((p) => p.id).sort()
+    const nearSites = sites.filter((s) => s.id !== RIDGE.id && kmBetween(s, RIDGE) <= POI_NEAR_KM && kmBetween(s, RIDGE) >= POI_AT_SITE_KM).map((s) => s.id).sort()
     console.log(`S4: within ${POI_NEAR_KM} km of ${RIDGE.id}: ${nearPois.length} of ${POIS.length} POIs, ${nearSites.length} of ${sites.length - 1} other sites (${nearSites.join(', ')})`)
     expect(drawn.near.filter((n) => n.kind === 'poi').map((n) => n.id).sort()).toEqual(nearPois)
     expect(drawn.near.filter((n) => n.kind === 'site').map((n) => n.id).sort()).toEqual(nearSites)

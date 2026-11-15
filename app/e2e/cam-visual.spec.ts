@@ -99,3 +99,25 @@ test('U7: the search panel no longer says per point that it waits for the scienc
   await expect(panel).toContainText('Distances are measured along the surface of a 1737.4 km sphere')
   await expect(panel).not.toContainText('science lead')
 })
+
+test('visual sweep 20: at site level a POI on the landing site itself is left to the mast; one 3 km out is drawn', async ({ page }) => {
+  await page.goto('/src/scene3d/harness.html?test=1&site=connecting-ridge&level=site')
+  await page.waitForFunction(() => (window as unknown as { __scene?: { ready: Promise<void> } }).__scene !== undefined)
+  type S = { ready: Promise<void>; frame?: unknown; siteId(): string | null; handle(): { setPois(p: unknown[]): void }; pins(): { near: { id: string }[] } }
+  await page.evaluate(() => (window as unknown as { __scene: S }).__scene.ready)
+  await page.waitForFunction(() => (window as unknown as { __scene: S }).__scene.siteId() === 'connecting-ridge', null, { timeout: 60_000 })
+  const ids = await page.evaluate(async () => {
+    const s = (window as unknown as { __scene: S }).__scene
+    const sites = (await (await fetch('/data/sites.json')).json()) as { id: string; lat: number; lon: number }[]
+    const r = sites.find((x) => x.id === 'connecting-ridge')!
+    s.handle().setPois([
+      { id: 'on-site', name: 'On the site', lat: r.lat, lon: r.lon, color: '#ff00ff', landing: true },
+      { id: 'near-site', name: '100 m out', lat: r.lat + 0.003, lon: r.lon, color: '#ff00ff', landing: false },
+      { id: 'three-km', name: '3 km out', lat: r.lat + 0.1, lon: r.lon, color: '#ff00ff', landing: false },
+    ])
+    return s.pins().near.map((n) => n.id)
+  })
+  expect(ids).toContain('three-km')
+  expect(ids).not.toContain('on-site')
+  expect(ids).not.toContain('near-site')
+})
