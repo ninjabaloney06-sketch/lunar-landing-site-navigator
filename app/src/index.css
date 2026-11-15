@@ -673,8 +673,15 @@ select {
 /* Narrower screens: the header fills the top row, so the hint sits in the middle of the scene. */
 @media (max-width: 1100px) {
   .hint {
-    top: 42%;
+    top: 24%;
     width: min(34ch, 80vw);
+  }
+}
+
+/* Phones: under the header rows and above the landing-site marker (the marker sits at about 40 % of the height). */
+@media (max-width: 640px) {
+  .hint {
+    top: 22%;
   }
 }
 
