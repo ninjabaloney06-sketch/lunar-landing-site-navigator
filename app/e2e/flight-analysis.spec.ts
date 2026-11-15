@@ -35,6 +35,16 @@ test('landing dispersion: started by a click, shows progress, answers in one sen
   await expect(job).toContainText('Every error is an assumption')
   await expect(job).toContainText('guided lander lands much closer')
   await shot(page, 'flight-1280-dispersion')
+  // the tube is a layer like the others, offered once there is a dispersion
+  const tube = page.getByTestId('layer-tube')
+  await expect(tube).toBeChecked()
+  await page.getByTestId('flight-focus').selectOption('lander')
+  // a moment of the powered descent: PDI on the timeline
+  await page.locator('[data-tick="pdi"]').dispatchEvent('click') // the PDI block sits under its DOI neighbour
+  await page.waitForTimeout(1500)
+  await shot(page, 'flight-1280-tube')
+  await tube.uncheck()
+  await expect(tube).not.toBeChecked()
 })
 
 test('a running dispersion is dropped when the inputs change', async ({ page }) => {

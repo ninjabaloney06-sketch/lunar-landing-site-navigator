@@ -38,6 +38,7 @@ import {
   InterleavedBufferAttribute,
   Line,
   LineBasicMaterial,
+  LineSegments,
   Mesh,
   MeshBasicMaterial,
   MeshPhysicalMaterial,
@@ -61,6 +62,8 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { R_EARTH_EQ } from '../flight/astro'
 import { craftAt } from '../flight/craft'
+import type { TubePoint } from '../flight/dispersion'
+import { getFlightAnalysis, subscribeFlightAnalysis } from '../views/flightAnalysis'
 import type { MissionEvent, MissionPlan, Quat, Vec3 } from '../flight/types'
 import { add, combine, cross, latLonUnit, norm, qconj, qrot, scale, sub, unit } from '../flight/vec'
 import { MOON_RADIUS_KM } from '../geometry'
@@ -181,6 +184,37 @@ const COLORS = {
   burnFlown: 0xffb98c,
   lander: 0x7fe0b8, // the HTML token --lander
   backdrop: 'rgba(11,13,17,0.85)', // dark edge under a marker, so it reads against the sunlit Moon
+}
+
+// ---- the landing-dispersion tube (dispersion.ts; NOT YET VALIDATED BY THE SCIENCE LEAD)
+
+const TUBE_SEGMENTS = 32 // straight pieces per ring
+const TUBE_RIBS = 4 // lines along the tube, at 0°, 90°, 180°, 270°
+
+/** The kσ tube of a dispersion analysis as line-segment pairs, Moon-centred km (the frame of the plan's Moon-frame
+ *  legs): a ring  center + mean + k (sigmaMajorKm cos θ · axisMajor + sigmaMinorKm sin θ · axisMinor)  at every
+ *  tube instant, and TUBE_RIBS lines along the tube joining the rings. */
+export function tubeSegments(tube: TubePoint[], k: number, map: (p: Vec3) => Vec3 = (p) => p): Float32Array {
+  const ringAt = (t: TubePoint, theta: number): Vec3 => {
+    const c = Math.cos(theta) * k * t.sigmaMajorKm
+    const s = Math.sin(theta) * k * t.sigmaMinorKm
+    return map([
+      t.center[0] + t.mean[0] + c * t.axisMajor[0] + s * t.axisMinor[0],
+      t.center[1] + t.mean[1] + c * t.axisMajor[1] + s * t.axisMinor[1],
+      t.center[2] + t.mean[2] + c * t.axisMajor[2] + s * t.axisMinor[2],
+    ])
+  }
+  const out: number[] = []
+  for (const t of tube) {
+    for (let j = 0; j < TUBE_SEGMENTS; j++) {
+      out.push(...ringAt(t, (2 * Math.PI * j) / TUBE_SEGMENTS), ...ringAt(t, (2 * Math.PI * (j + 1)) / TUBE_SEGMENTS))
+    }
+  }
+  for (let r = 0; r < TUBE_RIBS; r++) {
+    const theta = (2 * Math.PI * r) / TUBE_RIBS
+    for (let i = 0; i + 1 < tube.length; i++) out.push(...ringAt(tube[i], theta), ...ringAt(tube[i + 1], theta))
+  }
+  return new Float32Array(out)
 }
 
 // Times go to the shaders as two floats, whole multiples of TIME_HI seconds and the rest: a 32-bit float alone
@@ -433,6 +467,14 @@ export class FlightWorld {
   private readonly pathMat: ShaderMaterial
   private readonly burnMat: LineMaterial
   private readonly orbitMat = new LineBasicMaterial({ color: COLORS.path, transparent: true, opacity: 0.14, depthWrite: false, toneMapped: false })
+  // The dispersion tube: 1σ brighter than 3σ, in the lander's colour; travels with the Moon like the descent leg.
+  private readonly tubeMats = [
+    new LineBasicMaterial({ color: COLORS.lander, transparent: true, opacity: 0.7, depthWrite: false, toneMapped: false }),
+    new LineBasicMaterial({ color: COLORS.lander, transparent: true, opacity: 0.3, depthWrite: false, toneMapped: false }),
+  ]
+  private tubeLines: LineSegments[] = []
+  private tubeOf: TubePoint[] | null = null
+  private readonly offAnalysis: () => void
   private planObjects: Object3D[] = []
   private planGeos: BufferGeometry[] = []
   private pathLines: Object3D[] = []
@@ -455,6 +497,8 @@ export class FlightWorld {
   private landerFiring = false
 
   constructor(tex: TextureSet) {
+    // The tube follows the analysis store (views/flightAnalysis.ts), which the Flight panel's action fills.
+    this.offAnalysis = subscribeFlightAnalysis(() => this.syncTube())
     this.earthMat = new MeshStandardMaterial({
       map: tex.earth ?? null,
       color: tex.earth ? 0xffffff : 0x4d6d93,
@@ -681,8 +725,38 @@ export class FlightWorld {
     this.planGeos.push(this.earthPatch.geometry, this.moonPatch.geometry)
     this.planObjects.push(this.earthPatch, this.moonPatch)
 
+    this.tubeOf = null
+    this.syncTube()
     this.applyLayers()
     this.setTime(plan.launchMs)
+  }
+
+  /** Draws the dispersion tube of the analysis in the store, or removes it; the old one is disposed. */
+  private syncTube() {
+    const a = getFlightAnalysis()
+    const tube = a.dispersion.state === 'ready' && this.plan ? a.dispersion.result.tube : null
+    if (tube === this.tubeOf && (tube === null || this.tubeLines.length > 0)) return
+    this.clearTube()
+    this.tubeOf = tube
+    if (!tube || tube.length < 2) return
+    const mm = this.moonMag
+    ;[1, 3].forEach((k, i) => {
+      const geo = new BufferGeometry().setAttribute('position', new BufferAttribute(tubeSegments(tube, k, (p) => magnify(p, mm)), 3))
+      const lines = new LineSegments(geo, this.tubeMats[i])
+      lines.renderOrder = 3
+      lines.visible = this.layers.tube
+      this.moonGroup.add(lines)
+      this.tubeLines.push(lines)
+    })
+  }
+
+  private clearTube() {
+    for (const l of this.tubeLines) {
+      l.removeFromParent()
+      l.geometry.dispose()
+    }
+    this.tubeLines = []
+    this.tubeOf = null
   }
 
   /** Chooses what is drawn. Takes effect at once, also while paused. */
@@ -854,8 +928,9 @@ export class FlightWorld {
   }
 
   dispose(): void {
+    this.offAnalysis()
     this.clearPlan()
-    const mats: Material[] = [this.earthMat, this.atmoMat, this.moonMat, this.dotMat, this.pathMat, this.burnMat, this.orbitMat, ...this.spriteMats]
+    const mats: Material[] = [this.earthMat, this.atmoMat, this.moonMat, this.dotMat, this.pathMat, this.burnMat, this.orbitMat, ...this.tubeMats, ...this.spriteMats]
     for (const m of mats) m.dispose()
     for (const g of [this.earthMesh.geometry, this.atmo.geometry, this.moonMesh.geometry, this.dotGeo]) g.dispose()
     for (const t of this.textures) t.dispose()
@@ -888,6 +963,7 @@ export class FlightWorld {
   private applyLayers() {
     for (const o of this.pathLines) o.visible = this.layers.paths
     for (const o of this.burnLines) o.visible = this.layers.burns
+    for (const o of this.tubeLines) o.visible = this.layers.tube
     this.uTrailOn.value = this.layers.trail ? 1 : 0
     this.uTrail.value = this.layers.trailHours === null ? 0 : this.layers.trailHours * 3600
   }
@@ -920,6 +996,7 @@ export class FlightWorld {
   }
 
   private clearPlan() {
+    this.clearTube()
     for (const o of this.planObjects) o.removeFromParent()
     this.planObjects = []
     for (const g of this.planGeos) g.dispose()

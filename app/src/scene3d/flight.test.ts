@@ -112,3 +112,32 @@ describe('trailFade', () => {
     expect(trailFade(1e9, null)).toBe(1)
   })
 })
+
+// ---- The landing-dispersion tube (dispersion.ts ring formula; NOT YET VALIDATED BY THE SCIENCE LEAD)
+import { tubeSegments } from './flight'
+
+describe('tubeSegments', () => {
+  const pt = (z: number) => ({
+    utcMs: z, center: [0, 0, z] as [number, number, number], mean: [0.5, 0, 0] as [number, number, number],
+    axisMajor: [1, 0, 0] as [number, number, number], axisMinor: [0, 1, 0] as [number, number, number],
+    sigmaMajorKm: 2, sigmaMinorKm: 1, sigmaAlongKm: 0,
+  })
+  it('puts the kσ ring at center + mean + k·σ along the two axes, and joins the rings with four ribs', () => {
+    const tube = [pt(0), pt(10)]
+    const segs = tubeSegments(tube, 3)
+    // two rings of 32 segments and 4 ribs of 1 segment, 2 points × 3 numbers each
+    expect(segs.length).toBe((2 * 32 + 4) * 6)
+    // first point of the first ring: θ = 0 → center + mean + 3·2·major
+    expect([segs[0], segs[1], segs[2]]).toEqual([6.5, 0, 0])
+    // a quarter round: θ = 90° → 3·1·minor
+    const q = 8 * 6 // segment 8 starts at θ = 90°
+    expect(segs[q]).toBeCloseTo(0.5, 9)
+    expect(segs[q + 1]).toBeCloseTo(3, 9)
+    // every ring point lies on the ellipse ((x − 0.5) / 6)² + (y / 3)² = 1
+    for (let i = 0; i < 2 * 32 * 2; i++) {
+      const x = segs[3 * i] - 0.5
+      const y = segs[3 * i + 1]
+      expect((x / 6) ** 2 + (y / 3) ** 2).toBeCloseTo(1, 5)
+    }
+  })
+})
