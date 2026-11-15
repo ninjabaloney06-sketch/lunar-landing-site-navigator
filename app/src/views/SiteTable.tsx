@@ -1,7 +1,7 @@
 // Comparison table for all sites (notebook notes 2, 7, 13, 15): every site in sites.json once, with the light
 // values, the comms values or both, for the mission's dates or for a whole year from its first day. "Find better
 // location" puts the rows in geometry/rankSites order for the mission's science goal; "Find better dates" on a
-// row opens the finder for that site. Saved missions follow as rows with their own site, dates and stations.
+// row opens the finder for that site (not on the current site's row: the drawer's own search above is that one). Saved missions follow as rows with their own site, dates and stations.
 // Checked rows show their sunlit windows on one time axis.
 //
 // Every value is summarize() or windows() on a computeSeries() series (data/results.computeRow). A site
@@ -18,7 +18,7 @@ import type { MissionState } from '../missions'
 import { COVERAGE_END_MS, DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { GOALS } from './MissionPanel'
-import { capital, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
+import { capital, fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
 import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
@@ -168,10 +168,13 @@ export function SiteTable(p: Props) {
                   {useRank && r?.rank != null && <span className="st-rank mono">{r.rank} </span>}
                   <span className="st-name">{s.name}</span>
                   {useRank && r?.slope === 'fail' && r.slopeDeg !== null && <span className="th-sub">slope {fmtDeg(r.slopeDeg)} — too steep</span>}
-                  {useRank && r?.slope === 'unknown' && <span className="th-sub">slope unknown</span>}
-                  <button type="button" className="link st-find" onClick={() => p.onFindDates(s.id)}>
-                    Find better dates
-                  </button>
+                  {useRank && r?.slope === 'unknown' && <span className="th-sub">slope: no data</span>}
+                  {/* The current site's dates are searched at the top of this drawer; the row link only switches to another site. */}
+                  {s.id !== site.id && (
+                    <button type="button" className="link st-find" onClick={() => p.onFindDates(s.id)}>
+                      Find better dates
+                    </button>
+                  )}
                 </th>
                 {values.map((v) => (
                   <td key={v.key} className="mono st-num" data-col={v.key}>
@@ -261,7 +264,8 @@ function MissionRow(p: {
       <th scope="row">
         <span className="st-name">{m.name ?? DEFAULT_MISSION_NAME}</span>
         <span className="th-sub">
-          {site ? site.name : 'unknown site'} · {period.label}
+          {/* A custom site carries the mission's name in the header; here its position says where it is. */}
+          {site ? (site.group === 'custom' ? fmtCoords(site.lat, site.lon) : site.name) : 'unknown site'} · {period.label}
         </span>
         {state.key === key && state.approx && <span className="th-sub">{state.approx}</span>}
         <span className="th-sub" data-testid="mission-flight">

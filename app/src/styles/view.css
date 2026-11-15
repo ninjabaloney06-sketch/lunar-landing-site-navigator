@@ -216,10 +216,10 @@
 }
 
 .st-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--s-3) var(--s-6);
+  /* One control per line: the button never floats between two radio rows (defect 28). */
+  display: grid;
+  justify-items: start;
+  gap: var(--s-3);
 }
 
 .st-pick {
@@ -268,6 +268,9 @@
 }
 
 .st-tbl .st-graph input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
   accent-color: var(--sun);
 }
 
@@ -325,6 +328,12 @@
 
   .st-graph-row {
     grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  }
+
+  /* Touch size on a phone (defect 28: the Graph checkboxes were about 13 px). */
+  .st-tbl .st-graph input {
+    width: 24px;
+    height: 24px;
   }
 
   .st-axis {

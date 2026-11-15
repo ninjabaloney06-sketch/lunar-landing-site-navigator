@@ -281,7 +281,7 @@ export function SearchPanel(p: Props) {
                   </span>
                   <span className="search-num" data-col="slope">
                     Slope{' '}
-                    <span className="mono">{r.slopeDeg === null ? 'unknown' : fmtDeg(r.slopeDeg)}</span>
+                    <span className="mono">{r.slopeDeg === null ? 'no data' : fmtDeg(r.slopeDeg)}</span>
                     {r.slope === 'fail' && ' — too steep'}
                   </span>
                 </p>
