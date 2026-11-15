@@ -72,7 +72,7 @@ test.describe('search at 1440 × 900', () => {
     expect((await items.evaluateAll((li) => li.map((x) => x.getAttribute('data-site-id')))).sort()).toEqual(sites.map((s) => s.id).sort())
 
     // The rule is written on screen; the best ones are marked and listed first, and each passes the slope limit.
-    await expect(panel.getByTestId('search-rule')).toContainText('Places that pass the 5° slope limit first')
+    await expect(panel.getByTestId('search-rule')).toContainText('Best: top 3 with a chosen point')
     await expect(panel.getByTestId('search-rule')).toContainText('within 20 km')
     const best = await items.evaluateAll((li) => li.map((x) => x.getAttribute('data-best') === 'true'))
     expect(best.filter(Boolean).length).toBeGreaterThanOrEqual(1)
@@ -210,7 +210,7 @@ test.describe('search on the real search-sites.json at 1440 × 900', () => {
     const ref = await referencePoint(page, id, Date.parse(p.start_utc), Date.parse(p.end_utc))
     await expect(r.locator('[data-col=lit] .mono')).toHaveText(`${ref.litPct.toFixed(1)} %`)
     await expect(r.locator('[data-col=comms] .mono')).toHaveText(`${ref.coveragePct.toFixed(1)} %`)
-    await expect(r.getByRole('button')).toHaveText(['Show'])
+    await expect(r.getByRole('button')).toHaveText(['Show as landing site, eye level'])
   })
 })
 
@@ -268,7 +268,7 @@ test.describe('search defects 5, 6, 24 and the Full data switch at 1440 × 900',
     await sw.click()
     await expect(sw).toHaveAttribute('aria-checked', 'true')
     await expect(first.getByTestId('search-item-full')).toContainText('Position')
-    await expect(first.getByTestId('search-item-full')).toContainText(/Longest dark \d+\.\d h/)
+    await expect(first.getByTestId('search-item-full')).toContainText(/Longest darkness (\d+\.\d h|\d+ days?( \d+ h)?)/)
     await expect(first.getByTestId('search-item-full').getByRole('link')).toHaveCount(1)
     await sw.click()
     await expect(first.getByTestId('search-item-full')).toHaveCount(0)

@@ -18,8 +18,11 @@ import type { MissionState } from '../missions'
 import { COVERAGE_END_MS, DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { GOALS } from './MissionPanel'
-import { capital, fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
-import { flightSummary } from './flightSummary'
+import { capital, fmtCoords, fmtDate, fmtDeg, fmtPct, fmtRange, fmtSpanH } from './format'
+import { DEFAULT_ARCHITECTURE_ID, designShortName } from '../flight/designs'
+import { DEFAULT_PAD_ID, LAUNCHPADS } from '../flight/pads'
+import { ARCHITECTURES } from '../flight/spacecraft'
+import { defaultSurfaceStayDays } from './useFlight'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
 import { customHorizon, customSiteBase } from '../data/customSite'
@@ -33,24 +36,28 @@ const YEAR_DAYS = 365
 type Columns = 'both' | 'light' | 'comms'
 type Span = 'mission' | 'year'
 
-const COLUMNS: { id: Columns; label: string }[] = [
-  { id: 'both', label: 'Both' },
-  { id: 'light', label: 'Light' },
-  { id: 'comms', label: 'Comms' },
+const COLUMNS: { id: Columns; label: string; hint: string }[] = [
+  { id: 'both', label: 'Both', hint: 'sunlit and station coverage' },
+  { id: 'light', label: 'Light', hint: 'sunlit and longest darkness' },
+  { id: 'comms', label: 'Comms', hint: 'station coverage and longest coverage gap' },
 ]
+
+// Column heads carry the unit; durations carry theirs in the value ("3 days 4 h").
+const H_LIT = 'Sunlit, % of time'
+const H_COV = 'Station coverage, % of time'
 
 const VALUES: Record<Columns, { key: string; head: string; get: (s: Summary) => string }[]> = {
   both: [
-    { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct) },
-    { key: 'comms', head: 'Station coverage', get: (s) => fmtPct(s.coveragePct) },
+    { key: 'lit', head: H_LIT, get: (s) => fmtPct(s.litPct) },
+    { key: 'comms', head: H_COV, get: (s) => fmtPct(s.coveragePct) },
   ],
   light: [
-    { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct) },
-    { key: 'dark', head: 'Longest darkness', get: (s) => fmtHours(s.longestDarkH) },
+    { key: 'lit', head: H_LIT, get: (s) => fmtPct(s.litPct) },
+    { key: 'dark', head: 'Longest darkness', get: (s) => fmtSpanH(s.longestDarkH) },
   ],
   comms: [
-    { key: 'comms', head: 'Station coverage', get: (s) => fmtPct(s.coveragePct) },
-    { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtHours(s.longestGapH) },
+    { key: 'comms', head: H_COV, get: (s) => fmtPct(s.coveragePct) },
+    { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtSpanH(s.longestGapH) },
   ],
 }
 
@@ -78,15 +85,44 @@ function yearSpan(startMs: number): { startMs: number; endMs: number } {
 const ALL_VALUES: { key: string; head: string; get: (s: Summary) => string; v: (s: Summary) => number }[] = [
   { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct), v: (s) => s.litPct },
   { key: 'comms', head: 'Station coverage', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
-  { key: 'dark', head: 'Longest darkness', get: (s) => fmtHours(s.longestDarkH), v: (s) => s.longestDarkH },
-  { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtHours(s.longestGapH), v: (s) => s.longestGapH },
+  { key: 'dark', head: 'Longest darkness', get: (s) => fmtSpanH(s.longestDarkH), v: (s) => s.longestDarkH },
+  { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtSpanH(s.longestGapH), v: (s) => s.longestGapH },
   { key: 'earth', head: 'Earth above horizon', get: (s) => fmtPct(s.earthVisiblePct), v: (s) => s.earthVisiblePct },
 ]
+
+/** A site's slope with its status against the 5° landing-slope criterion (spec.md "Terrain slope", applied by
+ *  geometry/rankSites: ≤ 5° passes; ninja's project criterion, not a sourced safety limit). The word stands beside
+ *  the colour. Missing or not finite → "no data", no colour. */
+export function SlopeValue({ site }: { site: Site | null }) {
+  const r = site ? rankSites([{ site, summary: null }], 'any') : null
+  const x = r ? [...r.ranked, ...r.failed, ...r.unknown][0] : null
+  if (!x || x.slope === 'unknown' || x.slopeDeg === null) return <span className="mono">no data</span>
+  return x.slope === 'pass' ? (
+    <span className="slope-pass" data-slope="pass" title="At or below the 5° landing-slope criterion (project criterion, not a safety limit).">
+      <span className="mono">{fmtDeg(x.slopeDeg)}</span> (≤ 5°)
+    </span>
+  ) : (
+    <span className="slope-fail" data-slope="fail" title="Above the 5° landing-slope criterion (project criterion, not a safety limit).">
+      <span className="mono">{fmtDeg(x.slopeDeg)}</span> — too steep (&gt; 5°)
+    </span>
+  )
+}
+
+/** The flight choices a saved mission carries, each with its name (the same lookups as views/flightSummary). */
+function FlightLine({ m }: { m: MissionState }) {
+  const pad = LAUNCHPADS.find((x) => x.id === m.pad) ?? LAUNCHPADS.find((x) => x.id === DEFAULT_PAD_ID) ?? LAUNCHPADS[0]
+  const arch = ARCHITECTURES.find((a) => a.id === m.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
+  const stay = Number((m.stay ?? defaultSurfaceStayDays(arch)).toFixed(1))
+  return (
+    <span className="th-sub" data-testid="mission-flight">
+      Stay {stay} {stay === 1 ? 'day' : 'days'} · Launchpad <span title={pad.site}>{pad.name}</span> · Rocket {designShortName(arch.id)}
+    </span>
+  )
+}
 
 /** The values the chosen columns do not show, plus slope and source: one line under the row's name. */
 function FullLine({ entry, shown, site }: { entry: RowEntry | undefined; shown: string[]; site: Site | null }) {
   const sum = entry?.status === 'done' ? entry.summary : null
-  const slope = site && typeof site.slope_deg === 'number' && Number.isFinite(site.slope_deg) ? fmtDeg(site.slope_deg) : 'no data'
   return (
     <span className="th-sub st-full" data-testid="st-full">
       {sum &&
@@ -96,7 +132,7 @@ function FullLine({ entry, shown, site }: { entry: RowEntry | undefined; shown: 
           </span>
         ))}
       <span>
-        Slope <span className="mono">{slope}</span>
+        Slope <SlopeValue site={site} />
       </span>
       {site?.source_url && (
         <>
@@ -148,7 +184,7 @@ export function SiteTable(p: Props) {
       <div className="st-head">
         <p className="quiet">
           {year ? `${YEAR_DAYS} days from the mission's first day` : 'Mission dates'}: {fmtRange(dates.startMs, dates.endMs)}, UTC.{' '}
-          {ids.length} of {stations.length} stations selected.{!VALIDATED && ` ${capital(NOT_VALIDATED)}.`}
+          Percentages are shares of these dates. {ids.length} of {stations.length} stations selected.{!VALIDATED && ` ${capital(NOT_VALIDATED)}.`}
         </p>
       </div>
       {full && (
@@ -161,7 +197,7 @@ export function SiteTable(p: Props) {
         <fieldset className="st-pick">
           <legend className="quiet">Columns</legend>
           {COLUMNS.map((c) => (
-            <label key={c.id} className="check">
+            <label key={c.id} className="check" title={`Shows ${c.hint}`}>
               <input type="radio" name="st-columns" value={c.id} checked={columns === c.id} onChange={() => setColumns(c.id)} />
               <span>{c.label}</span>
             </label>
@@ -183,12 +219,15 @@ export function SiteTable(p: Props) {
         <button className="btn" type="button" aria-pressed={ranked} disabled={computing > 0} onClick={() => setRanked((r) => !r)}>
           Find better location
         </button>
+        <p className="quiet st-hint" data-testid="st-rank-hint">
+          {useRank ? 'Press again for the list order.' : `Ranks every site for these dates by ${goalRule}.`}
+        </p>
       </div>
       <p className="quiet st-progress" aria-live="polite">
         {computing > 0
           ? `Computing ${sites.length - computing} of ${sites.length} sites for these dates…`
           : useRank
-            ? `Best among the ${sites.length} evaluated sites for these dates first, by ${goalRule}. Sites above the 5° slope limit and sites without data follow, unranked.`
+            ? `Ranked by ${goalRule}. Sites steeper than 5° and sites without data follow, unranked.`
             : ''}
       </p>
       <table className="tbl st-tbl">
@@ -200,7 +239,7 @@ export function SiteTable(p: Props) {
                 {v.head}
               </th>
             ))}
-            <th scope="col" className="st-graph">
+            <th scope="col" className="st-graph" title="Show this row's sunlit windows in the graph below the table">
               Graph
             </th>
           </tr>
@@ -213,13 +252,22 @@ export function SiteTable(p: Props) {
                 <th scope="row">
                   {useRank && r?.rank != null && <span className="st-rank mono">{r.rank} </span>}
                   <span className="st-name">{s.name}</span>
-                  {useRank && r?.slope === 'fail' && r.slopeDeg !== null && <span className="th-sub">slope {fmtDeg(r.slopeDeg)} — too steep</span>}
+                  {useRank && r?.slope === 'fail' && r.slopeDeg !== null && (
+                    <span className="th-sub slope-fail" data-slope="fail">
+                      slope {fmtDeg(r.slopeDeg)} — too steep (&gt; 5°)
+                    </span>
+                  )}
                   {useRank && r?.slope === 'unknown' && <span className="th-sub">slope: no data</span>}
                   {full && <FullLine entry={rows[s.id]} shown={values.map((v) => v.key)} site={s} />}
                   {/* The current site's dates are searched at the top of this drawer; the row link only switches to another site. */}
                   {s.id !== site.id && (
-                    <button type="button" className="link st-find" onClick={() => p.onFindDates(s.id)}>
-                      Find better dates
+                    <button
+                      type="button"
+                      className="link st-find"
+                      title={`Makes ${s.name} the landing site and searches its dates`}
+                      onClick={() => p.onFindDates(s.id)}
+                    >
+                      Find better dates for {s.name}
                     </button>
                   )}
                 </th>
@@ -244,7 +292,7 @@ export function SiteTable(p: Props) {
           <tbody data-testid="mission-rows">
             <tr>
               <th scope="colgroup" colSpan={values.length + 2} className="st-group">
-                Saved missions, each for its own site, dates and stations
+                Your missions, each with its own site, dates and stations
               </th>
             </tr>
             {p.missions.map((m) => (
@@ -318,9 +366,7 @@ function MissionRow(p: {
         </span>
         {state.key === key && state.approx && <span className="th-sub">{state.approx}</span>}
         {p.full && <FullLine entry={entry} shown={p.values.map((v) => v.key)} site={site} />}
-        <span className="th-sub" data-testid="mission-flight">
-          {flightSummary(m)}
-        </span>
+        <FlightLine m={m} />
         <button type="button" className="btn st-flight" data-testid="calculate-flight" disabled={!site} onClick={p.onCalculateFlight}>
           Calculate flight
         </button>

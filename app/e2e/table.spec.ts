@@ -60,7 +60,13 @@ async function openTable(page: Page, hash: string) {
 const rowIds = (table: ReturnType<Page['getByTestId']>) =>
   table.getByTestId('site-rows').locator('tr').evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.siteId!))
 const pct = (v: number) => `${v.toFixed(1)} %`
-const hours = (v: number) => `${v.toFixed(1)} h`
+// The table writes durations as a planner reads them (views/format.ts fmtSpanH): "5.2 h", "3 days 4 h".
+const hours = (v: number) => {
+  if (v < 23.95) return `${v.toFixed(1)} h`
+  const t = Math.round(v)
+  const d = Math.floor(t / 24)
+  return `${d} ${d === 1 ? 'day' : 'days'}${t % 24 ? ` ${t % 24} h` : ''}`
+}
 
 test.describe('comparison table for all sites', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -81,17 +87,17 @@ test.describe('comparison table for all sites', () => {
       await expect(cell(s.id, 'lit'), `${s.id} sunlit`).toHaveText(pct(ref.summaries[s.id].litPct))
       await expect(cell(s.id, 'comms'), `${s.id} station coverage`).toHaveText(pct(ref.summaries[s.id].coveragePct))
     }
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit', 'Station coverage', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Station coverage, % of time', 'Graph'])
     // Light only, then comms only.
     await table.getByRole('radio', { name: 'Light' }).check()
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit', 'Longest darkness', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Sunlit, % of time', 'Longest darkness', 'Graph'])
     for (const s of sites) {
       await expect(cell(s.id, 'lit')).toHaveText(pct(ref.summaries[s.id].litPct))
       await expect(cell(s.id, 'dark')).toHaveText(hours(ref.summaries[s.id].longestDarkH))
       await expect(cell(s.id, 'comms')).toHaveCount(0)
     }
     await table.getByRole('radio', { name: 'Comms' }).check()
-    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Station coverage', 'Longest coverage gap', 'Graph'])
+    await expect(table.getByRole('columnheader')).toHaveText(['Site', 'Station coverage, % of time', 'Longest coverage gap', 'Graph'])
     for (const s of sites) {
       await expect(cell(s.id, 'comms')).toHaveText(pct(ref.summaries[s.id].coveragePct))
       await expect(cell(s.id, 'gap')).toHaveText(hours(ref.summaries[s.id].longestGapH))
