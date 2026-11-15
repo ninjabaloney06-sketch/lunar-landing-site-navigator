@@ -161,3 +161,51 @@ test.describe('header at 375 px (visual sweep 8, 26, 29) and the drawer beside t
     await expect(page.locator('.site-label')).toHaveText('Blue Moon MK1 target')
   })
 })
+
+test.describe('U8: the Full data switch in the site-details drawer', () => {
+  for (const vp of [{ width: 1280, height: 720 }, { width: 375, height: 812 }]) {
+    test(`summary by default; the switch, top right with its label, adds method, raw values and sources; the choice is global and kept (${vp.width} px)`, async ({ page }) => {
+      await page.setViewportSize(vp)
+      await open(page, `${DEMO}&drawer=details`)
+      const drawer = page.getByTestId('drawer')
+      const sw = drawer.getByTestId('full-data-switch')
+      await expect(sw).toHaveAttribute('role', 'switch')
+      await expect(sw).toHaveAttribute('aria-checked', 'false')
+      await expect(sw).toContainText('Full data')
+      await expect(sw).toBeInViewport()
+      // top right: beside Close, in the drawer's head
+      const s = (await sw.boundingBox())!
+      const close = (await drawer.getByRole('button', { name: 'Close' }).boundingBox())!
+      const d = (await drawer.boundingBox())!
+      expect(s.x + s.width).toBeLessThanOrEqual(close.x)
+      expect(s.y).toBeLessThan(d.y + 80)
+      // summary: the decision values (station state), no method, raw elevations or sources
+      await expect(drawer.locator('table.stations thead th')).toHaveText(['Station', 'State'])
+      await expect(drawer).not.toContainText('not a guaranteed radio link')
+      await expect(drawer).not.toContainText('Access not assessed')
+      await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toHaveCount(0)
+      await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeVisible()
+      await page.screenshot({ path: `${SHOTS}/${vp.width}-drawer-summary.png` })
+      // full data
+      await sw.click()
+      await expect(sw).toHaveAttribute('aria-checked', 'true')
+      await expect(drawer.locator('table.stations thead th')).toHaveCount(4)
+      await expect(drawer).toContainText('not a guaranteed radio link')
+      await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toBeAttached()
+      await expect(drawer.getByTestId('views-note')).toBeAttached()
+      // one global setting, kept across a reload
+      await page.reload()
+      await expect(page.getByTestId('drawer').getByTestId('full-data-switch')).toHaveAttribute('aria-checked', 'true')
+      await page.getByTestId('drawer').getByTestId('full-data-switch').click()
+      await expect(page.getByTestId('drawer').locator('table.stations thead th')).toHaveCount(2)
+    })
+  }
+
+  test('the footer link "how this is computed" shows that section in summary mode too', async ({ page }) => {
+    await open(page)
+    await page.getByRole('button', { name: 'how this is computed' }).click()
+    const drawer = page.getByTestId('drawer')
+    await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toBeInViewport()
+    await expect(drawer.getByTestId('full-data-switch')).toHaveAttribute('aria-checked', 'false')
+  })
+})

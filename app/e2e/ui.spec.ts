@@ -752,6 +752,7 @@ test('keys and drag move the cursor; space plays', async ({ page }) => {
 })
 
 test('drawer: stations, comms meaning, finder, potential and sources', async ({ page }) => {
+  await page.addInitScript(() => { try { window.localStorage.setItem('llsn.fullData', '1') } catch { /* about:blank */ } }) // U8: the drawer's method, raw values and sources are full data
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('details').click()
@@ -795,6 +796,7 @@ for (const vp of [
 ]) {
   test(`screenshots at ${vp.tag} px`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height })
+    await page.addInitScript(() => { try { window.localStorage.setItem('llsn.fullData', '1') } catch { /* about:blank */ } }) // U8: the drawer's method, raw values and sources are full data
     await page.goto(DEMO)
     await expectAnswer(page, RIDGE, AUG, 60_000)
     await page.evaluate(() => document.fonts.ready)

@@ -69,6 +69,7 @@ test.describe('custom landing site at 1440 × 900', () => {
     test.setTimeout(240_000)
     const errors: string[] = []
     page.on('pageerror', (e) => errors.push(e.message))
+    await page.addInitScript(() => { try { window.localStorage.setItem('llsn.fullData', '1') } catch { /* about:blank */ } }) // U8: the drawer's method, raw values and sources are full data
     await openApp(page, `site=${RIDGE}&period=${AUG}`)
     // A prepared site: no custom line, the footer's fixed terrain text.
     await expect(page.getByTestId('custom-note')).toHaveCount(0)
@@ -181,6 +182,7 @@ test.describe('custom landing site at 1440 × 900', () => {
   })
 
   test('outside the cap no such action is offered, with the reason; a prepared site keeps its texts', async ({ page }) => {
+    await page.addInitScript(() => { try { window.localStorage.setItem('llsn.fullData', '1') } catch { /* about:blank */ } }) // U8: the drawer's method, raw values and sources are full data
     await openApp(page, `site=${RIDGE}&period=${AUG}&pts=45,10,,North`)
     const panel = await openPanel(page)
     const search = panel.getByRole('combobox', { name: 'Search a site or type coordinates' })

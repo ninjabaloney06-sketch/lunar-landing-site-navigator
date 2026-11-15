@@ -1,6 +1,6 @@
-// Details drawer: horizon strip, station states (chosen in the Mission panel), finder, comparison, site
-// potential, export, how this is computed and the terms of use. Opened from the answer sentence, "Find better dates" or the
-// footer link.
+// Details drawer: finder, year timeline, horizon strip, station states (chosen in the Mission panel), comparison,
+// site potential, export, how this is computed and the terms of use. Opened from the header's Details control or the
+// footer link. The Full data switch (top right, U8) adds method, raw values and sources to the summary.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sample, ScienceGoal, StationLos } from '../geometry'
 import type { MissionState } from '../missions'
@@ -21,6 +21,8 @@ import { capital, fmtDateTime, fmtDeg } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
+import { useFullData } from './advanced'
+import { FullDataSwitch } from './FullDataSwitch'
 
 export interface ViewPeriod {
   id: string // period id or 'custom'
@@ -101,6 +103,10 @@ export function Drawer(p: Props) {
   const termsRef = useRef<HTMLElement>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [terms, setTerms] = useState(false)
+  // Summary (default) shows the decision values; Full data (U8, one global setting) adds method, raw values and
+  // sources. "How this is computed" also shows when the footer link asked for it.
+  const [full] = useFullData()
+  const method = full || section === 'sources'
   const custom = site.group === 'custom'
   const approx = p.customHorizon ? approxText(p.customHorizon.computed) : null
   // A custom site's 3D terrain: which cap raster its grid was sampled from (capTerrain, shared with the scene).
@@ -203,9 +209,12 @@ export function Drawer(p: Props) {
             {period.label} · {fmtDateTime(p.cursorMs)}
           </p>
         </div>
-        <button ref={closeBtn} className="btn" type="button" onClick={p.onClose}>
-          Close
-        </button>
+        <div className="drawer-tools">
+          <FullDataSwitch />
+          <button ref={closeBtn} className="btn" type="button" onClick={p.onClose}>
+            Close
+          </button>
+        </div>
       </header>
 
       {!VALIDATED && <p className="msg sample-note">{capital(NOT_VALIDATED)}.</p>}
@@ -247,17 +256,19 @@ export function Drawer(p: Props) {
 
       <section className="drawer-sec" aria-labelledby="sec-stations">
         <h3 id="sec-stations">Stations</h3>
-        <p className="quiet">
-          Comms means geometric line of sight between the site and at least one selected station, not a guaranteed radio
-          link. Schedules, equipment and weather are unknown.
-        </p>
+        {full && (
+          <p className="quiet">
+            Comms means geometric line of sight between the site and at least one selected station, not a guaranteed radio
+            link. Schedules, equipment and weather are unknown.
+          </p>
+        )}
         <table className="tbl stations">
           <thead>
             <tr>
               <th scope="col">Station</th>
               <th scope="col">State</th>
-              <th scope="col">Elev. from site</th>
-              <th scope="col">Moon elev. at station</th>
+              {full && <th scope="col">Elev. from site</th>}
+              {full && <th scope="col">Moon elev. at station</th>}
             </tr>
           </thead>
           <tbody>
@@ -274,8 +285,8 @@ export function Drawer(p: Props) {
                       </span>
                     </td>
                     <td>{ready ? losText(l) : '…'}</td>
-                    <td className="mono">{ready && l ? fmtDeg(l.el) : '…'}</td>
-                    <td className="mono">{ready && l ? fmtDeg(l.moonElAtStation) : '…'}</td>
+                    {full && <td className="mono">{ready && l ? fmtDeg(l.el) : '…'}</td>}
+                    {full && <td className="mono">{ready && l ? fmtDeg(l.moonElAtStation) : '…'}</td>}
                   </tr>
                 )
               })}
@@ -334,14 +345,16 @@ export function Drawer(p: Props) {
             <li key={i}>
               <span className="th-sub">{CATEGORY[x.category]}</span>
               <p>{x.text}</p>
-              <p className="quiet">
-                Evidence: {x.evidence}. Access not assessed.{' '}
-                {x.source_url && (
-                  <a href={x.source_url} target="_blank" rel="noreferrer">
-                    Source
-                  </a>
-                )}
-              </p>
+              {full && (
+                <p className="quiet">
+                  Evidence: {x.evidence}. Access not assessed.{' '}
+                  {x.source_url && (
+                    <a href={x.source_url} target="_blank" rel="noreferrer">
+                      Source
+                    </a>
+                  )}
+                </p>
+              )}
             </li>
           ))}
         </ul>
@@ -364,77 +377,81 @@ export function Drawer(p: Props) {
         </div>
       </section>
 
-      <section ref={sourcesRef} className="drawer-sec" aria-labelledby="sec-sources">
-        <h3 id="sec-sources">How this is computed</h3>
-        <ul className="plain sources">
-          <li>
-            Site: {site.source_url ? <a href={site.source_url} target="_blank" rel="noreferrer">{site.source_label}</a> : site.source_label}.
-            Frame: {site.frame_note}.
-          </li>
-          {custom ? (
-            // A custom site: every spacing and distance from the capHorizon record and the terrain's meta.cap.
-            <li data-testid="custom-terrain">
-              Terrain: box means of the LOLA south-pole elevation model (
-              <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
-                Barker et al. 2023
-              </a>
-              ,{' '}
-              <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
-                data
-              </a>
-              ), computed in this browser for the chosen place
-              {p.customHorizon ? (
-                <>
-                  : {p.customHorizon.computed.site_res_m} m at the site, up to {p.customHorizon.computed.near_res_m} m within{' '}
-                  {p.customHorizon.computed.rings.nearKm} km and {p.customHorizon.computed.far_res_m} m beyond
-                  {p.customHorizon.computed.outer_res_m !== null &&
-                    `; where the horizon reaches past the edge of the 20 m model, ${p.customHorizon.computed.outer_res_m} m means of the 120 m model continue it`}
-                  {meshRes !== null && `; the 3D scene's terrain is sampled from the ${meshRes} m data`}. The horizon is searched up
-                  to {p.customHorizon.ray_max_km} km in each direction for an eye {p.customHorizon.observer_height_m} m above the
-                  ground. {approx}.
-                </>
+      <section ref={sourcesRef} className="drawer-sec" aria-labelledby={method ? 'sec-sources' : undefined}>
+        {method && (
+          <>
+            <h3 id="sec-sources">How this is computed</h3>
+            <ul className="plain sources">
+              <li>
+                Site: {site.source_url ? <a href={site.source_url} target="_blank" rel="noreferrer">{site.source_label}</a> : site.source_label}.
+                Frame: {site.frame_note}.
+              </li>
+              {custom ? (
+                // A custom site: every spacing and distance from the capHorizon record and the terrain's meta.cap.
+                <li data-testid="custom-terrain">
+                  Terrain: box means of the LOLA south-pole elevation model (
+                  <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
+                    Barker et al. 2023
+                  </a>
+                  ,{' '}
+                  <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
+                    data
+                  </a>
+                  ), computed in this browser for the chosen place
+                  {p.customHorizon ? (
+                    <>
+                      : {p.customHorizon.computed.site_res_m} m at the site, up to {p.customHorizon.computed.near_res_m} m within{' '}
+                      {p.customHorizon.computed.rings.nearKm} km and {p.customHorizon.computed.far_res_m} m beyond
+                      {p.customHorizon.computed.outer_res_m !== null &&
+                        `; where the horizon reaches past the edge of the 20 m model, ${p.customHorizon.computed.outer_res_m} m means of the 120 m model continue it`}
+                      {meshRes !== null && `; the 3D scene's terrain is sampled from the ${meshRes} m data`}. The horizon is searched up
+                      to {p.customHorizon.ray_max_km} km in each direction for an eye {p.customHorizon.observer_height_m} m above the
+                      ground. {approx}.
+                    </>
+                  ) : (
+                    '.'
+                  )}
+                  {truncated}
+                </li>
               ) : (
-                '.'
+                <li>
+                  {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM) and
+                      scripts/terrain_tiles.py (LEVELS); ray length and eye height come from the site's horizon file. */}
+                  Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
+                  beyond (
+                  <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
+                    Barker et al. 2023
+                  </a>
+                  ,{' '}
+                  <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
+                    data
+                  </a>
+                  ). The horizon is searched in 720 directions up to {horizonFile?.ray_max_km ?? 300} km for an eye{' '}
+                  {horizonFile?.observer_height_m ?? 1.75} m above the ground. Where that reaches past the edge of the 20 m
+                  model (about 80° S), a 120 m model from the same data set continues it. The 3D scene draws the terrain at
+                  20 m within 2.5 km of the site, 80 m within 20 km, then 400 m and 2 km means out to 300 km.
+                  {truncated}
+                </li>
               )}
-              {truncated}
-            </li>
-          ) : (
-            <li>
-              {/* Figures checked against scripts/horizon.py (NEAR_KM, FAR_RES_M, N_AZ, fill DEM) and
-                  scripts/terrain_tiles.py (LEVELS); ray length and eye height come from the site's horizon file. */}
-              Terrain: LOLA south-pole elevation model, 20 m per pixel within 20 km of the site and 160 m averages
-              beyond (
-              <a href="https://doi.org/10.3847/PSJ/acf3e1" target="_blank" rel="noreferrer">
-                Barker et al. 2023
-              </a>
-              ,{' '}
-              <a href="https://doi.org/10.60903/gsfcpgda-lola-spole" target="_blank" rel="noreferrer">
-                data
-              </a>
-              ). The horizon is searched in 720 directions up to {horizonFile?.ray_max_km ?? 300} km for an eye{' '}
-              {horizonFile?.observer_height_m ?? 1.75} m above the ground. Where that reaches past the edge of the 20 m
-              model (about 80° S), a 120 m model from the same data set continues it. The 3D scene draws the terrain at
-              20 m within 2.5 km of the site, 80 m within 20 km, then 400 m and 2 km means out to 300 km.
-              {truncated}
-            </li>
-          )}
-          <li>
-            Sun and Earth: JPL DE440 ephemeris (
-            <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/" target="_blank" rel="noreferrer">
-              NAIF
-            </a>
-            ), Moon body-fixed frame MOON_ME, every 30 minutes, UTC. Sunlit and contact windows start and end where
-            interpolation finds the change, to within about 10 seconds.
-          </li>
-          <li>
-            Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
-            station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
-          </li>
-          <li data-testid="views-note">
-            Views: walking, zooming and the viewpoints in the View menu move the camera only. The site, the dates, the
-            Sun and Earth labels and the answer always describe the landing site.
-          </li>
-        </ul>
+              <li>
+                Sun and Earth: JPL DE440 ephemeris (
+                <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/" target="_blank" rel="noreferrer">
+                  NAIF
+                </a>
+                ), Moon body-fixed frame MOON_ME, every 30 minutes, UTC. Sunlit and contact windows start and end where
+                interpolation finds the change, to within about 10 seconds.
+              </li>
+              <li>
+                Comms: line of sight at both ends. The station must be above the terrain seen from the site, and the Moon above the
+                station's elevation mask. A gap means no selected station has line of sight. Unknown means an input is missing.
+              </li>
+              <li data-testid="views-note">
+                Views: walking, zooming and the viewpoints in the View menu move the camera only. The site, the dates, the
+                Sun and Earth labels and the answer always describe the landing site.
+              </li>
+            </ul>
+          </>
+        )}
         <p className="quiet drawer-note">
           <button type="button" className="link" aria-expanded={terms} aria-controls="terms" onClick={() => setTerms((t) => !t)}>
             Terms of use

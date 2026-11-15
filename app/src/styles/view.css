@@ -171,6 +171,15 @@
   color: var(--fg);
 }
 
+/* ---------- Details drawer: the Full data switch beside Close, top right (U8) ---------- */
+
+.drawer-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+
 /* ---------- Details drawer: simulation speed ---------- */
 
 .sim-speed {

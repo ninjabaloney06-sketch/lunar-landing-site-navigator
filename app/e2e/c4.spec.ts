@@ -727,6 +727,8 @@ test.describe('C4 part 4: Simulate', () => {
     await expect(speed).toHaveCount(0)
     await expect(reset).toHaveCount(0)
     await page.getByTestId('details').click()
+    // U8: the note is part of "How this is computed", shown with Full data on.
+    await page.getByTestId('drawer').getByTestId('full-data-switch').click()
     // U14 removed the solar-system top view, so the note no longer describes it.
     await expect(page.getByTestId('drawer').getByTestId('views-note')).toContainText('move the camera only')
     await expect(page.getByTestId('drawer').getByTestId('views-note')).not.toContainText('top view')
