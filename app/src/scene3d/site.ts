@@ -234,7 +234,12 @@ export class SiteWorld {
     for (const grp of [this.terrain, this.orbitOnly, this.eyeOnly]) {
       for (const c of [...grp.children]) {
         grp.remove(c)
-        ;(c as Mesh).geometry?.dispose()
+        const m = c as Mesh
+        m.geometry?.dispose()
+        // Each terrain mesh has its own regolith material (addMesh); the ray proxies and the flat test material are shared.
+        for (const mat of [m.material, m.userData.lit] as unknown[]) {
+          if (mat instanceof MeshPhysicalMaterial) mat.dispose()
+        }
       }
     }
     this.rays.both.length = this.rays.orbit.length = this.rays.eye.length = 0
@@ -626,6 +631,11 @@ export class SiteWorld {
   }
 
   setMarkers(markers: SiteMarker[]) {
+    for (const k of this.markList) {
+      k.stem.geometry.dispose()
+      k.head.geometry.dispose()
+    }
+    ;(this.markList[0]?.stem.material as MeshBasicMaterial | undefined)?.dispose() // one material for all of them
     for (const c of [...this.marks.children]) this.marks.remove(c)
     const mat = new MeshBasicMaterial({ color: 0xece9e2, toneMapped: false })
     this.markList = markers.map((m) => {
