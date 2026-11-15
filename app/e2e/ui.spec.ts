@@ -140,8 +140,9 @@ test('labels sit on the points project() returns and hide on null (scene stub pa
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await expect(page.getByTestId('label-sun')).toBeVisible()
-  await expect(page.getByTestId('label-sun')).toHaveText(/^Sun −?\d+\.\d°$/)
-  await expect(page.getByTestId('label-earth')).toHaveText(/^Earth −?\d+\.\d°$/)
+  // 15 Nov: a body behind the site's terrain horizon says so after its angle.
+  await expect(page.getByTestId('label-sun')).toHaveText(/^Sun −?\d+\.\d°( · behind terrain at the site)?$/)
+  await expect(page.getByTestId('label-earth')).toHaveText(/^Earth −?\d+\.\d°( · behind terrain at the site)?$/)
   await expect(page.getByTestId('label-site')).toHaveText('Landing site')
   await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: 'test-results/labels-1440.png', animations: 'disabled' })
@@ -165,19 +166,20 @@ test('UX-01: screen numbers agree with the integrator preview run (wiring check,
   await page.goto(DEMO)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('details').click()
+  await page.getByTestId('drawer-tab-compare').click() // 15 Nov: tabs in the Details drawer
   const drawer = page.getByTestId('drawer')
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 0)) - 91)).toBeLessThan(4)
-  expect(Math.abs((await compareValue(drawer, 'Station coverage', 0)) - 98)).toBeLessThan(3)
+  expect(Math.abs((await compareValue(drawer, 'Station contact', 0)) - 98)).toBeLessThan(3)
   await drawer.getByLabel('Compare with period').selectOption(SEP)
   expect(await compareValue(drawer, 'Sunlit', 1)).toBeGreaterThan(96)
-  expect(Math.abs((await compareValue(drawer, 'Station coverage', 1)) - 96)).toBeLessThan(3)
+  expect(Math.abs((await compareValue(drawer, 'Station contact', 1)) - 96)).toBeLessThan(3)
   await drawer.getByLabel('Compare with site').selectOption(MASSIF)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
   expect(Math.abs((await compareValue(drawer, 'Sunlit', 1)) - 46)).toBeLessThan(4)
-  expect(await compareValue(drawer, 'Station coverage', 1)).toBeGreaterThan(97)
+  expect(await compareValue(drawer, 'Station contact', 1)).toBeGreaterThan(97)
   await drawer.getByLabel('Compare with site').selectOption(SHACK)
   expect(await compareValue(drawer, 'Sunlit', 1)).toBe(0)
-  expect(await compareValue(drawer, 'Station coverage', 1)).toBe(0)
+  expect(await compareValue(drawer, 'Station contact', 1)).toBe(0)
   // The sentence for a site that stays dark says so.
   await page.keyboard.press('Escape')
   await chooseSite(page, SHACK)
@@ -223,6 +225,7 @@ test('basic comparison: Connecting Ridge ↔ Malapert Massif, same period; Aug �
   // The drawer's Switch button changes context and results together too.
   await page.getByTestId('details').click()
   const drawer = page.getByTestId('drawer')
+  await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
   await drawer.getByLabel('Compare with site').selectOption(MASSIF)
   await drawer.getByLabel('Compare with period').selectOption(AUG)
   await step(() => drawer.getByRole('button', { name: /^Switch to Malapert Massif,/ }).click(), MASSIF, AUG)
@@ -590,7 +593,7 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   await expectAnswer(page, RIDGE, SEP)
   await panel.getByRole('radio', { name: 'Consistent light' }).check()
   await panel.getByTestId('site-ranking').click()
-  await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station coverage')
+  await expect(panel).toContainText('by share of the mission in sunlight, then the shortest longest darkness, then station contact')
 
   await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
   const listed = await panel.locator('[data-group] [role=option]').evaluateAll((els) => els.map((e) => e.id.replace('site-opt-', '')))
@@ -603,14 +606,14 @@ test('(c) panel: goal "Consistent light", 12–26 Sep 2027: every site once; fir
   const id = (await first.getAttribute('id'))!.replace('site-opt-', '')
   const ref = await summarizeInPage(page, id, SEP)
   await expect(first.locator('[data-fact=lit]')).toHaveText(new RegExp(`^sunlit ${ref.litPct.toFixed(1)} %`))
-  await expect(first.locator('[data-fact=comms]')).toHaveText(new RegExp(`^comms ${ref.coveragePct.toFixed(1)} %`))
+  await expect(first.locator('[data-fact=comms]')).toHaveText(new RegExp(`^station contact ${ref.coveragePct.toFixed(1)} %`)) // 15 Nov: one term, "station contact"
   // A site above the slope limit says so and is never ranked.
   await expect(panel.locator(`#site-opt-${SHACK} [data-fact=slope]`)).toHaveText('slope 31.8° — too steep')
   await expect(panel.locator(`#site-opt-${SHACK}`)).toHaveAttribute('data-rank', '')
   await expect(panel).not.toContainText(/optimal|safe to land/i)
 })
 
-test('panel: evidence goals show the evidence and say when station coverage decides', async ({ page }) => {
+test('panel: evidence goals show the evidence and say when station contact decides', async ({ page }) => {
   await page.goto(`/#site=${RIDGE}&period=${AUG}&goal=water-ice`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
   await page.getByTestId('mission').click()
@@ -620,7 +623,7 @@ test('panel: evidence goals show the evidence and say when station coverage deci
   const ranked = panel.locator('[data-group=ranked] [role=option]')
   await expect(ranked.first().locator('[data-fact=evidence]')).toContainText(/^water ice: /)
   // With today's data every site that passes the slope limit shares one water-ice tier: coverage orders them.
-  await expect(ranked.first().locator('[data-fact=then]')).toHaveText('then by station coverage')
+  await expect(ranked.first().locator('[data-fact=then]')).toHaveText('then by station contact')
   await expect(panel).not.toContainText('NaN')
 })
 
@@ -676,7 +679,7 @@ test('(d) slope warning: Shackleton Rim Site04 (31.8°) shows it, Connecting Rid
   await expect(page.getByTestId('slope-warning')).toHaveCount(0)
   await chooseSite(page, SHACK)
   await expectAnswer(page, SHACK, AUG)
-  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, limit 5°')
+  await expect(page.getByTestId('slope-warning')).toHaveText('Landing not recommended: slope 31.8° over 100 m, above 15°')
   // The warning is text, not a control: the header still has 5 controls (U4: mission, date, Points of interest,
   // Search, Details) and the main screen 10 (+ View, Simulate, the footer's "how this is computed", "Documentation"
   // and the validation line's record link; read-header dropped the second documentation link).
@@ -778,8 +781,9 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
 
-  // U4: Details is the one entry point; the drawer starts with the date search.
+  // U4: Details is the one entry point; 15 Nov: the date search is its Dates tab.
   await page.getByTestId('details').click()
+  await page.getByTestId('drawer-tab-dates').click()
   await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
   await expect(drawer.getByRole('spinbutton')).toHaveCount(5)
   await drawer.getByLabel('Sunlit at least (%)').fill('150')
@@ -827,8 +831,10 @@ for (const vp of [
     await page.getByTestId('details').click()
     await expect(page.getByTestId('drawer')).toBeVisible()
     await shot('drawer')
+    await page.getByTestId('drawer-tab-compare').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
     await page.getByTestId('drawer').getByRole('heading', { name: 'Compare' }).scrollIntoViewIfNeeded()
     await shot('drawer-compare')
+    await page.getByTestId('drawer-tab-site').click()
     await page.getByTestId('drawer').getByRole('heading', { name: 'How this is computed' }).scrollIntoViewIfNeeded()
     await shot('drawer-sources')
   })

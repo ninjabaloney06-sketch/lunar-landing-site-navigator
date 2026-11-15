@@ -222,7 +222,7 @@ test.describe('S4: points of interest', () => {
     expect(Math.hypot(...after.position.map((v, i) => v - before.position[i])), 'the camera stays (m)').toBeLessThan(1e-6)
     expect((await scene(page, (s) => s.handle().named()))?.poiId).toBe('near:3')
     // A left-click on the terrain beside it walks, as before.
-    await page.mouse.click(p.x + 160, p.y + 120)
+    await page.mouse.dblclick(p.x + 160, p.y + 120) // 15 Nov: a walk needs a double-click
     await frames(page)
     expect((await scene(page, (s) => s.camera())).level, 'a click on terrain walks').toBe('eye')
 

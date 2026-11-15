@@ -57,7 +57,9 @@ export interface DebugView {
   skySize(b: 'sun' | 'earth'): number | null
   walkTo(x: number, y: number): boolean
   /** U19: the site camera's height above the drawn terrain under it (a ray straight down through the visible terrain meshes). */
-  eyeClearance(): { level: SceneLevel; position: number[]; drawn: number | null; ground: number; clearance: number | null }
+  eyeClearance(): { level: SceneLevel; position: number[]; drawn: number | null; ground: number; clearance: number | null; overData: number | null }
+  /** Walk check: the drawn terrain at this level (highest triangle), groundZ and the data height at ENU (x, y). */
+  drawnAt(x: number, y: number): { drawn: number | null; ground: number; data: number | null }
   nearLevel(on: boolean): Promise<void>
   nearReady(): Promise<void>
   levelSpecs(): { name: string; size: number; spacing: number; ext: number }[]
@@ -179,6 +181,7 @@ export function installDebug(v: DebugView) {
     // (a ray straight down through the visible terrain meshes, independent of the camera code's groundZ).
     siteId: () => v.frame?.site?.id ?? null,
     eyeClearance: () => v.eyeClearance(),
+    drawnAt: (x: number, y: number) => v.drawnAt(x, y),
     // F2: the near terrain level (160 m to ±40 km from the south-cap 80 m tiles). Off in test mode until
     // nearLevel(true), which also starts it for the current site; nearReady() resolves once the job for the
     // current site has ended (the terrain rebuilt, or nothing to do); levelSpecs() lists the levels as built.

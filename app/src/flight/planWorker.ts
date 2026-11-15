@@ -102,8 +102,15 @@ export function runPlan(req: PlanRequest): PlanReply {
     const stages = req.input.launchVehicle.stages
     const upper = plan.propellant.find((u) => u.element === stages[stages.length - 1].name)
     if (upper && upper.usedKg > upper.capacityKg) {
+      // what the stage pushes through the injection: the payload the TLI event ends with, and the adapters it keeps
+      const tli = plan.events.find((e) => e.id === 'tli')
+      const kg = (x: number) => `${Math.round(x).toLocaleString('en-US')} kg`
+      const extras = req.input.launchVehicle.upperStageExtrasKg
+      const pushed = tli?.massAfterKg != null
+        ? ` It pushes ${req.rendezvous === 'nrho' ? req.input.capsule.name : `${req.input.capsule.name} and ${req.input.lander.name}`} (${kg(tli.massAfterKg)}) and ${kg(extras)} of adapters on the stage, and is ${kg(upper.usedKg - upper.capacityKg)} short of the ${kg(upper.capacityKg)} it loads.`
+        : ''
       plan.notes.push(
-        `${upper.element}: every plan here parks in a circular ${req.input.parkingAltKm ?? 185} km orbit and injects from there. ` +
+        `${upper.element}:${pushed} Every plan here parks in a circular ${req.input.parkingAltKm ?? 185} km orbit and injects from there. ` +
           'A real flight can let the lower stages carry the upper stage to a higher orbit first (Artemis I: about 30 × 1,806 km), which leaves the upper stage less to do. That profile is not searched.',
       )
     }

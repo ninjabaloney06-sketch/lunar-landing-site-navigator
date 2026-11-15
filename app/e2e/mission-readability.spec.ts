@@ -71,7 +71,7 @@ test('summary mode: decision values with unit, status and hint; full data adds g
   await expectClean(panel)
 
   await panel.getByTestId('full-data-switch').click()
-  await expect(first.locator('[data-fact=gap]')).toHaveText(/^longest comms gap (\d+\.\d h|\d+ days?( \d+ h)?)/)
+  await expect(first.locator('[data-fact=gap]')).toHaveText(/^longest contact gap (\d+\.\d h|\d+ days?( \d+ h)?)/)
   await expect(first.locator('[data-fact=earth]')).toHaveText(/^Earth in view \d+\.\d %$/)
   await expect(first.locator('[data-fact=dark]')).toHaveCount(1)
   await expect(first.locator('[data-fact=lit]')).toContainText(/\(≈ [\d.]+ of 14 days\)/)

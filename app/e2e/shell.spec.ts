@@ -34,6 +34,10 @@ test('U4: one Details control with an info icon and a visible label; it opens th
   await details.click()
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
+  // 15 Nov, team request: Details opens at its Site details tab; the date search is the Dates tab beside it (before:
+  // the drawer's first section).
+  await expect(page.getByTestId('drawer-tab-site')).toHaveAttribute('aria-selected', 'true')
+  await page.getByTestId('drawer-tab-dates').click()
   await expect(drawer.getByRole('heading', { level: 3 }).first()).toHaveText('Find better dates')
 })
 
@@ -189,7 +193,7 @@ test.describe('U8: the Full data switch in the site-details drawer', () => {
       await expect(drawer).not.toContainText('not a guaranteed radio link')
       await expect(drawer).not.toContainText('Access not assessed')
       await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toHaveCount(0)
-      await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeVisible()
+      await expect(page.getByTestId('drawer-tab-dates')).toBeVisible() // 15 Nov: the date search is the Dates tab
       await page.screenshot({ path: `${SHOTS}/${vp.width}-drawer-summary.png` })
       // full data
       await sw.click()

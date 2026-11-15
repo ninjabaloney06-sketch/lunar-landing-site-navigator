@@ -70,7 +70,7 @@ export function PoiKey({ groups, data, counts, webgl, onChange }: Props & { grou
         {data.status === 'error'
           ? `Could not load the points of interest. ${data.error}`
           : data.status === 'ready'
-            ? `Pins per group, ${REGION_TEXT}; the app's own sites are not counted. ${webgl ? 'Hover or tap a pin to read about it.' : 'The 3D view is not available, so no pins are drawn.'}`
+            ? `Pins per group, ${REGION_TEXT}; the app's own sites are not counted. ${webgl ? 'Hover or tap a pin to read about it.' : 'The 3D view is not available, so no pins are drawn.'}${groups.includes('landing') ? ' Landing candidates are places named in published studies and landing records, not places this app found suitable: each card shows the slope at its point.' : ''}`
             : 'Loading the points of interest…'}
       </p>
     </div>

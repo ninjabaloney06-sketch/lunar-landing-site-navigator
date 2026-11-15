@@ -31,6 +31,7 @@ interface Props {
   missionStartMs?: number
   missionEndMs?: number
   onBest?(startMs: number, days: number, landingMs: number): void
+  onFinder?(): void // opens the Details drawer at its Dates tab (the finder with the user's own limits)
 }
 
 type Best =
@@ -156,7 +157,7 @@ export function DateMenu(p: Props) {
           </div>
           <p className="menu-msg is-quiet" data-testid="best-defaults">
             {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
-            coverage ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
+            station contact ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
           </p>
           {best.status === 'computing' && (
             <p className="menu-msg is-quiet" role="status">
@@ -166,7 +167,7 @@ export function DateMenu(p: Props) {
           {best.status === 'none' && <p className="menu-msg">{best.text}</p>}
           {best.status === 'done' && windows.length === 0 && (
             <p className="menu-msg" data-testid="best-none">
-              No {best.days}-day period in {year} meets every finder default. Try Find better dates in Details.
+              No {best.days}-day period in {year} meets every finder default. Set your own limits below.
             </p>
           )}
           {windows.length > 0 && best.status === 'done' && (
@@ -190,13 +191,26 @@ export function DateMenu(p: Props) {
                         <Marked text={spanLabel(s, e)} />
                       </span>
                       <span className="opt-label mono">
-                        sunlit {w.best.litPct.toFixed(0)} % · coverage {w.best.coveragePct.toFixed(0)} %
+                        sunlit {w.best.litPct.toFixed(0)} % · station contact {w.best.coveragePct.toFixed(0)} %
                       </span>
                     </button>
                   </li>
                 )
               })}
             </ul>
+          )}
+          {p.onFinder && (
+            <p className="menu-msg">
+              <button
+                type="button"
+                className="btn"
+                data-testid="best-finder"
+                title="Opens Details at the Dates tab: the finder with limits you set, and the year timeline"
+                onClick={p.onFinder}
+              >
+                Find dates with your own limits
+              </button>
+            </p>
           )}
         </section>
       )}

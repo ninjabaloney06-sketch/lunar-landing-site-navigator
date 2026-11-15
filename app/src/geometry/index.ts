@@ -608,7 +608,7 @@ export interface FinderWindow {
 }
 
 export interface FinderResult {
-  windows: FinderWindow[] // ranked by combined selected-station coverage (spec), ties shown
+  windows: FinderWindow[] // ranked by combined selected-station contact (spec), ties shown
   nearestMiss: { landingMs: number; failed: (keyof FinderThresholds)[] } | null
 }
 

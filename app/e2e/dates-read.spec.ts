@@ -78,14 +78,18 @@ test.describe('U17: Details drawer, own sections', () => {
       })
       await open(page, `site=${RIDGE}&period=${AUG}&drawer=details`)
       const drawer = page.getByTestId('drawer')
+      await page.getByTestId('drawer-tab-dates').click() // 15 Nov: tabs in the Details drawer
       await expect(drawer.getByTestId('year-row').nth(1)).toHaveAttribute('data-state', 'done', { timeout: 60_000 })
       // one decision line per section
       await expect(drawer.getByTestId('finder-lead')).toContainText('every 30 minutes')
       await expect(drawer.getByTestId('finder-lead')).not.toContainText('6 hours')
+      await page.getByTestId('drawer-tab-site').click()
       await expect(drawer.getByTestId('horizon-lead')).toHaveText(/^At .+: Sun (above|below) the terrain, Earth (above|below) it\.$/)
       await expect(drawer.getByTestId('stations-lead')).toHaveText(/^(Line of sight to \d+ of \d+ selected stations? now|No line of sight to any of the \d+ selected stations now)\.$/)
+      await page.getByTestId('drawer-tab-dates').click()
       await expect(drawer.getByTestId('year-legend')).toContainText('number: share of 2027 sunlit')
       await expect(drawer.getByTestId('year-legend')).toContainText('outline: mission dates')
+      await page.getByTestId('drawer-tab-site').click()
       await expect(drawer.getByTestId('strip-key')).toContainText('terrain horizon seen from 1.75 m above the ground')
       // site potential: category and a plain evidence phrase; the source's text behind a disclosure
       const items = drawer.getByTestId('potential-item')
@@ -103,7 +107,7 @@ test.describe('U17: Details drawer, own sections', () => {
         expect(summary.height).toBeGreaterThanOrEqual(44)
       }
       await page.screenshot({ path: `${SHOTS}/${vp.width}-summary-top.png` })
-      for (const id of ['sec-year', 'sec-horizon', 'sec-stations', 'sec-potential', 'sec-export']) {
+      for (const id of ['sec-horizon', 'sec-stations', 'sec-potential', 'sec-export']) { // the year timeline is on the Dates tab
         await drawer.locator(`section[aria-labelledby="${id}"]`).evaluate((e) => e.scrollIntoView({ block: 'start' }))
         await page.screenshot({ path: `${SHOTS}/${vp.width}-summary-${id.slice(4)}.png` })
       }
@@ -115,6 +119,7 @@ test.describe('U17: Details drawer, own sections', () => {
       await fullData(page, true)
       await open(page, `site=${RIDGE}&period=${AUG}&drawer=details`)
       const drawer = page.getByTestId('drawer')
+      await page.getByTestId('drawer-tab-dates').click() // 15 Nov: tabs in the Details drawer
       const defaults = (await page.evaluate(`import('/src/geometry/index.ts').then((g) => g.FINDER_DEFAULTS)`)) as Record<string, number>
       const units: Record<string, string> = { missionDays: 'days', minLitPct: '%', minCoveragePct: '%', maxGapH: 'h', maxDarkH: 'h' }
       for (const [key, unit] of Object.entries(units)) {
@@ -126,6 +131,7 @@ test.describe('U17: Details drawer, own sections', () => {
         expect(await drawer.locator(`label[for="finder-${key}"]`).innerText()).toContain(`(${unit})`)
       }
       // potential: the full text with its source link
+      await page.getByTestId('drawer-tab-site').click()
       await expect(drawer.getByTestId('potential-item').first().getByRole('link', { name: 'Source' })).toHaveAttribute('href', /^https:\/\//)
       await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toBeAttached()
       const text = await ownText(drawer)
@@ -159,12 +165,12 @@ test.describe('U17: Details drawer, own sections', () => {
     await expect(drawer.locator('.finder-results')).toBeVisible({ timeout: 60_000 })
     const table = drawer.getByTestId('finder-table')
     if (await table.count()) {
-      await expect(table.locator('thead th')).toHaveText(['Land between', 'Sunlit', 'Station coverage', 'Longest gap', 'Show'])
+      await expect(table.locator('thead th')).toHaveText(['Land between', 'Sunlit', 'Station contact', 'Longest gap', 'Show'])
       await expect(table.locator('tbody td').nth(0)).toContainText('UTC')
     }
     // impossible thresholds: no window, and the closest candidate says what it misses in plain words
     await drawer.getByLabel('Sunlit at least (%)').fill('100')
-    await drawer.getByLabel('Station coverage at least (%)').fill('100')
+    await drawer.getByLabel('Station contact at least (%)').fill('100')
     await drawer.getByRole('button', { name: 'Find dates' }).click()
     const none = drawer.getByTestId('finder-none')
     await expect(none).toBeVisible({ timeout: 60_000 })
@@ -184,7 +190,7 @@ test.describe('U17: Details drawer, own sections', () => {
       await expect(page.getByTestId('best-period').first()).toBeVisible({ timeout: 60_000 })
       const defaults = (await page.evaluate(`import('/src/geometry/index.ts').then((g) => g.FINDER_DEFAULTS)`)) as Record<string, number>
       await expect(page.getByTestId('best-defaults')).toHaveText(
-        `14-day stays, proposed finder defaults: sunlit ≥ ${defaults.minLitPct} %, coverage ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
+        `14-day stays, proposed finder defaults: sunlit ≥ ${defaults.minLitPct} %, station contact ≥ ${defaults.minCoveragePct} %, gap ≤ ${defaults.maxGapH} h, darkness ≤ ${defaults.maxDarkH} h.`,
       )
       const menu = page.locator('.date-menu')
       expect(await unmarked(menu, false)).toEqual([])

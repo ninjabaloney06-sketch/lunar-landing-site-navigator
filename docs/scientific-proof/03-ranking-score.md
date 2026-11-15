@@ -2,10 +2,10 @@
 
 The app ranks in two places, and in neither is there a weighted score. Rows are compared key by key, one after another, so a row's place can be checked by hand from the values shown next to it (comment at the top of `app/src/geometry/rankSites.ts`).
 
-- **Site search** (Search panel): candidate landing sites ordered by nearby points of interest, the slope limit, and sunlight and station coverage over the mission dates. Code: `searchSites()` in `app/src/geometry/poiSearch.ts`, which takes the slope rule from `rankSites()`.
-- **Landing-window finder** ("Find better dates", in the drawer and the date menu): landing times ranked by station coverage, then sunlight, over a mission of a set length. Code: `finder()` in `app/src/geometry/index.ts`.
+- **Site search** (Search panel): candidate landing sites ordered by nearby points of interest, the slope limit, and sunlight and station contact over the mission dates. Code: `searchSites()` in `app/src/geometry/poiSearch.ts`, which takes the slope rule from `rankSites()`.
+- **Landing-window finder** ("Find better dates", in the drawer and the date menu): landing times ranked by station contact, then sunlight, over a mission of a set length. Code: `finder()` in `app/src/geometry/index.ts`.
 
-The sunlight and coverage values they rank by are the ones described in [01-sunlight-horizon.md](01-sunlight-horizon.md) and [02-earth-visibility-contact.md](02-earth-visibility-contact.md).
+The sunlight and station contact values they rank by are the ones described in [01-sunlight-horizon.md](01-sunlight-horizon.md) and [02-earth-visibility-contact.md](02-earth-visibility-contact.md).
 
 ## Equations
 
@@ -32,7 +32,7 @@ d(a, b)        = R · atan2( |â × b̂|, â·b̂ )                 great-circle
 nearTotal      = number of points of the selected groups with d ≤ radius (the site's own record excluded)
 groupsCovered  = number of selected groups with at least one such point
 share          = lit %             ("Light")
-               = coverage %        ("Comms")
+               = coverage %        ("Station contact")
                = lit % + coverage % ("Both", the default)
 rank key       = ( −groupsCovered, −nearTotal, −share )   compared left to right, lower first
 ```
@@ -50,7 +50,7 @@ The only sum in the app's ranking is `lit % + coverage %` for "Both". It adds tw
 
 ### 4. Landing-window finder
 
-`finder()` in `geometry/index.ts`. Candidate landing times every 6 h from the earliest to the latest date; each candidate mission `[landing, landing + mission length)` is scored on 30-minute samples:
+`finder()` in `geometry/index.ts`. Candidate landing times every 30 min from the earliest to the latest date; each candidate mission `[landing, landing + mission length)` is scored on 30-minute samples:
 
 ```text
 lit %        = 100 · (samples lit) / (samples in the mission)
@@ -74,14 +74,14 @@ These values come from the samples, not from the refined window edges of `window
 | Default groups | water, cold trap, science | `DEFAULT_GROUPS`, `views/SearchPanel.tsx` | "UI defaults (not sourced values)" |
 | Default radius | 20 km (input 1 to 200 km) | `DEFAULT_RADIUS_KM` | UI default: "the reach of the 20 m terrain model around each site that the horizons use" |
 | Best marked | top 3 ranks | `BEST_COUNT` | source not recorded in the code |
-| Finder thresholds | mission 14 days, lit ≥ 70 %, coverage ≥ 50 %, longest gap ≤ 48 h, longest dark ≤ 72 h | `FINDER_DEFAULTS`, `geometry/index.ts` | "Proposed defaults (spec.md …, 14 Nov); [the science lead] reviews the values. Every value is editable in the UI." No external source |
-| Finder steps | candidates every 6 h, samples every 30 min | `CANDIDATE_STEP_MS`, `FINDER_STEP_MIN` | source not recorded in the code |
+| Finder thresholds | mission 14 days, lit ≥ 70 %, station contact ≥ 50 %, longest gap ≤ 48 h, longest dark ≤ 72 h | `FINDER_DEFAULTS`, `geometry/index.ts` | "Proposed defaults (spec.md …, 14 Nov); [the science lead] reviews the values. Every value is editable in the UI." No external source |
+| Finder steps | candidates every 30 min, samples every 30 min | `CANDIDATE_STEP_MS`, `FINDER_STEP_MIN` | source not recorded in the code |
 | Ground stations | the five of `stations.json` | see [02-earth-visibility-contact.md](02-earth-visibility-contact.md) | DSN 810-005 module 301; JAXA station coordinates page |
 
 ## Assumptions
 
 - A lexicographic order says which value matters first. It does not trade one value against another, so a site with one more nearby group always ranks above one with better light and coverage. That is the rule as written, not a scientific weighting.
-- "Both" treats one percentage point of sunlight and one of station coverage as worth the same. No source is given for that.
+- "Both" treats one percentage point of sunlight and one of station contact as worth the same. No source is given for that.
 - The slope at one point over 100 m stands for the site. The mandatory site assessments (`scripts/assessments.py`, `docs/event/validation.md`) use a stricter rule for the 18 prepared sites (every pixel in a 100 m disk ≤ 5°); the search does not use it.
 - Counting points within a radius treats every point as equally important and ignores whether it can be reached over the terrain.
 - The finder uses the default thresholds unless the planner changes them. In the date menu (`views/DateMenu.tsx`) only the mission length changes; the other thresholds stay at their defaults.
@@ -90,10 +90,10 @@ These values come from the samples, not from the refined window edges of `window
 
 The ranking itself is exact: integer counts, comparisons and a sum. Its uncertainty is that of its inputs.
 
-- **Ties and near ties.** Two sites whose `share` differs by less than the uncertainty of lit % and coverage % are ranked in an order the data cannot support. The ranking does not mark near ties; only exact ties share a rank. **Not quantified:** how often that happens.
+- **Ties and near ties.** Two sites whose `share` differs by less than the uncertainty of lit % and station contact % are ranked in an order the data cannot support. The ranking does not mark near ties; only exact ties share a rank. **Not quantified:** how often that happens.
 - **Slope near 5°.** A site whose 100 m slope lies close to 5° can pass or fail on the DEM's height error. **Not quantified** in the code; the reading check in `docs/event/validation.md` found the 5 m and 20 m DEMs differ at one site by +0.98° in point slope (Shackleton Rim Site04, a 32° wall).
 - **Finder sampling.** Values over 30-minute samples, not refined edges: each window edge inside a mission can move a percentage by up to half a sample. The Python reference test asserts this bound for the summary (`test_summary_matches_samples` in `scripts/tests/test_windows.py`); for the finder it is not asserted.
-- **Candidate step.** Landing times are tried every 6 h; a better landing time between two candidates is not found. Not quantified.
+- **Candidate step.** Landing times are tried every 30 min (until 15 Nov 2026: every 6 h, which missed a qualifying Haworth window, check V8); a better landing time between two candidates is not found. Not quantified.
 - **Custom points.** Their horizon and slope come from the coarser browser rasters (see [01-sunlight-horizon.md](01-sunlight-horizon.md)), so their values carry that larger error into the ranking.
 
 The uncertainty budget for numbers shown in the app is in [uncertainty.md](uncertainty.md).

@@ -780,6 +780,16 @@ export class SiteWorld {
   }
 
   /**
+   * Test helper: the terrain height of the data at (x, y) as the levels place it (bilinear in the finest level with
+   * data there, curvature applied), never clamped to the mask sight line; null without levels.
+   */
+  dataZ(x: number, y: number): number | null {
+    const { levels, rSite } = this.ground
+    const f = levels ? heightAt(levels, x, y) : null
+    return f && levels ? place(levels[f.li], x, y, f.h, rSite, new Vector3()).z : null
+  }
+
+  /**
    * Test helper, independent of groundZ: the highest drawn terrain triangle under (x, y) at the current level, by a
    * ray straight down through every visible terrain mesh (slow: every triangle is tested).
    */

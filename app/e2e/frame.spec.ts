@@ -89,8 +89,11 @@ for (const vp of [
     // One entry to the documentation on the main screen (read-header: "Docs" + "Full documentation" were two).
     await expect(page.getByTestId('docs-open')).toHaveText('Documentation')
     await expect(page.getByTestId('docs-page-link')).toHaveCount(0)
-    // Header controls are text links, not bordered pills.
-    expect(await page.getByTestId('search-open').evaluate((e) => getComputedStyle(e).borderTopWidth)).toBe('0px')
+    // Header controls are buttons with a plain 1 px box and the app's 4 px corners, not pills (team request in chat,
+    // 15 Nov 11:00: "make the buttons more visually clear that they are buttons"; until then they were text links
+    // and this line asserted a 0 px border).
+    const box = await page.getByTestId('search-open').evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopLeftRadius])
+    expect(box).toEqual(['1px', '4px'])
     // The View menu: each entry has a one-line hint; the names stay the labels.
     await page.getByTestId('view').click()
     const menu = page.getByTestId('view-menu')

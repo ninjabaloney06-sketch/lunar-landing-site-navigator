@@ -33,24 +33,24 @@ import { useFullData } from './advanced'
 import { Abbr } from './flightGlossary'
 
 export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: string }[] = [
-  { id: 'any', label: 'Any', rule: 'station coverage, then sunlight' },
+  { id: 'any', label: 'Any', rule: 'station contact, then sunlight' },
   {
     id: 'water-ice',
     label: 'Water ice and volatiles',
-    rule: 'evidence for water ice, then station coverage, then sunlight',
+    rule: 'evidence for water ice, then station contact, then sunlight',
     short: 'water ice',
   },
   {
     id: 'cold-trap',
     label: 'Cold traps (permanent shadow)',
-    rule: 'evidence for cold traps, then station coverage, then sunlight',
+    rule: 'evidence for cold traps, then station contact, then sunlight',
     short: 'cold trap',
   },
-  { id: 'light', label: 'Consistent light', rule: 'share of the mission in sunlight, then the shortest longest darkness, then station coverage' },
+  { id: 'light', label: 'Consistent light', rule: 'share of the mission in sunlight, then the shortest longest darkness, then station contact' },
   {
     id: 'science',
     label: 'Science targets (geology and others)',
-    rule: 'evidence for science targets, then station coverage, then sunlight',
+    rule: 'evidence for science targets, then station contact, then sunlight',
     short: 'science',
   },
 ]
@@ -289,6 +289,29 @@ export function MissionPanel(p: Props) {
     const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
     if (a !== period.startMs || n !== days) p.onDates(a, n)
   }
+  // The calendar fields under the typed ones (phone testers, 15 Nov: a date typed wrongly): the browser's own date
+  // picker, same rules as the typed fields.
+  const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+  const pickStart = (value: string) => {
+    const a = Date.parse(`${value}T00:00:00Z`)
+    if (!Number.isFinite(a)) return
+    if (!inCoverage(a)) return setDateError(RANGE_TEXT)
+    setDateError(null)
+    setStartDraft(null)
+    const n = Math.max(1, Math.min(days, Math.floor((COVERAGE_END_MS - a) / DAY_MS)))
+    if (a !== period.startMs || n !== days) p.onDates(a, n)
+  }
+  const pickEnd = (value: string) => {
+    const b = Date.parse(`${value}T00:00:00Z`)
+    if (!Number.isFinite(b)) return
+    if (!inCoverage(b)) return setDateError(RANGE_TEXT)
+    if (b < period.startMs) return setDateError('End is before Start.')
+    const n = Math.round((b - period.startMs) / DAY_MS) + 1
+    if (n > MAX_DAYS) return setDateError(`A mission can last at most ${MAX_DAYS} days.`)
+    setDateError(null)
+    setEndDraft(null)
+    if (n !== days) p.onDates(period.startMs, n)
+  }
   const commitEnd = () => {
     if (endDraft === null) return
     const b = parseDate(endDraft)
@@ -388,6 +411,12 @@ export function MissionPanel(p: Props) {
             onKeyDown={onEnter(commitEnd)}
           />
         </div>
+        <p className="mp-note mp-pick quiet" data-testid="mp-date-pick">
+          <span>Or pick:</span>
+          <input className="field mono" type="date" aria-label="Pick the start date" data-testid="mp-pick-start" value={isoDay(period.startMs)} min={isoDay(COVERAGE_START_MS)} max={isoDay(COVERAGE_END_MS - DAY_MS)} onChange={(e) => pickStart(e.target.value)} />
+          <span>to</span>
+          <input className="field mono" type="date" aria-label="Pick the end date" data-testid="mp-pick-end" value={isoDay(lastDayMs)} min={isoDay(period.startMs)} max={isoDay(COVERAGE_END_MS - DAY_MS)} onChange={(e) => pickEnd(e.target.value)} />
+        </p>
         <p id="mp-dates-note" className="mp-note quiet" data-testid="mp-dates-note">
           {days} {days === 1 ? 'day' : 'days'}, {ab('UTC', 'Coordinated Universal Time')}, last day included. Changing Start keeps the length.
         </p>
@@ -486,8 +515,8 @@ export function MissionPanel(p: Props) {
               <li>
                 Among the {sites.length} evaluated sites. Slope over {SLOPE_BASELINE} on the {ab('LOLA', 'Lunar Orbiter Laser Altimeter')} 20 m terrain.
                 {goalRow.short && ' Evidence, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown.'} Thresholds: the
-                Find better dates defaults, sunlit at least {TH.minLitPct} %, comms at least {TH.minCoveragePct} %, longest darkness at most{' '}
-                {fmtDuration(TH.maxDarkH)}, longest comms gap at most {fmtDuration(TH.maxGapH)}.
+                Find better dates defaults, sunlit at least {TH.minLitPct} %, station contact at least {TH.minCoveragePct} %, longest darkness at most{' '}
+                {fmtDuration(TH.maxDarkH)}, longest contact gap at most {fmtDuration(TH.maxGapH)}.
               </li>
             )}
           </ul>
@@ -637,7 +666,7 @@ export function MissionPanel(p: Props) {
         </p>
         {stationsOpen && (
           <div id="mp-station-list">
-            <p className="quiet mp-rule">Comms means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
+            <p className="quiet mp-rule">Station contact means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
             <StationChecklist stations={p.stations} ids={p.ids} onToggle={p.onToggleStation} />
           </div>
         )}
@@ -687,6 +716,13 @@ export function MissionPanel(p: Props) {
         </section>
       )}
 
+      {/* Phone testers (15 Nov) looked for a way to apply: every change applies as it is made, Done only closes. */}
+      <p className="mp-done">
+        <span className="quiet">Changes apply as you make them.</span>
+        <button type="button" className="btn" data-testid="mission-done" onClick={onClose}>
+          Done
+        </button>
+      </p>
       <section className="mp-sec mp-bottom" aria-labelledby="mp-this" data-testid="mission-actions">
         <div className="ms-row mp-this">
           <h3 id="mp-this" className="mp-h ms-load">
@@ -783,7 +819,7 @@ function SiteRow({ row, goal, days, full, current, active, orderedByCoverage, ti
               />
               <Fact
                 fact="comms"
-                label="comms"
+                label="station contact"
                 value={fmtPct(s.coveragePct)}
                 status={s.coveragePct >= TH.minCoveragePct ? 'pass' : 'fail'}
                 miss={`below ${TH.minCoveragePct} %`}
@@ -804,14 +840,14 @@ function SiteRow({ row, goal, days, full, current, active, orderedByCoverage, ti
                 <>
                   <Fact
                     fact="gap"
-                    label="longest comms gap"
+                    label="longest contact gap"
                     value={fmtDuration(s.longestGapH)}
                     status={s.longestGapH <= TH.maxGapH ? 'pass' : 'fail'}
                     miss={`over ${fmtDuration(TH.maxGapH)}`}
                     hint={`Longest stretch without line of sight to a selected station. Threshold: at most ${fmtDuration(TH.maxGapH)} (Find better dates default).`}
                   />
                   <Fact fact="earth" label="Earth in view" value={fmtPct(s.earthVisiblePct)} hint="Share of the mission time with Earth above the local horizon. No threshold set." />
-                  {s.unknownPct > 0 && <Fact fact="unknown" label="comms unknown" value={fmtPct(s.unknownPct)} hint="Share of the mission time whose station visibility could not be decided. No threshold set." />}
+                  {s.unknownPct > 0 && <Fact fact="unknown" label="station contact unknown" value={fmtPct(s.unknownPct)} hint="Share of the mission time whose station visibility could not be decided. No threshold set." />}
                 </>
               )}
             </>
@@ -845,7 +881,7 @@ function SiteRow({ row, goal, days, full, current, active, orderedByCoverage, ti
               )}
             </span>
           )}
-          {orderedByCoverage && <span data-fact="then">then by station coverage</span>}
+          {orderedByCoverage && <span data-fact="then">then by station contact</span>}
           {tiedNames.length > 0 && <span data-fact="tie">tied with {tiedNames.join(', ')}</span>}
         </span>
       </span>

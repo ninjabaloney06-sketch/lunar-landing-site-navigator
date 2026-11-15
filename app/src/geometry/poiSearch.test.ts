@@ -309,6 +309,44 @@ describe('searchSites: slope filter', () => {
   })
 })
 
+describe('searchSites: minimum sunlight and station contact (how much, not only whether)', () => {
+  const a = site('a', 0)
+  const b = site('b', 30)
+  const c = site('c', 60)
+  const d = site('d', 90)
+  const rows = [
+    { site: a, summary: sum(80, 30) },
+    { site: b, summary: sum(50, 90) },
+    { site: c, summary: sum(70, 70) },
+    { site: d, summary: null },
+  ]
+
+  it('no minimum (absent or 0): every row meets it, also a row without data', () => {
+    for (const opts of [OPTS, { ...OPTS, minLitPct: 0, minCoveragePct: 0 }]) {
+      const out = searchSites(rows, [], opts)
+      expect(out.every((r) => r.meetsMin && r.passes)).toBe(true)
+      expect(ids(out)).toEqual(['c', 'b', 'a', 'd'])
+    }
+  })
+
+  it('a row below either minimum does not pass, is not ranked and goes last; the bound is inclusive', () => {
+    const out = searchSites(rows, [], { ...OPTS, minLitPct: 70, minCoveragePct: 30 })
+    const by = Object.fromEntries(out.map((r) => [r.siteId, r]))
+    expect(by.a).toMatchObject({ meetsMin: true, passes: true, rank: 2 }) // 80 / 30: coverage exactly at the minimum
+    expect(by.c).toMatchObject({ meetsMin: true, passes: true, rank: 1 }) // 70 / 70: sunlit exactly at the minimum
+    expect(by.b).toMatchObject({ meetsMin: false, passes: false, rank: null, best: false, litPct: 50 })
+    expect(by.d).toMatchObject({ meetsMin: false, passes: false, rank: null }) // no data cannot meet a minimum above 0
+    expect(ids(out).slice(0, 2)).toEqual(['c', 'a'])
+  })
+
+  it('each minimum works alone, and the slope filter still applies with it', () => {
+    expect(ids(searchSites(rows, [], { ...OPTS, minCoveragePct: 80 }).filter((r) => r.meetsMin))).toEqual(['b'])
+    const steep = site('steep', 120, 9)
+    const out = searchSites([{ site: steep, summary: sum(100, 100) }], [], { ...OPTS, minLitPct: 50 })
+    expect(out[0]).toMatchObject({ meetsMin: true, passes: false })
+  })
+})
+
 describe("searchSites: what 'Best' means (defect 5: top picks had Sunlit 0.0 % under 'Both')", () => {
   it("under 'both' a place never lit ranks below a lit one with the same groups nearby, and is never best", () => {
     const dark = site('dark', 0, 1) // a permanently shadowed floor: 0 % sunlit, good coverage

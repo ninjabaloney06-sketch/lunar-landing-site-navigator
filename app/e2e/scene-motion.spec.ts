@@ -444,7 +444,7 @@ test.describe('F3: the camera is exactly at rest once a walk or a fly has ended'
     expect(Math.max(...reads[0].position.map(Math.abs)), 'coordinates of thousands of metres, where one unit in the last place is about 1e-12 m').toBeGreaterThan(1000)
     still(reads, 'walk without easing')
     // A click does the same.
-    await page.mouse.click(780, 430)
+    await page.mouse.dblclick(780, 430) // 15 Nov: a walk needs a double-click
     await frames(page)
     expect((await camera(page)).level).toBe('eye')
     still([await camera(page), ...(await advance(page, 30))], 'walk by a click')
@@ -452,7 +452,7 @@ test.describe('F3: the camera is exactly at rest once a walk or a fly has ended'
     // The same with the easing on: the walk flies, then rests.
     await scene(page, (s) => s.setAnimated(true))
     expect(await terrainAt(page, 640, 600), 'ground ahead').not.toBeNull()
-    await page.mouse.click(640, 600)
+    await page.mouse.dblclick(640, 600)
     await frames(page)
     expect(await scene(page, (s) => s.flying()), 'the eased walk flies').toBe(true)
     await runFly(page)

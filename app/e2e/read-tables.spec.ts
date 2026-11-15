@@ -37,7 +37,7 @@ async function shot(page: Page, el: Locator, name: string) {
 }
 
 async function openDrawer(page: Page) {
-  await page.goto(`${DEMO}&drawer=details`)
+  await page.goto(`${DEMO}&drawer=compare`)
   await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
   const table = page.getByTestId('site-table')
   await table.scrollIntoViewIfNeeded()
@@ -112,9 +112,9 @@ for (const vp of [
       await page.getByTestId('search-open').click()
       const panel = page.getByTestId('search')
       await expect(panel.getByTestId('search-results')).toHaveAttribute('data-ordered', 'true', { timeout: 150_000 })
-      await expect(panel.getByTestId('search-dates')).toContainText('Sunlit and comms are % of the mission dates, 16–29 Aug 2027')
+      await expect(panel.getByTestId('search-dates')).toContainText('Sunlit and station contact are % of the mission dates, 16–29 Aug 2027')
       await expect(panel.getByTestId('search-rule')).toHaveText('Best: top 3 with a chosen point within 20 km and a value above 0 %.')
-      await expect(panel.getByTestId('search-by-hint')).toHaveText('Both: the weaker of sunlit % and comms %.')
+      await expect(panel.getByTestId('search-by-hint')).toHaveText('Both: the weaker of sunlit % and station contact %.')
       await expect(panel.getByRole('radio')).toHaveCount(3)
       const site = panel.locator('li[data-site-id="malapert-massif"]')
       await expect(site.getByTestId('search-select')).toHaveText('Show as landing site')

@@ -482,8 +482,19 @@
 }
 
 .search-go {
-  padding: var(--s-1) 0;
+  margin-top: var(--s-1);
+  padding: var(--s-1) var(--s-3);
   font-size: var(--t-small);
+}
+
+/* "At least" minimums: two short number fields and what they mean. */
+.search-min {
+  align-items: flex-end;
+}
+
+.search-min-hint {
+  flex: 1 1 100%;
+  margin: 0;
 }
 
 @media (max-width: 640px) {

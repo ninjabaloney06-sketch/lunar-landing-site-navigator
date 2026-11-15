@@ -34,6 +34,7 @@ import {
   STEP_MS,
   useHashState,
 } from './state'
+import type { DrawerSection } from './state'
 import { DateMenu } from './views/DateMenu'
 import { Drawer } from './views/Drawer'
 import type { ViewPeriod } from './views/Drawer'
@@ -116,6 +117,11 @@ const CONTEXT_DAYS = 3
 const FLIGHT_STEP_MS = 10 * 60_000
 const FLIGHT_STEP_BIG_MS = 6 * 3_600_000
 type LatLon = { latDeg: number; lonDeg: number }
+// Slope warning on the main screen (team values of 15 Nov, not sourced vehicle limits).
+const SLOPE_WARN_DEG = 8
+const SLOPE_SEVERE_DEG = 15
+// The tabs of the Details drawer (Drawer.tsx): Site details, Dates, Compare.
+const DETAIL_SECTIONS: DrawerSection[] = ['details', 'sources', 'finder', 'compare', 'missions']
 
 /** The answer slot while results load, have no data or fail: never the previous selection's sentence (UX-03). */
 function AnswerPending({ state, siteName }: { state: ResultsState; siteName: string }) {
@@ -153,6 +159,19 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     else if (playing) setSimMode(true)
   }, [playing, leftSite])
   const [webgl, setWebgl] = useState(() => webglAvailable())
+  // First-use hint (feedback of 15 Nov: "not clear what the user can do"): one line of what the main controls do,
+  // shown until the first press or key. Text only, nothing is stored.
+  const [hint, setHint] = useState(true)
+  useEffect(() => {
+    if (!hint) return
+    const off = () => setHint(false)
+    window.addEventListener('pointerdown', off, { once: true })
+    window.addEventListener('keydown', off, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', off)
+      window.removeEventListener('keydown', off)
+    }
+  }, [hint])
   const missionBtn = useRef<HTMLButtonElement>(null)
   const dateBtn = useRef<HTMLButtonElement>(null)
   const viewBtn = useRef<HTMLButtonElement>(null)
@@ -412,6 +431,9 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
   const showPoi = (poi: Poi, groups: PoiGroup[]) => {
     const id = customSiteId(poi.lat, poi.lon)
     const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
+    // A point that cannot be a landing site: the Moon view, turned to the point (whiteboard 15 Nov: "not brought to
+    // the point"; before, the Moon view opened wherever it last was).
+    if (!id) scene.current?.goToPoint(poi.lat, poi.lon)
     patch(id ? { site: id, view: 'site', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
   }
 
@@ -505,7 +527,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
     if (atCursor && ready) {
       parts.push(atCursor.sun.lit ? 'sunlit' : 'dark')
       const c = results.results.coverage[idx]
-      parts.push(c === 'covered' ? 'a selected station in line of sight' : c === 'unknown' ? 'comms unknown' : 'no selected station in line of sight')
+      parts.push(c === 'covered' ? 'a selected station in line of sight' : c === 'unknown' ? 'station contact unknown' : 'no selected station in line of sight')
     }
     return parts.join(', ')
   })()
@@ -521,6 +543,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             view={hs.view}
             sunEl={atCursor ? atCursor.sun.el : null}
             earthEl={atCursor ? atCursor.earth.el : null}
+            sunHidden={atCursor ? !atCursor.sun.lit : false}
+            earthHidden={atCursor ? !atCursor.earth.visible : false}
             flight={flightScene}
             onUnavailable={onUnavailable}
             onPick={onPick}
@@ -535,6 +559,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             pois={visiblePois}
             poiById={poiData.status === 'ready' ? poiData.byId : null}
             onGoToPoi={(poi) => showPoi(poi, [])}
+            siteLabel={hs.name ? `${missionName} landing site` : 'Landing site'}
           />
         ) : (
           <div className="fallback" data-testid="fallback">
@@ -555,6 +580,13 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </div>
         )}
       </div>
+
+      {hint && !inFlight && hs.drawer === null && (
+        <p className="hint" data-testid="hint" role="note">
+          Drag to turn, scroll to zoom, double-click the ground to stand there. The date opens other mission dates; Simulate plays the
+          mission's Sun, Earth and station contact; Details compares sites and dates.
+        </p>
+      )}
 
       <header className="top">
         <div className="place">
@@ -688,6 +720,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                 patch({ period: 'custom', from: startMs, days, t: landingMs })
                 dateBtn.current?.focus()
               }}
+              onFinder={() => {
+                setMenu(null)
+                patch({ drawer: 'finder' })
+              }}
             />
           )}
           {inFlight && menu === null && (
@@ -715,6 +751,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               surfaceStayDays={stayDays}
               onSurfaceStayDays={(days) => patch({ stay: days })}
               surfaceStay={architecture.surfaceStay}
+              missionDays={missionDays}
               returnWindowDays={returnWindowDays}
               onReturnWindowDays={setReturnWindowDays}
               maxTransferDays={hs.tmax}
@@ -763,7 +800,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
-              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station coverage"
+              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station contact"
               onClick={() => patch({ drawer: 'search' })}
             >
               Search
@@ -777,8 +814,8 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-testid="details"
               data-menu-trigger=""
               aria-haspopup="dialog"
-              aria-expanded={hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources' || hs.drawer === 'missions'}
-              title="Better dates, stations, site comparison, power and sources for this site"
+              aria-expanded={DETAIL_SECTIONS.includes(hs.drawer as DrawerSection)}
+              title="Site details, better dates and comparison: three tabs"
               onClick={() => patch({ drawer: 'details' })}
             >
               <Icon name="info" />
@@ -817,19 +854,23 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
       )}
 
       <div className="bottom" hidden={inFlight}>
-        {/* Only when the site fails the slope criterion; passing and unknown are stated in the Mission panel. */}
-        {slope.state === 'fail' && slope.deg !== null && (
-          <p className="slope-warning" data-testid="slope-warning">
+        {/* The slope warning (science lead, 15 Nov 11:50): above 8° a caution, since the slope a lander can take
+            depends on the vehicle; above 15° the harsher one. The 5° project criterion of the ranking and the search
+            is unchanged and stated there. */}
+        {slope.deg !== null && slope.deg > SLOPE_WARN_DEG && (
+          <p className={`slope-warning${slope.deg > SLOPE_SEVERE_DEG ? ' is-severe' : ''}`} data-testid="slope-warning" data-level={slope.deg > SLOPE_SEVERE_DEG ? 'severe' : 'caution'}>
             <Icon name="warning" />
             <span>
-              Landing not recommended: slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°
+              {slope.deg > SLOPE_SEVERE_DEG
+                ? `Landing not recommended: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above ${SLOPE_SEVERE_DEG}°`
+                : `Steep for landing: slope ${fmtDeg(slope.deg)} over ${SLOPE_BASELINE}, above ${SLOPE_WARN_DEG}°. Whether a landing is possible depends on the lander.`}
             </span>
           </p>
         )}
         {/* A custom site: its slope (no Mission panel row shows it) and why its numbers are approximate. */}
         {customReady && (
           <p className="custom-note" data-testid="custom-note">
-            {slope.state !== 'fail' && slope.deg !== null && (
+            {slope.deg !== null && slope.deg <= SLOPE_WARN_DEG && (
               <span data-testid="custom-slope">
                 Slope {fmtDeg(slope.deg)} over {SLOPE_BASELINE}, limit 5°.{' '}
               </span>
@@ -965,9 +1006,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
           </Suspense>
         )}
 
-        {(hs.drawer === 'details' || hs.drawer === 'finder' || hs.drawer === 'sources' || hs.drawer === 'missions') && (
+        {hs.drawer !== null && DETAIL_SECTIONS.includes(hs.drawer) && (
           <Drawer
             section={hs.drawer}
+            onSection={(drawer) => patch({ drawer })}
             site={site}
             customHorizon={customReady?.horizon ?? null}
             period={period}

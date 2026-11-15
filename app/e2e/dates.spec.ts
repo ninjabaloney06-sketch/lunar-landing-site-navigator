@@ -51,8 +51,11 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
     await open(page, `site=${RIDGE}&period=${AUG}`)
     await page.getByTestId('details').click()
     const drawer = page.getByTestId('drawer')
+    // 15 Nov, team request: the date search and the year timeline are the drawer's Dates tab (before: its first two
+    // sections, above Horizon).
+    await page.getByTestId('drawer-tab-dates').click()
     const headings = await drawer.locator('section.drawer-sec > h3').allInnerTexts()
-    expect(headings.slice(0, 3)).toEqual(['Find better dates', 'Year timeline', 'Horizon'])
+    expect(headings).toEqual(['Find better dates', 'Year timeline'])
     expect(headings).not.toContain('Simulation')
 
     const yt = drawer.getByTestId('year-timeline')
@@ -155,7 +158,7 @@ test.describe('U3: Time periods show the current mission and the best computed p
     })()`)) as number[]
     expect(ref.length).toBeGreaterThan(0)
     expect(await rows.evaluateAll((bs) => bs.map((b) => Number(b.getAttribute('data-start'))))).toEqual(ref)
-    await expect(rows.first()).toContainText(/sunlit \d+ % · coverage \d+ %/)
+    await expect(rows.first()).toContainText(/sunlit \d+ % · station contact \d+ %/)
 
     const pick = ref[ref.length > 1 ? 1 : 0]
     await rows.nth(ref.length > 1 ? 1 : 0).click()
@@ -196,7 +199,7 @@ for (const vp of [
     test.setTimeout(120_000)
     await page.setViewportSize(vp)
     await seedMissions(page, [`site=${MASSIF}&period=shackleton-2027-09&name=Massif%20survey`])
-    await open(page, `site=${RIDGE}&period=${AUG}&drawer=details`)
+    await open(page, `site=${RIDGE}&period=${AUG}&drawer=finder`) // the Dates tab
     const yt = page.getByTestId('drawer').getByTestId('year-timeline')
     await expect(yt.getByTestId('year-row').nth(1)).toHaveAttribute('data-state', 'done', { timeout: 60_000 })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
@@ -206,6 +209,7 @@ for (const vp of [
     await page.screenshot({ path: `test-results/dates-drawer-top-${vp.width}.png` })
     await yt.scrollIntoViewIfNeeded()
     await page.screenshot({ path: `test-results/dates-year-timeline-${vp.width}.png` })
+    await page.getByTestId('drawer-tab-site').click() // 15 Nov: the Details drawer has tabs (Site details, Dates, Compare)
     await page.getByTestId('drawer').getByTestId('horizon-strip').evaluate((e) => e.scrollIntoView({ block: 'center' }))
     await page.screenshot({ path: `test-results/dates-horizon-${vp.width}.png` })
   })

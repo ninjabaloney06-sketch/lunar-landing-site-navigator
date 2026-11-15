@@ -2,13 +2,15 @@
 //
 // ORDER of the array searchSites returns (exact rule):
 // (1) rows with passes && share !== null, ranked lexicographically by share > 0 first (a place never lit, or never in
-//     contact, is no answer to "most sunlight and coverage", however many points are near it), then groupsCovered desc, share desc, slopeDeg asc
+//     contact, is no answer to "most sunlight and station contact", however many points are near it), then groupsCovered desc, share desc, slopeDeg asc
 //     (unknown last), nearTotal desc; equal keys share a rank (competition ranking 1, 1, 3) and are listed by siteId.
 //     share comes before nearTotal: nearTotal counts research records, and one feature is often listed by several
 //     catalogues, so it rewards being written about, not being a good place. The flatter slope breaks ties of
 //     equal shares (many places are lit or in contact 100 % of a short mission);
 // (2) then passes && share === null ("no data"), by groupsCovered desc, nearTotal desc, siteId;
-// (3) then rows that fail the slope filter, by groupsCovered desc, nearTotal desc, share desc (null last), siteId.
+// (3) then rows that fail the slope filter or a minimum (minLitPct, minCoveragePct: sunlit % and station contact %
+//     of the mission dates the user asks for at least; a row without that value does not meet a minimum above 0),
+//     by groupsCovered desc, nearTotal desc, share desc (null last), siteId.
 // 'both' = min(litPct, coveragePct): a place is as good as its weaker value, so a place never lit cannot win on
 // coverage alone (the earlier sum ranked 0 % sunlit + 37 % coverage above 30 % + 5 %). No other weighted score.
 // best: among the first BEST_COUNT ranks, and only with share > 0 and at least one chosen point within radiusKm.
@@ -56,6 +58,10 @@ export interface SearchOptions {
   radiusKm: number
   slopeRequired: boolean
   by: ShareBy
+  /** Least sunlit % of the mission dates a place must have; 0 or absent = no minimum. */
+  minLitPct?: number
+  /** Least station contact % of the mission dates a place must have; 0 or absent = no minimum. */
+  minCoveragePct?: number
 }
 
 export interface SearchRow {
@@ -65,7 +71,8 @@ export interface SearchRow {
   nearTotal: number // POIs of the selected groups within radiusKm
   slope: SlopeState
   slopeDeg: number | null
-  passes: boolean // meets the slope filter; always true when slopeRequired is false
+  passes: boolean // meets the slope filter (always, when slopeRequired is false) and both minimums
+  meetsMin: boolean // litPct >= minLitPct and coveragePct >= minCoveragePct (a minimum of 0 is always met)
   litPct: number | null
   coveragePct: number | null
   share: number | null // 'light' → litPct, 'comms' → coveragePct, 'both' → min(litPct, coveragePct); null when a needed value is missing
@@ -80,6 +87,9 @@ function shareOf(by: ShareBy, lit: number | null, cov: number | null): number | 
   if (by === 'comms') return cov
   return lit === null || cov === null ? null : Math.min(lit, cov)
 }
+
+/** A minimum of 0 (or none) is met by every row, also one without the value; a minimum above 0 needs the value. */
+const atLeast = (v: number | null, min: number | undefined) => !min || min <= 0 || (v !== null && v >= min)
 
 /** Lexicographic; every key is "lower is better". 0 = equal on every key (a tie). */
 function compareKeys(a: number[], b: number[]): number {
@@ -107,6 +117,7 @@ export function searchSites(
     for (const g of groups) counts[g] = 0
     const near = poisNear(selected, site.lat, site.lon, opts.radiusKm).filter((p) => p.siteId !== site.id && p.id !== selfPoiId)
     for (const p of near) counts[p.group] = (counts[p.group] ?? 0) + 1
+    const meetsMin = atLeast(r.litPct, opts.minLitPct) && atLeast(r.coveragePct, opts.minCoveragePct)
     return {
       siteId: site.id,
       counts,
@@ -114,7 +125,8 @@ export function searchSites(
       nearTotal: near.length,
       slope: r.slope,
       slopeDeg: r.slopeDeg,
-      passes: !opts.slopeRequired || r.slope === 'pass',
+      passes: (!opts.slopeRequired || r.slope === 'pass') && meetsMin,
+      meetsMin,
       litPct: r.litPct,
       coveragePct: r.coveragePct,
       share: shareOf(opts.by, r.litPct, r.coveragePct),

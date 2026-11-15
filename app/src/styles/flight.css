@@ -1260,3 +1260,25 @@
 .scene.is-picking canvas {
   cursor: crosshair;
 }
+
+/* The energy multiplier on top of the result (as before 15 Nov 06:35): the factor large, then what 1.00x means. */
+.flight-energy {
+  margin: 0 0 var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.flight-factor {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.flight-factor-value {
+  font-size: 1.75rem;
+  line-height: 1.1;
+  color: var(--fg);
+}

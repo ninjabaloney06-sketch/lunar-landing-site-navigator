@@ -1,5 +1,5 @@
 // Find better dates (Track A's finder). Defaults from FINDER_DEFAULTS; every threshold is editable and
-// validated before the search runs (never NaN). Ranked by combined selected-station coverage (spec).
+// validated before the search runs (never NaN). Ranked by combined selected-station contact (spec).
 import { useState } from 'react'
 import { FINDER_DEFAULTS, finder } from '../geometry'
 import type { FinderResult, FinderThresholds } from '../geometry'
@@ -18,14 +18,14 @@ const FIELDS: { key: keyof FinderThresholds; label: string; short: string; hint:
   // whole days: the custom period in the URL only accepts whole days, so "Show" must open exactly what was scored
   { key: 'missionDays', label: 'Mission length (days)', short: 'mission length', hint: 'Your planned surface stay, whole days.', min: 1, max: 60, integer: true },
   { key: 'minLitPct', label: 'Sunlit at least (%)', short: 'sunlit share', hint: 'Any part of the Sun disc above the terrain. Raise for solar power.', min: 0, max: 100 },
-  { key: 'minCoveragePct', label: 'Station coverage at least (%)', short: 'station coverage', hint: 'Line of sight to at least one selected station.', min: 0, max: 100 },
-  { key: 'maxGapH', label: 'Longest coverage gap at most (h)', short: 'coverage gap', hint: 'Longest time with no station in view; your loss-of-signal limit.', min: 0, max: 720 },
+  { key: 'minCoveragePct', label: 'Station contact at least (%)', short: 'station contact', hint: 'Line of sight to at least one selected station.', min: 0, max: 100 },
+  { key: 'maxGapH', label: 'Longest contact gap at most (h)', short: 'contact gap', hint: 'Longest time with no station in view; your loss-of-signal limit.', min: 0, max: 720 },
   { key: 'maxDarkH', label: 'Longest darkness at most (h)', short: 'darkness', hint: 'Longest night the lander must survive on batteries.', min: 0, max: 720 },
 ]
 
 const unitOf = (k: keyof FinderThresholds) => (k === 'missionDays' ? ' days' : k === 'maxGapH' || k === 'maxDarkH' ? ' h' : ' %')
 
-/** "the sunlit share and coverage gap" */
+/** "the sunlit share and contact gap" */
 const joinAnd = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
 
 
@@ -104,7 +104,7 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
     <div className="finder">
       <p className="quiet sec-lead" data-testid="finder-lead">
         Landing between {fmtDate(startMs)} and {fmtDate(latestMs)}, with {n} selected {n === 1 ? 'station' : 'stations'}.
-        Landing times tried every 30 minutes; best station coverage first. Defaults are proposals the science lead
+        Landing times tried every 30 minutes; best station contact first. Defaults are proposals the science lead
         reviews.
       </p>
       <form className="finder-form" onSubmit={submit} noValidate>
@@ -165,7 +165,7 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
                   <tr>
                     <th scope="col">Land between</th>
                     <th scope="col">Sunlit</th>
-                    <th scope="col">Station coverage</th>
+                    <th scope="col">Station contact</th>
                     <th scope="col">Longest gap</th>
                     <th scope="col">
                       <span className="sr-only">Show</span>

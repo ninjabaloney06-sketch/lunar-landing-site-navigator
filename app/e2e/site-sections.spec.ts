@@ -64,8 +64,10 @@ test('order, headings, fixed texts, no internals in summary mode, abbreviations 
   const heads = await s.drawer.locator('h3').allInnerTexts()
   const at = (h: string) => heads.indexOf(h)
   expect(at('Landing site assessment')).toBeGreaterThan(-1)
-  expect(at('Landing site assessment')).toBeLessThan(at('Power and battery estimate'))
-  expect(at('Power and battery estimate')).toBeLessThan(at('Open in NASA tools'))
+  // 15 Nov, team request "settings to the top, graphs to the bottom": the power inputs come before the assessment.
+  expect(at('Power and battery estimate')).toBeGreaterThan(-1)
+  expect(at('Power and battery estimate')).toBeLessThan(at('Landing site assessment'))
+  expect(at('Landing site assessment')).toBeLessThan(at('Open in NASA tools'))
 
   // the three lines of the assessment: verdict with the rule, the deciding value, project criteria
   await expect(s.assess.getByTestId('assess-verdict')).toHaveText('Fails the landing rule: every valid pixel slope in the 100 m radius landing disk ≤ 5.0°.')

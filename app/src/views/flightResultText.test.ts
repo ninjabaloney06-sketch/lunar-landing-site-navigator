@@ -42,8 +42,8 @@ describe('payloadSentence', () => {
   })
   it('an element of the flight short of propellant: no payload figure, the element named', () => {
     const ext = { ...base, verdict: 'extrapolated' as const, maxPayloadKg: 1_154_000, withinCheckedRange: false }
-    expect(payloadSentence(ext, ['ICPS'])).toBe('Max payload: not estimated — ICPS is short of propellant for this flight.')
-    expect(payloadSentence(base, ['ICPS', 'Descent Stage'])).toBe('Max payload: not estimated — ICPS and Descent Stage are short of propellant for this flight.')
+    expect(payloadSentence(ext, ['ICPS'])).toBe('Max payload: not estimated — ICPS is short of propellant for this flight. That limits the mission as planned, not the cargo.')
+    expect(payloadSentence(base, ['ICPS', 'Descent Stage'])).toBe('Max payload: not estimated — ICPS and Descent Stage are short of propellant for this flight. That limits the mission as planned, not the cargo.')
     // the plan's condition ("… short by …"); the Blue Moon lower-bound-only case keeps its own sentence
     const use = (element: string, usedKg: number, capacityKg: number) => ({ element, usedKg, capacityKg })
     expect(shortElementsOf([use('ICPS', 30_500, 29_000), use('Descent Stage', 8_000, 8_248)], null)).toEqual(['ICPS'])

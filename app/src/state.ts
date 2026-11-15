@@ -12,8 +12,10 @@ import { POWER_DEFAULTS, validPower } from './power/power'
 import type { PowerInputs, PowerKey } from './power/power'
 
 // 'search' (site search by nearby POIs) and 'docs' (documentation) are panels of their own, opened from the top bar
-// and the footer; the other three are sections of the details drawer.
-export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs' | 'missions'
+// and the footer; the others are the tabs of the details drawer: 'details' and 'sources' the Site details tab (at its
+// top, or at "How this is computed"), 'finder' the Dates tab, 'compare' and 'missions' the Compare tab (at its top, or
+// at the saved missions).
+export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs' | 'missions' | 'compare'
 
 /** A place the user marked: planetocentric lat/lon in the Moon body-fixed frame (MOON_ME), degrees, east-positive.
  *  It has no horizon file, so nothing is computed for it. */
@@ -63,7 +65,7 @@ export const DEFAULT_SITE_ID = 'connecting-ridge'
 export const DEFAULT_PERIOD_ID = 'shackleton-2027-08'
 
 const VIEWS: SceneLevel[] = ['globe', 'site', 'eye', 'flight']
-const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs', 'missions']
+const DRAWERS: DrawerSection[] = ['details', 'finder', 'sources', 'search', 'docs', 'missions', 'compare']
 const POI_IDS: PoiGroup[] = POI_GROUPS.map((g) => g.id)
 export const GOALS: ScienceGoal[] = ['any', 'water-ice', 'cold-trap', 'light', 'science']
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,80}$/

@@ -1,5 +1,5 @@
 // Site search (U4): which places have the chosen points of interest nearby, can be landed on, and see the most
-// sunlight and station coverage for the mission dates. Candidates: every site of sites.json, plus the POI points
+// sunlight and station contact for the mission dates. Candidates: every site of sites.json, plus the POI points
 // that have a horizon of their own (search-sites.json, terrain track; without it the sites only).
 //
 // Light and comms values are the comparison table's (useSiteRows → data/results.computeRow → summarize), never a
@@ -29,6 +29,11 @@ import { COMMS_HINT, SlopeValue } from './SiteTable'
 const DEFAULT_GROUPS: PoiGroup[] = ['water', 'cold-trap', 'science']
 const DEFAULT_RADIUS_KM = 20
 const RADIUS = { min: 1, max: 200 } // km, input limits
+// "At least" inputs: how much sunlight and station contact a place must have (% of the mission dates); 0 = any.
+const pctOf = (text: string): number | null => {
+  const v = Number(text)
+  return text.trim() !== '' && v >= 0 && v <= 100 ? v : null
+}
 
 // Short names for the nearby counts on each row ("2 shadow"): the group labels are too long for a row of numbers.
 const COUNT_NAME: Record<PoiGroup, string> = {
@@ -40,13 +45,13 @@ const COUNT_NAME: Record<PoiGroup, string> = {
   science: 'science',
 }
 
-// "Both" = min(sunlit, coverage) (geometry/poiSearch): a place is as good as its weaker value.
+// "Both" = min(sunlit, station contact) (geometry/poiSearch): a place is as good as its weaker value.
 const BY: { id: ShareBy; label: string; rule: string }[] = [
-  { id: 'both', label: 'Both', rule: 'the most sunlight and station coverage together (the lower of the two percentages)' },
+  { id: 'both', label: 'Both', rule: 'the most sunlight and station contact together (the lower of the two percentages)' },
   { id: 'light', label: 'Sunlit', rule: 'the most sunlight' },
-  { id: 'comms', label: 'Comms', rule: 'the most comms time' },
+  { id: 'comms', label: 'Station contact', rule: 'the most station contact' },
 ]
-const BY_HINT = 'Both: the weaker of sunlit % and comms %.'
+const BY_HINT = 'Both: the weaker of sunlit % and station contact %.'
 
 interface Props {
   sites: Site[]
@@ -68,6 +73,11 @@ export function SearchPanel(p: Props) {
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM)
   const [slopeRequired, setSlopeRequired] = useState(true)
   const [by, setBy] = useState<ShareBy>('both')
+  const [minLitText, setMinLitText] = useState('0')
+  const [minCovText, setMinCovText] = useState('0')
+  const minLitPct = pctOf(minLitText) ?? 0
+  const minCoveragePct = pctOf(minCovText) ?? 0
+  const minError = pctOf(minLitText) === null || pctOf(minCovText) === null
   const [extra, setExtra] = useState<SearchSite[] | null>(null)
   const [extraError, setExtraError] = useState<string | null>(null)
 
@@ -110,8 +120,8 @@ export function SearchPanel(p: Props) {
       const r = rows[c.site.id]
       return { ...c, summary: r?.status === 'done' ? (r as { summary: Summary }).summary : null }
     })
-    return searchSites(input, pois.pois, { groups, radiusKm, slopeRequired, by })
-  }, [pois, ordered, candidates, rows, groups, radiusKm, slopeRequired, by])
+    return searchSites(input, pois.pois, { groups, radiusKm, slopeRequired, by, minLitPct, minCoveragePct })
+  }, [pois, ordered, candidates, rows, groups, radiusKm, slopeRequired, by, minLitPct, minCoveragePct])
 
   const [full] = useFullData()
   const byId = new Map(candidates.map((c) => [c.site.id, c]))
@@ -124,8 +134,12 @@ export function SearchPanel(p: Props) {
       ? 'Choose at least one kind of point of interest above.'
       : results && !results.some((r) => r.groupsCovered > 0)
         ? `No place has a chosen point of interest within ${radiusKm} km; choose more kinds or a larger distance.`
-        : null
-  const list: SearchRow[] | null = empty ? null : results
+        : results && !results.some((r) => r.meetsMin)
+          ? `No place has at least ${minLitPct} % sunlight and ${minCoveragePct} % station contact for these dates; lower a minimum.`
+          : null
+  // Places below a minimum the user set are not listed; the line under the form says how many.
+  const below = results ? results.filter((r) => !r.meetsMin).length : 0
+  const list: SearchRow[] | null = empty ? null : results && results.filter((r) => r.meetsMin)
   // Summary: what "Best" means in one line. Full data: the whole order rule.
   const bestHint = `Best: top ${BEST_COUNT} with a chosen point within ${radiusKm} km and a value above 0 %.`
   const rule = `${slopeRequired ? 'Places that pass the 5° slope limit first; then ' : 'Order: '}places with a value above 0 (lit and in contact for part of the dates, for "Both"); then most of the chosen groups within ${radiusKm} km, then ${(BY.find((b) => b.id === by) ?? BY[0]).rule} for the mission dates, then the flatter slope, then the most points nearby. The best ${BEST_COUNT} with a point nearby and a value above 0 are marked (more when tied); places without data follow.`
@@ -149,7 +163,7 @@ export function SearchPanel(p: Props) {
             Search sites
           </h2>
           <p className="quiet" data-testid="search-dates">
-            Sunlit and comms are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
+            Sunlit and station contact are % of the mission dates, {fmtRange(period.startMs, period.endMs)} (UTC), with {ids.length} of{' '}
             {stations.length} stations.
           </p>
         </div>
@@ -204,6 +218,46 @@ export function SearchPanel(p: Props) {
             Within: a number from {RADIUS.min} to {RADIUS.max} km. The list uses {radiusKm} km.
           </p>
         )}
+        <div className="search-row search-min" data-testid="search-min">
+          <label className="search-radius">
+            <span className="quiet">Sunlit at least, %</span>
+            <input
+              className="field mono"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={100}
+              step={5}
+              value={minLitText}
+              data-testid="search-min-lit"
+              aria-invalid={pctOf(minLitText) === null}
+              onChange={(e) => setMinLitText(e.target.value)}
+            />
+          </label>
+          <label className="search-radius">
+            <span className="quiet">
+              <span title={COMMS_HINT}>Station contact</span> at least, %
+            </span>
+            <input
+              className="field mono"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={100}
+              step={5}
+              value={minCovText}
+              data-testid="search-min-comms"
+              aria-invalid={pctOf(minCovText) === null}
+              onChange={(e) => setMinCovText(e.target.value)}
+            />
+          </label>
+          <p className="quiet search-min-hint">Share of the mission dates. 0 = any amount.</p>
+        </div>
+        {minError && (
+          <p className="msg is-error" role="alert">
+            At least: a number from 0 to 100 %. An empty or invalid field counts as 0.
+          </p>
+        )}
         <fieldset className="st-pick">
           <legend className="quiet">Rank by</legend>
           {BY.map((b) => (
@@ -231,6 +285,11 @@ export function SearchPanel(p: Props) {
                   ? rule
                   : bestHint}
       </p>
+      {list && below > 0 && (
+        <p className="quiet search-progress" data-testid="search-below">
+          {below} {below === 1 ? 'place is' : 'places are'} below your minimums and not listed.
+        </p>
+      )}
       {extraError && <p className="msg">The extra points did not load; only the {sites.length} listed sites are searched.</p>}
       {empty && (
         <p className="search-empty" data-testid="search-empty">
@@ -284,7 +343,7 @@ export function SearchPanel(p: Props) {
                     Sunlit <span className="mono">{value(r.litPct)}</span>
                   </span>
                   <span className="search-num" data-col="comms">
-                    <span title={COMMS_HINT}>Comms</span> <span className="mono">{value(r.coveragePct)}</span>
+                    <span title={COMMS_HINT}>Station contact</span> <span className="mono">{value(r.coveragePct)}</span>
                   </span>
                   <span className="search-num" data-col="slope">
                     Slope <SlopeValue site={c.site} />
@@ -296,7 +355,7 @@ export function SearchPanel(p: Props) {
                     customSiteId(poi.lat, poi.lon) ? (
                       <button
                         type="button"
-                        className="link search-go"
+                        className="btn search-go"
                         data-testid="search-show"
                         title="Makes this point the mission's landing site and opens the landing-site view"
                         onClick={() => p.onShowPoi(poi, groups)}
@@ -306,7 +365,7 @@ export function SearchPanel(p: Props) {
                     ) : (
                       <button
                         type="button"
-                        className="link search-go"
+                        className="btn search-go"
                         data-testid="search-show"
                         title={`Only places ${REGION_TEXT} can be a landing site; this one opens in the Moon view`}
                         onClick={() => p.onShowPoi(poi, groups)}
@@ -317,7 +376,7 @@ export function SearchPanel(p: Props) {
                   ) : (
                     <button
                       type="button"
-                      className="link search-go"
+                      className="btn search-go"
                       data-testid="search-select"
                       title="Makes this site the mission's landing site and opens the landing-site view"
                       onClick={() => p.onSelectSite(r.siteId, groups)}
@@ -344,7 +403,7 @@ export function SearchPanel(p: Props) {
                       )}
                       {sum && finite(sum.longestGapH) && (
                         <span className="search-num" data-col="gap">
-                          Longest comms gap <span className="mono">{fmtSpanH(sum.longestGapH)}</span>
+                          Longest contact gap <span className="mono">{fmtSpanH(sum.longestGapH)}</span>
                         </span>
                       )}
                       <span className="search-num">

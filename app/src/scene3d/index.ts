@@ -152,6 +152,15 @@ export interface SceneHandle {
   setClickGuard(guard: (() => boolean) | null): void
   /** Flies to a viewpoint; false when it is not available (nothing loaded yet, a fly running, the flight level). */
   goTo(v: Viewpoint): boolean
+  /** Flies the space camera to above a point of the Moon (planetocentric degrees), from any level; ends at 'globe'. */
+  goToPoint(lat: number, lon: number): boolean
+  /**
+   * The app chose another landing site and will deliver its frame when the data is loaded (a custom site's terrain
+   * takes seconds). Until that frame is there, no fly goes down to the site that is still loaded (15 Nov: the camera
+   * waited, then zoomed in on the old site); from space the camera turns to above (lat, lon) meanwhile. null: the
+   * site's data did not load, go on with the site that is loaded.
+   */
+  expectSite(id: string | null, lat?: number, lon?: number): void
   setMarkers(points: ScenePoint[]): void
   /** The site pin or user point under the pointer (hover, or the last tap), with its screen position. */
   named(): SceneName | null
@@ -179,6 +188,16 @@ export function webglAvailable(): boolean {
 // Default site view (ninja, 13 Nov): 17 km out, 16° above the site's horizon, 54° vertical FOV, Sun ~18° left.
 export const SITE_DEFAULT = { distKm: 17, el: 16, fov: 54, sunLeftDeg: 18 }
 const SITE_DIST_KM = { min: 2, max: 60 }
+// A click walks only where the terrain is drawn from the fine model: within 20 km of the site (80 m cells or
+// finer; beyond, 160 m to 2 km means). Farther out the camera stood 1.75 m above a mesh of cells hundreds of metres
+// wide: one smooth ramp filling the picture, reported on 15 Nov as being "shoved under the ground" (measured
+// there: eye 1.75 m above the drawn ground and within 2 m of the data height; the picture, not the height, was
+// wrong).
+const WALK_MAX_KM = 20
+// A walk needs a double-click (two clicks within this time and distance): a single click on the ground used to
+// send the camera off to eye level, which first-time users did by accident (feedback of 15 Nov).
+const DOUBLE_CLICK_MS = 450
+const DOUBLE_CLICK_PX = 12
 const GLOBE_DIST_KM = { min: 3000, max: 20000, default: 6500 }
 const EYE_DEFAULT_EL = 3
 const EYE_FOV_MIN = 4 // narrowest lens at eye level, vertical degrees; the widest is the default field of view
@@ -1319,6 +1338,34 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     return true
   }
 
+  /** The space camera to above (lat, lon): at the distance it has in space, the default one from the surface. */
+  function goToPoint(lat: number, lon: number, animate = animated): boolean {
+    if (!frame || !sky || !globe || fly || level === 'flight') return false
+    const dist = level === 'globe' ? globeCam.position.length() : GLOBE_DIST_KM.default
+    flyInSpace(() => setGlobeView(lat, lon, dist), animate)
+    return true
+  }
+
+  function expectSite(id: string | null, lat?: number, lon?: number) {
+    // The first frame is not waited for here (setLevel keeps the request until it comes, and applies it without a fly).
+    if (!frame?.site) return
+    if (id === null || frame.site.id === id) {
+      // Nothing (more) to wait for: a level asked for meanwhile is applied now, or by the fly that is running.
+      if (!awaiting) return
+      awaiting = null
+      if (wanted && !fly) setLevel(wanted)
+      return
+    }
+    awaiting = { id, until: Infinity }
+    // From space the wait is spent turning to above the new site, so the descent starts over the right place.
+    if (level === 'globe' && !fly && animated && globe && sky && lat !== undefined && lon !== undefined) {
+      const keep = wanted
+      const dist = globeCam.position.length()
+      flyInSpace(() => setGlobeView(lat, lon, dist), true)
+      wanted = keep
+    }
+  }
+
   function setLevel(next: SceneLevel, animate = animated) {
     // C2 may ask for 'site' before the first frame or while a fly runs: remember it and apply it then.
     if ((!frame?.site && next !== 'globe' && next !== 'flight') || fly) {
@@ -1665,6 +1712,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // A click is a press of the main button (or one finger) that moved less than 5 px. On the globe it selects
   // the pin under it; at site and eye level it walks to the terrain point under it.
   let down: { x: number; y: number } | null = null
+  let lastClick: { t: number; x: number; y: number } | null = null
   let fingers = 0
   const toNdc = (clientX: number, clientY: number) => {
     const r = canvas.getBoundingClientRect()
@@ -1710,8 +1758,13 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     }
     // A click on a point of interest's pin belongs to the page (its info box): it is not a walk.
     if (nameAt(ndc)?.kind === 'poi') return
+    // Walk: a double-click (or double tap) on terrain within WALK_MAX_KM of the site.
+    const now = performance.now()
+    const second = lastClick !== null && now - lastClick.t < DOUBLE_CLICK_MS && Math.hypot(e.clientX - lastClick.x, e.clientY - lastClick.y) < DOUBLE_CLICK_PX
+    lastClick = second ? null : { t: now, x: e.clientX, y: e.clientY }
+    if (!second) return
     const spot = site.pick(ndc, siteCam)
-    if (spot) walkTo(spot.x, spot.y)
+    if (spot && Math.hypot(spot.x, spot.y) <= WALK_MAX_KM * 1000) walkTo(spot.x, spot.y)
   }
   const onCancel = (e: PointerEvent) => {
     if (e.pointerType === 'touch') fingers = Math.max(0, fingers - 1)
@@ -1807,6 +1860,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       clickGuard = guard
     },
     goTo: (v) => goTo(v),
+    goToPoint: (lat, lon) => goToPoint(lat, lon),
+    expectSite,
     setMarkers(points) {
       markers = points
       placeMarkers()
@@ -2011,7 +2066,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         site.setEyeMode(eyeTerrain()) // the terrain drawn at this level (render() does the same)
         const p = siteCam.position
         const drawn = site.drawnZ(p.x, p.y)
-        return { level, position: p.toArray(), drawn, ground: site.groundZ(p.x, p.y), clearance: drawn === null ? null : p.z - drawn }
+        const data = site.dataZ(p.x, p.y)
+        return { level, position: p.toArray(), drawn, ground: site.groundZ(p.x, p.y), clearance: drawn === null ? null : p.z - drawn, overData: data === null ? null : p.z - data }
+      },
+      drawnAt(x, y) {
+        site.setEyeMode(eyeTerrain())
+        return { drawn: site.drawnZ(x, y), ground: site.groundZ(x, y), data: site.dataZ(x, y) }
       },
       capInfo: () => globe?.capInfo() ?? null,
       globeHit(x, y) {

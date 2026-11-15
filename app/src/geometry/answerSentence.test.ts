@@ -120,7 +120,7 @@ describe('answerSentence: proposed case (a), no change before the period ends', 
   })
 })
 
-describe('answerSentence: proposed case (b), comms unknown', () => {
+describe('answerSentence: proposed case (b), station contact unknown', () => {
   it('reads as unknown, never as contact', () => {
     const line = with_({ comms: 'unknown' }).comms
     expect(line).toBe('Station contact unknown: link inputs are missing.')
