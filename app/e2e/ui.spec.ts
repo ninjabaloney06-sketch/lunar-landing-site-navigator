@@ -101,6 +101,7 @@ for (const vp of VIEWPORTS) {
     await noHorizontalScroll(page)
     // All stations selected by default (the checklist lives in the Mission panel since Brief C3).
     await page.getByTestId('mission').click()
+    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "n of m stations" (U2)
     await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount((await stationIds(page)).length)
   })
 

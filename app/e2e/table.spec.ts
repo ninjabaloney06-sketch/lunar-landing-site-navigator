@@ -277,6 +277,7 @@ test.describe('saved missions', () => {
     await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
     await expect(page.getByTestId('date')).toHaveAttribute('data-period-id', 'shackleton-2027-09')
     await expect(page.getByTestId('mission-panel').getByRole('radio', { name: 'Cold traps (permanent shadow)' })).toBeChecked()
+    await page.getByTestId('mission-panel').getByTestId('stations-toggle').click() // folded to "n of m stations" (U2)
     await expect(page.getByTestId('mission-panel').getByRole('checkbox', { checked: true })).toHaveCount(2)
     await expect(page.getByTestId('mission-panel').getByTestId('add-mission')).toBeDisabled() // it is the saved one
     // Remove one: gone from the panel, and after a reload from the table too.

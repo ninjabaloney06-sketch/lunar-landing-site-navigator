@@ -1,12 +1,13 @@
 // Mission panel (Step 2-UI; paper pages 2340–2342): the paper's field order — Name, Start, End, Science goal,
-// Landing site, Ground stations, Play mission. The landing sites are ranked for this mission's own dates,
+// Landing site, Ground stations — with Play mission in the header and Add mission at the bottom (U2). Folded until
+// asked for: the site list (opens on typing, or as the full ranking), the ground-station checklist. The landing sites are ranked for this mission's own dates,
 // stations and goal by geometry/rankSites; every row shows the values it was ranked by. Grown from the C2 site
 // menu: its search, which also accepts typed coordinates. Typed coordinates can be added as a user point (Brief
 // C4 part 3): a name, a place and a role, never numbers. A user point has no horizon file, and nothing is
 // computed for it with a flat horizon or a neighbour's. Inside the pin region, typed coordinates and a user point
 // can instead become the landing site ("Set as landing site": a custom site, data/customSite.ts), whose numbers
 // are then computed like any site's.
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Period, Site, Station } from '../data/types'
 import { MAX_MISSIONS, missionKey } from '../missions'
 import type { MissionState } from '../missions'
@@ -49,6 +50,8 @@ export const GOALS: { id: ScienceGoal; label: string; rule: string; short?: stri
     short: 'science',
   },
 ]
+
+const PLAY_NOTE = 'Eye level at the landing site, from the first to the last mission day. Space pauses.'
 
 // Shown under an unlabelled site's name; a site's own label (e.g. "Blue Moon MK1 target") takes its place.
 const GROUP_TEXT: Record<Site['group'], string> = {
@@ -114,6 +117,7 @@ export function MissionPanel(p: Props) {
   // null = not editing: the field shows the current site's name and no list (U1). Typing shows the matching sites.
   const [query, setQuery] = useState<string | null>(null)
   const [rankingOpen, setRankingOpen] = useState(false) // the full ranked list, opened on purpose
+  const [stationsOpen, setStationsOpen] = useState(p.focusStations) // folded to "n of m stations" (U2)
   const [pointDraft, setPointDraft] = useState<{ i: number; text: string } | null>(null) // the name being typed
   const [activeId, setActiveId] = useState<string | null>(site.id) // keyboard row; null = first row (after typing)
 
@@ -123,6 +127,16 @@ export function MissionPanel(p: Props) {
       stationsRef.current.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true })
     } else closeBtn.current?.focus({ preventScroll: true })
     // on open only
+  }, [])
+
+  // The panel ends above the answer sentence: its height is measured from where it opens, not a fixed guess.
+  useLayoutEffect(() => {
+    const el = root.current
+    if (!el) return
+    const place = () => el.style.setProperty('--mp-top', `${Math.max(0, el.getBoundingClientRect().top)}px`)
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
   }, [])
 
   const { onClose } = p
@@ -196,6 +210,14 @@ export function MissionPanel(p: Props) {
   }
 
   const full = p.points.length >= MAX_POINTS
+  // Stable row keys without an id in the data: the place, plus a counter for the same place added twice.
+  const seenPlaces = new Map<string, number>()
+  const pointKeys = p.points.map((pt) => {
+    const at = `${pt.lat},${pt.lon}`
+    const n = seenPlaces.get(at) ?? 0
+    seenPlaces.set(at, n + 1)
+    return `${at}#${n}`
+  })
   const addTyped = () => {
     if (coords.kind !== 'ok' || full) return
     p.onAddPoint(coords.lat, coords.lon)
@@ -271,6 +293,12 @@ export function MissionPanel(p: Props) {
         <h2 id="mission-title" className="mp-title">
           Mission
         </h2>
+        <button type="button" className="btn mp-play" aria-describedby="mp-play-note" title={PLAY_NOTE} onClick={p.onPlay}>
+          Play mission
+        </button>
+        <span id="mp-play-note" className="sr-only">
+          {PLAY_NOTE}
+        </span>
       </div>
 
       <div className="mp-fields">
@@ -326,53 +354,7 @@ export function MissionPanel(p: Props) {
             {dateError}
           </p>
         )}
-        <div className="mp-save">
-          <button type="button" className="btn" data-testid="add-mission" disabled={p.missionSaved || p.missions.length >= MAX_MISSIONS} onClick={p.onAddMission}>
-            Add mission
-          </button>
-          <span className="quiet" aria-live="polite">
-            {p.missionSaved
-              ? 'Saved in this browser.'
-              : p.missions.length >= MAX_MISSIONS
-                ? `At most ${MAX_MISSIONS} saved missions.`
-                : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
-          </span>
-        </div>
       </div>
-
-      {p.missions.length > 0 && (
-        <section className="mp-sec" aria-labelledby="mp-missions" data-testid="saved-missions">
-          <h3 id="mp-missions" className="mp-h">
-            Saved missions
-          </h3>
-          <ul className="plain">
-            {p.missions.map((m) => {
-              const key = missionKey(m)
-              const name = m.name ?? DEFAULT_MISSION_NAME
-              // null = the default site, as in a link (App and the mission table resolve it the same way)
-              const where =
-                sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID))?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : 'unknown site')
-              return (
-                <li key={key} className="ms-row" data-mission={key}>
-                  <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
-                    {name}
-                  </button>
-                  <button type="button" className="mp-close ms-del" aria-label={`Remove ${name}`} onClick={() => p.onRemoveMission(key)}>
-                    ×
-                  </button>
-                  <span className="quiet ms-what">
-                    {where} · {resolvePeriod(m, p.periods).label}
-                  </span>
-                  <span className="quiet ms-what">{flightSummary(m)}</span>
-                  <button type="button" className="link ms-flight" data-testid="panel-calculate-flight" onClick={() => p.onCalculateFlight(m)}>
-                    Calculate flight
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
 
       <fieldset className="mp-sec mp-goals">
         <legend className="mp-h">Science goal</legend>
@@ -388,11 +370,6 @@ export function MissionPanel(p: Props) {
         <h3 id="mp-sites" className="mp-h">
           Landing site
         </h3>
-        <p className="quiet mp-rule">
-          Best among the {sites.length} evaluated sites for this mission first, by {goalRow.rule}.
-          {goalRow.short && ' Evidence, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown.'} Slope over{' '}
-          {SLOPE_BASELINE} on the LOLA 20 m terrain; passing the 5° slope limit alone does not establish landing safety.
-        </p>
         <div className="menu-search">
           <input
             className="field"
@@ -467,6 +444,13 @@ export function MissionPanel(p: Props) {
           </span>
           All {sites.length} sites, ranked for this mission
         </button>
+        {showList && (
+          <p className="quiet mp-rule">
+            Best among the {sites.length} evaluated sites for this mission first, by {goalRow.rule}.
+            {goalRow.short && ' Evidence, best first: direct measurement, remote observation, modeled condition, hypothesis, unknown.'} Slope over{' '}
+            {SLOPE_BASELINE} on the LOLA 20 m terrain; passing the 5° slope limit alone does not establish landing safety.
+          </p>
+        )}
         <p className="menu-msg is-quiet mp-progress" aria-live="polite">
           {showList && computing > 0 ? `Computing ${sites.length - computing} of ${sites.length} sites for these dates…` : ''}
         </p>
@@ -504,7 +488,7 @@ export function MissionPanel(p: Props) {
               const name = pointName(pt, i)
               const selected = p.selectedPoint === i
               return (
-                <li key={i} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point" data-role={pt.role ?? ''}>
+                <li key={pointKeys[i]} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point" data-role={pt.role ?? ''}>
                   <input
                     className="field pt-name"
                     type="text"
@@ -576,21 +560,79 @@ export function MissionPanel(p: Props) {
 
       <section ref={stationsRef} className="mp-sec" aria-labelledby="mp-stations">
         <h3 id="mp-stations" className="mp-h">
-          Ground stations
+          <button
+            type="button"
+            className="link mp-disclose mp-sum"
+            aria-expanded={stationsOpen}
+            aria-controls="mp-station-list"
+            data-testid="stations-toggle"
+            onClick={() => setStationsOpen((v) => !v)}
+          >
+            <span className="mp-chev" aria-hidden="true">
+              {stationsOpen ? '▾' : '▸'}
+            </span>
+            Ground stations
+            <span className="mp-sum-val">
+              {p.ids.length} of {p.stations.length} stations
+            </span>
+          </button>
         </h3>
-        <p className="quiet mp-rule">Comms means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
-        <StationChecklist stations={p.stations} ids={p.ids} onToggle={p.onToggleStation} />
+        {stationsOpen && (
+          <div id="mp-station-list">
+            <p className="quiet mp-rule">Comms means geometric line of sight to at least one selected station, not a guaranteed radio link.</p>
+            <StationChecklist stations={p.stations} ids={p.ids} onToggle={p.onToggleStation} />
+          </div>
+        )}
       </section>
 
-      <section className="mp-sec mp-play" aria-labelledby="mp-play">
-        <h3 id="mp-play" className="sr-only">
-          Play mission
-        </h3>
-        <button type="button" className="btn" onClick={p.onPlay}>
-          Play mission
-        </button>
-        <p className="quiet">Eye level at the landing site, from the first to the last mission day. Space pauses.</p>
-      </section>
+      {p.missions.length > 0 && (
+        <section className="mp-sec" aria-labelledby="mp-missions" data-testid="saved-missions">
+          <h3 id="mp-missions" className="mp-h">
+            Saved missions
+          </h3>
+          <ul className="plain">
+            {p.missions.map((m) => {
+              const key = missionKey(m)
+              const name = m.name ?? DEFAULT_MISSION_NAME
+              // null = the default site, as in a link (App and the mission table resolve it the same way)
+              const where =
+                sites.find((s) => s.id === (m.site ?? DEFAULT_SITE_ID))?.name ?? (m.site && parseCustomSiteId(m.site) ? CUSTOM_SITE_NAME : 'unknown site')
+              return (
+                <li key={key} className="ms-row" data-mission={key}>
+                  <button type="button" className="link ms-load" onClick={() => p.onLoadMission(m)}>
+                    {name}
+                  </button>
+                  <button type="button" className="mp-close ms-del" aria-label={`Remove ${name}`} onClick={() => p.onRemoveMission(key)}>
+                    ×
+                  </button>
+                  <span className="quiet ms-what">
+                    {where} · {resolvePeriod(m, p.periods).label}
+                  </span>
+                  <span className="quiet ms-what">{flightSummary(m)}</span>
+                  <button type="button" className="link ms-flight" data-testid="panel-calculate-flight" onClick={() => p.onCalculateFlight(m)}>
+                    Calculate flight
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
+      <div className="mp-sec mp-bottom">
+        <div className="mp-save">
+          <button type="button" className="btn" data-testid="add-mission" disabled={p.missionSaved || p.missions.length >= MAX_MISSIONS} onClick={p.onAddMission}>
+            Add mission
+          </button>
+          <span className="quiet" aria-live="polite">
+            {p.missionSaved
+              ? 'Saved in this browser.'
+              : p.missions.length >= MAX_MISSIONS
+                ? `At most ${MAX_MISSIONS} saved missions.`
+                : 'Keeps name, site, dates, stations, goal, launchpad, rocket and stay in this browser.'}
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
