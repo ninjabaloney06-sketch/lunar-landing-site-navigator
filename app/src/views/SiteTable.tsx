@@ -1,7 +1,7 @@
 // Comparison table for all sites (notebook notes 2, 7, 13, 15): every site in sites.json once, with the light
 // values, the comms values or both, for the mission's dates or for a whole year from its first day. "Find better
 // location" puts the rows in geometry/rankSites order for the mission's science goal; "Find better dates" on a
-// row opens the finder for that site. Saved missions follow as rows with their own site, dates and stations.
+// row opens the finder for that site (not on the current site's row: the drawer's own search above is that one). Saved missions follow as rows with their own site, dates and stations.
 // Checked rows show their sunlit windows on one time axis.
 //
 // Every value is summarize() or windows() on a computeSeries() series (data/results.computeRow). A site
@@ -18,13 +18,15 @@ import type { MissionState } from '../missions'
 import { COVERAGE_END_MS, DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { GOALS } from './MissionPanel'
-import { capital, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
+import { capital, fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, fmtRange } from './format'
 import { flightSummary } from './flightSummary'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
 import { customHorizon, customSiteBase } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
+import { useFullData } from './advanced'
+import { FullDataSwitch } from './FullDataSwitch'
 import type { RowEntry } from './useSiteRows'
 
 const YEAR_DAYS = 365
@@ -73,6 +75,42 @@ function yearSpan(startMs: number): { startMs: number; endMs: number } {
   return { startMs: a, endMs: a + YEAR_DAYS * DAY_MS }
 }
 
+// Full data mode (U8): every value summarize() gives, beside the decision values the chosen columns show.
+const ALL_VALUES: { key: string; head: string; get: (s: Summary) => string; v: (s: Summary) => number }[] = [
+  { key: 'lit', head: 'Sunlit', get: (s) => fmtPct(s.litPct), v: (s) => s.litPct },
+  { key: 'comms', head: 'Station coverage', get: (s) => fmtPct(s.coveragePct), v: (s) => s.coveragePct },
+  { key: 'dark', head: 'Longest darkness', get: (s) => fmtHours(s.longestDarkH), v: (s) => s.longestDarkH },
+  { key: 'gap', head: 'Longest coverage gap', get: (s) => fmtHours(s.longestGapH), v: (s) => s.longestGapH },
+  { key: 'earth', head: 'Earth above horizon', get: (s) => fmtPct(s.earthVisiblePct), v: (s) => s.earthVisiblePct },
+]
+
+/** The values the chosen columns do not show, plus slope and source: one line under the row's name. */
+function FullLine({ entry, shown, site }: { entry: RowEntry | undefined; shown: string[]; site: Site | null }) {
+  const sum = entry?.status === 'done' ? entry.summary : null
+  const slope = site && typeof site.slope_deg === 'number' && Number.isFinite(site.slope_deg) ? fmtDeg(site.slope_deg) : 'no data'
+  return (
+    <span className="th-sub st-full" data-testid="st-full">
+      {sum &&
+        ALL_VALUES.filter((x) => !shown.includes(x.key) && Number.isFinite(x.v(sum))).map((x) => (
+          <span key={x.key} data-col={`full-${x.key}`}>
+            {x.head} <span className="mono">{x.get(sum)}</span> ·{' '}
+          </span>
+        ))}
+      <span>
+        Slope <span className="mono">{slope}</span>
+      </span>
+      {site?.source_url && (
+        <>
+          {' · '}
+          <a href={site.source_url} target="_blank" rel="noreferrer">
+            {site.source_label || 'source'}
+          </a>
+        </>
+      )}
+    </span>
+  )
+}
+
 function Cell({ entry, get }: { entry: RowEntry | undefined; get: (s: Summary) => string }) {
   if (!entry || entry.status === 'computing') return <span className="quiet">…</span>
   if (entry.status === 'none') return <span className="quiet">no data</span>
@@ -85,6 +123,7 @@ export function SiteTable(p: Props) {
   const [span, setSpan] = useState<Span>('mission')
   const [ranked, setRanked] = useState(false)
   const [graphed, setGraphed] = useState<string[]>([site.id])
+  const [full] = useFullData()
 
   const year = p.wholeYear && span === 'year'
   const dates = year ? yearSpan(period.startMs) : { startMs: period.startMs, endMs: period.endMs }
@@ -107,10 +146,19 @@ export function SiteTable(p: Props) {
 
   return (
     <div className="site-table" data-testid="site-table" data-span={year ? 'year' : 'mission'} data-ranked={useRank ? 'true' : 'false'}>
-      <p className="quiet">
-        {year ? `${YEAR_DAYS} days from the mission's first day` : 'Mission dates'}: {fmtRange(dates.startMs, dates.endMs)}, UTC.{' '}
-        {ids.length} of {stations.length} stations selected.{!VALIDATED && ` ${capital(NOT_VALIDATED)}.`}
-      </p>
+      <div className="st-head">
+        <p className="quiet">
+          {year ? `${YEAR_DAYS} days from the mission's first day` : 'Mission dates'}: {fmtRange(dates.startMs, dates.endMs)}, UTC.{' '}
+          {ids.length} of {stations.length} stations selected.{!VALIDATED && ` ${capital(NOT_VALIDATED)}.`}
+        </p>
+        <FullDataSwitch />
+      </div>
+      {full && (
+        <p className="quiet" data-testid="st-method">
+          Method: every value is computed from the terrain horizon of each site and the Sun and station positions over these
+          dates (see "How this is computed" below); a site without a horizon file shows "no data".
+        </p>
+      )}
       <div className="st-controls">
         <fieldset className="st-pick">
           <legend className="quiet">Columns</legend>
@@ -168,10 +216,14 @@ export function SiteTable(p: Props) {
                   {useRank && r?.rank != null && <span className="st-rank mono">{r.rank} </span>}
                   <span className="st-name">{s.name}</span>
                   {useRank && r?.slope === 'fail' && r.slopeDeg !== null && <span className="th-sub">slope {fmtDeg(r.slopeDeg)} — too steep</span>}
-                  {useRank && r?.slope === 'unknown' && <span className="th-sub">slope unknown</span>}
-                  <button type="button" className="link st-find" onClick={() => p.onFindDates(s.id)}>
-                    Find better dates
-                  </button>
+                  {useRank && r?.slope === 'unknown' && <span className="th-sub">slope: no data</span>}
+                  {full && <FullLine entry={rows[s.id]} shown={values.map((v) => v.key)} site={s} />}
+                  {/* The current site's dates are searched at the top of this drawer; the row link only switches to another site. */}
+                  {s.id !== site.id && (
+                    <button type="button" className="link st-find" onClick={() => p.onFindDates(s.id)}>
+                      Find better dates
+                    </button>
+                  )}
                 </th>
                 {values.map((v) => (
                   <td key={v.key} className="mono st-num" data-col={v.key}>
@@ -205,6 +257,7 @@ export function SiteTable(p: Props) {
                 periods={p.periods}
                 stations={stations}
                 values={values}
+                full={full}
                 onCalculateFlight={() => p.onCalculateFlight(m)}
               />
             ))}
@@ -228,6 +281,7 @@ function MissionRow(p: {
   periods: Period[]
   stations: Station[]
   values: (typeof VALUES)[Columns]
+  full: boolean
   onCalculateFlight(): void
 }) {
   const { mission: m, sites, stations } = p
@@ -261,9 +315,11 @@ function MissionRow(p: {
       <th scope="row">
         <span className="st-name">{m.name ?? DEFAULT_MISSION_NAME}</span>
         <span className="th-sub">
-          {site ? site.name : 'unknown site'} · {period.label}
+          {/* A custom site carries the mission's name in the header; here its position says where it is. */}
+          {site ? (site.group === 'custom' ? fmtCoords(site.lat, site.lon) : site.name) : 'unknown site'} · {period.label}
         </span>
         {state.key === key && state.approx && <span className="th-sub">{state.approx}</span>}
+        {p.full && <FullLine entry={entry} shown={p.values.map((v) => v.key)} site={site} />}
         <span className="th-sub" data-testid="mission-flight">
           {flightSummary(m)}
         </span>

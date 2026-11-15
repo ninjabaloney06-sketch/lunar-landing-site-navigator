@@ -682,6 +682,13 @@
   font-size: var(--t-small);
 }
 
+@media (max-width: 640px) {
+  .st-flight {
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+  }
+}
+
 .ms-flight {
   grid-column: 1 / -1;
   justify-self: start;

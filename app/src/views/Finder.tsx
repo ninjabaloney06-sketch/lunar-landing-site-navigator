@@ -7,8 +7,9 @@ import { loadMonthsFor } from '../data/load'
 import { finderInputs } from '../data/results'
 import type { Site, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
-import { COVERAGE_END_MS, DAY_MS } from '../state'
-import { capital, fmtDay, fmtHours, fmtPct, fmtShort } from './format'
+import { DAY_MS } from '../state'
+import { capital, fmtDate, fmtHours, fmtPct, fmtShort } from './format'
+import { landingSpan } from './finderSpan'
 
 const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: number; integer?: true }[] = [
   // whole days: the custom period in the URL only accepts whole days, so "Show" must open exactly what was scored
@@ -19,7 +20,6 @@ const FIELDS: { key: keyof FinderThresholds; label: string; min: number; max: nu
   { key: 'maxDarkH', label: 'Longest darkness at most, h', min: 0, max: 720 },
 ]
 
-const SEARCH_DAYS = 60
 
 /** Landing times are candidates 6 h apart and the window's end is the LAST qualifying landing time
  *  (inclusive), so fmtRange (exclusive end) would drop or add a day. "16 Aug 2027, 18:00 UTC" for one
@@ -49,7 +49,9 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
   const typedDays = Number(values.missionDays)
   const daysForRange =
     Number.isInteger(typedDays) && typedDays >= 1 && typedDays <= 60 ? typedDays : FINDER_DEFAULTS.missionDays
-  const latestMs = Math.min(fromMs + SEARCH_DAYS * DAY_MS, COVERAGE_END_MS - daysForRange * DAY_MS)
+  // Never empty, never ending before it starts (the mission may start less than one mission length before the
+  // end of the data coverage: then the span moves back to the last landing that fits).
+  const { startMs, latestMs } = landingSpan(fromMs, daysForRange)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,13 +67,14 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
     if (errs.length) return
     setRun({ status: 'running' })
     try {
-      const months = await loadMonthsFor(fromMs, latestMs + t.missionDays * DAY_MS)
+      const span = landingSpan(fromMs, t.missionDays)
+      const months = await loadMonthsFor(span.startMs, span.latestMs + t.missionDays * DAY_MS)
       if (!months) {
         setRun({ status: 'message', text: 'This build has no ephemeris for these dates yet, so the finder cannot run.' })
         return
       }
       const { geo, horizon } = await finderInputs(site)
-      const result = finder(months, geo, horizon, stations, ids, fromMs, latestMs, t)
+      const result = finder(months, geo, horizon, stations, ids, span.startMs, span.latestMs, t)
       setRun({ status: 'done', result, t })
     } catch (err) {
       setRun({
@@ -84,7 +87,7 @@ export function Finder({ site, stations, ids, fromMs, onShow }: Props) {
   return (
     <div className="finder">
       <p className="quiet">
-        Landing between {fmtDay(fromMs)} and {fmtDay(latestMs)} {new Date(latestMs).getUTCFullYear()}, with the stations selected above.
+        Landing between {fmtDate(startMs)} and {fmtDate(latestMs)}, with the selected stations.
       </p>
       <form className="finder-form" onSubmit={submit} noValidate>
         {FIELDS.map((f) => (

@@ -322,9 +322,10 @@
   gap: var(--s-3);
 }
 
+/* Rank in its own narrow column: a long name wraps under itself, never pushes the rank onto a line of its own. */
 .search-item-name {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 2.2ch minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s-2);
   min-width: 0;
@@ -337,7 +338,24 @@
   color: var(--muted);
 }
 
+.search-item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.search-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.search-empty {
+  margin: var(--s-3) 0;
+}
+
 .search-best {
+  margin-left: var(--s-2);
+  white-space: nowrap;
   font-size: var(--t-small);
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -359,11 +377,14 @@
   color: var(--muted);
 }
 
-.search-count {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.search-count .mono {
   color: var(--fg);
+}
+
+.search-item > .search-item-facts,
+.search-item > .search-item-sub,
+.search-item-full {
+  padding-left: calc(2.2ch + var(--s-2));
 }
 
 .search-num .mono {
