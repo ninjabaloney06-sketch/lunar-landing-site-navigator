@@ -827,7 +827,11 @@ function MissionResult({ plan, onSeek }: MissionResultProps) {
   const facts: Fact[] = [
     ['launch', 'Launch', [fmtUtc(plan.launchMs)]],
     ['azimuth', 'Launch azimuth', [`${f.launchAzimuthDeg.toFixed(1)}° (inertial)`]],
-    ['parking', 'Parking orbit', [`${int(f.parkingPerigeeKm)} × ${int(f.parkingApogeeKm)} km, inclined ${f.parkingInclDeg.toFixed(1)}°`]],
+    ['parking', 'Parking orbit', [
+      `${int(f.parkingPerigeeKm)} × ${int(f.parkingApogeeKm)} km, inclined ${f.parkingInclDeg.toFixed(1)}°`,
+      // New physics (15 Nov 2026): the Artemis I parking orbit of SLS Block 1 carries its own marker until the science lead signs it.
+      ...(plan.unvalidated ?? []).map((u) => `${u.what}: ${u.text}`),
+    ]],
     ...losses,
     ['transfer', 'Translunar flight', [days(f.transferDays, 2)]],
     ['moon', 'Moon at arrival', [fmtKm(f.moonDistKm)]],

@@ -89,7 +89,7 @@ interface PlanSums {
 function sumsOf(plan: MissionPlan): PlanSums {
   const burns = plan.events.filter((e) => e.kind === 'burn' && e.dvKms !== null)
   const capsule = burns
-    .filter((e) => e.craft === 'capsule' && e.id !== 'ascent' && e.id !== 'tli' && e.dvKms! >= 0.0005)
+    .filter((e) => e.craft === 'capsule' && e.id !== 'ascent' && e.id !== 'tli' && e.id !== 'prm' && e.dvKms! >= 0.0005)
     .map((e) => ({ name: burnName(e), dvKms: e.dvKms! }))
   const sum = (ids: string[]) => burns.filter((e) => ids.includes(e.id)).reduce((s, e) => s + e.dvKms!, 0)
   const down = sum(['lander-nrd', 'lander-loi'])

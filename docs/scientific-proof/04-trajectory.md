@@ -9,7 +9,7 @@ Both run in the web worker (`app/src/flight/planWorker.ts`). The phases and thei
 
 | Phase | Module | Gravity field |
 |---|---|---|
-| Liftoff to parking orbit (185 km circular by default) | `ascent.ts`, `simulateAscent()` | Earth point mass + J2; air drag; no Moon, no Sun |
+| Liftoff to parking orbit (185 km circular by default; SLS Block 1: the Artemis I insertion orbit 29.4 × 1,801 km, a Perigee Raise Maneuver to 185 km at the first apogee, injection near the next perigee; values and NASA sources in `launchVehicles.ts`, `parkingEllipse`; not yet validated by the science lead) | `ascent.ts`, `simulateAscent()` | Earth point mass + J2; air drag; no Moon, no Sun |
 | Trans-Lunar Injection (TLI), translunar coast | `transit.ts`, `flyOutbound()` | `earthField()`: Earth + J2, Moon and Sun as third bodies |
 | Lunar Orbit Insertion (LOI), 100 km circular (Apollo design) | `transit.ts` | `moonField()`: Moon point mass, Earth and Sun as third bodies |
 | NRHO arrival, lander transfers NRHO ↔ low orbit, NRHO departure (Artemis design) | `nrho.ts` | the same Moon-centred ephemeris field |
