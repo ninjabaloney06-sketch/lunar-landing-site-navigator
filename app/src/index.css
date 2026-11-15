@@ -287,6 +287,7 @@ a:hover {
   border-radius: var(--radius);
   background: var(--bg-veil);
   transition:
+    color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
@@ -304,6 +305,52 @@ a:hover {
 
 .find:active {
   color: var(--muted);
+}
+
+/* Desktop: the header actions are one joined bar, not five separate boxes (ninja, 15 Nov: a row of identical boxes
+   "looks AI-ish"). One faint border around the bar, hairlines between the actions, muted labels with the main action
+   brighter; the action whose panel is open or whose layer is on is the inverted segment. Phones keep the Menu list. */
+@media (min-width: 641px) {
+  .actions {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-veil);
+  }
+
+  .actions > .find {
+    padding: var(--s-2) var(--s-4);
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .actions > .find:not([hidden]) ~ .find:not([hidden]) {
+    border-left: 1px solid var(--line);
+  }
+
+  .actions > .find:first-child {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .actions > .find:hover {
+    color: var(--fg);
+    background: var(--surface-2);
+  }
+
+  .actions > .find[aria-expanded='true'],
+  .actions > .find[aria-pressed='true'] {
+    color: var(--bg);
+    background: var(--fg);
+  }
+
+  .actions > .find:focus-visible {
+    outline-offset: -2px;
+  }
 }
 
 /* While the drawer or the search is open (desktop), the header ends where the panel starts, so the panel never cuts
