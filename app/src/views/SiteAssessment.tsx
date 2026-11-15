@@ -79,11 +79,15 @@ function BlockView({ b, full }: { b: Block; full: boolean }) {
             {rows.map((r) => (
               <tr key={r.label}>
                 <th scope="row">{r.label}</th>
-                {r.values.map((v, i) => (
-                  <td key={i} className={b.columns ? 'mono' : undefined}>
-                    {v}
-                  </td>
-                ))}
+                {b.columns && r.values.length === 1 ? (
+                  <td colSpan={b.columns.length}>{r.values[0]}</td>
+                ) : (
+                  r.values.map((v, i) => (
+                    <td key={i} className={b.columns ? 'mono' : undefined}>
+                      {v}
+                    </td>
+                  ))
+                )}
               </tr>
             ))}
           </tbody>

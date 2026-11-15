@@ -19,7 +19,7 @@ export type Tone = 'pass' | 'fail' | null
 
 export interface Row {
   label: string
-  values: string[] // one per column (slope: landing disk, exploration disk), else one
+  values: string[] // one per column (slope: landing disk, exploration disk); a single value spans all columns
   full?: boolean // shown in Full data mode only
 }
 
@@ -160,7 +160,7 @@ function slopeBlock(rec: Obj | null, digits: number | null, statusValues: Obj | 
     { label: 'Slope baseline', values: [land, expl].map((a) => any(a, (x) => withUnit(x.slope_baseline_m, ' m'))), full: true },
     { label: 'Pixels in the disk', values: [land, expl].map((a) => any(a, (x) => withUnit(x.n_pixels, ''))), full: true },
     { label: 'No data', values: [land, expl].map((a) => any(a, (x) => withUnit(x.nodata_pct, ' %'))), full: true },
-    { ...statusRow(rec, statusValues), values: [statusRow(rec, statusValues).values[0], ''] },
+    statusRow(rec, statusValues), // one value: spans both columns
   ]
   const pass = rec.landing_slope_pass
   b.verdict = {
