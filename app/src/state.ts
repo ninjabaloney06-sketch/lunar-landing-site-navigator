@@ -13,16 +13,12 @@ import type { SceneLevel } from './scene3d'
 // and the footer; the other three are sections of the details drawer.
 export type DrawerSection = 'details' | 'finder' | 'sources' | 'search' | 'docs'
 
-/** Start and End are places and viewpoints only: no route, and unrelated to the period's start and end times. */
-export type PointRole = 'start' | 'end'
-
 /** A place the user marked: planetocentric lat/lon in the Moon body-fixed frame (MOON_ME), degrees, east-positive.
  *  It has no horizon file, so nothing is computed for it. */
 export interface UserPoint {
   lat: number
   lon: number
   name: string | null // null = "Point A", "Point B", … by position (links written before names existed)
-  role: PointRole | null
 }
 
 export const MAX_POINTS = 26
@@ -155,8 +151,9 @@ function serializePoi(groups: PoiGroup[]): string {
 }
 
 // ---------- user points ----------
-// Link format: pts=lat,lon[,role[,name]];… with role "s" (Start), "e" (End) or empty. The first form,
-// "lat,lon;lat,lon", is what older links hold and still parses. In a name "%", "," and ";" are written
+// Link format: pts=lat,lon[,,name];… The third field held a point role ("s" Start, "e" End) until U10 removed
+// roles; it is written empty and ignored when read, whatever it holds, so every older link still parses with its
+// names. The first form, "lat,lon;lat,lon", is what the oldest links hold. In a name "%", "," and ";" are written
 // %25, %2C and %3B, so the separators stay unambiguous.
 
 const escapeName = (s: string) => s.replace(/[%,;]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
@@ -165,16 +162,12 @@ const unescapeName = (s: string) => s.replace(/%(25|2C|3B)/gi, (_, h: string) =>
 function parsePoints(v: string | null): UserPoint[] {
   if (!v) return []
   const out: UserPoint[] = []
-  const taken = new Set<PointRole>()
   for (const part of v.split(';').slice(0, MAX_POINTS)) {
-    const [la, lo, r, ...rest] = part.split(',')
+    const [la, lo, , ...rest] = part.split(',') // third field: a legacy role, ignored
     const a = Number(la)
     const b = Number(lo)
     if (la === '' || lo === undefined || lo === '' || !Number.isFinite(a) || !Number.isFinite(b) || Math.abs(a) > 90 || b < -180 || b > 360) continue
-    let role: PointRole | null = r === 's' ? 'start' : r === 'e' ? 'end' : null
-    if (role && taken.has(role)) role = null // at most one Start and one End
-    if (role) taken.add(role)
-    out.push({ lat: a, lon: b > 180 ? b - 360 : b, name: cleanName(rest.length ? unescapeName(rest.join(',')) : null), role })
+    out.push({ lat: a, lon: b > 180 ? b - 360 : b, name: cleanName(rest.length ? unescapeName(rest.join(',')) : null) })
   }
   return out
 }
@@ -183,9 +176,7 @@ function serializePoints(pts: UserPoint[]): string {
   return pts
     .map((q) => {
       const base = `${q.lat.toFixed(4)},${q.lon.toFixed(4)}`
-      const role = q.role === 'start' ? 's' : q.role === 'end' ? 'e' : ''
-      if (q.name) return `${base},${role},${escapeName(q.name)}`
-      return role ? `${base},${role}` : base
+      return q.name ? `${base},,${escapeName(q.name)}` : base
     })
     .join(';')
 }
@@ -213,7 +204,7 @@ export function addPoint(pts: UserPoint[], lat: number, lon: number): UserPoint[
   if (pts.length >= MAX_POINTS || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90) return null
   const lo = ((((lon + 180) % 360) + 360) % 360) - 180
   const all = named(pts)
-  return [...all, { lat, lon: lo, name: freeName(all), role: null }]
+  return [...all, { lat, lon: lo, name: freeName(all) }]
 }
 
 /** Renames point i (cleanName rules); an empty name gives it a free "Point X" name back. */
@@ -221,11 +212,6 @@ export function renamePoint(pts: UserPoint[], i: number, name: string): UserPoin
   const all = named(pts)
   const rest = all.filter((_, j) => j !== i)
   return all.map((p, j) => (j === i ? { ...p, name: cleanName(name) ?? freeName(rest) } : p))
-}
-
-/** Gives point i a role; the point that held that role before loses it. */
-export function setPointRole(pts: UserPoint[], i: number, role: PointRole | null): UserPoint[] {
-  return named(pts).map((p, j) => (j === i ? { ...p, role } : role && p.role === role ? { ...p, role: null } : p))
 }
 
 export function removePoint(pts: UserPoint[], i: number): UserPoint[] {

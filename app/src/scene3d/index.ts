@@ -93,7 +93,7 @@ export interface ScenePoint {
   name: string
   lat: number
   lon: number
-  role: 'start' | 'end' | null
+  role?: 'start' | 'end' | null
   selected: boolean
 }
 

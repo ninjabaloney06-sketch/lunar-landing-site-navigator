@@ -13,7 +13,7 @@ import type { MissionState } from '../missions'
 import { rankSites } from '../geometry'
 import type { RankedSite, ScienceGoal, Summary } from '../geometry'
 import { DAY_MS, DEFAULT_MISSION_NAME, DEFAULT_SITE_ID, inCoverage, MAX_DAYS, MAX_POINTS, NAME_MAX, pointName, RANGE_ERROR, COVERAGE_END_MS } from '../state'
-import type { PointRole, UserPoint } from '../state'
+import type { UserPoint } from '../state'
 import type { ViewPeriod } from './Drawer'
 import { EXAMPLE, eg } from './examples'
 import { fmtCoords, fmtDate, fmtDeg, fmtHours, fmtPct, parseCoords, parseDate } from './format'
@@ -91,7 +91,6 @@ interface Props {
   onAddPoint(lat: number, lon: number): void
   onSetSite(lat: number, lon: number): void // makes the place a custom landing site (inside the pin region only)
   onPointName(i: number, name: string): void
-  onPointRole(i: number, role: PointRole | null): void
   onPointSelect(i: number | null): void
   onPointDelete(i: number): void
 }
@@ -477,7 +476,7 @@ export function MissionPanel(p: Props) {
               const name = pointName(pt, i)
               const selected = p.selectedPoint === i
               return (
-                <li key={i} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point" data-role={pt.role ?? ''}>
+                <li key={i} className={`pt-row${selected ? ' is-selected' : ''}`} data-testid="point">
                   <input
                     className="field pt-name"
                     type="text"
@@ -491,16 +490,6 @@ export function MissionPanel(p: Props) {
                     }}
                     onBlur={() => setPointDraft(null)}
                   />
-                  <select
-                    className="field pt-role"
-                    aria-label={`Role of ${name}`}
-                    value={pt.role ?? ''}
-                    onChange={(e) => p.onPointRole(i, e.target.value === '' ? null : (e.target.value as PointRole))}
-                  >
-                    <option value="">No role</option>
-                    <option value="start">Start</option>
-                    <option value="end">End</option>
-                  </select>
                   <button
                     type="button"
                     className="mp-close pt-del"

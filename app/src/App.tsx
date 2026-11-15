@@ -29,7 +29,6 @@ import {
   pointName,
   removePoint,
   renamePoint,
-  setPointRole,
   STEP_MS,
   useHashState,
 } from './state'
@@ -378,7 +377,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
 
   // User points as the scene draws them: places only, nothing is computed for them.
   const scenePoints: ScenePoint[] = useMemo(
-    () => hs.pts.map((p, i) => ({ name: pointName(p, i), lat: p.lat, lon: p.lon, role: p.role, selected: i === selPoint })),
+    () => hs.pts.map((p, i) => ({ name: pointName(p, i), lat: p.lat, lon: p.lon, selected: i === selPoint })),
     [hs.pts, selPoint],
   )
   const addUserPoint = useCallback(
@@ -574,7 +573,6 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
                 missionBtn.current?.focus()
               }}
               onPointName={(i, name) => patch({ pts: renamePoint(hs.pts, i, name) })}
-              onPointRole={(i, role) => patch({ pts: setPointRole(hs.pts, i, role) })}
               onPointSelect={setSelPoint}
               onPointDelete={(i) => {
                 patch({ pts: removePoint(hs.pts, i) })
