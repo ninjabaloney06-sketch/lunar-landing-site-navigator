@@ -940,11 +940,12 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             pois={poiData}
             // Selecting a site also shows the chosen groups on the scene (the layer stays as it was when none is chosen).
             onSelectSite={(id, groups) => patch({ site: id, view: 'site', drawer: null, ...(groups.length ? { poi: groups } : {}) })}
-            // "Show" opens the point as a custom landing site at eye level, as opening a landing site does (U16).
+            // "Show" makes the point the landing site (a custom site) and opens the landing-site view, as "Select" does
+            // (science lead, 15 Nov; replaces U16's eye-level landing). Outside the custom-site region: the Moon view.
             onShowPoi={(poi, groups) => {
               const id = customSiteId(poi.lat, poi.lon)
               const g = [...new Set([...(hs.poi ?? []), ...groups, poi.group])]
-              patch(id ? { site: id, view: 'eye', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
+              patch(id ? { site: id, view: 'site', drawer: null, poi: g } : { view: 'globe', drawer: null, poi: g })
             }}
             onClose={() => patch({ drawer: null })}
           />

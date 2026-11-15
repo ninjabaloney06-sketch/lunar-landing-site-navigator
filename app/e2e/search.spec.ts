@@ -112,7 +112,7 @@ test.describe('search at 1440 × 900', () => {
     await panel.getByLabel('Must pass the 5° slope limit').check()
 
     // Selecting a row selects that site and shows the chosen groups on the scene.
-    await row(page, 'malapert-massif').getByRole('button', { name: 'Select' }).click()
+    await row(page, 'malapert-massif').getByTestId('search-select').click()
     await expect(page.getByTestId('search')).toHaveCount(0)
     await expect(page.getByTestId('site-name')).toHaveText('Malapert Massif')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('poi=water,cold-trap,science')
@@ -153,10 +153,11 @@ test.describe('search at 1440 × 900', () => {
     await expect(own).toContainText('Science features point')
     await panel.getByLabel('Within, km').fill('1')
     await expect(own.locator('.search-count[data-group="science"] .mono')).toHaveText('1')
-    // "Show" turns the layer on with the chosen groups and that point's group, and opens the point as a custom
-    // landing site at eye level (U16).
-    await own.getByRole('button', { name: 'Show' }).click()
-    await expect.poll(() => page.evaluate(() => location.hash)).toContain('view=eye')
+    // "Show" turns the layer on with the chosen groups and that point's group, makes the point the (custom) landing
+    // site and opens the landing-site view, as "Select" does (science lead, 15 Nov; replaces U16's eye level).
+    await own.getByTestId('search-show').click()
+    // The landing-site view is the default view, so the link leaves `view` out.
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('view') ?? 'site')).toBe('site')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('site=cap:')
     await expect.poll(() => page.evaluate(() => location.hash)).toContain('poi=water,cold-trap,science')
   })
@@ -210,7 +211,7 @@ test.describe('search on the real search-sites.json at 1440 × 900', () => {
     const ref = await referencePoint(page, id, Date.parse(p.start_utc), Date.parse(p.end_utc))
     await expect(r.locator('[data-col=lit] .mono')).toHaveText(`${ref.litPct.toFixed(1)} %`)
     await expect(r.locator('[data-col=comms] .mono')).toHaveText(`${ref.coveragePct.toFixed(1)} %`)
-    await expect(r.getByRole('button')).toHaveText(['Show as landing site, eye level'])
+    await expect(r.getByRole('button')).toHaveText(['Show as landing site'])
   })
 })
 
