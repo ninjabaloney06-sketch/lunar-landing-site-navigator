@@ -11,6 +11,7 @@ import { finderInputs } from '../data/results'
 import type { Period, Site, Station } from '../data/types'
 import { COVERAGE_END_MS, COVERAGE_START_MS, DAY_MS, inCoverage, isoMinute, RANGE_ERROR } from '../state'
 import { spanLabel } from './period'
+import { Marked } from './Drawer'
 
 const BEST_SHOWN = 5
 
@@ -153,6 +154,10 @@ export function DateMenu(p: Props) {
           <div className="menu-group" id="best-title">
             Best periods in {year} · <span className="best-mission">{p.missionName ?? 'Mission'}</span> at {p.site.name}
           </div>
+          <p className="menu-msg is-quiet" data-testid="best-defaults">
+            {best.status === 'done' ? `${best.days}-day stays` : 'Stays of the mission length'}, proposed finder defaults: sunlit ≥ {FINDER_DEFAULTS.minLitPct} %,
+            coverage ≥ {FINDER_DEFAULTS.minCoveragePct} %, gap ≤ {FINDER_DEFAULTS.maxGapH} h, darkness ≤ {FINDER_DEFAULTS.maxDarkH} h.
+          </p>
           {best.status === 'computing' && (
             <p className="menu-msg is-quiet" role="status">
               Computing…
@@ -161,8 +166,7 @@ export function DateMenu(p: Props) {
           {best.status === 'none' && <p className="menu-msg">{best.text}</p>}
           {best.status === 'done' && windows.length === 0 && (
             <p className="menu-msg" data-testid="best-none">
-              No {best.days}-day period in {year} meets sunlit ≥ {FINDER_DEFAULTS.minLitPct} % and station coverage ≥{' '}
-              {FINDER_DEFAULTS.minCoveragePct} %.
+              No {best.days}-day period in {year} meets every finder default. Try Find better dates in Details.
             </p>
           )}
           {windows.length > 0 && best.status === 'done' && (
@@ -182,7 +186,9 @@ export function DateMenu(p: Props) {
                       className={`opt${current ? ' is-selected' : ''}`}
                       onClick={() => p.onBest?.(s, best.days, s)}
                     >
-                      <span className="opt-name">{spanLabel(s, e)}</span>
+                      <span className="opt-name">
+                        <Marked text={spanLabel(s, e)} />
+                      </span>
                       <span className="opt-label mono">
                         sunlit {w.best.litPct.toFixed(0)} % · coverage {w.best.coveragePct.toFixed(0)} %
                       </span>
@@ -214,7 +220,9 @@ export function DateMenu(p: Props) {
         ))}
       </ul>
       <form className="date-form" onSubmit={apply} noValidate>
-        <div className="menu-group">Date and time, UTC</div>
+        <div className="menu-group">
+          Date and time, <abbr title="Coordinated Universal Time">UTC</abbr>
+        </div>
         <div className="date-row">
           <input className="field mono" type="date" aria-label="Date (UTC)" value={date} min="2026-11-01" max="2030-12-31" onChange={(e) => setDate(e.target.value)} />
           <input className="field mono" type="time" aria-label="Time (UTC)" value={time} step={1800} onChange={(e) => setTime(e.target.value)} />

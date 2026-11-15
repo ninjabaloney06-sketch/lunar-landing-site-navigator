@@ -771,7 +771,7 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await expect(drawer).toContainText('not a guaranteed radio link')
   await expect(drawer.getByTestId('horizon-strip')).toBeVisible()
   await expect(drawer.getByRole('heading', { name: 'Site potential' })).toBeAttached()
-  await expect(drawer).toContainText('Evidence: modeled condition. Access not assessed.')
+  await expect(drawer.getByTestId('potential-evidence').first()).toContainText('from a model, not measured here')
   for (const row of await drawer.locator('table.stations tbody tr td:nth-child(2)').allInnerTexts()) {
     expect(['line of sight', 'blocked by terrain', 'Moon below station mask']).toContain(row)
   }
@@ -782,10 +782,10 @@ test('drawer: stations, comms meaning, finder, potential and sources', async ({ 
   await page.getByTestId('details').click()
   await expect(drawer.getByRole('heading', { name: 'Find better dates' })).toBeInViewport()
   await expect(drawer.getByRole('spinbutton')).toHaveCount(5)
-  await drawer.getByLabel('Sunlit at least, %').fill('150')
+  await drawer.getByLabel('Sunlit at least (%)').fill('150')
   await drawer.getByRole('button', { name: 'Find dates' }).click()
-  await expect(drawer.getByRole('alert')).toContainText('Sunlit at least, %: a number from 0 to 100.')
-  await drawer.getByLabel('Sunlit at least, %').fill('70')
+  await expect(drawer.getByRole('alert')).toContainText('Sunlit at least (%): a number from 0 to 100.')
+  await drawer.getByLabel('Sunlit at least (%)').fill('70')
   await drawer.getByRole('button', { name: 'Find dates' }).click()
   await expect(drawer.locator('.finder-results')).toBeVisible({ timeout: 30_000 })
   await expect(drawer.locator('.finder')).not.toContainText('failed')
