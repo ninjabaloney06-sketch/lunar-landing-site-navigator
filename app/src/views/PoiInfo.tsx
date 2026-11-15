@@ -149,7 +149,7 @@ export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onGoTo, cu
 
 function SummaryBody({ poi, from }: { poi: Poi; from: { name: string; lat: number; lon: number } | null }) {
   // Without a plain text (plain.json missing) the record's own summary, cleaned, stands in.
-  const bullets = poi.plain ? poi.plain.bullets : [cleanText(poi.summary)].filter(Boolean)
+  const bullets = poi.plain ? poi.plain.bullets : [cleanText(poi.summary, poi)].filter(Boolean)
   if (!bullets.length && !from) return null
   return (
     <ul className="poi-bullets" data-testid="poi-bullets">
@@ -209,7 +209,7 @@ function Here({ poiId, mission, full }: { poiId: string; mission: PoiMission | n
 
 function FullBody({ poi }: { poi: Poi }) {
   const g = groupInfo(poi.group)
-  const summary = cleanText(poi.summary)
+  const summary = cleanText(poi.summary, poi)
   const facts = fullFacts(poi)
   const evidence = evidenceText(poi.evidence)
   const limitations = poi.limitations ? cleanText(poi.limitations) : ''

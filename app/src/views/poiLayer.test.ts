@@ -199,3 +199,12 @@ describe('"At this point, for your mission dates" (U17)', () => {
     expect(await loadPoiSite('science:no_such_point')).toBeNull()
   })
 })
+
+describe('cleanText: a note that only repeats the stated centre', () => {
+  it('drops "Another note gives …" when it rounds to the point itself, keeps it when it differs', () => {
+    const t = 'floor 6.6 km wide; walls ~30 deg. Another note gives -89.667, 129.783.'
+    expect(cleanText(t, { lat: -89.67, lon: 129.78 })).toBe('floor 6.6 km wide; walls ~30°.')
+    expect(cleanText(t, { lat: -89.5, lon: 129.78 })).toContain('Another note gives 89.67° S 129.78° E')
+    expect(cleanText(t)).toContain('Another note gives')
+  })
+})

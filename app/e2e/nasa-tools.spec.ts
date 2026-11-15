@@ -4,9 +4,11 @@
 // docs/event/validation.md ("NASA-tools link check"); the URL formats are unit-tested in src/views/nasaTools.test.ts.
 // Run: PW_GPU=1 PW_PORT=5193 npx playwright test e2e/nasa-tools.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 async function openDrawer(page: Page, hash: string) {
   await page.goto(`/?test=1#${hash}&drawer=details`)
+  await openDrawerFolds(page) // the sections are folded to one line each
   const sec = page.getByTestId('nasa-tools')
   await expect(sec).toBeVisible({ timeout: 90_000 })
   await sec.scrollIntoViewIfNeeded()

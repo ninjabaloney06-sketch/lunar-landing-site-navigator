@@ -22,7 +22,7 @@ import { capital, fmtCoords, fmtDate, fmtDeg, fmtPct, fmtRange, fmtSpanH } from 
 import { DEFAULT_ARCHITECTURE_ID, designShortName } from '../flight/designs'
 import { DEFAULT_PAD_ID, LAUNCHPADS } from '../flight/pads'
 import { ARCHITECTURES } from '../flight/spacecraft'
-import { defaultSurfaceStayDays } from './useFlight'
+import { missionStay } from './useFlight'
 import { resolvePeriod } from './period'
 import { useSiteRows } from './useSiteRows'
 import { customHorizon, customSiteBase } from '../data/customSite'
@@ -111,10 +111,10 @@ export function SlopeValue({ site }: { site: Site | null }) {
 }
 
 /** The flight choices a saved mission carries, each with its name (the same lookups as views/flightSummary). */
-function FlightLine({ m }: { m: MissionState }) {
+function FlightLine({ m, missionDays }: { m: MissionState; missionDays: number }) {
   const pad = LAUNCHPADS.find((x) => x.id === m.pad) ?? LAUNCHPADS.find((x) => x.id === DEFAULT_PAD_ID) ?? LAUNCHPADS[0]
   const arch = ARCHITECTURES.find((a) => a.id === m.rocket) ?? ARCHITECTURES.find((a) => a.id === DEFAULT_ARCHITECTURE_ID)!
-  const stay = Number((m.stay ?? defaultSurfaceStayDays(arch)).toFixed(1))
+  const stay = Number((m.stay ?? missionStay(missionDays).days).toFixed(1))
   return (
     <span className="th-sub" data-testid="mission-flight">
       Stay {stay} {stay === 1 ? 'day' : 'days'} · Launchpad <span title={pad.site}>{pad.name}</span> · Rocket {designShortName(arch.id)}
@@ -369,7 +369,7 @@ function MissionRow(p: {
         </span>
         {state.key === key && state.approx && <span className="th-sub">{state.approx}</span>}
         {p.full && <FullLine entry={entry} shown={p.values.map((v) => v.key)} site={site} />}
-        <FlightLine m={m} />
+        <FlightLine m={m} missionDays={Math.round((period.endMs - period.startMs) / DAY_MS)} />
         <button type="button" className="btn st-flight" data-testid="calculate-flight" disabled={!site} onClick={p.onCalculateFlight}>
           Calculate flight
         </button>

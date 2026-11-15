@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { NOT_VALIDATED, VALIDATED } from '../src/data/validation'
 import { EXAMPLE } from '../src/views/examples'
-import { headerAction, openFold } from './header'
+import { headerAction, openFold, openDrawerFolds } from './header'
 
 const RIDGE = 'connecting-ridge' // demo site (ninja, 14 Nov)
 const MASSIF = 'malapert-massif'
@@ -403,6 +403,7 @@ test('U6: the examples in the search, name, date and point-name fields are accep
 test('U7: the horizon chart draws each body\'s path over the mission, unbroken except at the north wrap, through its dot', async ({ page }) => {
   await page.goto(`${DEMO}&t=2027-08-20T06:00Z&drawer=details`)
   await expectAnswer(page, RIDGE, AUG, 60_000)
+  await openDrawerFolds(page) // the horizon is folded to one line
   const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
   const width = await strip.locator('svg').evaluate((e) => (e as SVGSVGElement).width.baseVal.value)
   for (const key of ['sun', 'earth']) {
@@ -496,6 +497,7 @@ test('a copied link reproduces site, period, cursor, stations and drawer', async
   await expect(page.getByTestId('cursor-time')).toHaveText('22 December 2026, 06:30 UTC')
   const drawer = page.getByTestId('drawer')
   await expect(drawer).toBeVisible()
+  await openDrawerFolds(page) // Stations is folded to its one-line lead
   const all = await stationIds(page)
   // The drawer shows the selected stations' states and links to the one checklist, in the Mission panel.
   await expect(drawer.locator('table.stations tbody tr')).toHaveCount(2)

@@ -3,6 +3,7 @@
 // scroll at 375 px. Screenshots go to ROOT/reports/read-dates/ (READ_DATES_SHOTS) or test-results/.
 // Run: PW_GPU=1 PW_PORT=5182 npx playwright test e2e/dates-read.spec.ts
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 const RIDGE = 'connecting-ridge'
 const MASSIF = 'malapert-massif'
@@ -33,7 +34,7 @@ async function ownText(drawer: Locator): Promise<string> {
   return drawer.evaluate(
     (d, ids) =>
       ids
-        .map((id) => (d.querySelector(`section[aria-labelledby="${id}"]`) as HTMLElement | null)?.innerText ?? '')
+        .map((id) => (d.querySelector(`[aria-labelledby="${id}"]`) as HTMLElement | null)?.innerText ?? '')
         .join('\n'),
     OWN,
   )
@@ -44,7 +45,7 @@ async function unmarked(root: Locator, own: boolean): Promise<string[]> {
   return root.evaluate(
     (d, { ids, src, own }) => {
       const re = new RegExp(src, 'g')
-      const roots = own ? ids.map((id) => d.querySelector(`section[aria-labelledby="${id}"]`)).filter((x): x is Element => !!x) : [d]
+      const roots = own ? ids.map((id) => d.querySelector(`[aria-labelledby="${id}"]`)).filter((x): x is Element => !!x) : [d]
       const out: string[] = []
       for (const r of roots) {
         const walk = document.createTreeWalker(r, NodeFilter.SHOW_TEXT)
@@ -92,6 +93,7 @@ test.describe('U17: Details drawer, own sections', () => {
       await page.getByTestId('drawer-tab-site').click()
       await expect(drawer.getByTestId('strip-key')).toContainText('terrain horizon seen from 1.75 m above the ground')
       // site potential: category and a plain evidence phrase; the source's text behind a disclosure
+      await openDrawerFolds(page) // the Site details sections are folded to one line each
       const items = drawer.getByTestId('potential-item')
       await expect(items.first().getByTestId('potential-evidence')).toHaveText(/^· (measured directly|seen in remote-sensing data|from a model, not measured here|an interpretation, not confirmed|no site-specific data yet)$/)
       await expect(items.first().locator('details summary')).toHaveText('What the source says')
@@ -108,7 +110,7 @@ test.describe('U17: Details drawer, own sections', () => {
       }
       await page.screenshot({ path: `${SHOTS}/${vp.width}-summary-top.png` })
       for (const id of ['sec-horizon', 'sec-stations', 'sec-potential', 'sec-export']) { // the year timeline is on the Dates tab
-        await drawer.locator(`section[aria-labelledby="${id}"]`).evaluate((e) => e.scrollIntoView({ block: 'start' }))
+        await drawer.locator(`[aria-labelledby="${id}"]`).evaluate((e) => e.scrollIntoView({ block: 'start' }))
         await page.screenshot({ path: `${SHOTS}/${vp.width}-summary-${id.slice(4)}.png` })
       }
     })
@@ -140,7 +142,7 @@ test.describe('U17: Details drawer, own sections', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
       await page.screenshot({ path: `${SHOTS}/${vp.width}-full-finder.png` })
       for (const id of ['sec-stations', 'sec-potential', 'sec-sources']) {
-        await drawer.locator(`section[aria-labelledby="${id}"]`).evaluate((e) => e.scrollIntoView({ block: 'start' }))
+        await drawer.locator(`[aria-labelledby="${id}"]`).evaluate((e) => e.scrollIntoView({ block: 'start' }))
         await page.screenshot({ path: `${SHOTS}/${vp.width}-full-${id.slice(4)}.png` })
       }
     })

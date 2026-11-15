@@ -12,6 +12,8 @@ import type { DrawerSection } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { NasaToolsSection } from './NasaToolsSection'
+import { Fold } from './Fold'
+import { SlopeValue } from './SiteTable'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteAssessment } from './SiteAssessment'
 import { SiteTable } from './SiteTable'
@@ -20,7 +22,7 @@ import { YearTimeline } from './Timeline'
 import type { YearRow } from './Timeline'
 import { resolvePeriod } from './period'
 import { yearOf } from './yearBars'
-import { capital, fmtDateTime, fmtDeg } from './format'
+import { capital, fmtDateTime, fmtDeg, fmtPct, fmtSpanH } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
 import { approxText } from './custom'
@@ -346,13 +348,41 @@ export function Drawer(p: Props) {
       {/* Site details, settings first and the graph last (team request, 15 Nov): stations and the power inputs, then
           the site's facts, the links and the export, then the horizon graph and the method. */}
       {tab === 'site' && (<>
-      <section className="drawer-sec" aria-labelledby="sec-stations">
-        <h3 id="sec-stations">Stations</h3>
-        {ready && atCursor && (
-          <p className="quiet sec-lead" data-testid="stations-lead">
-            {stationLead(p.ids.map((id) => atCursor.stations[id]))}
+      {/* The site in a few plain lines first (science lead, 15 Nov: "readable, intuitive"); every section below is
+          folded to its heading and one line. */}
+      <section className="site-summary" aria-label="Summary" data-testid="site-summary">
+        {ready ? (
+          <ul className="plain site-summary-list">
+            <li data-testid="summary-sun">
+              <span className="site-summary-k">Sunlit</span> {fmtPct(results.results.summary.litPct)} of the mission dates · longest darkness{' '}
+              {fmtSpanH(results.results.summary.longestDarkH)}
+            </li>
+            <li data-testid="summary-contact">
+              <span className="site-summary-k">Station contact</span> {fmtPct(results.results.summary.coveragePct)} · longest gap{' '}
+              {fmtSpanH(results.results.summary.longestGapH)}
+            </li>
+            <li data-testid="summary-slope">
+              <span className="site-summary-k">Slope</span> <SlopeValue site={site} />
+            </li>
+            <li data-testid="summary-science">
+              <span className="site-summary-k">Science</span>{' '}
+              {site.potential.length
+                ? `${[...new Set(site.potential.map((x) => CATEGORY[x.category]))].join(', ')} (sourced; see Site potential)`
+                : 'no sourced site potential yet'}
+            </li>
+          </ul>
+        ) : (
+          <p className="quiet" role="status">
+            Computing this site for the mission dates…
           </p>
         )}
+      </section>
+      <Fold
+        id="sec-stations"
+        title="Stations"
+        testId="fold-stations"
+        summary={ready && atCursor ? <span data-testid="stations-lead">{stationLead(p.ids.map((id) => atCursor.stations[id]))}</span> : null}
+      >
         {full && (
           <p className="quiet">
             Station contact means geometric line of sight between the site and at least one selected station, not a guaranteed radio
@@ -403,7 +433,7 @@ export function Drawer(p: Props) {
             Choose ground stations
           </button>
         </p>
-      </section>
+      </Fold>
       <PowerSection results={results} custom={custom} approx={approx} inputs={p.power} onChange={p.onPower} />
       </>)}
 
@@ -444,8 +474,12 @@ export function Drawer(p: Props) {
       </>)}
 
       {tab === 'site' && (<>
-      <section className="drawer-sec" aria-labelledby="sec-potential">
-        <h3 id="sec-potential">Site potential</h3>
+      <Fold
+        id="sec-potential"
+        title="Site potential"
+        testId="fold-potential"
+        summary={site.potential.length ? `${site.potential.length} sourced ${site.potential.length === 1 ? 'entry' : 'entries'}` : 'none yet'}
+      >
         {site.potential.length === 0 && <p className="quiet">No sourced site potential for this site yet.</p>}
         <ul className="plain potential">
           {site.potential.map((x, i) => (
@@ -474,13 +508,14 @@ export function Drawer(p: Props) {
             </li>
           ))}
         </ul>
-      </section>
+      </Fold>
 
       <SiteAssessment key={site.id} site={site} />
-      <section className="drawer-sec" aria-labelledby="sec-nasa"><h3 id="sec-nasa">Open in NASA tools</h3><NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} /></section>
+      <Fold id="sec-nasa" title="Open in NASA tools" testId="fold-nasa" summary="Moon Trek, QuickMap, JPL Horizons">
+        <NasaToolsSection site={site} customHorizon={p.customHorizon} period={period} results={results} />
+      </Fold>
 
-      <section className="drawer-sec" aria-labelledby="sec-export">
-        <h3 id="sec-export">Export</h3>
+      <Fold id="sec-export" title="Export" testId="fold-export" summary={<><abbr title={ABBR.CSV}>CSV</abbr> file or a link to this view</>}>
         <p className="quiet sec-lead">
           <Marked text="CSV: every sunlit and contact window of this period, plus its summary values." />
         </p>
@@ -497,23 +532,28 @@ export function Drawer(p: Props) {
             </span>
           )}
         </div>
-      </section>
+      </Fold>
 
-      <section className="drawer-sec" aria-labelledby="sec-horizon">
-        <h3 id="sec-horizon">Horizon</h3>
-        {ready && atCursor && (
-          <p className="quiet sec-lead" data-testid="horizon-lead">
-            At <Marked text={fmtDateTime(p.cursorMs)} />: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
-            {atCursor.earth.visible ? 'above' : 'below'} it.
-          </p>
-        )}
+      <Fold
+        id="sec-horizon"
+        title="Horizon"
+        testId="fold-horizon"
+        summary={
+          ready && atCursor ? (
+            <span data-testid="horizon-lead">
+              At <Marked text={fmtDateTime(p.cursorMs)} />: Sun {atCursor.sun.lit ? 'above' : 'below'} the terrain, Earth{' '}
+              {atCursor.earth.visible ? 'above' : 'below'} it.
+            </span>
+          ) : null
+        }
+      >
         <HorizonStrip
           horizon={ready ? results.results.series.horizon : null}
           sample={ready ? atCursor : null}
           track={ready ? results.results.series.samples : null}
           height={168}
         />
-      </section>
+      </Fold>
 
       <section ref={sourcesRef} className="drawer-sec" aria-labelledby={method ? 'sec-sources' : undefined}>
         {method && !full && (

@@ -1,6 +1,7 @@
 // Drawer content (U4) and the Time periods menu (U3). Expected values are computed in the page from geometry +
 // the data files, never typed in. Run: PW_GPU=1 PW_PORT=5185 npx playwright test e2e/dates.spec.ts
 import { expect, test, type Page } from '@playwright/test'
+import { openDrawerFolds } from './header'
 
 const RIDGE = 'connecting-ridge'
 const MASSIF = 'malapert-massif'
@@ -75,7 +76,7 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
 
     const y2027 = await windowCounts(page, RIDGE, Date.UTC(2027, 0, 1), Date.UTC(2028, 0, 1))
     await expect(rows.nth(0).getByTestId('year-seg')).toHaveCount(y2027.lit)
-    await expect(rows.nth(0).locator('.yt-bar')).toHaveAttribute('aria-label', /^Connecting Ridge: sunlit \d+ % of 2027$/)
+    await expect(rows.nth(0).locator('.yt-bar')).toHaveAttribute('aria-label', /^Connecting Ridge: sunlit \d+\.\d % of 2027$/)
     await yt.getByTestId('year-kind').selectOption('comms')
     await expect(rows.nth(0).getByTestId('year-seg')).toHaveCount(y2027.covered)
     await expect(rows.nth(0).locator('.yt-bar')).toHaveClass(/is-comms/)
@@ -99,6 +100,7 @@ test.describe('U4: the drawer starts with the date search, then the year timelin
       ['haworth', '2027-08-18T12:00Z'],
     ] as const) {
       await open(page, `site=${site}&period=${AUG}&t=${t}&drawer=details`)
+      await openDrawerFolds(page) // the horizon is folded to one line
       const strip = page.getByTestId('drawer').getByTestId('horizon-strip')
       await expect(strip.getByTestId('strip-sun')).toContainText(/Sun −?\d+\.\d°/)
       await expect(strip.locator('figcaption')).not.toContainText('el ')
@@ -158,7 +160,7 @@ test.describe('U3: Time periods show the current mission and the best computed p
     })()`)) as number[]
     expect(ref.length).toBeGreaterThan(0)
     expect(await rows.evaluateAll((bs) => bs.map((b) => Number(b.getAttribute('data-start'))))).toEqual(ref)
-    await expect(rows.first()).toContainText(/sunlit \d+ % · station contact \d+ %/)
+    await expect(rows.first()).toContainText(/sunlit \d+\.\d % · station contact \d+\.\d %/)
 
     const pick = ref[ref.length > 1 ? 1 : 0]
     await rows.nth(ref.length > 1 ? 1 : 0).click()

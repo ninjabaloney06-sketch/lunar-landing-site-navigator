@@ -133,6 +133,8 @@ test.describe('POI card at 1440 × 900', () => {
     })
     const byId = await pois(page)
     await openApp(page)
+    // Without storage the How to use card cannot remember "Got it", so it shows on every visit: close it first.
+    await page.getByTestId('help-dismiss').click()
     const box = await openCard(page, byId.get(CABEUS)!, 760, 200)
     await expect(box).toHaveAttribute('data-mode', 'summary')
     await box.getByRole('switch', { name: 'Full data' }).click()

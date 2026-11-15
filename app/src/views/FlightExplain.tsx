@@ -433,7 +433,7 @@ export function SurfaceStay({ plan, rendezvous, askedDays, stay }: SurfaceStayPr
       )}
       {stay && (
         <p>
-          <strong>The stay this design starts with: {fmtDays(Number(stay.defaultDays.toFixed(2)))}</strong>
+          <strong>This design's documented stay: {fmtDays(Number(stay.defaultDays.toFixed(2)))}</strong>
           {stay.maxDays !== null && ` (longest: ${fmtDays(Number(stay.maxDays.toFixed(2)))})`}. <Abbr>{stay.basis}</Abbr>
         </p>
       )}

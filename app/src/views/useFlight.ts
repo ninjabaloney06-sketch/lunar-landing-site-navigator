@@ -13,7 +13,7 @@ import type { ArchitectureSpec, LaunchVehicleSpec, SpacecraftSpec } from '../fli
 import { cheapestRoute, routeOptions } from '../flight/payload'
 import type { DispersionCancel, DispersionReply, DispersionRequest, PayloadReply, PlanReply, PlanRequest, WorkerReply } from '../flight/planWorker'
 import type { LandingTarget, Launchpad, MissionPlan } from '../flight/types'
-import { DAY_MS } from '../state'
+import { DAY_MS, STAY_RANGE } from '../state'
 import type { MissionStatus } from './FlightPanel'
 import { getFlightAnalysis, patchFlightAnalysis, resetFlightAnalysis, setFlightActions } from './flightAnalysis'
 import { DEFAULT_SPEED } from './flightFormat'
@@ -81,6 +81,15 @@ export function supportedRangeSentence(r: { firstMs: number; lastMs: number }, s
 
 /** The surface stay a design starts with: its documented one, else three days for a design that meets in low
  *  lunar orbit (Apollo's longest stays) and one revolution of the halo orbit for a design that meets there. */
+/** The surface stay a flight starts with (reported bug, 15 Nov: "I chose 16 Aug–5 Sep; Calculate flight still computes
+ *  10–21 Aug"): the mission's own length, so the flight lands at the mission start and stays for the mission's days,
+ *  within the 0.5–30 days the flight plan accepts. `capped`: the mission is longer (or shorter) than that range. */
+export function missionStay(missionDays: number): { days: number; capped: boolean } {
+  const days = Math.min(STAY_RANGE.max, Math.max(STAY_RANGE.min, missionDays))
+  return { days, capped: days !== missionDays }
+}
+
+/** The stay the chosen design documents (shown in its explanation; no longer the flight's starting stay). */
 export function defaultSurfaceStayDays(a: ArchitectureSpec): number {
   return a.surfaceStay?.defaultDays ?? (a.rendezvous === 'nrho' ? 6.5 : 3)
 }

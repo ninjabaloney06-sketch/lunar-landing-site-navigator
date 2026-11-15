@@ -43,7 +43,7 @@ export interface HashState {
   pad: string | null // flight plan: launchpad id; null = the default pad
   rocket: string | null // flight plan: vehicle id; null = the default vehicle
   tmax: number | null // flight plan: longest transfer in days; null = minimum energy
-  stay: number | null // flight plan: surface stay in days; null = the chosen design's default
+  stay: number | null // flight plan: surface stay in days; null = the mission's length (within STAY_RANGE)
   power: PowerInputs // power estimate inputs (link keys panel, eff, load, batt); absent or invalid = POWER_DEFAULTS
 }
 
@@ -76,8 +76,9 @@ export const DEFAULT_MISSION_NAME = 'Mission 1'
 const DEFAULT_GOAL: ScienceGoal = 'light'
 // Transfer-time caps the flight plan offers (days); anything else in a link falls back to minimum energy.
 const TRANSFER_CAPS = [4.5, 4, 3.5, 3, 2.5]
-// Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the design's default.
-const STAY_RANGE = { min: 0.5, max: 30 }
+// Surface stays the flight plan accepts (days): 0.5 to 30; anything else falls back to the default (the mission's own
+// length within this range, views/useFlight.ts missionStay).
+export const STAY_RANGE = { min: 0.5, max: 30 }
 const validStay = (v: number) => Number.isFinite(v) && v >= STAY_RANGE.min && v <= STAY_RANGE.max
 
 export const EMPTY_STATE: HashState = {
@@ -236,6 +237,15 @@ export function parseHash(hash: string): HashState {
   s.from = parseTime(p.get('from'))
   const days = Number(p.get('days'))
   if (Number.isInteger(days) && days >= 1 && days <= MAX_DAYS) s.days = days
+  // The end of a custom span (values audit, 15 Nov: a shared link had from= only, so its end hung on the 14-day
+  // default). Old links without to= keep reading days= or the default.
+  // (The end is exclusive and may lie past the supported dates, which resolvePeriod clips, so only its format is checked.)
+  const toRaw = p.get('to')
+  const to = toRaw && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/.test(toRaw) ? Date.parse(toRaw) : null
+  if (s.from !== null && to !== null && Number.isFinite(to)) {
+    const n = Math.round((to - s.from) / DAY_MS)
+    if (n >= 1 && n <= MAX_DAYS) s.days = n
+  }
   s.t = parseTime(p.get('t'))
   const st = p.get('st')
   if (st !== null) {
@@ -275,7 +285,7 @@ export function serializeHash(s: HashState): string {
   if (s.period) p.set('period', s.period)
   if (s.period === 'custom' && s.from !== null) {
     p.set('from', isoMinute(s.from))
-    if (s.days !== DEFAULT_DAYS) p.set('days', String(s.days))
+    p.set('to', isoMinute(s.from + s.days * DAY_MS))
   }
   if (s.t !== null) p.set('t', isoMinute(s.t))
   if (s.st) p.set('st', s.st.join(','))

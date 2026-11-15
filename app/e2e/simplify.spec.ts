@@ -151,10 +151,11 @@ for (const vp of [
       await expect(card.getByRole('listitem').nth(0)).toContainText('Pick a landing site')
       await expect(card.getByRole('listitem').nth(1)).toContainText('Pick the mission dates')
       await expect(card.getByRole('listitem').nth(2)).toContainText('Press Play')
-      // The card stays off the timeline.
+      // A small card in the middle of a dimmed screen, Got it focused.
       const c = (await card.boundingBox())!
-      const tl = (await page.getByTestId('cursor-time').boundingBox())!
-      expect(c.y + c.height).toBeLessThan(tl.y)
+      expect(Math.abs(c.x + c.width / 2 - vp.width / 2)).toBeLessThan(4)
+      await expect(card.getByRole('button', { name: 'Got it' })).toBeFocused()
+      await expect(page.getByTestId('help-backdrop')).toBeVisible()
       await card.getByRole('button', { name: 'Got it' }).click()
       await expect(card).toHaveCount(0)
       await page.reload()
@@ -163,6 +164,14 @@ for (const vp of [
       const help = await headerAction(page, 'help-open')
       await help.click()
       await expect(page.getByTestId('help-card')).toBeVisible()
+      // Esc closes it, and a press beside the card does too.
+      await page.keyboard.press('Escape')
+      await expect(page.getByTestId('help-card')).toHaveCount(0)
+      await expect.poll(async () => new URLSearchParams(await page.evaluate(() => location.hash.slice(1))).get('view')).toBeNull() // Esc did not also move the camera
+      await (await headerAction(page, 'help-open')).click()
+      await page.mouse.click(8, vp.height - 8)
+      await expect(page.getByTestId('help-card')).toHaveCount(0)
+      await (await headerAction(page, 'help-open')).click()
       await page.getByTestId('help-dismiss').click()
       await expect(page.getByTestId('help-card')).toHaveCount(0)
       await context.close()

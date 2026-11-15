@@ -105,7 +105,8 @@ describe('propellantStatus', () => {
     expect(propellantStatus([use('S-IVB', 70_000, 71_000), use('Descent Stage', 8248, 8248)], null)).toEqual({ tone: 'enough', text: 'Propellant: every stage has enough.' })
   })
   it('names each short element and its shortfall in kg', () => {
-    expect(propellantStatus([use('Descent Stage', 9_460, 8_248)], null)).toEqual({ tone: 'short', text: 'Propellant: Descent Stage short by 1,200 kg.' })
+    // tonnes, as the propellant table and the plan's notes say it
+    expect(propellantStatus([use('Descent Stage', 9_460, 8_248)], null)).toEqual({ tone: 'short', text: 'Propellant: Descent Stage short by 1.2 t.' })
   })
   it('undecided when only the lower-bound element is short (Blue Moon)', () => {
     expect(propellantStatus([use('Blue Moon Mark 2', 36_500, 29_000)], 'Blue Moon Mark 2').tone).toBe('undecided')
