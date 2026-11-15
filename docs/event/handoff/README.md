@@ -155,8 +155,8 @@ Fresh-context review: one Opus reviewer per Opus branch (A, B, C1, C2) before it
 2. **Brief A trap 4.** `pxform` evaluates both frames at one epoch. For IAU_EARTH at et − lt and MOON_ME at et, use `pxfrm2("IAU_EARTH", "MOON_ME", et - lt_earth, et)` (difference ~5e-6°, so either is acceptable; state which).
 3. **Brief C1 eye level "2 m"** → 1.75 m (spec).
 4. **Brief C1 terrain mesh.** The build-plan §5.4 order table puts the real terrain mesh in step 4. Step 1 needs the far ring from `mask` + `mask_dist_km`, the discs, eye level and orbit. C1 writes the tile loader against the §4 TerrainMeta format and falls back to a flat ground disc when no tile exists.
-5. **Finder ranking** = combined selected-station coverage (spec, precedence table), not "% both" (build-plan §4.4).
-6. **Answer sentence cases the rules do not cover**: no change before the period ends, comms `unknown`, under 1 h left. A-h proposes wording, keeping "never round up, never minutes". The orchestrator shows it to ninja at the wording gate.
+5. **Finder ranking** = combined selected-station contact (spec, precedence table), not "% both" (build-plan §4.4).
+6. **Answer sentence cases the rules do not cover**: no change before the period ends, station contact `unknown`, under 1 h left. A-h proposes wording, keeping "never round up, never minutes". The orchestrator shows it to ninja at the wording gate.
 7. **Logs**: see §5 note 6.
 8. **C2 button count**: D4 above.
 
