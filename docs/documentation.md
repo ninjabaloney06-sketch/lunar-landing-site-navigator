@@ -2,7 +2,7 @@
 
 Technical and product documentation for the app as it is on 15 Nov 2026. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn. Install and run steps: [README](../README.md).
 
-> How this document was made: an AI tool (SI in Space Apps terms), Claude Code, wrote it on 14 Nov 2026 and updated it on 15 Nov 2026 from the repository's code and records. No team member has reviewed this text as a whole yet. Where a statement rests on a human check, the check and its recorded status are named. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check record of what was compared: see [Validation results](#validation-results).
+> How this document was made: an AI tool (SI in Space Apps terms), Claude Code, wrote it on 14 Nov 2026 and updated it on 15 Nov 2026 from the repository's code and records. The team reviewed this text as a whole on 15 Nov 2026 (statement of a team member on 15 Nov 2026, 14:43; no per-section record of the review). Where a statement rests on a human check, the check and its recorded status are named. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check record of what was compared: see [Validation results](#validation-results).
 
 ## Overview: what it is and why it matters
 
