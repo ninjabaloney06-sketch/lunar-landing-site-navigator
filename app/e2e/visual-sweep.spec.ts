@@ -2,7 +2,11 @@
 // for a human (or agent) to look at. It asserts nothing about the picture; a state that cannot be reached is
 // listed in test-results/visual-baseline/<viewport>/not-captured.txt instead of failing the run.
 // Skipped unless VISUAL_SWEEP is set, so it never runs as part of the normal suite.
-// Run (from app/): VISUAL_SWEEP=1 PW_GPU=1 PW_PORT=5190 npx playwright test e2e/visual-sweep.spec.ts --workers=1
+// Run against the built app (real fonts; in a git worktree the dev server refuses the @fontsource files that resolve
+// through the node_modules junction, so dev-server screenshots fall back to system fonts), from app/:
+//   npm run build && npx vite preview --port 5191 --strictPort &
+//   VISUAL_SWEEP=1 VISUAL_SWEEP_URL=http://localhost:5191 PW_GPU=1 PW_PORT=5190 npx playwright test e2e/visual-sweep.spec.ts --workers=1
+// Without VISUAL_SWEEP_URL it uses the config's dev server (fine in the main checkout).
 // Output: app/test-results/visual-baseline/<viewport>/<screen>.png (git-ignored).
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -11,6 +15,7 @@ import type { Page } from '@playwright/test'
 
 test.skip(!process.env.VISUAL_SWEEP, 'visual sweep: set VISUAL_SWEEP=1 to run')
 test.describe.configure({ mode: 'serial' })
+if (process.env.VISUAL_SWEEP_URL) test.use({ baseURL: process.env.VISUAL_SWEEP_URL })
 
 const OUT = join(process.cwd(), 'test-results', 'visual-baseline')
 const VIEWPORTS = [
@@ -33,6 +38,8 @@ const FIVE = [
 type W = Window & { __scene?: { ready: Promise<void> }; __views?: { setNamed(n: unknown): void } }
 
 async function open(page: Page, hash: string, opts: { scene?: boolean; settle?: number } = {}) {
+  // A goto that only changes the hash is a same-document navigation: leave first so every state is a fresh load.
+  await page.goto('about:blank')
   await page.goto(`/?test=1#${hash}`)
   if (opts.scene !== false) {
     await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready', { timeout: 60_000 })
@@ -63,8 +70,8 @@ function sweep(vp: (typeof VIEWPORTS)[number]) {
     test('scene views and simulation', async ({ page }) => {
       test.setTimeout(400_000)
       await shot(page, '00-loading', async () => {
-        await page.goto(`/?test=1#${DEMO}`)
-        await page.waitForTimeout(300)
+        await page.goto(`/?test=1#${DEMO}`, { waitUntil: 'commit' })
+        await page.waitForTimeout(700)
       })
       await shot(page, '01-globe', () => open(page, `${DEMO}&view=globe`))
       await shot(page, '02-site', () => open(page, `${DEMO}&view=site`))
