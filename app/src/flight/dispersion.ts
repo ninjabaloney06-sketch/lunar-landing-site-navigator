@@ -7,8 +7,8 @@
 //
 // What is flown (lunar.ts, replayDescent): Descent Orbit Insertion and the braking burn open loop, with their
 // commanded lengths and steering laws; they do not re-aim. The braking burn is cut off early if it comes down to
-// the gate height (100 m) before its commanded end. The vertical terminal descent closes its own loop on the
-// point below where the braking burn ended. So this is the dispersion of an UNGUIDED descent: a real powered
+// the gate height (100 m; higher when it sinks too fast to stop from there) before its commanded end. The
+// vertical terminal descent closes its own loop on the point below where the braking burn ended. So this is the dispersion of an UNGUIDED descent: a real powered
 // descent guidance re-aims the braking burn all the way down and lands far closer to its target. The numbers say
 // how much the commanded flight depends on its errors, not how precisely a guided lander lands.
 //
@@ -165,7 +165,7 @@ export interface DispersionResult {
     overBudget: number // runs that needed more than availableKg
   }
   touchdown: { meanSpeedMs: number; maxSpeedMs: number; hard: number } // hard: above 3 m/s
-  brakingCutShort: number // runs whose braking burn was cut off at the gate height before its commanded end
+  brakingCutShort: number // runs whose braking burn was cut off at the switch height before its commanded end
   runs: DispersionRun[]
   /** Shift of the touchdown by J2 alone (the zero-error run in the J2 field), km east / north and kg. */
   j2Only: { eastKm: number; northKm: number; usedKg: number } | null

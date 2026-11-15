@@ -174,8 +174,9 @@ export interface ReplayResult {
   massAtTouchdownKg: number
   usedKg: number // propellant used from DOI ignition to touchdown
   touchdownSpeedMs: number // relative to the turning surface
-  /** The braking burn came down to the gate height (GATE_ALT_KM above the surface) before its commanded end
-   *  and was cut off there, as an altimeter-triggered switch to the terminal descent would do. */
+  /** The braking burn came down to the switch height (switchHeight: the gate height, or higher when the
+   *  lander sinks faster than the terminal profile can stop from the gate) before its commanded end and was cut
+   *  off there, as an altimeter-triggered switch to the terminal descent would do. */
   brakingCutShort: boolean
 }
 
@@ -1024,8 +1025,9 @@ function switchHeight(m: Motor, s: SimState, g: number): number {
  *  With NO_PERTURBATION and the planning field this repeats planDescent's own integrations step for step and
  *  lands where the plan lands, to the last bit. With errors, the DOI and the braking burn keep their commanded
  *  lengths and steering laws (they do not re-aim: the dispersion of an unguided flight), the braking burn is cut
- *  off early if it comes down to the gate height before its commanded end, and the vertical terminal descent closes its loop on the point straight below
- *  where the braking burn ended (it carries no knowledge of where the site is). */
+ *  off early if it comes down to the switch height (switchHeight) before its commanded end, and the vertical
+ *  terminal descent closes its loop, vertical channel first (landingEngine), on the point straight below where
+ *  the braking burn ended (it carries no knowledge of where the site is). */
 export function replayDescent(input: DescentInput, c: DescentControls, p: DescentPerturbation, field: Field = input.field): ReplayResult {
   const { site, lander } = input
   const stage = lander.modules[lander.modules.length - 1]
