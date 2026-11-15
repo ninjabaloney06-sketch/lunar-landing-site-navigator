@@ -1,5 +1,5 @@
 // P1 power estimate (add-on task 2, 15 Nov 2026): one sun-tracking panel at the landing site and a battery for the
-// longest dark window. First estimate, not a power budget. Not validated by the science lead.
+// longest dark window. First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).
 //
 // Model: P(t) = S × A × η × f(t) × (AU / r(t))²
 //   S    solar constant at 1 AU, W/m² (SOLAR_CONSTANT_W_M2)
@@ -136,7 +136,7 @@ export function estimateForResults(
 export function powerCsvRows(inp: PowerInputs, est: PowerEstimate | null): string[] {
   const v = (x: number | undefined, d: number) => (x === undefined ? '' : x.toFixed(d))
   return [
-    'power_status,first estimate; not a power budget; not validated by the science lead',
+    'power_status,first estimate; not a power budget; validated by the science lead (statement of 15 Nov 2026; see record)',
     `power_panel_area_m2,${inp.panelM2}`,
     `power_cell_efficiency_pct,${inp.effPct}`,
     `power_load_w,${inp.loadW}`,

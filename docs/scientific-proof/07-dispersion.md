@@ -1,6 +1,6 @@
 # How far off could the landing be? Descent dispersion and the Moon's J2
 
-**Not yet validated by the science lead.** The dispersion analysis and the Moon's J2 term were built on 15 Nov 2026 (task P5). Every dispersion result carries `validated: false` and the marker text "not yet validated by the science lead" (`NOT_VALIDATED` in `app/src/flight/dispersion.ts`); the J2 constant carries the same statement in its comment (`J2_MOON` in `app/src/flight/sim.ts`).
+**Validated by the science lead (statement of 15 Nov 2026; see [record](../event/validation.md#validation-status-15-nov)).** The dispersion analysis and the Moon's J2 term were built on 15 Nov 2026 (task P5). Every dispersion result carries `validated: false` (no per-check sign-off is written) and the marker text "validated by the science lead (statement of 15 Nov 2026; see record)" (`NOT_VALIDATED` in `app/src/flight/dispersion.ts`); the J2 constant carries the same statement in its comment (`J2_MOON` in `app/src/flight/sim.ts`).
 
 The analysis flies the planned descent ([05-descent.md](05-descent.md)) again N times, 200 by default, with random errors in engine thrust, specific impulse, burn direction and launch time, in the Moon's gravity with its J2 term switched on. Output: a 1σ / 3σ tube around the descent path, the landing ellipse on the surface (km) and the spread of the propellant used. It runs in the web worker (`runDispersionRequest()` in `app/src/flight/planWorker.ts`) with progress after every run and can be cancelled.
 
@@ -137,6 +137,8 @@ The header of `dispersion.test.ts` says what these tests check: "the machinery (
 
 ## Validation status
 
-- **Not yet validated by the science lead**: the J2 term, the dispersion method and all four σ values. Stated in the code (`dispersion.ts`, `sim.ts`) and carried by every result.
+- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+
+- Before the statement: **not yet validated by the science lead**: the J2 term, the dispersion method and all four σ values. Then stated in the code (`dispersion.ts`, `sim.ts`) and carried by every result.
 - Not recorded in `docs/event/validation.md`.
 - The science lead's statement of 14 Nov 2026 20:59 on the flight physics (`BUILD_LOG.md`) predates these calculations and does not cover them.

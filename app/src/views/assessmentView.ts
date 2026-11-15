@@ -17,7 +17,7 @@
 // behind each block's disclosure. A long file text is cut at its first "; " in summary mode only (Row.fullValues /
 // Note.fullText keep the whole text for Full data); nothing is reworded.
 
-export const ASSESSMENT_STATUS = 'Accepted by the science lead at 6650ed1 (reported, no written sign-off)'
+export const ASSESSMENT_STATUS = 'Validated by the science lead (statement of 15 Nov 2026; see record)'
 export const NOT_COMPUTED = 'Not computed for this place'
 export const NO_DATA = 'No site assessment data in this build.'
 export const UNKNOWN = 'unknown'

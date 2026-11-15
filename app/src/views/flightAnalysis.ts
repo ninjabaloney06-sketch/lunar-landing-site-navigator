@@ -1,4 +1,4 @@
-// The analyses that come with a computed mission (all NOT YET VALIDATED BY THE SCIENCE LEAD): the maximum payload
+// The analyses that come with a computed mission (all validated by the science lead: statement of 15 Nov 2026, docs/event/validation.md): the maximum payload
 // (payload.ts, worked out by the worker right after every plan), the cheapest route (payload.ts cheapestRoute, 16
 // to 20 s of planning, started only by the user) and the landing dispersion (dispersion.ts, about 4 s, started
 // only by the user). One store for the page, outside React state, so the Flight panel and the 3D scene read the

@@ -1,4 +1,4 @@
-// The analyses of the Rocket flight menu (all marked "not yet validated by the science lead"): the landing
+// The analyses of the Rocket flight menu (all marked "validated by the science lead (statement of 15 Nov 2026; see record)"): the landing
 // dispersion and the cheapest route start only on the user's click, show progress, can be stopped, are dropped
 // when the inputs change, and answer in one sentence. Also the menu's fit at 375 px and 1280 px.
 // Screenshots go to SHOTS_DIR when it is set (the build run's reports folder).
@@ -31,7 +31,7 @@ test('landing dispersion: started by a click, shows progress, answers in one sen
   await expect(job).toHaveAttribute('data-state', 'ready', { timeout: 120_000 })
   const sentence = panel.getByTestId('flight-dispersion-sentence')
   await expect(sentence).toContainText(/Landing dispersion \(3σ, \d+ of 200 unguided runs\): [\d.]+ × [\d.]+ km ellipse/)
-  await expect(sentence).toContainText('Not yet validated by the science lead.')
+  await expect(sentence).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
   await expect(job).toContainText('Every error size is an assumption')
   await expect(job).toContainText('guided lander lands much closer')
   await shot(page, 'flight-1280-dispersion')
@@ -71,7 +71,7 @@ test('cheapest route: started by a click, shows progress, can be stopped, answer
   await panel.getByTestId('flight-route-start').click()
   await expect(job).toHaveAttribute('data-state', 'ready', { timeout: 180_000 })
   await expect(panel.getByTestId('flight-route-sentence')).toContainText(/^(Least propellant|Only one option)/)
-  await expect(panel.getByTestId('flight-route-sentence')).toContainText('Not yet validated by the science lead.')
+  await expect(panel.getByTestId('flight-route-sentence')).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
   await panel.locator('[data-section="route"] > summary').click()
   await expect(panel.getByTestId('flight-route-details')).toContainText('m/s')
   await shot(page, 'flight-1280-route')
@@ -123,6 +123,6 @@ test('Blue Moon: the payload cannot be decided from published data, and the prop
   await expect(payload).toHaveAttribute('data-verdict', 'undetermined')
   await expect(payload).toContainText('cannot be decided from published data')
   await expect(panel.getByTestId('flight-lower-bound')).toContainText('Propellant shown (29 t) is a lower bound')
-  await expect(panel.getByTestId('flight-lower-bound')).toContainText('Not yet validated by the science lead.')
+  await expect(panel.getByTestId('flight-lower-bound')).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
   await shot(page, 'flight-1280-blue-moon')
 })

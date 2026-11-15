@@ -2,8 +2,9 @@
 
 For every number the app shows: its uncertainty (ε), how it is propagated, the largest term, and the test or
 source behind it. Where no ε is known the row says "not quantified" and why; no number here is estimated by
-eye. This budget itself is **not yet validated by the science lead** (written 15 Nov 2026 by an SI agent, task
-P6).
+eye. This budget (written 15 Nov 2026 by an SI agent, task P6) and every row in it: **validated by the science lead
+(statement of 15 Nov 2026; see [record](../event/validation.md#validation-status-15-nov))**, with no per-check record of
+what was compared. The column "Validation status" below keeps the record as it was before that statement.
 
 Conventions: ε is 1σ unless the row says otherwise. "Per edge" means per start or end of a window (sunlit,
 Earth visible, covered). A time error per edge becomes a percentage error of δt / T for a period of length T;

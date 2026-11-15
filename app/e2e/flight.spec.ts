@@ -35,7 +35,7 @@ test('Calculate flight on a saved mission opens the Rocket flight menu pre-fille
   const payload = panel.getByTestId('flight-payload')
   await expect(payload).toHaveAttribute('data-state', 'ready', { timeout: 90_000 })
   await expect(payload).toContainText(/Max payload: [\d,]+ kg ± [\d,.]+ kg \(1σ\)/)
-  await expect(payload).toContainText('Not yet validated by the science lead.')
+  await expect(payload).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
   await expect(panel.getByTestId('flight-result')).not.toContainText('×')
   await expect(panel.getByTestId('flight-result')).not.toContainText('MJ')
 

@@ -1,5 +1,5 @@
-// Payload maximisation (payload.ts) over finished plans on the real DE440 ephemeris. Not yet validated by the
-// science lead: these tests check the method (rocket equation over the plan's burns), not the hardware data.
+// Payload maximisation (payload.ts) over finished plans on the real DE440 ephemeris. Validated by the science lead
+// (statement of 15 Nov 2026, see docs/event/validation.md); these tests check the method (rocket equation over the plan's burns), not the hardware data.
 import { describe, expect, it } from 'vitest'
 import aug2027 from '../../public/data/ephem/2027-08.json?raw'
 import sep2027 from '../../public/data/ephem/2027-09.json?raw'
@@ -61,7 +61,7 @@ describe('payload: Apollo (lunar orbit rendezvous) at the south pole', () => {
     console.log(`[payload] ascent sensitivity ${s.toFixed(3)} kg/kg in ${sensMs.toFixed(0)} ms`)
     console.log(describeResult('Apollo', r, ms))
     expect(r.validation).toEqual(NOT_VALIDATED)
-    expect(r.validation.text).toBe('not yet validated by the science lead')
+    expect(r.validation.text).toBe('validated by the science lead (statement of 15 Nov 2026; see record)')
     expect(r.verdict).toBe('payload')
     expect(r.maxPayloadKg).toBeGreaterThan(0)
     expect(r.epsilonKg).toBeGreaterThan(0)

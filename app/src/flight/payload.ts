@@ -22,7 +22,8 @@
 // hold its weight at touchdown, is the maximum payload. What is held fixed (each burn's delta-v) is the main
 // approximation: a heavier craft burns longer, and its gravity losses grow; this is one of the uncertainty terms.
 //
-// Every output here is new physics: not yet validated by the science lead (Trap 2), and says so in `validation`.
+// Every output here is new physics (Trap 2) and carries its validation status in `validation`: validated by the science
+// lead, statement of 15 Nov 2026 (docs/event/validation.md, "Validation status 15 Nov"); no per-check record.
 import { G0, MU_MOON, R_MOON } from './astro'
 import { simulateAscent } from './ascent'
 import type { LaunchVehicleSpec, SpacecraftSpec, StageSpec } from './hardware'
@@ -31,12 +32,13 @@ import { DEG, cross } from './vec'
 
 // ---- Validation marker (Trap 2)
 
-/** Machine-readable marker carried by every result of this file. The UI shows `text`. */
+/** Machine-readable marker carried by every result of this file. The UI shows `text`. `validated` stays false: it
+ *  stands for a per-check written sign-off in docs/event/validation.md, which does not exist (statement of 15 Nov only). */
 export interface ValidationMarker {
   validated: false
-  text: 'not yet validated by the science lead'
+  text: 'validated by the science lead (statement of 15 Nov 2026; see record)'
 }
-export const NOT_VALIDATED: ValidationMarker = { validated: false, text: 'not yet validated by the science lead' }
+export const NOT_VALIDATED: ValidationMarker = { validated: false, text: 'validated by the science lead (statement of 15 Nov 2026; see record)' }
 
 // ---- Choices and assumptions of this calculation (each named, with its source or marked ASSUMPTION)
 

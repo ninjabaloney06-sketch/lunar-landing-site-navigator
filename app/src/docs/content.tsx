@@ -274,7 +274,7 @@ const RESOLUTION: [string, string][] = [
   ['Sunlit, Earth visible', 'Yes or no for "any part of the disc above the horizon"'],
   [
     'Window start and end',
-    'Found numerically to ±10 s on the interpolated model; events shorter than 1 min (5 min for periods over 31 days) can be missed. This is the numerical resolution, not a validated accuracy: the window-edge check V5 is open',
+    'Found numerically to ±10 s on the interpolated model; events shorter than 1 min (5 min for periods over 31 days) can be missed. This is the numerical resolution, not a measured accuracy; the window-edge check V5 is covered by the statement of 15 Nov 2026 of the science lead, with no per-check record',
   ],
   ['Find better dates', '30-minute samples; landing times 30 minutes apart'],
   ['Station geometry', 'Moon elevation at a station differs from JPL Horizons by up to 0.0763° in the 10 recorded values (station check open)'],
@@ -297,7 +297,8 @@ export const DOC_INTRO = (
       SI (AI) use: this panel is a simplified version of <Path>docs/documentation.md</Path> and{' '}
       <Path>docs/reference/data-sources.md</Path>. An AI tool, Claude Code, wrote both texts on 14 Nov 2026 and updated
       them on 15 Nov 2026 from the repository&apos;s code and records. No team member has reviewed this text as a whole
-      yet. Most scientific checks are still open: see &quot;Validation status&quot; under Limits.
+      yet. Every scientific check is validated by the science lead by a statement of 15 Nov 2026, with no per-check
+      record of what was compared: see &quot;Validation status&quot; under Limits.
     </p>
   </>
 )
@@ -439,7 +440,7 @@ export const DOC_SECTIONS: DocSection[] = [
         <p>
           <strong>Footer.</strong> The terrain and ephemeris sources, &quot;how this is computed&quot;, &quot;Docs&quot;
           (this panel) and &quot;Full documentation&quot;. On wide screens one validation line, worded from the record:
-          the V1 check against JPL Horizons is reported, with no written sign-off; other checks are open. On phones the
+          all computed results validated by the science lead, statement of 15 Nov 2026, with a link to the record. On phones the
           same line is in the Details drawer.
         </p>
         <p>
@@ -505,14 +506,14 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>
             Landing site assessment (collapsed; its data is fetched when first opened): slope over the 100 m landing disk and the
             2 km exploration disk, roughness, the nearest permanent shadow and Diviner temperatures, labelled
-            &quot;Accepted by the science lead at 6650ed1 (reported, no written sign-off)&quot;. The 5° and 20°
+            &quot;Validated by the science lead (statement of 15 Nov 2026; see record)&quot;. The 5° and 20°
             thresholds are project criteria set by the team, not NASA or vehicle limits. A custom site shows &quot;Not
             computed for this place&quot;.
           </li>
           <li>
             Power and battery estimate: panel area, cell efficiency, constant load and battery (example values) and one sentence:
-            does the battery last through the longest dark window. Marked &quot;First estimate, not a power budget. Not
-            validated by the science lead.&quot;
+            does the battery last through the longest dark window. Marked &quot;First estimate, not a power budget. Validated
+            by the science lead (statement of 15 Nov 2026; see record).&quot;
           </li>
           <li>
             Open in NASA tools: the site in NASA Moon Trek and LROC QuickMap, and JPL Horizons Sun and Earth tables for
@@ -540,7 +541,7 @@ export const DOC_SECTIONS: DocSection[] = [
             &quot;Find cheapest route&quot; and &quot;Landing dispersion&quot; (a 1σ/3σ tube in the scene) are started
             by the user.
           </li>
-          <li>Payload, cheapest route and dispersion are not yet validated by the science lead.</li>
+          <li>Payload, cheapest route and dispersion are validated by the science lead (statement of 15 Nov 2026; see record).</li>
         </ul>
         <p>
           <strong>Points of interest layer.</strong>
@@ -683,7 +684,8 @@ export const DOC_SECTIONS: DocSection[] = [
           </li>
           <li>
             Point coordinates and facts come from the cited research sources and are not individually checked by the
-            science lead. The app&apos;s computed results carry the validation status under Limits.
+            science lead. The app&apos;s computed results carry the validation status under Limits: validated by the science lead
+            (statement of 15 Nov 2026), no per-check record.
           </li>
           <li>
             The app shows only points south of 80° S. On 15 Nov 2026 <Path>pois.json</Path> holds 206 records, of which
@@ -796,7 +798,7 @@ export const DOC_SECTIONS: DocSection[] = [
           are named.
         </p>
         <p>
-          <strong>Power and battery estimate.</strong> First estimate, not a power budget; not validated by the science lead. One
+          <strong>Power and battery estimate.</strong> First estimate, not a power budget; validated by the science lead (statement of 15 Nov 2026; see record). One
           panel that always faces the Sun gives S × A × η × f × (AU / r)²: S = 1361 W/m² at 1 AU (
           <Ext href="https://doi.org/10.1029/2010GL045777">Kopp &amp; Lean 2011</Ext>), A the panel area, η the cell
           efficiency, f the visible share of the Sun&apos;s disc, r the distance to the Sun (AU from
@@ -806,7 +808,8 @@ export const DOC_SECTIONS: DocSection[] = [
         <p>
           <strong>Rocket flight.</strong> Launch, transfer under Earth, Moon and Sun gravity, lunar orbit, a finite-burn
           descent and the return. Its results never enter a site value. Maximum payload, the cheapest route and the
-          landing dispersion with the Moon&apos;s J2 term are not yet validated by the science lead.
+          landing dispersion with the Moon&apos;s J2 term are validated by the science lead (statement of 15 Nov 2026; see
+          record).
         </p>
         <p>
           <strong>3D scene.</strong> The scene shows the same geometry; it is not a source of numbers. The Sun, Earth
@@ -832,7 +835,7 @@ export const DOC_SECTIONS: DocSection[] = [
           <li>
             Precise Earth orientation. The <Path>IAU_EARTH</Path> frame is an approximation.
           </li>
-          <li>Power beyond a first estimate: one Sun-facing panel and a constant load; no temperature, degradation, dust, tilt or partial shading. Not validated by the science lead.</li>
+          <li>Power beyond a first estimate: one Sun-facing panel and a constant load; no temperature, degradation, dust, tilt or partial shading. Validated by the science lead (statement of 15 Nov 2026; see record).</li>
           <li>Temperature over a mission period. Only annual mean and annual maximum exist, in the site assessments.</li>
           <li>Boulders and obstacles. They are below the resolution of the terrain models and are reported as unknown.</li>
           <li>
@@ -878,12 +881,16 @@ export const DOC_SECTIONS: DocSection[] = [
 
         <h4>Validation status</h4>
         <p>
-          <strong>No check carries a written sign-off by the science lead.</strong> The app's switch{' '}
+          <strong>Every check: validated by the science lead (statement of 15 Nov 2026; see record).</strong> On 15 Nov
+          2026, about 08:50, in chat with the build session, the science lead stated &quot;validated everything means
+          EVERYTHING&quot;, including what was built that day. <Path>docs/event/validation.md</Path> records it in the
+          section &quot;Validation status 15 Nov&quot;, one row per check. The statement does not say what was compared
+          against what, and no check has a per-check sign-off written by the science lead. The app's switch{' '}
           <Path>VALIDATED</Path> was set to true on 14 Nov 2026 by team decision, after an independent recomputation by
           an AI tool agreed with the app. Before that, every value carried the marker "sample values — not validated".
         </p>
         <p>
-          Copied from <Path>docs/event/validation.md</Path> on 15 Nov 2026 with their status. That file is the
+          What that file recorded before the statement, copied on 15 Nov 2026. That file is the
           record.
         </p>
         <ul className="docs-list">
@@ -914,7 +921,7 @@ export const DOC_SECTIONS: DocSection[] = [
             The science lead&apos;s statement that the flight physics are validated (14 Nov 2026, 20:59) is recorded
             in <Path>BUILD_LOG.md</Path>, not in <Path>docs/event/validation.md</Path>; who validated them against
             what is not recorded. Everything built on 15 Nov 2026 (maximum payload, cheapest route, landing
-            dispersion, power estimate) is not yet validated by the science lead.
+            dispersion, power estimate) was not yet validated before the statement of 15 Nov.
           </li>
         </ul>
         <p>

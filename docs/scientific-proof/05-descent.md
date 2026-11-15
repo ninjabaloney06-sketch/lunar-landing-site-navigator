@@ -178,8 +178,10 @@ These tests show that the code computes what it is written to compute. They are 
 
 ## Validation status
 
+- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+
 - Not recorded in `docs/event/validation.md`: that file has no row for the flight physics.
 - `BUILD_LOG.md`, 14 Nov 2026 20:59: on the science lead's statement "flight physics are validated", the marker "Planning estimate — not validated" was removed from the Flight plan tab. The same entry says: "No entry was added to docs/event/validation.md: who validated the flight physics and against what is not recorded here."
 - `app/src/data/validation.ts`: `VALIDATED = true` (14 Nov 2026, team decision after the independent recomputation by AI of the sunlight and contact results); its comment says it is not a sign-off by the science lead.
 - The three P1 proof tests of tonight (`descentGravity.proof.test.ts`, `transfer.proof.test.ts`) are tests, not a sign-off.
-- The Moon's J2 term: **not yet validated by the science lead** (comment on `J2_MOON` in `sim.ts`). It is off in every plan.
+- The Moon's J2 term: before the statement, **not yet validated by the science lead** (comment on `J2_MOON` in `sim.ts`, now citing the statement). It is off in every plan.
