@@ -155,10 +155,10 @@ test.describe('POI layer at 1440 × 900', () => {
     await expect(box.getByRole('link')).toHaveCount(0)
     await expect(box).not.toContainText('science lead')
     await expect(box).not.toContainText('Click the pin')
-    // The box sits beside the pin (above it, or below when there is no room), inside the stage, never over it;
-    // the plain name label is not shown for it.
+    // The box sits beside the pin (right or left of it, or above or below when there is no room), inside the stage,
+    // never over it: the pin's point is outside the box. The plain name label is not shown for it.
     const b = (await box.boundingBox())!
-    expect(b.y >= Y || b.y + b.height <= Y).toBe(true)
+    expect(b.x >= X || b.x + b.width <= X || b.y >= Y || b.y + b.height <= Y, 'the box does not cover its pin').toBe(true)
     expect(b.x).toBeGreaterThanOrEqual(0)
     expect(b.x + b.width).toBeLessThanOrEqual(1440)
     await expect(page.getByTestId('pin-name')).toBeHidden()

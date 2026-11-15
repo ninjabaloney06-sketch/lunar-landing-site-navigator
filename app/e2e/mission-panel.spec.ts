@@ -110,7 +110,7 @@ test.describe('U2: the Mission menu folds what is not needed to decide', () => {
       const panel = await openPanel(page)
       for (const b of [panel.getByRole('button', { name: 'Close' }), panel.getByRole('button', { name: 'Play mission' }), panel.getByTestId('stations-toggle'), panel.getByTestId('site-ranking')]) {
         const box = (await b.boundingBox())!
-        expect(box.height, await b.innerText()).toBeGreaterThanOrEqual(44)
+        expect(Math.round(box.height * 100) / 100, await b.innerText()).toBeGreaterThanOrEqual(44) // 43.999998 is 44 px after sub-pixel layout
       }
       await panel.getByTestId('site-ranking').click()
       await expect(panel.locator('[data-fact=computing]')).toHaveCount(0, { timeout: 60_000 })
