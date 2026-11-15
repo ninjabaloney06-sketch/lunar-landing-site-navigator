@@ -50,6 +50,7 @@ import { DEFAULT_LAYERS, FlightWorld, type BodyPick, type FlightAnchor, type Fli
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, azElOfEnu, enuDir, enuToMeQuat, latLonOf, quat, v3 } from './frames'
 import { GlobeWorld } from './globe'
 import { POI_AT_SITE_KM, POI_NEAR_KM, type PinItem } from './pins'
+import { createZoomSwitch } from './zoomSwitch'
 import { SiteWorld } from './site'
 import { inPinRegion } from './region'
 import { Sky } from './sky'
@@ -157,6 +158,9 @@ export interface SceneHandle {
   /** Whether a double-click on terrain walks the camera there (to eye level). The app switches it off: the eye-level
    *  view was removed from the app on 15 Nov; the harness keeps it. */
   setWalkEnabled(on: boolean): void
+  /** Whether zooming past a limit changes the view (zoomSwitch.ts): in at the Moon's floor opens the landing-site
+   *  view, out at the site's outer limit goes back to the Moon; onLevel reports it. Off until the page asks. */
+  setZoomSwitch(on: boolean): void
   /** Flies to a viewpoint; false when it is not available (nothing loaded yet, a fly running, the flight level). */
   goTo(v: Viewpoint): boolean
   /** Flies the space camera to above a point of the Moon (planetocentric degrees), from any level; ends at 'globe'. */
@@ -211,6 +215,7 @@ const EYE_FOV_MIN = 4 // narrowest lens at eye level, vertical degrees; the wide
 const EYE_ROTATE_SPEED = -0.3 // drag the view, not the camera
 const MOON_FLOOR_KM = 1 // the space camera stays this far above the 1737.4 km sphere (its near plane is 0.5 km)
 const BODY_FLOOR = 1.05 // and outside 1.05 radii of Earth and the Sun
+const ZOOM_SWITCH_MOON_KM = 100 // the zoom-in that opens the site view counts within this height above the Moon's sphere
 const FREE_MIN_DIST = 1e-4 // orbit distance limit once the wheel or a look-around has moved the camera
 const BODY_OUTER = GLOBE_DIST_KM.max / MOON_RADIUS_KM // outer zoom limit around a body, in its radii: the Moon's 20 000 km
 const MOON_RADIUS_M = MOON_RADIUS_KM * 1000
@@ -1716,7 +1721,23 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   siteControls.addEventListener('change', markDirty)
   globeControls.addEventListener('change', markDirty)
-  const freeCam = installFreeCam({ canvas, testMode, rig, heightPx: () => size.y, changed: markDirty })
+  // Zooming past a limit changes the view (zoomSwitch.ts). The level changes through setLevel, as for the page's
+  // View control, and the page hears of it through onLevel, as for a walk.
+  const zoomSwitch = createZoomSwitch()
+  let zoomSwitchOn = false
+  function zoomPushed(lnFactor: number, atLimit: boolean) {
+    const dir = lnFactor > 0 ? 'in' : 'out'
+    // On the Moon view only the Moon's own floor counts (not Earth's or the Sun's); at eye level nothing does.
+    const here =
+      level === 'globe' ? dir === 'in' && globeCam.position.length() < MOON_RADIUS_KM + ZOOM_SWITCH_MOON_KM : level === 'site' && dir === 'out'
+    const at = zoomSwitchOn && atLimit && here && !fly && !!frame?.site
+    if (!zoomSwitch.feed(dir, Math.abs(lnFactor), at, performance.now())) return false
+    const next = level === 'globe' ? 'site' : 'globe'
+    setLevel(next)
+    emitLevel(next)
+    return true
+  }
+  const freeCam = installFreeCam({ canvas, testMode, rig, heightPx: () => size.y, changed: markDirty, pushed: zoomPushed })
 
   // ---------- input: globe picking ----------
 
@@ -1936,6 +1957,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     },
     setWalkEnabled(on) {
       walkEnabled = on
+    },
+    setZoomSwitch(on) {
+      zoomSwitchOn = on
+      zoomSwitch.reset()
     },
     setClickGuard(guard) {
       clickGuard = guard

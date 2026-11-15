@@ -61,6 +61,11 @@ on a POI's pin is not a walk (the page keeps its info box open on it).
 Site switch (15 Nov night): at site and eye level a click (or second tap) on another landing site's pin selects that
 site through onPick with its own coordinates, as on the globe (click.ts siteLevelClick); before, the click fell through
 to the walk and nothing happened. e2e/site-switch.spec.ts covers pins, the header picker, rapid switches and Play.
+Zoom past a limit (15 Nov night, zoomSwitch.ts): after handle.setZoomSwitch(true) (the app; the harness leaves it off)
+more zoom-in at the Moon view's floor opens the landing-site view and more zoom-out at the site view's 60 km limit
+goes back to the Moon view, through setLevel, reported by onLevel. It takes three wheel notches' worth (ln 0.384) in at
+least three inputs no more than 500 ms apart; after a switch nothing counts for 1.5 s and until the input has paused
+250 ms. Eye level is unchanged. e2e/zoom-switch.spec.ts.
 Wave 3 (14 Nov evening):
 F3 camera at rest: OrbitControls.update() rebuilds the camera from spherical coordinates on every call, and the round
 trip moved a camera at rest by a unit in the last place (c4.spec.ts:210 once saw 9.09e-13 m). tick() calls it only

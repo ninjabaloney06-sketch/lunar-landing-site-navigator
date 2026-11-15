@@ -419,6 +419,7 @@ export function SceneView(props: Props) {
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
     // No eye-level view in the app (15 Nov): no walk. The scene's regression tests (?test=1) keep it.
     h.setWalkEnabled(new URLSearchParams(window.location.search).has('test'))
+    h.setZoomSwitch(true) // zooming in past the Moon view's limit opens the landing site, out past the site's goes back
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l), goToPoint: (lat, lon) => h.goToPoint(lat, lon) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
