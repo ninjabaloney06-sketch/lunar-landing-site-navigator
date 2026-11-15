@@ -50,7 +50,6 @@ export interface DebugView {
   setMoonVisible(on: boolean): void
   showRegion(on: boolean): void
   flyPose(): { flying: boolean; mix: number; position: number[]; quaternion: number[]; fov: number; site: number[] }
-  topView(): boolean
   named(): SceneName | null
   surfaceAt(x: number, y: number): { lat: number; lon: number } | null
   bodies(): { name: string; center: number[]; camera: number[] }[]
@@ -133,9 +132,8 @@ export function installDebug(v: DebugView) {
     surfaceDist: () => v.surfaceDist(),
     // Terrain point (ENU m, z = ground height) under a screen position at site or eye level: where a click walks to.
     terrainAt: (x: number, y: number) => v.terrainAt(x, y),
-    // Viewpoints without the fly, the top-view flag, the name label's data, the Moon point under a screen
-    // position, each body's centre with the camera in the same frame and unit (MOON_ME km, or the top view's
-    // display units), and a user point's marker on screen.
+    // The Moon viewpoint without the fly, the name label's data, the Moon point under a screen position, each
+    // body's centre with the camera in the same frame and unit (MOON_ME km), and a user point's marker on screen.
     goTo: async (vp: Viewpoint) => {
       const ok = v.goTo(vp)
       v.renderNow()
@@ -169,7 +167,6 @@ export function installDebug(v: DebugView) {
     // The camera in one frame at every level (MOON_ME km and the orientation in MOON_ME), with the site scene's
     // share of the picture (0 = space scene, 1 = site scene) and the site's position, for the fly between the scenes.
     flyPose: () => v.flyPose(),
-    topView: () => v.topView(),
     named: () => v.named(),
     surfaceAt: (x: number, y: number) => v.surfaceAt(x, y),
     bodies: () => v.bodies(),

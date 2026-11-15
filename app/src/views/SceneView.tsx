@@ -1,6 +1,5 @@
 // The 3D scene (C1's scene3d, through its contract only) plus the labels that sit on its objects:
-// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth, "Landing site" at the mast top, and "Moon" at the Moon where it is
-// a body in the picture (the Earth and Sun viewpoints; labelPoint('moon') is null elsewhere). A label is hidden
+// "Sun 1.2°" at the Sun, "Earth 4.8°" at Earth and "Landing site" at the mast top. A label is hidden
 // whenever project() / labelPoint() returns null or a point that is not visible. On the flight level the labels are
 // Earth, Moon, the launchpad, the landing point, the capsule, the lander, and one at each engine burn (its name, the
 // stage that fires, or both: the layer checkboxes choose). Burn labels that would lie over another label are not
@@ -59,14 +58,10 @@ export interface SceneApi {
   setLevel(level: SceneLevel): void
 }
 
-/** The six viewpoint entries, shared by the View button and the right-click menu. */
-export function viewpointItems(points: ScenePoint[], goTo: (v: Viewpoint) => void): ViewItem[] {
-  return VIEWPOINTS.map((v) => ({
-    id: v.id,
-    label: v.label,
-    disabled: (v.id === 'start' || v.id === 'end') && !points.some((p) => p.role === v.id),
-    onSelect: () => goTo(v.id),
-  }))
+/** The viewpoint entries (U14: only "Moon"), shared by the View button and the right-click menu. `points` is no
+ *  longer read (it decided whether Point start / Point end were enabled); kept so App.tsx's call stays valid. */
+export function viewpointItems(_points: ScenePoint[], goTo: (v: Viewpoint) => void): ViewItem[] {
+  return VIEWPOINTS.map((v) => ({ id: v.id, label: v.label, onSelect: () => goTo(v.id) }))
 }
 
 interface Props {
@@ -84,7 +79,7 @@ interface Props {
   clickGuard(): boolean // false while a click on the scene only closes a menu
   points: ScenePoint[] // user points, drawn as markers
   api: RefObject<SceneApi | null>
-  onTopView(on: boolean): void // the not-to-scale top view is shown
+  onTopView?(on: boolean): void // unused since U14 removed the top view; App.tsx still passes it (diff in cam's report)
   canAddPoint: boolean // false when the list of user points is full
   onAddPoint(lat: number, lon: number): void // "Add point here" in the right-click menu
   onSetSite(lat: number, lon: number): void // "Set … as landing site" in the right-click menu on a user point
@@ -93,7 +88,6 @@ interface Props {
 }
 
 const HOVER_GRACE_MS = 350 // pointer from the pin onto its info box
-const LABEL_NEAR_PX = { x: 110, y: 52 } // two label points this close would put the label boxes over each other
 const CLICK_SLOP_PX = 5 // the scene's own limit between a click and a drag
 
 /** Test hook (?test=1 only, like the scene's window.__scene): the POIs last passed to setPois, and an override of
@@ -179,15 +173,15 @@ const BODY_TEXT: Record<string, string> = { earth: 'Earth', moon: 'Moon', arriva
 
 export function SceneView(props: Props) {
   const { deps, siteId, utcMs, view, sunEl, earthEl, flight, onUnavailable, onPick, onFlightPick } = props
-  const { onLevel, clickGuard, points, api, onTopView, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
+  const { onLevel, clickGuard, points, api, canAddPoint, onAddPoint, onSetSite, pois, poiById } = props
   const host = useRef<HTMLDivElement>(null)
   const handle = useRef<SceneHandle | null>(null)
   const pick = useRef(onPick)
   pick.current = onPick
   const flightPick = useRef(onFlightPick)
   flightPick.current = onFlightPick
-  const cb = useRef({ onLevel, clickGuard, onTopView })
-  cb.current = { onLevel, clickGuard, onTopView }
+  const cb = useRef({ onLevel, clickGuard })
+  cb.current = { onLevel, clickGuard }
   const name = useRef<HTMLDivElement>(null)
   const nameText = useRef<HTMLDivElement>(null)
   // Right-click menu: where it opened, the Moon point under it, and the user point named() reports at that moment
@@ -207,8 +201,6 @@ export function SceneView(props: Props) {
   const ownLevel = useRef<SceneLevel | null>(null)
   const sun = useRef<HTMLDivElement>(null)
   const earth = useRef<HTMLDivElement>(null)
-  const moon = useRef<HTMLDivElement>(null)
-  const moonBox = useRef<HTMLDivElement>(null)
   const site = useRef<HTMLDivElement>(null)
   const flightEls = useRef<Partial<Record<FlightAnchor, HTMLDivElement | null>>>({})
   const capsuleEls = useRef<CraftEls>({ box: null, name: null, sub: null })
@@ -413,7 +405,6 @@ export function SceneView(props: Props) {
     })
     // A press that closes the right-click menu is not also a click on the scene.
     h.setClickGuard(() => !ctxOpen.current && performance.now() - ctxClosedAt.current > 400 && cb.current.clickGuard())
-    const offTop = h.onTopView((on) => cb.current.onTopView(on))
     api.current = { goTo: (v) => h.goTo(v), setLevel: (l) => h.setLevel(l) }
     const namedNow = () => (namedOverride.current !== undefined ? namedOverride.current : h.named())
     const offMenu = h.onMenu((m) => {
@@ -492,13 +483,6 @@ export function SceneView(props: Props) {
       const ep = h.labelPoint('earth')
       place(earth.current, ep, have.current.earth)
       clearOfText(earth.current)
-      const mp = h.labelPoint('moon')
-      place(moon.current, mp, true)
-      // From the Sun's side the Moon and Earth are a fraction of a degree apart: the Moon's label then hangs below
-      // its point, so the two labels never cover each other.
-      const near = !!(mp?.visible && ep?.visible && have.current.earth && Math.abs(ep.x - mp.x) < LABEL_NEAR_PX.x && Math.abs(ep.y - mp.y) < LABEL_NEAR_PX.y)
-      moonBox.current?.classList.toggle('is-below', near)
-      clearOfText(moon.current)
       place(site.current, h.project('site'), true)
       clearOfText(site.current)
       const n = namedNow()
@@ -576,10 +560,8 @@ export function SceneView(props: Props) {
       offPick()
       offFlightPick()
       offLevel()
-      offTop()
       offMenu()
       api.current = null
-      cb.current.onTopView(false)
       handle.current = null
       h.dispose()
     }
@@ -704,12 +686,6 @@ export function SceneView(props: Props) {
         <div ref={earth} className="obj" hidden>
           <div className="obj-box" data-testid="label-earth">
             <span className="obj-name obj-earth">Earth</span> <span className="obj-num">{earthEl === null ? '' : fmtDeg(earthEl)}</span>
-            <span className="obj-tick" />
-          </div>
-        </div>
-        <div ref={moon} className="obj" hidden>
-          <div ref={moonBox} className="obj-box" data-testid="label-moon">
-            <span className="obj-name">Moon</span>
             <span className="obj-tick" />
           </div>
         </div>
