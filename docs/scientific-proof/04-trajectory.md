@@ -157,7 +157,9 @@ Proof tests written tonight for task P1 (`app/src/flight/transfer.proof.test.ts`
 | "without the Sun, the same coast arrives kilometres off and passes the Moon at a different altitude" | more than 400 km off (811 km measured, per the comment in the file) |
 | "without the Earth, the lunar orbit insertion burn ends in a measurably different orbit" | more than 0.15 km apart 4 h after LOI (0.35 km measured, per the comment) |
 
-Proof sentences for the docs (task P1 (b), (c)): during every finite burn the vehicle's mass falls at thrust / (g₀·Isp), and the speed gained matches the rocket equation, where a constant-mass model would be more than 500 m/s short; the transfer is integrated with the Sun and the Earth as third bodies: without the Sun the translunar coast ends 811 km from the flown point, and without the Earth the lunar orbit after insertion drifts 0.35 km in 4 hours (`transfer.proof.test.ts`).
+Measured values, as the tests printed them in a run on 15 Nov 2026 (the assertions are the thresholds in the table): the TLI burn lasts 290.8 s and the vehicle's mass falls from 132.0 to 61.6 t; ∫F/m dt gives 3149.3 m/s against 3148.9 m/s from the rocket equation; with the mass held constant the burn ends 933 m/s slower; the re-flown coast ends 270 m from the flown LOI ignition point after 5.26 days; without the Sun it ends 811.4 km off and passes the Moon 433.2 km up instead of 123.0 km; without the Earth the lunar orbit is 0.4 m off at LOI cut-off and 0.35 km off 4 hours later.
+
+Proof sentences for the docs (task P1 (b), (c)): during every finite burn the vehicle's mass falls at thrust / (g₀·Isp): on the flown TLI it drops from 132.0 to 61.6 t and the speed gained matches the rocket equation (3149 m/s), where the same burn at constant mass ends 933 m/s slower; the transfer is integrated with the Sun and the Earth as third bodies: without the Sun the translunar coast ends 811 km from the flown point, and without the Earth the lunar orbit after insertion drifts 0.35 km in 4 hours (`transfer.proof.test.ts`).
 
 Other tests:
 
