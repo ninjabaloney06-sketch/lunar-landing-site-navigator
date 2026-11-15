@@ -20,7 +20,7 @@ actually sees.
 The run is on a laptop with an NVIDIA RTX 5060. Always run Playwright with **`PW_GPU=1`** (real GPU
 rendering, see `app/playwright.config.ts` and README). Screenshots from the software renderer
 (SwiftShader) do not show what users see and are too slow for the 3D scene. Use relative paths and
-cross-platform commands: the main prompt's macOS-only commands (`caffeinate`, `/Users/Guest123/...`) do not
+cross-platform commands: the main prompt's macOS-only commands (`caffeinate`, `~/...`) do not
 apply on this laptop.
 
 ## Brief for `sweep-visual`

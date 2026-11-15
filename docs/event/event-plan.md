@@ -5,7 +5,7 @@ Logistics and schedule for the ~28.5 hours between hacking start and our submiss
 "Official rules read", "Team strengths and roles"), [AGENTS.md](../../AGENTS.md). No project code, no spec,
 no app designs in here — those are decided at the event (prep rule).
 
-**28 Oct comparison complete:** the current challenge page + Sarah's 12 Oct email are the basis for the review (ninja). No later statement/resources publication blocks this plan. Basic site/date comparison and [UX-01–05](../reference/existing-tools.md#product-follow-through--28-oct-2026) are required; optional score, side-by-side layout and map may be cut. Check submission-form instructions separately before the event.
+**28 Oct comparison complete:** the current challenge page + the organiser's 12 Oct email are the basis for the review (ninja). No later statement/resources publication blocks this plan. Basic site/date comparison and [UX-01–05](../reference/existing-tools.md#product-follow-through--28-oct-2026) are required; optional score, side-by-side layout and map may be cut. Check submission-form instructions separately before the event.
 
 **Hard anchors**
 
@@ -48,9 +48,9 @@ reviews — S signs every number that reaches the UI.
 
 ## Sleep plan — at the venue
 
-**Decided 26 Oct:** the whole team stays at the venue with Dagny Locher; everyone brings a sleeping bag and mat. This replaces the hostel plan. Sarah requires the accompanying adult to stay with the participants throughout, including overnight; she does not require two teammates to keep working.
+**Decided 26 Oct:** the whole team stays at the venue with the Betreuerin; everyone brings a sleeping bag and mat. This replaces the hostel plan. The organiser requires the accompanying adult to stay with the participants throughout, including overnight; she does not require two teammates to keep working.
 
-**DECIDED by ninja, 13 Nov: sleep in two batches.** Leo + Isaac sleep **22:00–01:00**, Otto + Bene sleep **01:00–04:00** (Isaac and Leo concentrate badly after 22:00; Otto and Bene work well late). This replaces the 26 Oct six-hour baseline; ninja accepts the shorter sleep and plans to catch up after the event. Consequences in the timeline below: go/no-go moved to 21:30, handover 21:40–22:00, Otto and Bene take the official 22:30 wrap-up, Sunday work starts at 01:00. The Betreuerin (Dagny Locher) must confirm, since she stays with the team all night.
+**DECIDED by ninja, 13 Nov: sleep in two batches.** Leo + Isaac sleep **22:00–01:00**, Otto + Bene sleep **01:00–04:00** (Isaac and Leo concentrate badly after 22:00; Otto and Bene work well late). This replaces the 26 Oct six-hour baseline; ninja accepts the shorter sleep and plans to catch up after the event. Consequences in the timeline below: go/no-go moved to 21:30, handover 21:40–22:00, Otto and Bene take the official 22:30 wrap-up, Sunday work starts at 01:00. The Betreuerin must confirm, since she stays with the team all night.
 
 ## Food and breaks
 
@@ -110,7 +110,7 @@ don't eat. Every block ends with the output committed so the next block builds o
 
 ## Overnight — no required build work
 
-**Agents work overnight, humans sleep (added 13 Nov; Sarah, 12 Nov: "you can code at the event venue through the night").** Before 22:00, Isaac gives the orchestrator an overnight queue of gate-free work only, each on its own branch, **nothing merged until Isaac is back at 01:00 and Otto has reviewed it**:
+**Agents work overnight, humans sleep (added 13 Nov; the organiser, 12 Nov: "you can code at the event venue through the night").** Before 22:00, Isaac gives the orchestrator an overnight queue of gate-free work only, each on its own branch, **nothing merged until Isaac is back at 01:00 and Otto has reviewed it**:
 - horizons, terrain tiles and textures for every remaining curated site (Track B, already-signed method);
 - 3D polish branch (step 6 items) and screenshot rounds against the reference images;
 - Playwright tests for UX-01–05 and T10, CSV export, README and submission-text drafts (Haiku).

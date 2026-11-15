@@ -11,7 +11,7 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 ### Before the event (now → Fri 13 Nov)
 
 - [ ] **Existing tools run (Tue 27 Oct)** — click through JPL Horizons, NASA Moon Trek and LRO QuickMap yourself ("Sun and Earth elevation at site X over dates Y"), time it, write the 5 biggest pain points into [docs/reference/existing-tools.md](../reference/existing-tools.md). These are the pitch.
-- **Challenge comparison complete (28 Oct)** — current challenge page + Sarah's email compared; changes in docs/reference/decisions.md and TASKS.md. No future-publication blocker.
+- **Challenge comparison complete (28 Oct)** — current challenge page + the organiser's email compared; changes in docs/reference/decisions.md and TASKS.md. No future-publication blocker.
 - **LOLA selection complete (28 Oct)** — reviewed sizes/projections/usage terms; ninja chose the 5.1 GB set in [docs/reference/data-guide.md](../reference/data-guide.md). Downloads remain a separate phase-2 task.
 - [x] **spiceypy via agent (~1.5 h, agent-executed)** — the agent runs kernels → ET → position vectors on the tutorial kernels; you restate its output and can say what `furnsh`/`str2et`/`spkpos` each did ([docs/reference/learning.md](../reference/learning.md)).
 - [x] **rasterio + pyproj via agent (~2.5 h, agent-executed)** — the agent reads the sample GeoTIFF at a lat/lon you pick; you state the CRS and resolution from its output.
@@ -22,8 +22,8 @@ You put everyone's work together, run the agents on Otto's two Claude Max 20x pl
 - [ ] **Walk the team through [build-plan.md](build-plan.md) (~30 min, Thu/Fri)** — everyone reads their sections first; agree the §9 defaults (observer height 2 m, Earth = any part of the disc, LT+S, mission planner, Nov 2026 – Dec 2030) or note objections for the 10:30 kickoff.
 - [x] **Write the agent briefs for step 1 (§8.1)** — done 13 Nov in [agent-briefs.md](agent-briefs.md) (plan text, no code; shared preamble + step 0, A, B, C1, C2). Read it once before Saturday; attach the two mockup PNGs from Downloads to C1 and C2.
 - [ ] **Check-in with the team** before the event: learning done, laptops ready, authorisations signed.
-- [ ] **Check actual submission requirements (13 Nov)** — form fields, media format and code-link requirement from the organiser/form; use guides if supplied. Separate from the completed challenge comparison. **13 Nov afternoon:** the 2026 Submission and Judging guides (due 13 Nov per the FAQ) were not on the Resources page yet; recheck Fri night and Sat 08:30. Bring Sarah's 12 Oct email (Betreuerin accepted) on your phone: the FAQ says under-18s need a parent or guardian.
-- [ ] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov (calendar 29 Oct).
+- [ ] **Check actual submission requirements (13 Nov)** — form fields, media format and code-link requirement from the organiser/form; use guides if supplied. Separate from the completed challenge comparison. **13 Nov afternoon:** the 2026 Submission and Judging guides (due 13 Nov per the FAQ) were not on the Resources page yet; recheck Fri night and Sat 08:30. Bring the organiser's 12 Oct email (Betreuerin accepted) on your phone: the FAQ says under-18s need a parent or guardian.
+- [ ] **Signed parental authorisation** naming the Betreuerin, by Sat 7 Nov (calendar 29 Oct).
 - [ ] **NEW 13 Nov — textures onto the USB stick** — `~/Documents/clps-data/clps/textures/` (136 MB, downloaded 13 Nov) is only on your Mac. Copy it to the stick's `clps/textures/` and run `shasum -a 256 -c SHA256SUMS.txt` there. Rows in [data-sources.md](../reference/data-sources.md).
 - [ ] **Pack** — laptop, charger, power strips, USB stick, sleeping bag, mat, ID, the signed authorisation.
 
@@ -72,7 +72,7 @@ You own the physics. If a number in our app is wrong, it's your call to stop it.
 - [ ] **NEW 13 Nov — 3D correctness checks (~20 min)** — read [build-plan.md](build-plan.md) §5.4, part "How agents build and check 3D". The 3D view is now the main screen; you sign T14 (Sun/Earth pixel = our az/el), T15 (terrain outline = horizon mask) and T17 (Sun hidden when the mask says dark). For T16, find a primary-source coordinate for one bright crater (e.g. Tycho) so we can check the Moon texture is not mirrored. **Done when:** the Tycho source is in sources.md and you know what each of T14–T17 compares.
 - [ ] **Judge questions (~1 h)** — after the reading list below: write 10 physics questions a judge could ask and your answer to each in your own words, two sentences maximum (include: how wrong can our numbers be, and how do we know). Your own notes, not in the repo. You answer these at the pitch.
 - [ ] **Laptop ready** — follow your OS section in [docs/reference/setup.md](../reference/setup.md) so agents can run scripts on your machine (Python, libraries, git, Claude Code logged in, docs saved). Do the Wi-Fi-off self-test. You install; you do not need to understand the libraries.
-- [ ] **Signed parental authorisation** naming Dagny Locher — was due Sat 7 Nov. If not done: today.
+- [ ] **Signed parental authorisation** naming the Betreuerin — was due Sat 7 Nov. If not done: today.
 - [ ] **Pack** — laptop, charger, sleeping bag, mat, ID, the signed authorisation.
 
 
@@ -122,7 +122,7 @@ You read the code line by line. Nothing an agent writes goes in without your rev
 - [ ] **NEW 13 Nov — 3D test harness (~30 min reading)** — read [build-plan.md](build-plan.md) §5.4. You own the Playwright screen tests T14–T17 and the rule "no Euler angles, no hand-typed matrices, no trigonometry in `app/src/scene3d/`" (add a grep check for `Euler`, `Math.sin`, `Math.cos`, `new Matrix4(` outside `makeBasis`). Learn [Playwright screenshots](https://playwright.dev/docs/screenshots) and `page.evaluate` (no project code before Saturday).
 - [ ] **Know that Isaac's side is agent-executed too (29 Oct decision)** — Isaac's tool learning and his event scripts are written and run by agents; he reviews output, he does not hand-type physics. Since you read through everything: treat I's scripts exactly like every other agent script — run them through your checklist — and remember that on the I side no human eyeballs SPICE numbers directly, so your tests and Leo's validation are the only net.
 - [ ] **Laptop offline-ready** — follow your OS section in [docs/reference/setup.md](../reference/setup.md) (Python, pytest, Node, git, Claude Code logged in). Do the Wi-Fi-off self-test.
-- [ ] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov.
+- [ ] **Signed parental authorisation** naming the Betreuerin, by Sat 7 Nov.
 - [ ] **Pack** — laptop, charger, power strip, sleeping bag, mat, ID, the signed authorisation.
 
 ### At the event
@@ -161,7 +161,7 @@ You don't need to learn React or a chart library: the agents write the code, you
 - [ ] **Agents in parallel (~0.5 h)** — Isaac shows the team how two agents work in parallel without touching the same files. You need to know it so you don't break someone else's work.
 - [ ] **Demo story (~0.5 h)** — you drive the live demo on Sunday. Think about how a 60-second demo of a tool like ours should flow (question → click → answer). Watch 2–3 past Space Apps winner videos for how they show their app. **Done when:** you can describe a good 60-second demo flow in 3 steps.
 - [ ] **Laptop offline-ready** — Claude Code logged in, browser, Node 20+ so you can run the app locally ([docs/reference/setup.md](../reference/setup.md), your OS section).
-- [X] **Signed parental authorisation** naming Dagny Locher, by Sat 7 Nov.
+- [X] **Signed parental authorisation** naming the Betreuerin, by Sat 7 Nov.
 - [ ] **Pack** — laptop, charger, sleeping bag, mat, ID, the signed authorisation.
 
 ### At the event

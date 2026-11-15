@@ -78,8 +78,8 @@ Accounts that exist for this project. Add a row when one is created. No password
 | Someone who can handle GeoTIFF/raster data | required | Nobody claims it; Isaac + AI agents, L checks the geometry, O reviews the code (see `docs/reference/decisions.md`, team strengths) |
 | Product, UI decisions and pitch | required | Isaac |
 | A mentor with lunar mission or geodesy background | optional | Ask on day 1 in Heilbronn |
-| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One Betreuer covers our four and a second team (settled 22 Oct); must stay with the team for the whole event incl. overnight (organiser, 12 Oct). Betreuerin: **Dagny Locher** (25 Oct) |
-| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 12 Oct). Isaac decided 25 Oct that this scheme is accepted; no confirmation from Sarah needed |
+| Accompanying Betreuer (provided by Isaac's school, decided 16 Oct) | required | One Betreuer covers our four and a second team (settled 22 Oct); must stay with the team for the whole event incl. overnight (organiser, 12 Oct). Betreuerin: named on 25 Oct (name kept out of the repo) |
+| Written parental authorisation, one per participant | required | Names the Betreuer and authorises them for the whole event; bring originals on 14 Nov (organiser, 12 Oct). Isaac decided 25 Oct that this scheme is accepted; no confirmation from the organiser needed |
 
 
 ## Offline laptop setup — every laptop ready offline

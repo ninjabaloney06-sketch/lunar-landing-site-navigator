@@ -42,6 +42,11 @@ export interface FreeCamHost {
   rig(): Rig | null
   heightPx(): number
   changed(): void
+  /**
+   * Every wheel or pinch input before it is applied: ln of its zoom factor (> 0 = closer) and whether the camera
+   * is at a limit this input cannot pass. True = the host took the input (zoomSwitch.ts), so it is not applied.
+   */
+  pushed?(lnFactor: number, atLimit: boolean): boolean
 }
 
 const STEP = 0.128 // ln of the zoom factor per wheel notch: one notch covers 12 % of the distance to the surface
@@ -152,8 +157,23 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
     if (r.mode === 'zoom' ? zoom(r, factor) : dolly(r, factor)) host.changed()
   }
 
+  /** Whether a notch in the direction of lnFactor would be cut short by the floor or the outer limit. */
+  function atLimit(lnFactor: number) {
+    const r = host.rig()
+    if (!r || r.mode !== 'dolly') return false
+    const p0 = r.cam.position
+    const f = r.cam.getWorldDirection(new Vector3())
+    const p = p0.clone().addScaledVector(f, r.surface(p0) * (1 - Math.exp(-Math.sign(lnFactor) * STEP)))
+    return !(r.allowed(p) && (r.reach(p) <= 1 || r.reach(p) <= r.reach(p0)))
+  }
+
   /** Wheel, pinch: eased when smooth, whole in the frame of the event otherwise. */
   function queueZoom(lnFactor: number) {
+    if (lnFactor !== 0 && host.pushed?.(lnFactor, atLimit(lnFactor))) {
+      pending = 0
+      return
+    }
+    if (!host.rig()) return
     pending += lnFactor
     if (smooth) return host.changed()
     const all = pending
@@ -204,7 +224,6 @@ export function installFreeCam(host: FreeCamHost): FreeCam {
 
   const onWheel = (e: WheelEvent) => {
     e.preventDefault()
-    if (!host.rig()) return
     // A pinch on a trackpad arrives as a wheel event with ctrlKey and a small delta: fingers apart = closer.
     if (e.ctrlKey && e.deltaMode === 0) return queueZoom(MathUtils.clamp(-e.deltaY * PINCH_LN_PER_PX, -0.5, 0.5))
     const notches = MathUtils.clamp(e.deltaMode === 1 ? e.deltaY / 3 : e.deltaY / 100, -4, 4)

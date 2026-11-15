@@ -283,6 +283,175 @@ const RESOLUTION: [string, string][] = [
   ['3D terrain', '20 m within ±2.5 km, 80 m within ±20 km, 160 m within ±40 km (from the south-cap 80 m tiles), 400 m within ±60 km, 2 km within ±300 km; for viewing only'],
 ]
 
+// ---------- what was checked (docs/event/validation.md; status = that file's wording) ----------
+
+interface CheckRow {
+  check: string
+  points: string
+  largest: string
+  tolerance: string
+  who: ReactNode
+  status: string
+}
+
+const CHECKS: CheckRow[] = [
+  {
+    check:
+      "Horizons comparison: Sun and Earth azimuth and elevation from the app's own ephemeris files and interpolation, against JPL Horizons (observer on the Moon at the site, apparent, airless); Connecting Ridge, Shackleton Rim Site04, IM-1, 2027–2030",
+    points: '72 (36 on 30-minute samples, 36 between samples)',
+    largest:
+      'Elevation 0.000043°, azimuth × cos(elevation) 0.000020°; medians 0.0000027° and 0.0000003°. On samples 0.000024°, between samples 0.000043°',
+    tolerance: '< 0.05° (V1)',
+    who: (
+      <>
+        Run by an AI tool (Claude Code) on 15 Nov 2026; not a sign-off by the science lead. Script{' '}
+        <Path>scripts/tools/horizons_check.py</Path>, result{' '}
+        <a href={`${import.meta.env.BASE_URL}data/validation/horizons.json`}>horizons.json</a> (run 15 Nov 2026,
+        21:45)
+      </>
+    ),
+    status: 'No status; recorded in the section "Horizons comparison, 15 Nov 2026 (AI-run)"',
+  },
+  {
+    check: 'V1: Sun and Earth azimuth and elevation against JPL Horizons, 10 site and time points',
+    points: '20 values at two sites; AI rechecks: 20 values (14 Nov), 24 values (15 Nov)',
+    largest: 'Azimuth 0.0000°, elevation 0.0001°; rechecks: equal to the printed 0.001° (14 Nov), below 0.0001° (15 Nov)',
+    tolerance: '< 0.05°',
+    who: 'Values filled in by an AI tool, 14 Nov 2026 about 13:10; AI rechecks 14 Nov 18:40 and 15 Nov about 09:00',
+    status: 'Passed, as reported by a team member in chat, 14 Nov 2026 15:56; no written sign-off by the science lead',
+  },
+  {
+    check: 'V2: Sun elevation near the pole from the Horizons sub-solar point by the spherical formula, against ours',
+    points: '1 (14 Nov); 4 more in the AI recheck of 15 Nov',
+    largest: '0.0007°',
+    tolerance: 'Sign and size agree',
+    who: 'AI tool, 14 Nov 2026 about 13:10; AI recheck 15 Nov',
+    status: 'Passed, as reported by a team member in chat, 14 Nov 2026 15:56; no written sign-off by the science lead',
+  },
+  {
+    check: 'Station check: Moon elevation at the Earth stations against Horizons (station as observer)',
+    points: '10 (Madrid, Canberra); 25 in the AI recheck of 15 Nov (all five stations)',
+    largest: '0.0763°; recheck 0.0782° (Uchinoura)',
+    tolerance: 'Not set; AI proposal ≤ 0.1°',
+    who: 'AI tool, 14 Nov 2026 about 13:10; AI recheck 15 Nov',
+    status: 'Open; the tolerance and two questions need the science lead',
+  },
+  {
+    check: 'V3: synthetic horizons (flat sphere, cones) against exact sphere geometry',
+    points: '720 azimuths; cones at 7.5, 45 and 180 km',
+    largest: 'Flat sphere 0.00002° (−0.08132°); cones 0.00004°',
+    tolerance: '< 0.01°',
+    who: 'AI tool, 14 Nov 2026 18:40 and 15 Nov',
+    status: 'Open',
+  },
+  {
+    check: 'V4: lit % and Earth-visible % over 2027–2030 against the published average-illumination maps (context only)',
+    points: '18 sites, Sun and Earth',
+    largest: 'Sun 9.0 points (mean +2.1); Earth 8.4 points, offset of about +1.5 points with no established cause',
+    tolerance: 'Same ballpark; investigate above 15 points',
+    who: 'AI tool, 14 Nov 2026',
+    status: 'Open, needs the science lead',
+  },
+  {
+    check: 'V5: window edges (Sun and Earth rise and set) against a 1-minute brute force from Horizons',
+    points: '12 edges, 3 sites × 3 days in Aug 2027 (15 Nov); 6 cases (14 Nov)',
+    largest: 'Every edge inside the 1-minute bracket',
+    tolerance: '≤ 1 min',
+    who: 'AI tool, 14 and 15 Nov 2026',
+    status: 'Open; AI recheck agrees',
+  },
+  {
+    check: "V6: coarse custom-site horizon, rebuilt from the shipped terrain, against the 18 full horizons",
+    points: '18 sites',
+    largest: 'Median 0.013°, worst-site median 0.253°, worst direction 1.679° (the app states 0.013 / 0.256 / 1.679°)',
+    tolerance: 'Reported, shown in the interface',
+    who: 'AI tool, 15 Nov 2026',
+    status: 'Open; AI recheck reproduces the stated accuracy',
+  },
+  {
+    check: 'V7: values on screen against the pipeline and Horizons',
+    points: '36 table values (14 Nov); one set at Connecting Ridge, 16 Aug 2027 (15 Nov)',
+    largest: '35 of 36 identical to 0.1 %, Connecting Ridge coverage 98.1 % against 98.2 %; 15 Nov set equal to display precision',
+    tolerance: 'Exact to display precision',
+    who: 'AI tool, 14 and 15 Nov 2026',
+    status: 'Open; AI recheck agrees',
+  },
+  {
+    check: 'V8: landing-window finder against a brute force over every 30-minute landing time',
+    points: '3 sites, 16 Aug 2027 + 60 days',
+    largest: 'Edges within 2 h and 4 h at two sites; at Haworth a window was missed with the old 6-hour grid',
+    tolerance: 'Same windows, edges ≤ 6 h',
+    who: 'AI tool, 15 Nov 2026',
+    status: 'Open; failed at Haworth with the 6-hour grid, fixed to 30 minutes',
+  },
+  {
+    check: 'V9: panel types',
+    points: 'None',
+    largest: 'No numbers recorded',
+    tolerance: '3 significant digits',
+    who: 'Not run',
+    status: 'Panel types not built (no value to check)',
+  },
+  {
+    check: 'Horizon range: 150 km against 300 km rays',
+    points: '3 sites × 720 directions',
+    largest: 'Skyline 0.4437° (Connecting Ridge, azimuth 105.5°); lit % changes by at most 0.12 points',
+    tolerance: 'Not recorded',
+    who: 'AI tool, 14 Nov 2026 16:27–16:43',
+    status: 'Open, needs the science lead',
+  },
+  {
+    check: 'Truncated horizons: the 18 regenerated horizons against an independent ray march on the raw elevation models',
+    points: '18 sites × 144 azimuths',
+    largest: '0.087° (Haworth); median per site ≤ 0.009°',
+    tolerance: 'Not recorded',
+    who: 'AI tool, 14 Nov 2026 18:40',
+    status: 'Open; AI recomputation agrees within 0.09°',
+  },
+  {
+    check: 'Site assessments: slopes recomputed from the shipped terrain tiles',
+    points: '11 sites on the 20 m model; the 7 sites on the 5 m model are not like for like',
+    largest: 'Landing-area median within 0.45°; pass or fail equal at 11 of 11',
+    tolerance: 'Not recorded',
+    who: 'AI tool, 15 Nov 2026',
+    status: 'Accepted by the science lead at 6650ed1 (reported, no written sign-off); seven method choices open',
+  },
+  {
+    check: '"Open in NASA tools": first Horizons row against the app',
+    points: '6 values (3 sites, Sun and Earth)',
+    largest: '0.0000192° (Earth elevation)',
+    tolerance: '< 0.05°',
+    who: 'AI tool, 15 Nov 2026 07:00–07:30',
+    status: 'AI, not validated',
+  },
+  {
+    check: 'P1 power estimate',
+    points: '8 hand-computed test cases (code tests)',
+    largest: 'No numbers recorded',
+    tolerance: 'Not recorded',
+    who: 'AI tool, 15 Nov 2026',
+    status: 'Open, needs the science lead',
+  },
+  {
+    check: 'Flight physics; payload and cheapest route; lunar J2 and dispersion',
+    points: 'No comparison recorded; code tests only (249 of 250 passed, one timeout)',
+    largest: 'No numbers recorded',
+    tolerance: 'Not recorded',
+    who: 'Code tests by an AI tool, 15 Nov 2026',
+    status:
+      'Flight physics: statement of 14 Nov 2026 in BUILD_LOG.md, against what not recorded; payload, route, J2 and dispersion: not yet validated by the science lead',
+  },
+  {
+    check:
+      'Not checked: whole-year mode; the cause of the Earth offset in V4; the custom-site horizon as computed in the browser (V6 used a Python rebuild of it); one finder window by eye on the timeline; coordinates of the points of interest against primary sources (7 cite Wikipedia or SpaceNews) and a source for the Tycho texture position; an independent recheck of the site assessments on the raw elevation models and the Diviner file, including the 7 sites on the 5 m model; station coverage with per-antenna horizon masks (coverage is an upper bound)',
+    points: 'None',
+    largest: 'None',
+    tolerance: 'None',
+    who: 'Not run',
+    status: 'Open in the record',
+  },
+]
+
 // ---------- the sections, in reading order ----------
 
 export const DOC_INTRO = (
@@ -893,6 +1062,37 @@ export const DOC_SECTIONS: DocSection[] = [
         </div>
 
         <h4>Validation status</h4>
+        <p>
+          <strong>What was checked.</strong> One row per check recorded in <Path>docs/event/validation.md</Path>, with
+          the status wording of that file; the science lead&apos;s statement below covers every row. Tolerances are
+          those of the build plan unless the row says otherwise.
+        </p>
+        <div className="docs-table">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th scope="col">Check: what against what</th>
+                <th scope="col">Points</th>
+                <th scope="col">Largest difference</th>
+                <th scope="col">Tolerance</th>
+                <th scope="col">Who ran it, when</th>
+                <th scope="col">Status in the record</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CHECKS.map((c) => (
+                <tr key={c.check}>
+                  <th scope="row">{c.check}</th>
+                  <td>{c.points}</td>
+                  <td>{c.largest}</td>
+                  <td>{c.tolerance}</td>
+                  <td>{c.who}</td>
+                  <td>{c.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p>
           <strong>Every check: validated by the science lead (statement of 15 Nov 2026; see record).</strong> On 15 Nov
           2026, about 08:50, in chat with the build session, the science lead stated &quot;validated everything means

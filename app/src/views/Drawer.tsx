@@ -2,13 +2,13 @@
 // true of the landing site: horizon, stations, site potential, assessment, power, NASA tools, export, how this is
 // computed, terms), Dates (find better dates, year timeline) and Compare (this site against another, all sites,
 // saved missions). Opened from the header's Details control, the date menu, the Mission panel or the footer link. The Full data switch (top right, U8) adds method, raw values and sources to the summary.
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Sample, ScienceGoal, StationLos } from '../geometry'
 import type { MissionState } from '../missions'
 import type { ResultsState } from '../data/results'
 import type { Period, Site, SitePotential, Station } from '../data/types'
 import { NOT_VALIDATED, VALIDATED } from '../data/validation'
-import type { DrawerSection } from '../state'
+import type { DrawerSection, UserPoint } from '../state'
 import { Compare } from './Compare'
 import { Finder } from './Finder'
 import { NasaToolsSection } from './NasaToolsSection'
@@ -17,11 +17,9 @@ import { SlopeValue } from './SiteTable'
 import { HorizonStrip } from './HorizonStrip'
 import { SiteAssessment } from './SiteAssessment'
 import { SiteTable } from './SiteTable'
+import { SlipRows } from './SlipRows'
 import { Terms } from './Terms'
-import { YearTimeline } from './Timeline'
-import type { YearRow } from './Timeline'
-import { resolvePeriod } from './period'
-import { yearOf } from './yearBars'
+import { YearRows } from './YearRows'
 import { capital, fmtDateTime, fmtDeg, fmtPct, fmtSpanH } from './format'
 import { customTerrain } from '../data/customSite'
 import type { CapHorizon } from '../data/southcap'
@@ -54,6 +52,7 @@ interface Props {
   onSwitch(siteId: string, periodId: string): void
   goal: ScienceGoal // the mission's science goal: the order "Find better location" uses
   missions: MissionState[] // saved missions, shown as rows of the table
+  points?: UserPoint[] // "Your points": rows of the Dates tab's year timeline
   onFindDates(siteId: string): void // "Find better dates" on a table row: that site, at the finder
   onCalculateFlight(m: MissionState): void // "Calculate flight" on a saved mission row
   power?: PowerInputs // power estimate inputs (link keys panel, eff, load, batt)
@@ -197,20 +196,6 @@ export function Drawer(p: Props) {
   }, [custom, site.id])
   const meshRes = mesh && mesh.id === site.id ? mesh.res : null
 
-  // The year timeline: the current site first, then each saved mission's site once, with the missions' dates.
-  const yearRows: YearRow[] = useMemo(() => {
-    const rows: YearRow[] = [{ site, missions: [{ name: 'Current mission', startMs: period.startMs, endMs: period.endMs }] }]
-    for (const m of p.missions) {
-      const s = m.site === site.id ? site : p.sites.find((x) => x.id === m.site)
-      if (!s) continue // a saved custom site that is not the current one: its terrain is computed only when chosen
-      let row = rows.find((r) => r.site.id === s.id)
-      if (!row) rows.push((row = { site: s, missions: [] }))
-      const span = resolvePeriod(m, p.periods)
-      row.missions.push({ name: m.name ?? 'Saved mission', startMs: span.startMs, endMs: span.endMs })
-    }
-    return rows
-  }, [site, period.startMs, period.endMs, p.missions, p.sites, p.periods])
-
   useEffect(() => {
     closeBtn.current?.focus({ preventScroll: true })
   }, [])
@@ -339,10 +324,17 @@ export function Drawer(p: Props) {
         />
       </section>
 
-      <section className="drawer-sec" aria-labelledby="sec-year">
-        <h3 id="sec-year">Year timeline</h3>
-        <YearTimeline rows={yearRows} stations={p.stations} ids={p.ids} initialYear={yearOf(period.startMs)} />
-      </section>
+      <SlipRows
+        site={site}
+        sites={p.sites}
+        stations={p.stations}
+        ids={p.ids}
+        period={period}
+        onShow={p.onShowWindow}
+        onSite={p.onFindDates}
+      />
+
+      <YearRows site={site} period={period} missions={p.missions} sites={p.sites} periods={p.periods} points={p.points ?? []} stations={p.stations} ids={p.ids} onSelect={p.onFindDates} />
       </>)}
 
       {/* Site details, settings first and the graph last (team request, 15 Nov): stations and the power inputs, then
