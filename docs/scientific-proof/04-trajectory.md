@@ -107,7 +107,7 @@ For every burn, Δv is the rocket-equation equivalent of the propellant burned i
 | Earth J2 | 1.08262668 × 10⁻³ | `J2_EARTH`, `sim.ts` | comment: "EGM96 value" |
 | Earth equatorial radius | 6378.137 km | `R_EARTH_EQ` | https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html (same as WGS 84) |
 | Earth rotation | 7.292115 × 10⁻⁵ rad/s | `OMEGA_EARTH` | NSSDC Earth fact sheet (sidereal day 23.9345 h) |
-| Moon's sphere of influence | 66 183 km | `SOI_MOON` | Bate, Mueller, White, *Fundamentals of Astrodynamics*, ch. 7 |
+| Moon's sphere of influence (first guess only, `guess.ts`) | 66 183 km | `SOI_MOON` | Bate, Mueller, White, *Fundamentals of Astrodynamics*, ch. 7 |
 | Moon, Sun, Earth orientation | the app's ephemeris, Nov 2026 – Dec 2030 | `ephemeris.ts` | JPL DE440 through `scripts/ephemeris.py`; kernels in `docs/reference/data-sources.md` |
 | Atmosphere | U.S. Standard Atmosphere 1976 | `ascent.ts` | named in the code; reproduced by a test |
 | Drag coefficient against Mach | 0.30 subsonic, 0.55 peak, 0.25 at Mach 8 | `CD_MACH`, `CD_VAL` | **ASSUMPTION** in the code; shape as in Sutton & Biblarz, *Rocket Propulsion Elements* §4.2; the comment estimates that an error of a quarter in the curve moves the result by about 0.1 % |
