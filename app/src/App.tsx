@@ -760,7 +760,7 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
               data-menu-trigger=""
               aria-haspopup="dialog"
               aria-expanded={hs.drawer === 'search'}
-              title="Find a landing site or point of interest by name or coordinates"
+              title="Rank landing sites and points by the points of interest within a chosen distance, sunlight and station coverage"
               onClick={() => patch({ drawer: 'search' })}
             >
               Search
