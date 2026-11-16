@@ -29,7 +29,8 @@ Terrain light (S2; terrain shadows since 16 Nov, sunlight.ts): the terrain casts
 frame, shadowmap.ts computes on the GPU, per sample of every terrain level, how high the shadow of the terrain ahead
 stands above the ground (three rays: the Sun's lower limb, centre and upper limb; curvature is in the heights), and
 the terrain shader takes the share of the Sun's disc above that horizon per fragment, so shadow edges follow the
-relief and are penumbras. It runs when the Sun or the terrain changes, not per frame (about 50 small passes).
+relief and are penumbras. It runs when the Sun or the terrain changes, not per frame (5 passes per level; while the
+time plays, half of the levels per frame).
 shadows.ts is the same on the CPU (direct march; __scene.sunShareAt, the unit tests). At the marker the picture
 follows the computed mask: the terrain's horizon is shifted by the difference at the site with a round falloff
 (250 m scale), which is nothing where they agree (sunlight-seams.test.ts measures how often they do not). Surface
