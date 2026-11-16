@@ -144,3 +144,18 @@ test('the landing-site label in the scene carries the mission name once the miss
   await expect(page.getByTestId('mission-name')).toContainText('Aurora')
   await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
 })
+
+// 16 Nov: the test above failed now and then under load ("Mission 1" instead of "Aurora"). Cause, in the app
+// (state.ts): the throttled link writer could run between a hash navigation and its hashchange event and put the old
+// state back into the address bar, which the handler then read. This replays that order without timing.
+test('a link opened while the app is about to write its own link is not lost', async ({ page }) => {
+  await open(page, `${DEMO}&view=site`)
+  await page.evaluate((hash) => {
+    const before = location.href
+    location.hash = hash // the navigation: its hashchange event is queued
+    history.replaceState(null, '', before) // the app's pending write, running first
+  }, `site=${RIDGE}&period=${AUG}&view=site&name=Aurora`)
+  await expect(page.getByTestId('mission-name')).toContainText('Aurora')
+  await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
+  await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe('Aurora')
+})

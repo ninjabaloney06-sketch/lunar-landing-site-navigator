@@ -329,7 +329,21 @@ export function useHashState(): [HashState, (patch: Partial<HashState>) => void,
   }, [])
 
   useEffect(() => {
-    const onHash = () => setState(parseHash(window.location.hash))
+    // The hash is read from the event, not from the address bar: a throttled write that was already due can run
+    // between the navigation and its hashchange event and put the previous state back into the address bar, and
+    // the navigation (a pasted link, Back, a test's goto) was then lost. `latest` follows at once, so a write
+    // before the next render does not undo it either.
+    const onHash = (e: HashChangeEvent) => {
+      let hash = window.location.hash
+      try {
+        if (e.newURL) hash = new URL(e.newURL).hash
+      } catch {
+        /* keep the address bar's hash */
+      }
+      const next = parseHash(hash)
+      latest.current = next
+      setState(next)
+    }
     window.addEventListener('hashchange', onHash)
     return () => {
       window.removeEventListener('hashchange', onHash)
