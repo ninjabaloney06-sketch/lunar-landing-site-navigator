@@ -440,7 +440,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // A lost WebGL context takes the picture with it; three restores its own state and re-uploads on the next draw,
   // but the loop draws only a dirty frame, so after a restore the canvas stayed black until the user moved.
-  const onContextRestored = () => markDirty()
+  const onContextRestored = () => {
+    site.contextRestored() // the terrain shadow textures went with the context
+    markDirty()
+  }
   canvas.addEventListener('webglcontextrestored', onContextRestored)
 
   // Another screen (a window dragged between monitors, a browser zoom step) changes devicePixelRatio without

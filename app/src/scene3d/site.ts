@@ -283,10 +283,11 @@ const NIGHT_FILL = 0.05 * Math.PI
 // The directed part of that scattered light. A shadowed point sees the sunlit terrain on the side away from the Sun
 // (the slopes that face the Sun face it too), so the light comes from the anti-solar side, here from 27° above the
 // horizontal there (BOUNCE_UP = tan 27°). It gives the relief inside a shadow its shape; an even fill alone draws
-// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.10·π ≈ 0.095·π, 3 % of what a
+// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.13·π ≈ 0.11·π, 3.6 % of what a
 // surface facing the Sun gets (before 16 Nov: 0.12·π from the 12 % "hidden Sun" and the fill together); a shadowed
-// slope facing the sunlit side at most 0.15·π. A display level like NIGHT_FILL.
-const TERRAIN_BOUNCE = 0.1 * Math.PI
+// slope facing the sunlit side at most 0.18·π. A display level like NIGHT_FILL: shadowed ground comes out at about
+// a tenth of the display range, dark against the sunlit ground and distinct from the black sky.
+const TERRAIN_BOUNCE = 0.13 * Math.PI
 const BOUNCE_UP = 0.5
 export class SiteWorld {
   readonly scene = new Scene()
@@ -446,6 +447,11 @@ export class SiteWorld {
     const h = OBSERVER_HEIGHT_M
     // The march from this level's own sample height, over the levels from this one outward (what the pass sees).
     return { x: sx, y: sy, gpu: cOfClearances(d[0] - h, d[1] - h, d[2] - h), cpu: sunC(this.shadowLv.slice(li), sx, sy, this.sunDir, this.sunAngRadDeg) }
+  }
+
+  /** After a lost WebGL context has come back: the shadow textures are empty and are computed again. */
+  contextRestored() {
+    this.shadowMap.invalidate()
   }
 
   dispose() {

@@ -218,6 +218,12 @@ export class ShadowMap {
     this.version++
   }
 
+  /** The textures' contents are gone (a restored WebGL context): everything is computed again at the next update. */
+  invalidate() {
+    this.version++
+    this.all = true
+  }
+
   /** False where the GPU cannot render to half-float textures: the terrain is then drawn without cast shadows. */
   get active(): boolean {
     return this.supported !== false
