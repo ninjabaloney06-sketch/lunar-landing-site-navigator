@@ -73,7 +73,17 @@ test('the date menu leads to the Dates tab', async ({ page }) => {
 
 test('header and timeline controls are drawn as buttons: a 1 px box, no underline', async ({ page }) => {
   await open(page)
-  for (const id of ['details', 'search-open', 'date', 'view', 'simulate']) {
+  // 16 Nov: on desktop the header actions are one joined bar since the team lead's commit 57bca1f (15 Nov 22:58):
+  // the 1 px box is the bar's, its actions are segments with hairlines between them and no box of their own. Until
+  // then 'details' and 'search-open' were asserted to carry the box themselves.
+  for (const id of ['details', 'search-open']) {
+    const css = await page.getByTestId(id).evaluate((el) => {
+      const bar = getComputedStyle(el.closest('#header-actions')!)
+      return { w: bar.borderTopWidth, s: bar.borderTopStyle, own: getComputedStyle(el).borderTopWidth, line: getComputedStyle(el).textDecorationLine }
+    })
+    expect(css, id).toEqual({ w: '1px', s: 'solid', own: '0px', line: 'none' })
+  }
+  for (const id of ['mission', 'date', 'view', 'simulate']) {
     const css = await page.getByTestId(id).evaluate((el) => {
       const c = getComputedStyle(el)
       return { w: c.borderTopWidth, s: c.borderTopStyle, line: c.textDecorationLine }
