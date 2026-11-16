@@ -144,7 +144,7 @@ These tests show that the code computes what it is written to compute. They are 
 
 ## Validation status
 
-- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+- **Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
 
 As recorded:
 

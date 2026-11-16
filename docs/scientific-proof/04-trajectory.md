@@ -193,7 +193,7 @@ These tests show that the code computes what it is written to compute and that i
 
 ## Validation status
 
-- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+- **Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
 
 - Not recorded in `docs/event/validation.md`: that file has no row for the flight physics.
 - `BUILD_LOG.md`, 14 Nov 2026 20:59: on the science lead's statement "flight physics are validated", the "not validated" marker was removed from the Flight plan tab. The entry adds: "No entry was added to docs/event/validation.md: who validated the flight physics and against what is not recorded here."

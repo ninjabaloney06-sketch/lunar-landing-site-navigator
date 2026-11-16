@@ -1,6 +1,6 @@
 # How much cargo reaches the surface? Maximum payload and the cheapest route
 
-**Validated by the science lead (statement of 15 Nov 2026; see [record](../event/validation.md#validation-status-15-nov)).** Both calculations in this file were built on 15 Nov 2026 (tasks P2 and P3). Every result carries the marker `{ validated: false, text: 'validated by the science lead (statement of 15 Nov 2026; see record)' }`; `validated` stays false because no per-check sign-off is written (`NOT_VALIDATED` in `app/src/flight/payload.ts`).
+**Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see [record](../event/validation.md#validation-status-15-nov)).** Both calculations in this file were built on 15 Nov 2026 (tasks P2 and P3). Every result carries the marker `{ validated: false, text: 'stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)' }`; `validated` stays false because no per-check sign-off is written (`NOT_VALIDATED` in `app/src/flight/payload.ts`).
 
 - **Maximum payload** (`maxPayload()`): for a mission already planned, the largest cargo the lander can set down when every element carries exactly the propellant the flight needs plus a stated reserve.
 - **Cheapest route** (`cheapestRoute()`, `planCheapestRoute()`): among the options the planner already offers (landing day within a window, transfer type, orbit design), the plan that burns the least propellant in total, and why it wins.
@@ -169,7 +169,7 @@ These tests check the method (the rocket equation over the plan's burns), not th
 
 ## Validation status
 
-- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+- **Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
 
 - Before the statement: **not yet validated by the science lead**, as then stated in the code (`NOT_VALIDATED` in `payload.ts`, carried by every result) and in the header of `payload.test.ts`.
 - Not recorded in `docs/event/validation.md`.
