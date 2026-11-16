@@ -1607,6 +1607,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!sky) return
     site.updateMarker(siteCam, size.y, showMast(), showCross())
     site.updateMarks(siteCam, size.y)
+    site.prepare(renderer) // the terrain's shadows for this frame's Sun (shadowmap.ts)
     syncSky('site')
     renderer.clear()
     if (frame) sky.render(renderer)
@@ -2059,6 +2060,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       siteControls.dispose()
       globeControls.dispose()
       dissolve.dispose()
+      site.dispose()
       flightControls?.dispose()
       flight?.dispose()
       // The other scenes: their meshes, materials and the shared texture set (the flight scene's are freed above).
@@ -2159,7 +2161,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         const head = site.nearTop('poi', id)
         return head ? toScreen(head, siteCam) : null
       },
-      sunShareAt: (x, y) => site.sunShareAt(x, y, site.groundZ(x, y)),
+      sunShareAt: (x, y) => site.sunShareAt(x, y),
+      shadowInfo: () => site.shadowInfo(),
+      shadowProbe: (li, x, y) => site.shadowProbe(renderer, li, x, y),
       dataIds: () => ({
         frame: { site: frame?.site?.id ?? null, horizon: frame?.horizon?.site_id ?? null, terrain: frame?.terrain?.meta.site_id ?? null },
         built: { site: builtFor?.site?.id ?? null, horizon: builtFor?.horizon?.site_id ?? null, terrain: builtFor?.terrain?.meta.site_id ?? null },

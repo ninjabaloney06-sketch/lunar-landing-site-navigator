@@ -43,9 +43,9 @@ export interface Level {
 }
 
 const R_M = MOON_RADIUS_KM * 1000
-const BLEND_FROM_M = 20_000
-const BLEND_TO_M = 60_000
-const MORPH_CELLS = 6 // rim band of an inner level, in cells of the next outer level
+export const BLEND_FROM_M = 20_000
+export const BLEND_TO_M = 60_000
+export const MORPH_CELLS = 6 // rim band of an inner level, in cells of the next outer level
 const STITCH_ORDER: LevelName[] = ['fine', 'tile', 'near', 'mid', 'far']
 
 /** Sphere drop below the site's tangent plane at horizontal distance rho (m), exact: √(R² − ρ²) − R. */

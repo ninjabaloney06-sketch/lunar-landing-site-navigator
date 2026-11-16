@@ -1,104 +1,75 @@
-// Sunlight on the site terrain, per point (bug of 15 Nov night: "it remains dark even though the Sun is above the
-// terrain"). What is computed and what is a rendering choice:
+// Sunlight on the site terrain, per point. History: until 15 Nov one light level for the whole scene (the site's
+// own disc share); 15 Nov night per fragment, but with the shadow of ONE obstacle only (the mask's crest at the
+// Sun's azimuth, taken to shade a straight strip of ground) and the site's share on a 400 m patch. Under Play the
+// strip turned with the Sun and read as a rectangular shadow sweeping over the terrain (science lead, 16 Nov:
+// "weird rectangular shadows"). Since 16 Nov the terrain casts its own shadows; the strip and the patch are gone.
 //
-// COMPUTED (read only, never changed here): the Sun's direction (ephemeris, the sky layer), the horizon mask and its
-// crest distances (horizon.py), and from them geometry.discFraction, the share of the Sun's disc above the mask at
-// the site's eye: the number the answer, the timeline and the Sun label come from.
+// COMPUTED ELSEWHERE, READ ONLY, never changed here: the Sun's direction (ephemeris, the sky layer), the horizon
+// mask (horizon.py) and from them geometry.discFraction, the share of the Sun's disc above the mask at the site's
+// eye: the number the answer, the timeline and the Sun label come from.
 //
-// GEOMETRY ON TOP OF IT: the obstacle that defines the mask at the Sun's azimuth (its crest point, at mask_dist along
-// the mask direction from the eye, exactly where site.ts puts the eye-level crest) also shades the ground around the
-// site: a point is in the Sun when the ray from an eye standing there toward the Sun passes over that crest point
-// (the same disc fraction formula, with the crest's elevation as seen from that point). At the site itself this is
-// the site's own number. It is exact for that one obstacle and says nothing about any other one, so:
+// COMPUTED HERE, FOR THE PICTURE (shadows.ts, shadowmap.ts):
+//   - Cast shadows of the drawn terrain on itself: for every ground point, the terrain's horizon toward the Sun's
+//     azimuth out to the edge of the far level (±300 km), from the heights the scene draws (20 m, 80 m, 160 m,
+//     400 m, 2 km levels), with the Moon's curvature. Recomputed on the GPU when the Sun moves.
+//   - The share of the Sun's disc above that horizon, by geometry.discFraction's formula (a disc cut by a straight
+//     horizon), seen from an eye OBSERVER_HEIGHT_M above the ground like the mask. The Sun's disc is 0.53° wide,
+//     so a shadow edge is a penumbra whose width grows with the distance to the crest that casts it.
+//   - The drawn terrain is coarser than the 20 m DEM the mask was computed from (and clamped under the mask's
+//     sight lines, site.ts), so at the marker the picture can disagree with the mask for a while around a sunrise
+//     or sunset. The answer is the mask's. So that the marker's ground shows it, the terrain's horizon is shifted
+//     by the difference at the site, c_site(mask) − c_site(terrain), weighted exp(−(r / SITE_BLEND_M)²) with the
+//     distance r from the site: a smooth round falloff with no edge, zero wherever terrain and mask agree, and it
+//     moves the terrain's own shadow edge instead of painting a patch.
+//     (scripts in e2e/shadow-agreement.spec.ts measure how often and how far they disagree.)
 //
 // RENDERING CHOICES (site.ts, shader):
-//   - The crest is assumed to extend sideways over CREST_HALF_WIDTH (a share of its distance, 600 m to 4 km), and
-//     fades out over as much again. Beyond that strip, and beyond the crest toward the Sun, the terrain gets the
-//     Sun with no cast shadow (unknown there; the same as the whole scene when the site is sunlit). There are no
-//     shadow maps: before this, the whole scene took the site's own share, so sunlit peaks were drawn dark whenever
-//     the site was in shadow.
-//   - Within SITE_DISC_M of the site the ground takes the site's own computed share (fading into the crest's
-//     over as much again), so the marker stands on ground that shows the answer even where the obstacle is a
-//     small bump a few hundred metres away and its true shadow would be a few pixels wide from 17 km.
-//   - Hidden from the Sun, a point keeps HIDDEN_SUN_FRACTION of it; ground the Sun does not light directly
-//     (hidden, or turned away) gets an even night fill, so it is dim, not black.
-//   - LAMBERT_WRAP: a grazing-light floor. The polar Sun stands within a few degrees of the horizon, so Lambert
-//     shading (N·L) of near-level ground is a few per cent even in full sunlight, and the sunlit landing site was
-//     drawn black (measured: darker than a site in shadow). The cosine term is wrapped by LAMBERT_WRAP
-//     ((N·L + w) / (1 + w)): level ground in the Sun reads as lit, slopes facing the Sun brightest, slopes turned
-//     away by more than asin(w) ≈ 14° stay dark (the long shadow sides). It stands for the sub-cell relief that faces
-//     the Sun inside every 20–2000 m cell; it adds no light where the share above is 0.
+//   - Surface brightness: the Lommel–Seeliger law, μ₀ / (μ₀ + μ) with μ₀ and μ the cosines of the angles of
+//     incidence and of view against the terrain normal, scaled to equal Lambert's μ₀ for a surface lit and seen
+//     along its normal, and weighted LUNAR_WEIGHT against Lambert's μ₀. It is the single-scattering law of a dark
+//     particulate surface and the reason the full Moon has no limb darkening; Lambert alone, right for a matt
+//     painted surface, draws level regolith under a Sun 1° up at 2 % of a Sun-facing slope's brightness whatever
+//     the viewing direction, and the sunlit landing site was drawn black (bug of 15 Nov night). No phase function
+//     (no opposition surge, no darkening toward the Sun) is applied. This replaces the earlier wrapped cosine
+//     (LAMBERT_WRAP 0.25), which lit ground turned up to 14° away from the Sun; now ground turned away from the
+//     Sun gets none of it.
+//   - Ground the Sun does not reach is not lit by it at all (the earlier 12 % "hidden Sun" level is gone). What
+//     remains there: earthshine (a directional light from Earth's direction, scaled by Earth's phase and by its
+//     disc above the site's mask, index.ts; it casts no shadows here), and an even fill, NIGHT_FILL (site.ts),
+//     that stands for sunlight scattered into the shadows by the sunlit terrain around. On the Moon there is no
+//     sky light, so shadows are far darker than on Earth, but permanently shadowed ground is not black either: it
+//     is lit by the sunlit crater walls above it. The fill's level is a display choice (about 1.7 % of the direct
+//     sunlight on a Sun-facing surface), not a computed radiance.
+//   - A jump of the time fades the site's own level over 500 ms (index.ts LIGHT_EASE_MS); during it the site
+//     neighbourhood above follows the eased level. The cast shadows themselves are never eased.
 
-import { Vector3 } from 'three'
-import type { Horizon } from '../data/types'
-import { OBSERVER_HEIGHT_M, discFraction, maskAt } from '../geometry'
-import { azElOfEnu, enuDir } from './frames'
+import type { Vector3 } from 'three'
+import { cOfShare, shareOfC, sunC, type ShadowLevel } from './shadows'
 
-export const LAMBERT_WRAP = 0.25
-const CREST_HALF_WIDTH = { share: 0.3, minM: 600, maxM: 4000 }
-export const SITE_DISC_M = 400
-const DEFAULT_CREST_M = 5000 // a mask sample without a distance (site.ts does the same)
+/** Scale of the round neighbourhood of the site where the terrain's horizon is shifted to the mask's answer, m. */
+export const SITE_BLEND_M = 250
+/** Weight of the Lommel–Seeliger term against Lambert's cosine in the terrain's brightness (0: Lambert only). */
+export const LUNAR_WEIGHT = 1
 
-export interface SunCrest {
-  /** Unit direction to the Sun, ENU. */
-  sun: Vector3
-  /** Unit horizontal direction to the Sun (x, y; z = 0). */
-  horiz: Vector3
-  /** The mask's crest point at the Sun's azimuth, ENU m (the site's eye is at z = OBSERVER_HEIGHT_M). */
-  crest: Vector3
-  /** Half width of the strip the crest is assumed to shade, m. */
-  halfWidth: number
-  /** Angular radius of the Sun's disc, deg. */
-  angRadDeg: number
-}
-
-export function sunCrest(h: Horizon | null, sun: Vector3, angRadDeg: number): SunCrest {
-  const { az } = azElOfEnu(sun)
-  const horiz = new Vector3(sun.x, sun.y, 0)
-  if (horiz.lengthSq() < 1e-24) horiz.set(0, 1, 0)
-  horiz.normalize()
-  let dist = DEFAULT_CREST_M
-  if (h && h.mask_dist_km.length) {
-    const n = h.mask_dist_km.length
-    const k = ((Math.round(az / h.az_step) % n) + n) % n
-    const d = h.mask_dist_km[k]
-    if (Number.isFinite(d) && d > 0) dist = d * 1000
-  }
-  const crest = new Vector3(0, 0, OBSERVER_HEIGHT_M).addScaledVector(enuDir(az, maskAt(h, az)), dist)
-  const rho = Math.hypot(crest.x, crest.y)
-  const halfWidth = Math.min(Math.max(CREST_HALF_WIDTH.share * rho, CREST_HALF_WIDTH.minM), CREST_HALF_WIDTH.maxM)
-  return { sun: sun.clone().normalize(), horiz, crest, halfWidth, angRadDeg }
+/** Weight of the site's correction at horizontal distance r (m) from the site: 1 at the site, 0.02 at 500 m. */
+export function siteWeight(r: number): number {
+  return Math.exp(-(r * r) / (SITE_BLEND_M * SITE_BLEND_M))
 }
 
 /**
- * At the ground point p (ENU m): the share of the Sun's disc above the crest seen from an eye standing there
- * (`share`), and how far the crest is taken to apply there (`weight`, 1 on the strip through the site, 0 off it).
- * The shader in site.ts computes the same per fragment; at the site (p = 0) share is the site's disc fraction.
+ * The c drawn at a ground point (shadows.ts sunC's scale: −1 whole disc … +1 none): the terrain's own, shifted
+ * toward the site's answer near the site. cTerrain0: the terrain's c at the site itself; cSite: the mask's.
  */
-export function crestShare(c: SunCrest, p: Vector3): { share: number; weight: number } {
-  const eye = new Vector3(p.x, p.y, p.z + OBSERVER_HEIGHT_M)
-  const along = eye.x * c.horiz.x + eye.y * c.horiz.y
-  const lateral = Math.hypot(eye.x - along * c.horiz.x, eye.y - along * c.horiz.y)
-  const weight = 1 - smoothstep(c.halfWidth, 2 * c.halfWidth, lateral)
-  const ahead = c.crest.x * c.horiz.x + c.crest.y * c.horiz.y - along // crest's distance ahead toward the Sun
-  if (ahead <= 1) return { share: 1, weight }
-  const toCrest = new Vector3(c.horiz.x * ahead, c.horiz.y * ahead, c.crest.z - eye.z)
-  return { share: discFraction(azElOfEnu(c.sun).el, azElOfEnu(toCrest).el, c.angRadDeg), weight }
+export function drawnC(cTerrain: number, cTerrain0: number, cSite: number, r: number): number {
+  return Math.min(Math.max(cTerrain + siteWeight(r) * (cSite - cTerrain0), -1), 1)
 }
 
 /**
- * The share of the Sun the terrain shader draws at ground point p: the site's eased level `site` within
- * SITE_DISC_M of it; the crest's share (shifted by `delta`, the eased minus the computed site level, during a
- * fade) on the crest's strip; 1 elsewhere. The GLSL in site.ts is this function, line by line.
+ * Share of the Sun's disc the terrain shader draws at the grid offset (x, y) m: the terrain's own shadowing with
+ * the site's correction. siteShare: the site's (eased) disc share from the mask. The GLSL in site.ts does the same
+ * with the GPU's shadow textures.
  */
-export function drawnShare(c: SunCrest, p: Vector3, site: number, delta: number): number {
-  const { share, weight } = crestShare(c, p)
-  const crest = 1 - weight + weight * Math.min(Math.max(share + delta, 0), 1)
-  const near = 1 - smoothstep(SITE_DISC_M, 2 * SITE_DISC_M, Math.hypot(p.x, p.y))
-  return crest + (site - crest) * near
-}
-
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.min(Math.max((x - a) / (b - a), 0), 1)
-  return t * t * (3 - 2 * t)
+export function drawnShare(levels: ShadowLevel[], x: number, y: number, sun: Vector3, angRadDeg: number, siteShare: number): number {
+  const c0 = sunC(levels, 0, 0, sun, angRadDeg)
+  return shareOfC(drawnC(sunC(levels, x, y, sun, angRadDeg), c0, cOfShare(siteShare), Math.hypot(x, y)))
 }
