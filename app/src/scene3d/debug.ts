@@ -54,6 +54,8 @@ export interface DebugView {
   sunShareAt(x: number, y: number): number
   /** The terrain shadow passes: how often they ran, whether the GPU can run them, the levels they cover. */
   shadowInfo(): { runs: number; active: boolean; levels: { n: number; spacing: number; ext: number }[] }
+  /** The site's mast and cross on or off (a picture of the ground under them). */
+  setMarkerVisible(on: boolean): void
   /** The terrain's own c at a sample of shadow level li, from the GPU's texture and from the CPU's direct march (shadows.ts). */
   shadowProbe(li: number, x: number, y: number): { x: number; y: number; gpu: number; cpu: number } | null
   dataIds(): { frame: { site: string | null; horizon: string | null; terrain: string | null }; built: { site: string | null; horizon: string | null; terrain: string | null } }
@@ -172,6 +174,7 @@ export function installDebug(v: DebugView) {
     dataIds: () => v.dataIds(),
     sunShareAt: (x: number, y: number) => v.sunShareAt(x, y),
     shadowInfo: () => v.shadowInfo(),
+    setMarkerVisible: (on: boolean) => v.setMarkerVisible(on),
     shadowProbe: (li: number, x: number, y: number) => v.shadowProbe(li, x, y),
     projectMe: (p: number[]) => v.projectMe(p),
     // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.

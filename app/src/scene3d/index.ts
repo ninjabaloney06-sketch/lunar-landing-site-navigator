@@ -2163,6 +2163,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       sunShareAt: (x, y) => site.sunShareAt(x, y),
       shadowInfo: () => site.shadowInfo(),
+      setMarkerVisible(on) {
+        site.markerOff = !on
+        markDirty()
+      },
       shadowProbe: (li, x, y) => site.shadowProbe(renderer, li, x, y),
       dataIds: () => ({
         frame: { site: frame?.site?.id ?? null, horizon: frame?.horizon?.site_id ?? null, terrain: frame?.terrain?.meta.site_id ?? null },

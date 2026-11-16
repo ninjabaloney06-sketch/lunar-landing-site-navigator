@@ -50,7 +50,7 @@ import { cOfShare, shareOfC, sunC, type ShadowLevel } from './shadows'
 /** Scale of the round neighbourhood of the site where the terrain's horizon is shifted to the mask's answer, m. */
 export const SITE_BLEND_M = 250
 /** Weight of the Lommel–Seeliger term against Lambert's cosine in the terrain's brightness (0: Lambert only). */
-export const LUNAR_WEIGHT = 1
+export const LUNAR_WEIGHT = 0.5
 
 /** Weight of the site's correction at horizontal distance r (m) from the site: 1 at the site, 0.02 at 500 m. */
 export function siteWeight(r: number): number {

@@ -282,9 +282,10 @@ const NIGHT_FILL = 0.05 * Math.PI
 // The directed part of that scattered light. A shadowed point sees the sunlit terrain on the side away from the Sun
 // (the slopes that face the Sun face it too), so the light comes from the anti-solar side, here from 27° above the
 // horizontal there (BOUNCE_UP = tan 27°). It gives the relief inside a shadow its shape; an even fill alone draws
-// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.16·π = 0.12·π, what it got before
-// 16 Nov from the 12 % "hidden Sun" and the fill together. A display level like NIGHT_FILL.
-const TERRAIN_BOUNCE = 0.16 * Math.PI
+// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.10·π ≈ 0.095·π, 3 % of what a
+// surface facing the Sun gets (before 16 Nov: 0.12·π from the 12 % "hidden Sun" and the fill together); a shadowed
+// slope facing the sunlit side at most 0.15·π. A display level like NIGHT_FILL.
+const TERRAIN_BOUNCE = 0.1 * Math.PI
 const BOUNCE_UP = 0.5
 export class SiteWorld {
   readonly scene = new Scene()
@@ -331,6 +332,8 @@ export class SiteWorld {
   private readonly sunDir = new Vector3(0, 1, 0)
   private sunAngRadDeg = 0.27
   private siteLevel = 1 // the site's (eased) disc share
+  /** Test helper: the mast and its cross off, so a picture shows the ground they stand on. */
+  markerOff = false
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
@@ -861,7 +864,7 @@ export class SiteWorld {
 
   /** Keeps the mast and cross a constant on-screen thickness; hides them at eye level. */
   updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean, cross = show) {
-    this.marker.visible = show
+    this.marker.visible = show && !this.markerOff
     // The ground cross is drawn through the terrain for the view from above; standing on the ground it would float.
     for (const c of this.cross) c.visible = cross
     const dist = cam.position.length()
