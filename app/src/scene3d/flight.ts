@@ -125,7 +125,7 @@ export function flightBurns(plan: MissionPlan): MissionEvent[] {
  *  The plan follows the lander from undocking to docking only. Before that it rides with the capsule, except in
  *  a design where it waits at the Moon: there it is not on the launch, and it joins at the first docking. After
  *  the last docking it stays with the capsule until the capsule's burn for home, which it does not fly: the
- *  Apollo ascent stage was cast off in lunar orbit, an Artemis lander stays in its orbit at the Moon. */
+ *  Apollo ascent stage was cast off in lunar orbit, a lander of the halo-orbit design stays in its orbit at the Moon. */
 export type LanderPresence = 'absent' | 'docked' | 'apart'
 
 export function landerPresence(plan: MissionPlan, utcMs: number): LanderPresence {
@@ -186,7 +186,7 @@ const COLORS = {
   backdrop: 'rgba(11,13,17,0.85)', // dark edge under a marker, so it reads against the sunlit Moon
 }
 
-// ---- the landing-dispersion tube (dispersion.ts; validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md)
+// ---- the landing-dispersion tube (dispersion.ts; stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md)
 
 const TUBE_SEGMENTS = 32 // straight pieces per ring
 const TUBE_RIBS = 4 // lines along the tube, at 0°, 90°, 180°, 270°

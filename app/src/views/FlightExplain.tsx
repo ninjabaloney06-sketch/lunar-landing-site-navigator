@@ -1,5 +1,5 @@
 // The explanatory sections of the Rocket flight menu: why the halo orbit looks the way it does and what it costs
-// and buys, how Apollo and Artemis land, how long crews stay on the surface, and the glossary.
+// and buys, how Apollo and the halo-orbit design land, how long crews stay on the surface, and the glossary.
 // Summary mode: at most four bullets of twelve words or fewer per section, with the sources. Full data mode: the
 // full text, and where the plan computed a number, that number beside the published one. Each export is the
 // content of one collapsible section of FlightPanel.
@@ -22,6 +22,7 @@ const S = {
   mahajan: { label: 'Mahajan, Condon: HLS NRHO to Lunar Surface and Back Mission Design (NASA, 2022)', url: 'https://ntrs.nasa.gov/citations/20230002566' },
   moonFacts: { label: 'NASA: Moon Fact Sheet (the Moon’s period around Earth)', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html' },
   pause: { label: 'NASA: NASA Unveils Initiatives to Achieve America’s National Space Policy (24 March 2026)', url: 'https://www.nasa.gov/news-release/nasa-unveils-initiatives-to-achieve-americas-national-space-policy/' },
+  reorder: { label: 'NASA: NASA Adds Mission to Artemis Lunar Program, Updates Architecture (release 26-022, 27 February 2026)', url: 'https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/' },
   landers2028: { label: 'NASA: NASA, Partners Accelerate Lander Development for 2028 Moon Missions (23 October 2026)', url: 'https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/' },
   artemis3: { label: 'NASA: Artemis III, NASA’s First Human Mission to the Lunar South Pole (2023, the plan with the halo orbit)', url: 'https://www.nasa.gov/missions/artemis/artemis-iii/' },
   a11Orbit: { label: 'NASA: Apollo by the Numbers, Apollo 11 lunar orbit phase', url: 'https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11g_Lunar_Orbit_Phase.htm' },
@@ -116,7 +117,7 @@ const capsuleLine = (s: PlanSums) => `${s.capsule.map((b) => `${b.name} ${Math.r
 
 // ---------- the halo orbit ----------
 
-const HALO_SOURCES = [S.capstone, S.lee, S.whitley, S.justRight, S.mahajan, S.moonFacts, S.a11Orbit, S.a11Home, S.pause, S.landers2028]
+const HALO_SOURCES = [S.capstone, S.lee, S.whitley, S.justRight, S.mahajan, S.moonFacts, S.a11Orbit, S.a11Home, S.pause, S.reorder, S.landers2028]
 
 export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rendezvous: Rendezvous }) {
   const [full] = useFullData()
@@ -145,7 +146,7 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
   const int = (v: number) => Math.round(v).toLocaleString('en-US')
   return (
     <div className="flight-prose">
-      {rendezvous !== 'nrho' && <p className="quiet">The design chosen above does not use this orbit. Choose an Artemis design to see it in the 3D view.</p>}
+      {rendezvous !== 'nrho' && <p className="quiet">The design chosen above does not use this orbit. Choose the halo-orbit design to see it in the 3D view.</p>}
       <h4>What it is</h4>
       <p>
         A near-rectilinear halo orbit (<Abbr>NRHO</Abbr>) is not an orbit around the Moon alone. It is a path balanced between the pull of Earth and
@@ -234,16 +235,16 @@ export function HaloOrbit({ plan, rendezvous }: { plan: MissionPlan | null; rend
       <p>
         NASA has since changed the plan. In March 2026 it paused the Gateway, and in October 2026 it said that Orion and the landers will no longer
         meet in the halo orbit: Starship is to take Orion along to low lunar orbit, and Blue Moon is to meet Orion in an elliptical polar orbit. The
-        Artemis designs in this menu show the plan as it stood before.
+        halo-orbit designs in this menu show the plan as it stood before.
       </p>
       <Sources list={HALO_SOURCES} />
     </div>
   )
 }
 
-// ---------- Apollo and Artemis: two ways to land ----------
+// ---------- Apollo and the halo orbit: two ways to land ----------
 
-const LANDING_SOURCES = [S.houbolt, S.a11Lm, S.a11Orbit, S.a11Home, S.artemis3, S.whitley, S.pause, S.landers2028]
+const LANDING_SOURCES = [S.houbolt, S.a11Lm, S.a11Orbit, S.a11Home, S.artemis3, S.whitley, S.pause, S.reorder, S.landers2028]
 
 export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; rendezvous: Rendezvous }) {
   const [full] = useFullData()
@@ -259,7 +260,7 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
             Only the <Abbr>LM</Abbr> ascent stage lifts off; the descent stage stays.
           </>,
           <>
-            Artemis as shown: the lander waits in the <Abbr>NRHO</Abbr>, lands, returns whole.
+            Halo-orbit design: the lander waits in the <Abbr>NRHO</Abbr>, lands, returns whole.
           </>,
           <>
             <Abbr>NASA</Abbr> changed the meeting orbit in 2026; first landing now Artemis IV.
@@ -282,7 +283,14 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
         <Abbr>CSM</Abbr> in lunar orbit and is cast off. The <Abbr>CSM</Abbr>’s engine then sends the crew home. This is lunar orbit rendezvous:
         only the small lander goes down, so far less has to be braked onto the Moon and lifted off it again.
       </p>
-      <h4>Artemis, as shown here: two ships that meet at the Moon</h4>
+      <h4>The halo-orbit design: two ships that meet at the Moon</h4>
+      <p>
+        This rendezvous in a near-rectilinear halo orbit was NASA’s published Artemis landing plan until 2026. On 27 February 2026 NASA re-ordered the
+        flights (release 26-022): Artemis III is now to test systems in low Earth orbit in 2027 “to prepare for an Artemis IV landing in 2028”; the
+        release names no lunar orbit. NASA’s page of 23 October 2026 gives a different meeting orbit for each lander and says that neither lander
+        “has been assigned to a specific Artemis lunar landing mission”, so the NASA sources found by 16 November 2026 do not name the lunar orbit of
+        the landing flight.
+      </p>
       <p>
         The lander is launched on its own, without a crew, and goes ahead. Starship is first refilled in Earth orbit from a depot that tanker flights
         fill. It waits in the halo orbit. Then one <Abbr>SLS</Abbr> sends Orion with four astronauts to that orbit: Orion never goes down to a low
@@ -294,7 +302,7 @@ export function LandingWays({ plan, rendezvous }: { plan: MissionPlan | null; re
           <tr>
             <th scope="col" />
             <th scope="col">Apollo</th>
-            <th scope="col">Artemis, as shown here</th>
+            <th scope="col">Halo-orbit design</th>
           </tr>
         </thead>
         <tbody>
@@ -419,7 +427,7 @@ export function SurfaceStay({ plan, rendezvous, askedDays, stay }: SurfaceStayPr
         of day was fixed as well: Apollo 11 had to land with the Sun 5° to 14° above the horizon behind it, in the lunar morning, so that long
         shadows showed the ground. Such a window came once every 29.5 days.
       </p>
-      <h4>Artemis</h4>
+      <h4>The halo-orbit design</h4>
       <p>
         The plan with the halo orbit foresaw about 6.5 days on the surface. That number is not a choice: the lander can come back only when the orbit
         passes the Moon again, every 6.56 days, so a stay is one revolution less the flight down and up (6.1 to 6.2 days in NASA’s mission design),

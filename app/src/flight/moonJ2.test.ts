@@ -1,6 +1,6 @@
 // The Moon's J2 term (sim.ts, MoonFieldOptions.j2): off by default, so every validated plan is unchanged; on,
 // it gives the textbook acceleration and the textbook nodal precession of a low lunar orbit, and this file
-// measures what it does to one descent. Validated by the science lead (statement of 15 Nov 2026, see docs/event/validation.md).
+// measures what it does to one descent. Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off, see docs/event/validation.md).
 import { describe, expect, it } from 'vitest'
 import { MU_MOON, R_MOON } from './astro'
 import { planDescent } from './lunar'

@@ -1,4 +1,4 @@
-// A whole Artemis-style mission (rendezvous on the NRHO) on the real DE440 ephemeris: every phase integrated,
+// A whole halo-orbit-design mission (rendezvous on the NRHO) on the real DE440 ephemeris: every phase integrated,
 // the phases chained, the paths joined. The checks are those of mission.test.ts, plus the delta-v of every
 // transfer against NASA's published mission-design numbers.
 //

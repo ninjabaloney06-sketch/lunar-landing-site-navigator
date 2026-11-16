@@ -13,12 +13,12 @@ const INTERNALS = /Access not assessed|ESTABLISHED|not retrieved|\.json|\.TIF|\.
 const TERMS = ['RMS', 'DEM', 'PSR', 'LROC', 'JPL', 'UTC', 'AU', 'IM-2', 'DE440']
 
 const FIXED = [
-  'Validated by the science lead (statement of 15 Nov 2026; see record)',
+  'Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)',
   'project criteria (set by the team), not NASA or vehicle limits',
-  'First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).',
+  'First estimate, not a power budget. Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).',
   'Not modelled: temperature, panel degradation, dust, tilt, partial-panel shading.',
   'Example values, change them',
-  'All computed results validated by the science lead; statement of 15 Nov 2026: see record',
+  'Computed results stated as validated by the science lead; 15 Nov 2026, no per-check sign-off: see record',
 ]
 
 async function open(page: Page, hash = HASH) {

@@ -3,7 +3,7 @@
 // long to block the page. The ephemeris is rebuilt here from the month files; the plan goes back without it
 // (functions cannot cross the thread boundary) and the page attaches its own.
 //
-// Second job: the dispersion analysis of the descent (dispersion.ts, validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md).
+// Second job: the dispersion analysis of the descent (dispersion.ts, stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md).
 // The worker keeps the descent of the last plan it computed; a DispersionRequest names that plan (and carries
 // it, so the worker can plan it again when it holds another one), runs N flights in steps, posts progress after
 // each, and can be cancelled. Messages: PlanRequest -> PlanReply (unchanged, no `kind` field);
@@ -32,7 +32,7 @@ export interface PlanRequest {
   months: EphemMonth[]
   rendezvous: 'llo' | 'nrho'
   input: Omit<MissionInput, 'ephem'>
-  /** Also work out the maximum payload (payload.ts, validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md) and post it as a
+  /** Also work out the maximum payload (payload.ts, stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md) and post it as a
    *  PayloadReply right after the PlanReply. Off for the plans of the cheapest-route search. */
   withPayload?: boolean
 }

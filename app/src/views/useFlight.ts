@@ -5,7 +5,7 @@
 // into a plain object the 3D scene reads directly, and into React state only about 15 times a second.
 //
 // The analyses that come with a plan (maximum payload after every plan; cheapest route and landing dispersion on
-// the user's request; all validated by the science lead: statement of 15 Nov 2026) go to the store in flightAnalysis.ts.
+// the user's request; all stated as validated by the science lead on 15 Nov 2026, no per-check sign-off) go to the store in flightAnalysis.ts.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadMonthsFor } from '../data/load'
 import { makeFlightEphemeris } from '../flight/ephemeris'

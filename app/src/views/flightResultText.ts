@@ -1,12 +1,12 @@
 // The sentences of the Rocket flight menu's analyses (maximum payload, cheapest route, landing dispersion; all
-// validated by the science lead, statement of 15 Nov 2026; see record). Pure functions, so every verdict has a test (flightResultText.test.ts).
+// stated as validated by the science lead on 15 Nov 2026, no per-check sign-off; see record). Pure functions, so every verdict has a test (flightResultText.test.ts).
 // Numbers come from flight/payload.ts and flight/dispersion.ts unchanged; this file only rounds and words them.
 import type { DispersionResult, DispersionSigmas } from '../flight/dispersion'
 import type { SpacecraftSpec } from '../flight/hardware'
 import type { PayloadResult } from '../flight/payload'
 import { fmtTonnes } from './flightFormat'
 
-export const NOT_VALIDATED_TEXT = 'Validated by the science lead (statement of 15 Nov 2026; see record).'
+export const NOT_VALIDATED_TEXT = 'Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).'
 
 const grouped = (v: number) => Math.round(v).toLocaleString('en-US')
 

@@ -1,4 +1,4 @@
-// A whole Moon mission by rendezvous in a near-rectilinear halo orbit (NRHO), the Artemis design, for any launch
+// A whole Moon mission by rendezvous in a near-rectilinear halo orbit (NRHO), the halo-orbit design, for any launch
 // vehicle, capsule and lander given as data (hardware.ts) and any launchpad and landing point:
 //
 //   capsule:  liftoff → ascent to a parking orbit → Trans-Lunar Injection → translunar coast → Outbound Powered

@@ -3,7 +3,7 @@
 The Flight plan tab flies a whole mission, from liftoff to Entry Interface, by numerical integration with finite burns. Two mission designs are offered (`app/src/flight/designs.ts`):
 
 - **Apollo** (lunar orbit rendezvous): `planMission()` in `app/src/flight/mission.ts`.
-- **SLS (Artemis)**, with Starship HLS or Blue Moon Mark 2 (rendezvous in a near-rectilinear halo orbit, NRHO): `planMissionNrho()` in `app/src/flight/missionNrho.ts`.
+- **Halo orbit (SLS)**, with Starship HLS or Blue Moon Mark 2 (rendezvous in a near-rectilinear halo orbit, NRHO): `planMissionNrho()` in `app/src/flight/missionNrho.ts`. This rendezvous in a near-rectilinear halo orbit was NASA's published Artemis landing plan until 2026. On 27 Feb 2026 NASA re-ordered the flights ([release 26-022](https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/)): Artemis III is now to test systems in low Earth orbit in 2027 "to prepare for an Artemis IV landing in 2028"; the release names no lunar orbit. NASA's [page of 23 Oct 2026](https://www.nasa.gov/missions/artemis/nasa-partners-accelerate-lander-development-for-2028-moon-missions/) gives a different meeting orbit for each lander and says that neither lander "has been assigned to a specific Artemis lunar landing mission", so the NASA sources found by 16 Nov 2026 do not name the lunar orbit of the landing flight.
 
 Both run in the web worker (`app/src/flight/planWorker.ts`). The phases and their modules:
 
@@ -12,7 +12,7 @@ Both run in the web worker (`app/src/flight/planWorker.ts`). The phases and thei
 | Liftoff to parking orbit (185 km circular by default; SLS Block 1: the Artemis I insertion orbit 29.4 × 1,801 km, a Perigee Raise Maneuver to 185 km at the first apogee, injection near the next perigee; values and NASA sources in `launchVehicles.ts`, `parkingEllipse`; not yet validated by the science lead) | `ascent.ts`, `simulateAscent()` | Earth point mass + J2; air drag; no Moon, no Sun |
 | Trans-Lunar Injection (TLI), translunar coast | `transit.ts`, `flyOutbound()` | `earthField()`: Earth + J2, Moon and Sun as third bodies |
 | Lunar Orbit Insertion (LOI), 100 km circular (Apollo design) | `transit.ts` | `moonField()`: Moon point mass, Earth and Sun as third bodies |
-| NRHO arrival, lander transfers NRHO ↔ low orbit, NRHO departure (Artemis design) | `nrho.ts` | the same Moon-centred ephemeris field |
+| NRHO arrival, lander transfers NRHO ↔ low orbit, NRHO departure (halo-orbit design) | `nrho.ts` | the same Moon-centred ephemeris field |
 | Lunar Orbit Plane Change | `planeChange.ts` | Moon-centred field |
 | Descent, surface ascent, rendezvous | `lunar.ts` | see [05-descent.md](05-descent.md) |
 | Trans-Earth Injection (TEI), coast to Entry Interface (121.92 km, −6.5° by default) | `transit.ts`, `flyHomebound()` | as outbound |
@@ -90,7 +90,7 @@ F, Isp linear in ambient pressure between the sea-level and vacuum values
 
 The mission searches the liftoff instant within the day, the launch azimuth, the length and start of each burn in space, and the return day (header of `mission.ts`).
 
-### 6. NRHO (Artemis design)
+### 6. NRHO (halo-orbit design)
 
 `nrhoAround()` in `nrho.ts`: the 9:2 lunar-synodic-resonant L2 southern halo orbit, started from two neighbouring members of the JPL three-body periodic orbit catalogue interpolated at the resonant period (2/9 of the synodic month of 29.530588853 days) and corrected by multiple shooting until one ballistic path in the real Earth–Moon–Sun field stays on it for the requested revolutions. The lander transfers to and from a 100 km low orbit over the site and the crew vehicle's powered flybys are solved on integrated flights (Parts 3–5 of `nrho.ts`).
 
@@ -141,7 +141,7 @@ Not found in any NASA, Boeing or ULA document opened: the ICPS usable propellant
 - The launch leaves out the Moon and the Sun ("change the ten minutes of an ascent by a few metres", comment on `earthJ2Field`). Not modelled in the launch: winds, lift, engine start-up and shut-down transients, heating, a limit on dynamic pressure.
 - Perfect navigation and perfect burns: every solved burn is flown exactly. No midcourse correction is needed in the model, so none is budgeted, except the small outbound correction of the NRHO design.
 - The NRHO's phase is chosen to suit the launch (the planner puts the NRHO's perilune 3.5 h before the flyby). The code says: "A real mission flies to an orbit whose phase is given and waits for a launch day that fits" (header of `missionNrho.ts`).
-- The app's Artemis designs rendezvous in the NRHO. The Blue Moon entry in `spacecraft.ts` quotes NASA's page of 23 Oct 2026 that the plan now uses "an elliptical polar orbit" for that lander. The architectures were not changed tonight.
+- The app's halo-orbit designs rendezvous in the NRHO. The Blue Moon entry in `spacecraft.ts` quotes NASA's page of 23 Oct 2026 that the plan now uses "an elliptical polar orbit" for that lander. The architectures were not changed tonight.
 - Laying the lunar orbit beside the site at touchdown so that it is nearer at liftoff (as Apollo did), and entering lunar orbit with a plane change, are not done (header of `mission.ts`).
 
 ## ε and how it propagates
@@ -153,7 +153,7 @@ Not found in any NASA, Boeing or ULA document opened: the ICPS usable propellant
 | Launch against Apollo 11 | stage cut-off times within 3 %; mass in orbit within 2 %; propellant left for TLI within 5 % of the 70,684 kg burned | `ascent.test.ts`, "matches the flown event times …", "matches the flown mass in orbit …" |
 | Launch against Artemis I | MECO time within 2 %; speed at the flown MECO altitude within 0.5 %; max axial g within 1 % | `ascent.test.ts`, "matches booster separation and MECO of Artemis I …", "arrives with the flown speed" |
 | TLI against the impulsive first guess | finite burn costs more, by less than 80 m/s | `transit.test.ts`, "the injection is a burn of minutes, not an instant, and costs a little more than the ideal impulse" |
-| Artemis design against NASA mission-design numbers | Orion arrival, return and total within 10 % of 428.5, 411.5 and 840 m/s; lander NRHO → 100 km orbit within 5 % of 704.7 and 730 m/s, and back within 5 % of 730 m/s | `missionNrho.test.ts`, "costs what NASA publishes for Orion and for the lander [WHITLEY] [HLS]"; sources: Whitley & Martinez 2016, https://ntrs.nasa.gov/citations/20160003079; Mahajan & Condon 2022, https://ntrs.nasa.gov/citations/20230002566 |
+| Halo-orbit design against NASA mission-design numbers | Orion arrival, return and total within 10 % of 428.5, 411.5 and 840 m/s; lander NRHO → 100 km orbit within 5 % of 704.7 and 730 m/s, and back within 5 % of 730 m/s | `missionNrho.test.ts`, "costs what NASA publishes for Orion and for the lander [WHITLEY] [HLS]"; sources: Whitley & Martinez 2016, https://ntrs.nasa.gov/citations/20160003079; Mahajan & Condon 2022, https://ntrs.nasa.gov/citations/20230002566 |
 | NRHO shape | perilune radius 3195–3557 km, apolune 70 005–71 849 km, 9:2 resonant period | `missionNrho.test.ts`, `nrho.test.ts` ("has the 9:2 resonant period [LEE]", "holds for at least six revolutions around the epoch, each inside the published ranges [DAVIS]") |
 | Independent check of the integrator | a separate RK4 integration follows the planned injection, coasts and flybys | `numeric.test.ts`, `nrho.test.ts`, the tests named "an independent RK4 integration …" |
 
@@ -193,7 +193,7 @@ These tests show that the code computes what it is written to compute and that i
 
 ## Validation status
 
-- **Validated by the science lead (statement of 15 Nov 2026; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
+- **Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).** `docs/event/validation.md`, section "Validation status 15 Nov", records his statement of 15 Nov 2026, 08:50, in chat with the build session: "validated everything means EVERYTHING", including what was built on 15 Nov. It does not say what was compared against what for this calculation; no per-check sign-off is written in `validation.md`. The record before the statement, unchanged:
 
 - Not recorded in `docs/event/validation.md`: that file has no row for the flight physics.
 - `BUILD_LOG.md`, 14 Nov 2026 20:59: on the science lead's statement "flight physics are validated", the "not validated" marker was removed from the Flight plan tab. The entry adds: "No entry was added to docs/event/validation.md: who validated the flight physics and against what is not recorded here."

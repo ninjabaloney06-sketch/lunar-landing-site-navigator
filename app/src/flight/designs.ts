@@ -1,9 +1,13 @@
-// The two mission designs the flight calculator offers, as the reader sees them: Apollo and SLS (Artemis).
+// The two mission designs the flight calculator offers, as the reader sees them: Apollo and Halo orbit (SLS).
+// The second is named for what it is, a rendezvous in a near-rectilinear halo orbit, and not for the Artemis
+// programme: that rendezvous was NASA's published Artemis landing plan until 2026, and NASA has changed the plan
+// since (release 26-022 of 27 Feb 2026; page of 23 Oct 2026, cited in views/FlightExplain.tsx).
 // SLS comes with one of two landers. Every statement here restates a sourced fact from spacecraft.ts
 // (notes and surfaceStay), shortened to a bullet.
 import { ARCHITECTURES } from './spacecraft'
 
-/** The design a fresh link opens with: the current NASA plan (SLS, Orion, a lander waiting in the halo orbit). */
+/** The design a fresh link opens with: the halo-orbit design (SLS, Orion, a lander waiting in the halo orbit). It is
+ *  not NASA's current plan. The id 'artemis-starship' is historical (links and saved missions depend on it). */
 export const DEFAULT_ARCHITECTURE_ID = (ARCHITECTURES.find((a) => a.id === 'artemis-starship') ?? ARCHITECTURES[0]).id
 
 export interface DesignChoice {
@@ -29,7 +33,7 @@ export const DESIGNS: DesignChoice[] = [
   },
   {
     id: 'sls',
-    title: 'SLS (Artemis)',
+    title: 'Halo orbit (SLS)',
     stack: 'SLS · Orion · Starship HLS or Blue Moon Mark 2',
     bullets: [
       'SLS sends Orion to a halo orbit around the Moon',

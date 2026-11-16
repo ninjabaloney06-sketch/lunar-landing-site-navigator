@@ -113,7 +113,7 @@ describe('trailFade', () => {
   })
 })
 
-// ---- The landing-dispersion tube (dispersion.ts ring formula; validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md)
+// ---- The landing-dispersion tube (dispersion.ts ring formula; stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md)
 import { tubeSegments } from './flight'
 
 describe('tubeSegments', () => {

@@ -3,8 +3,8 @@
 // the Moon-centred field with the Moon's J2 switched on (sim.ts, J2_MOON). Output: the 1σ / 3σ envelope ("tube")
 // around the descent path, the landing dispersion on the surface (km) and the spread of the propellant used.
 //
-// Validated by the science lead: statement of 15 Nov 2026 (docs/event/validation.md, "Validation status 15 Nov"),
-// no per-check record. Every result carries the marker text; `validated` stays false (no per-check written sign-off).
+// Stated as validated by the science lead on 15 Nov 2026 (docs/event/validation.md, "Validation status 15 Nov"),
+// no per-check sign-off. Every result carries the marker text; `validated` stays false (no per-check written sign-off).
 //
 // What is flown (lunar.ts, replayDescent): Descent Orbit Insertion and the braking burn open loop, with their
 // commanded lengths and steering laws; they do not re-aim. The braking burn is cut off early if it comes down to
@@ -30,7 +30,7 @@ import type { FlightEphemeris, Vec3 } from './types'
 import { add, cross, DEG, dot, norm, scale, sub, unit } from './vec'
 
 /** Machine-readable marker carried by every output of this file (Trap 2 of the build brief). */
-export const NOT_VALIDATED = 'validated by the science lead (statement of 15 Nov 2026; see record)'
+export const NOT_VALIDATED = 'stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)'
 
 /** 1σ of each error. */
 export interface DispersionSigmas {
@@ -414,6 +414,6 @@ export function landingSentence(r: DispersionResult): string {
   return (
     `Landing dispersion (3σ, ${r.flown} of ${r.n} unguided runs): ${f(3 * r.landing.sigmaMajorKm)} × ${f(3 * r.landing.sigmaMinorKm)} km ellipse, ` +
     `long axis ${r.landing.majorAzimuthDeg.toFixed(0)}° from north, centred ${f(offKm)} km from the site; propellant ${Math.round(r.propellant.meanKg).toLocaleString('en-US')} ± ` +
-    `${Math.round(3 * r.propellant.sigmaKg).toLocaleString('en-US')} kg (3σ). Validated by the science lead (statement of 15 Nov 2026; see record).`
+    `${Math.round(3 * r.propellant.sigmaKg).toLocaleString('en-US')} kg (3σ). Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).`
   )
 }

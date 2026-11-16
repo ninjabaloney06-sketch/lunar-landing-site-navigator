@@ -413,7 +413,7 @@ export const SPACECRAFT: SpacecraftSpec[] = [
           note:
             'Blue Moon’s propellant here (29 t) is a lower bound: the only published figure is a fuelled mass of more than 45 t, ' +
             'the real lander was to be refuelled in lunar orbit (NASA’s 2028 plan uses transfer stages and a cheaper orbit instead), ' +
-            'and its full load is not published, so the real lander may not be short (validated by the science lead: statement of 15 Nov 2026; see record).',
+            'and its full load is not published, so the real lander may not be short (stated as validated by the science lead on 15 Nov 2026; no per-check sign-off; see record).',
           validated: false,
           sources: [SPACE_REVIEW_BLUE_MOON, WIKI_BLUE_MOON, NASA_LANDERS_2028],
         },
@@ -468,8 +468,10 @@ export const ARCHITECTURES: ArchitectureSpec[] = [
     },
   },
   {
+    // The ids 'artemis-starship' and 'artemis-blue-moon' are historical: links and saved missions depend on them. The
+    // design is named for its rendezvous orbit (the halo orbit), not for the Artemis programme, whose plan changed in 2026.
     id: 'artemis-starship',
-    name: 'Artemis: SLS Block 1, Orion, Starship HLS',
+    name: 'Halo orbit: SLS Block 1, Orion, Starship HLS',
     launchVehicleId: 'sls-block-1',
     capsuleId: 'orion',
     landerId: 'starship-hls',
@@ -489,8 +491,8 @@ export const ARCHITECTURES: ArchitectureSpec[] = [
     },
   },
   {
-    id: 'artemis-blue-moon',
-    name: 'Artemis: SLS Block 1B, Orion, Blue Moon Mark 2',
+    id: 'artemis-blue-moon', // historical id, see above
+    name: 'Halo orbit: SLS Block 1B, Orion, Blue Moon Mark 2',
     launchVehicleId: 'sls-block-1b',
     capsuleId: 'orion',
     landerId: 'blue-moon-mk2',

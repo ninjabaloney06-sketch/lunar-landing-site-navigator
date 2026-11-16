@@ -73,7 +73,7 @@ export interface ArchitectureSpec {
   capsuleId: string
   landerId: string
   /** Where capsule and lander meet at the Moon. 'llo': low lunar orbit, both arrive on one launch (Apollo).
-   *  'nrho': near-rectilinear halo orbit, the lander is already waiting there (Artemis). */
+   *  'nrho': near-rectilinear halo orbit, the lander is already waiting there (the halo-orbit design). */
   rendezvous: 'llo' | 'nrho'
   note: string
   /** How long this design stays on the surface: the stay a fresh plan starts with, the longest the hardware
