@@ -850,3 +850,67 @@ Largest difference 0.000043°, about 1/1150 of the V1 tolerance of 0.05°.
 Where the Earth differences come from (AI diagnostic; the scratch script is not in the repo and the app's maths was not changed):
 - On sample times the Earth elevation differs by up to 0.000024°, the Sun by at most 0.0000002°. The ephemeris applies the stellar-aberration correction (LT+S) to the Moon-centre vector and the site vector is subtracted afterwards; Horizons applies it to the site-to-Earth direction. That shifts the Earth by at most (v/c) · R ≈ (30 km/s / c) · 1737 km ≈ 0.17 km at about 405,000 km, i.e. about 0.000025°, and is negligible for the Sun. Recomputing the on-sample Earth pairs with the aberration applied to the site-to-Earth vector brought every one of them below 0.000001° in elevation (azimuth stayed below 0.00001°; the recomputation estimates the Moon's velocity from the Sun vectors, so it is rough). This is probably also the "Earth elevation offset of about +0.00002°" for which the NASA-tools link check above looked for no cause.
 - Between samples the rest, up to 0.00002° in Earth elevation and azimuth after that recomputation, is consistent with the linear interpolation of the 30-min vectors; it was not compared with direct SPICE values here.
+
+## What the app's validation sentence rests on
+
+Written by an AI tool on 16 Nov 2026 from this file, `BUILD_LOG.md` and the app's source; roles only, no names. Nothing above is changed, nothing is signed by it, and the science lead was not asked again. The app prints "validated by the science lead (statement of 15 Nov 2026; see record)" on its results and links here through `/docs#validation-results`.
+
+The three kinds of record used in the table:
+
+- **Signed in writing**: a line in this file, written by the science lead, that names what was checked against what. **No item has one.**
+- **Stated, recorded by others**: the science lead's own words to an AI build session, copied into the repository by an AI tool, or a report by another team member of what the science lead said (14 Nov 2026 15:56 and about 15:25). There are two statements: 14 Nov 2026 20:59, "flight physics are validated" (`BUILD_LOG.md`; the session ran on the science lead's laptop, and whether the words were typed or spoken is not recorded), and 15 Nov 2026 about 08:50, "validated everything means EVERYTHING" (typed in chat; "Validation status 15 Nov" above describes the speaker as the team member operating that session, speaking as the science lead, on the science lead's account). Neither statement says what was compared against what. Whether the reports of 14 Nov rest on spoken or written words of the science lead is not recorded.
+- **Not validated**: no statement covers the item, or the record says so.
+
+| Item | Who (role) stated what, and when | Evidence in the repository (AI-run unless said) | Kind of record |
+|---|---|---|---|
+| V1 Sun/Earth directions vs JPL Horizons | Another team member reported in chat, 14 Nov 15:56: "V1 and V2 works out". Science lead, 15 Nov about 08:50: blanket statement | 20 rows filled in by a script (worst 0.0001°); rechecks of 14 Nov (20 values), 15 Nov morning (24 values) and 15 Nov 21:45 (72 pairs, largest 0.000043°) | Stated, recorded by others. No signed line |
+| V2 one row by hand | Same report of 14 Nov 15:56; blanket statement of 15 Nov | Arithmetic written by an AI tool (1.4376° vs 1.4369°); recheck at four more times (−0.0007°). No arithmetic by the science lead is recorded | Stated, recorded by others. No signed line |
+| Station check | Blanket statement of 15 Nov only. The top table still says "open" | Worst 0.0782° over five stations. The three decisions it asks for (tolerance, IAU_EARTH, 6° or per-antenna masks) are not recorded | Stated, recorded by others; decisions not recorded. No signed line |
+| V3 synthetic horizons | Blanket statement of 15 Nov only | Flat sphere −0.08132°; cones within 0.00004° | Stated, recorded by others. No signed line |
+| V4 real horizons vs published illumination maps | Blanket statement of 15 Nov only | Comparison at 18 sites (mean +2.1 points, largest 9.0). The two decisions it asks for are not recorded | Stated, recorded by others; decisions not recorded. No signed line |
+| V5 window edges | Blanket statement of 15 Nov only | 6 cases (14 Nov), 12 edges vs Horizons (15 Nov) | Stated, recorded by others. No signed line |
+| V6 coarse terrain for custom places | Blanket statement of 15 Nov only | Reproduces the app's stated accuracy (0.013 / 0.253 / 1.679°). Whether that statement counts as "shown in UI" is not recorded as decided | Stated, recorded by others; decision not recorded. No signed line |
+| V7 values on screen | Blanket statement of 15 Nov only | 36 table values (14 Nov), one screen set (15 Nov) | Stated, recorded by others. No signed line |
+| V8 landing-window finder | Blanket statement of 15 Nov, made after the fix of 07:18 | Failed at Haworth with the 6 h grid, fixed to 30 min, regression test. "One window checked by eye" by the science lead is not recorded | Stated, recorded by others. No signed line |
+| V9 panel types | Nothing to validate: not built | none | Not applicable |
+| Horizon range 150 vs 300 km; truncated horizons | Blanket statement of 15 Nov only. Both sections still say "open — needs S" | Three sites compared; all 18 regenerated horizons recomputed with separate code (within 0.09°) | Stated, recorded by others. No signed line |
+| Site assessment (`assessments.json`) | Another team member reported, 14 Nov about 15:25: the code checker reviewed all the code and the science lead accepted the numbers, at commit `6650ed1`. Science lead, 15 Nov: blanket statement | Reproduction tests, reference points, Site04 plausibility check. Seven method choices are listed as open and are not recorded as decided. The data file's own `validation_status` still reads "… as reported by … for commit 6650ed1; no written sign-off in the repo" | Stated, recorded by others (numbers). The code review is a relayed report with no line by the code checker. No signed line |
+| P1 power estimate | Blanket statement of 15 Nov; the follow-up question named the power estimate. Its section above still says "open, needs the science lead" | Eight hand-computed test cases; six unticked boxes "For the science lead to check" | Stated, recorded by others. No signed line |
+| NASA-tools link check | Blanket statement of 15 Nov only | Six map links and six Horizons rows opened by an AI tool. The two questions it asks are not recorded as answered | Stated, recorded by others; decisions not recorded. No signed line |
+| Flight physics (transfer, orbit, descent, ascent) | Science lead, 14 Nov 20:59, to the build session on the science lead's laptop: "flight physics are validated" (`BUILD_LOG.md`, which adds: "who validated the flight physics and against what is not recorded here"). Blanket statement of 15 Nov, made after the two planner changes merged at 08:35 | Proof tests and flown-mission comparisons in `docs/scientific-proof/04-trajectory.md` and `05-descent.md`; pinned results | Stated, recorded by others. No signed line |
+| Payload and cheapest route | Blanket statement of 15 Nov; the follow-up question named them | `docs/scientific-proof/06-payload.md`. The SLS Block 1 figures changed after the statement (see the parking-orbit row) | Stated, recorded by others, for the numbers as they were at 08:50. No signed line |
+| Dispersion and lunar J2 | Blanket statement of 15 Nov; the follow-up question named them | `docs/scientific-proof/07-dispersion.md`; the four σ are assumptions | Stated, recorded by others. No signed line |
+| SLS Block 1 on the Artemis I parking orbit (built 15 Nov 21:20) | The science lead decided to build it ("use the real data and values"). That is a decision, not a validation; `BUILD_LOG.md`: "Not validated by S". The app marks these results "not yet validated by the science lead" | Values and NASA quotes in `launchVehicles.ts`; two pinned SLS Block 1 plans re-recorded; default mission margin +1,231 kg | **Not validated** (built after the statement) |
+| ICPS and Orion input figures (source check of 16 Nov) | No statement | `docs/scientific-proof/04-trajectory.md`: NASA states an ICPS unfueled weight of 8,200 lb (3,719.5 kg) against the model's 3,800 kg, and an Orion injection mass of 26,536 kg against the model's 25,991 kg | **Not validated**: two open decisions |
+| Per-place terrain lighting in the 3D view (built 15 Nov 21:37) | No statement. `BUILD_LOG.md`: "Rendering choices, not reviewed by S" | Four drawing choices: shadow strip 0.3 × crest distance (600 m to 4 km), hidden ground keeps 12 %, grazing-light floor 0.25, 400 m patch at the place. Sun direction, horizon mask and disc fraction are computed as before | **Not validated** (drawing choices, built after the statement) |
+| Other results first shown after 08:50 on 15 Nov | No statement | Slope warning at 8° and 10° (14:08, NASA source linked); "If the mission slips" rows (21:59, "numbers not checked by the science lead"); year rows for saved and custom places (22:25). All use computations that existed before | **Not validated** as shown; the computations beneath them are covered as in the rows above |
+
+Read against this table, the app's sentence is accurate in one sense only: on 15 Nov 2026 the science lead said that he had validated everything that existed at about 08:50. It is not a per-check sign-off, and it does not cover the last four rows.
+
+## Open for the science lead's signature
+
+One line per item without a written sign-off. Only the science lead fills these in (the code checker for the one line marked so); an agent never does. Each line takes the date, what was checked, against what, and the signature. A decision that is still asked for is named in brackets. All lines are unsigned.
+
+- **V1.** Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V2.** Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Station check** [tolerance; IAU_EARTH acceptable or not; 6° or per-antenna masks]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V3.** Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V4** [differences acceptable as context or not; Earth offset needs a cause or not]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V5.** Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V6** [accuracy statement in the in-app documentation enough or not]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V7.** Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V8** [one window checked by eye on the timeline]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **V9** [close as not applicable, or not]. Date: ______ · Decision: ______ · Signed (science lead): ______
+- **Horizon range** [300 km accepted or not]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Truncated horizons** [17 sites unchanged, IM-1 changed in 52 directions]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Site assessment, numbers** [the seven method choices listed in its section]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Site assessment, code review.** Date: ______ · Reviewed (commit): ______ · Signed (code checker): ______
+- **P1 power estimate** [the six boxes of its section]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **NASA-tools link check** [an AI check counts or not; eye height terrain + 1.75 m]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Flight physics** [numbers after the two changes of 15 Nov 08:35]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Payload and cheapest route** [3 % reserve, 6 % loss term, 0.5 % tie threshold as assumptions]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **Dispersion and lunar J2** [the four σ as assumptions]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **SLS Block 1 on the Artemis I parking orbit** [insertion 15.9 × 972.6 nmi; perigee raise to 100 nmi at the first apogee; ignition between −95° and −40° true anomaly; the propellant computed on it]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
+- **ICPS dry mass** [keep 3,800 kg, or take NASA's 8,200 lb = 3,719.5 kg unfueled]. Date: ______ · Decision: ______ · Signed (science lead): ______
+- **Orion mass through the injection** [keep 25,991 kg, or take NASA's 26,536 kg]. Date: ______ · Decision: ______ · Signed (science lead): ______
+- **Per-place terrain lighting** [strip width, 12 % for hidden ground, grazing-light floor 0.25, 400 m patch: acceptable as drawing choices or not]. Date: ______ · Checked: ______ · Against: ______ · Signed (science lead): ______
