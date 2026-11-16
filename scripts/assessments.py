@@ -753,8 +753,8 @@ def build(root=None, sites=None):
     meta = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generator": "scripts/assessments.py (AI-built)",
-        "validation_status": ("code reviewed by Otto (Q) and numbers accepted by Leo (S), 14 Nov 2026, "
-                              "as reported by ninja for commit 6650ed1; no written sign-off in the repo"),
+        "validation_status": ("numbers accepted by the science lead on 14 Nov 2026 as reported by a team member; "
+                              "included in the statement of 15 Nov 2026; no written sign-off"),
         "frame": "MOON_ME planetocentric, east-positive longitude, sphere R = 1737.4 km",
         "files": files,
         "thresholds": {
