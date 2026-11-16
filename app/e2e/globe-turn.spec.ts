@@ -24,10 +24,12 @@ test('a long vertical drag carries the camera over the south pole and on, at the
   // Twelve drags of 150 px upward: each turns the camera 150 / 720 of half a turn toward the south (the picture
   // follows the pointer), 450° in all, so the camera passes over the south pole and then over the north pole.
   for (let i = 0; i < 12; i++) {
-    await page.mouse.move(640, 500)
+    // Starts at y = 450, clear of the timeline: since 16 Nov 2026 the footer's validation line is longer and wraps
+    // to a second row at this width, which moves the timeline's tool row up to y = 493 to 522.
+    await page.mouse.move(640, 450)
     await page.mouse.down()
-    await page.mouse.move(640, 425, { steps: 3 })
-    await page.mouse.move(640, 350, { steps: 3 })
+    await page.mouse.move(640, 375, { steps: 3 })
+    await page.mouse.move(640, 300, { steps: 3 })
     await page.mouse.up()
     const p = (await scene(page, (s) => s.camera())).position
     expect(Math.hypot(p[0] - last[0], p[1] - last[1], p[2] - last[2]), `drag ${i + 1} moves the camera (km)`).toBeGreaterThan(0.2 * dist)
