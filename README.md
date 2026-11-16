@@ -2,6 +2,7 @@
 
 A web app that compares landing sites near the Moon's south pole by sunlight and by geometric visibility of Earth ground stations, over dates the user chooses. Built by team SFZ | MEXG at NASA Space Apps 2026 (local event Heilbronn, 14–15 Nov 2026) for the challenge [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/).
 
+- Submitted state: release [1.0.0](https://github.com/ninjabaloney06-sketch/lunar-landing-site-navigator/releases/tag/v1.0.0), the repository at the submission deadline (15 Nov 2026, 23:59). `main` also holds changes made after the deadline: release [1.0.1](https://github.com/ninjabaloney06-sketch/lunar-landing-site-navigator/releases/tag/v1.0.1), listed in [BUILD_LOG.md](BUILD_LOG.md#post-deadline-changes-16-nov-2026).
 - Hosted preview: <https://nasa.digi-works.org> (the deployed revision is recorded in [BUILD_LOG.md](BUILD_LOG.md))
 - Technical and product documentation: [docs/documentation.md](docs/documentation.md), also on the app's `/docs` page with the scientific proof of each calculation ([docs/scientific-proof/](docs/scientific-proof/README.md)) and the credits
 - Project page draft: [docs/event/project-page.md](docs/event/project-page.md)
