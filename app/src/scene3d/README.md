@@ -14,6 +14,8 @@ Walk (note 6; 15 Nov: double-click only, within 20 km): a double left-click (< 5
 ends at eye level; camera only (sky, labels and numbers stay the landing site's); beyond 20 km from the site (the reach of the fine terrain) it is ignored.
 Viewpoints (Brief C4 part 2; U14, 15 Nov): handle.goTo('moon') only. The point start / end, Earth, Sun and
 solar-system top viewpoints were removed.
+goTo('moon') during a fly (16 Nov) is not refused: a fly down to a site turns back from where it is, a fly through
+space is redirected, any other one ends first; onLevel reports 'globe' at once (e2e/goto-moon-during-fly.spec.ts).
 Eye level (U5, U16, U19): one placement, index.ts eyeAt(): 1.75 m above site.groundZ, the drawn triangles of the
 finest level under the camera (levels.ts surfaceZ), not the bilinear data height; settleEye() re-places the camera
 when the terrain is rebuilt (the near level arrives later).

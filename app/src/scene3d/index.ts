@@ -161,7 +161,11 @@ export interface SceneHandle {
   /** Whether zooming past a limit changes the view (zoomSwitch.ts): in at the Moon's floor opens the landing-site
    *  view, out at the site's outer limit goes back to the Moon; onLevel reports it. Off until the page asks. */
   setZoomSwitch(on: boolean): void
-  /** Flies to a viewpoint; false when it is not available (nothing loaded yet, a fly running, the flight level). */
+  /**
+   * Flies to a viewpoint; false when it is not available (nothing loaded yet, the flight level). While another fly
+   * runs it is not refused (16 Nov): a fly down to a site turns back from where it is, a fly through space is
+   * redirected from where it is, any other one is finished first; onLevel reports 'globe' at once.
+   */
   goTo(v: Viewpoint): boolean
   /** Flies the space camera to above a point of the Moon (planetocentric degrees), from any level; ends at 'globe'. */
   goToPoint(lat: number, lon: number): boolean
@@ -397,6 +401,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let dirty = true
   let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
   let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
+  let moonNext = false // goTo('moon') arrived during a fly: the fly to the Moon view starts when that one has ended
   // A click on another site's pin on the globe: the app asks for the site view at once and delivers that site's
   // frame a moment later. The fly waits for the frame (at most AWAIT_SITE_MS), so it goes to the right site.
   let awaiting: { id: string; until: number } | null = null
@@ -1195,6 +1200,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       if (cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
     }
     stopGlide()
+    moonNext = false
     fly = { cam, t0: nowMs(), ms: FLY_MS, place, site: null, done }
     setControls()
     markDirty()
@@ -1253,6 +1259,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const partTurn = new Quaternion()
     const shown = { ...ground.shown, mix: toSite ? 0 : 1, toSite }
     stopGlide()
+    moonNext = false
     const place = (e: number) => {
       const u = toSite ? e : 1 - e
       const a = k > 1.001 ? (k - k ** (1 - u)) / (k - 1) : u
@@ -1356,6 +1363,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (nearWaiting) applyNear(nearWaiting)
     setControls()
     markDirty()
+    if (moonNext) {
+      // goTo('moon') arrived during this fly: on to the Moon view from where it ended.
+      moonNext = false
+      wanted = null
+      flyInSpace(() => setGlobeView(), motion())
+    }
   }
 
   /** To a pose in the space scene, from wherever the camera is. `place` puts globeCam and its controls there. */
@@ -1399,10 +1412,41 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     notifyCamera()
   }
 
-  /** The Moon viewpoint (U14: the only one left): the default globe view, flown to from wherever the camera is. */
+  /**
+   * The Moon viewpoint (U14: the only one left): the default globe view, flown to from wherever the camera is.
+   * During a fly (16 Nov; before, the request was refused and "View > Moon" did nothing until the fly had ended):
+   *   - the fly down to a site (the usual case: a site was just picked) turns back along its own path from where
+   *     the camera is, in the time it took to get there, and then goes on to the Moon view;
+   *   - a fly through space is dropped where it is and the fly to the Moon view starts from that pose;
+   *   - any other fly (up from a site, a walk, between site and eye level) runs to its end first.
+   * A level asked for meanwhile (setLevel during the fly) is dropped: this request is the later one.
+   */
   function goTo(v: Viewpoint, animate = motion()): boolean {
-    if (!frame || !sky || !globe || fly || level === 'flight' || v !== 'moon') return false
-    flyInSpace(() => setGlobeView(), animate)
+    if (!frame || !sky || !globe || level === 'flight' || v !== 'moon') return false
+    if (!fly) {
+      flyInSpace(() => setGlobeView(), animate)
+      return true
+    }
+    wanted = null
+    awaiting = null
+    if (!animate) {
+      finishFly()
+      flyInSpace(() => setGlobeView(), false)
+      return true
+    }
+    const cur = fly
+    if (cur.site?.toSite) {
+      const e0 = easeInOut(Math.min(Math.max((nowMs() - cur.t0) / cur.ms, 0), 1))
+      cur.site.toSite = false // no longer a fly a new site's frame may retarget (applyFrame)
+      moonNext = true
+      fly = { cam: cur.cam, t0: nowMs(), ms: Math.max(cur.ms * e0, 200), place: (e) => cur.place(e0 * (1 - e)), site: cur.site, done: () => setFov(globeCam, baseFov) }
+    } else if (cur.cam === globeCam && !cur.site) {
+      fly = null
+      flyInSpace(() => setGlobeView(), true)
+    } else moonNext = true
+    // The page learns the level now (it believes 'site' during a fly down), so it does not ask for it again.
+    emitLevel('globe')
+    markDirty()
     return true
   }
 
