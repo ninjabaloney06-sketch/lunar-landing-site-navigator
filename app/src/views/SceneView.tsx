@@ -35,7 +35,7 @@ import { inPinRegion } from '../scene3d/region'
 import type { Poi } from '../data/pois'
 import { parseCustomSiteId } from '../data/customSite'
 import { PoiInfo } from './PoiInfo'
-import { REGION_TEXT } from './poiLayer'
+import { REGION_TEXT, qualifiersOf } from './poiLayer'
 import { SITE_REGION_TEXT } from './custom'
 import { ViewMenu, VIEWPOINTS } from './ViewMenu'
 import type { ViewItem } from './ViewMenu'
@@ -763,6 +763,7 @@ export function SceneView(props: Props) {
       {info && poiById?.get(info.id) && (
         <PoiInfo
           poi={poiById.get(info.id)!}
+          qualifier={qualifiersOf(poiById).get(info.id)}
           pinned={info.pinned}
           boxRef={box}
           from={deps.sites.find((s) => s.id === siteId) ?? null}

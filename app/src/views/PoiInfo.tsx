@@ -26,12 +26,15 @@ import {
   groupInfo,
   sourceHost,
   usePoiConditions,
+  qualifiedName,
 } from './poiLayer'
-import type { PoiMission } from './poiLayer'
+import type { PoiMission, PoiQualifier } from './poiLayer'
 import { OTHER_CHECKS, V1_CLAIM } from './validationClaim'
 
 interface Props {
   poi: Poi
+  /** Set when other points share this one's name (poiLayer.poiQualifiers). */
+  qualifier?: PoiQualifier
   pinned: boolean
   boxRef: Ref<HTMLElement>
   from?: { name: string; lat: number; lon: number } | null // the current landing site, for the distance bullet
@@ -74,7 +77,7 @@ function T({ text }: { text: string }) {
   )
 }
 
-export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onGoTo, currentSiteId, onClose, onPointerEnter, onPointerLeave }: Props) {
+export function PoiInfo({ poi, qualifier, pinned, boxRef, from, mission, onKeep, onGoTo, currentSiteId, onClose, onPointerEnter, onPointerLeave }: Props) {
   const [full] = useFullData()
   const g = groupInfo(poi.group)
   const type = poi.plain?.type ?? g.label
@@ -100,7 +103,7 @@ export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onGoTo, cu
     <aside
       ref={setRef}
       className="poi-info"
-      aria-label={poi.name}
+      aria-label={qualifiedName(poi.name, qualifier)}
       data-testid="poi-info"
       data-poi-id={poi.id}
       data-pinned={pinned ? 'true' : 'false'}
@@ -128,6 +131,13 @@ export function PoiInfo({ poi, pinned, boxRef, from, mission, onKeep, onGoTo, cu
       <div className="poi-info-title">
         <h3 className="poi-info-name">
           <T text={poi.name} />
+          {/* A name other points share: the source (and the position, where that is the same too) tells this one
+              apart; its type is the card's first line. */}
+          {qualifier && (
+            <span className="poi-qual" data-testid="poi-qual">
+              {qualifier.where ? `${qualifier.source}, ${qualifier.where}` : qualifier.source}
+            </span>
+          )}
         </h3>
         {go === 'go' && (
           <button type="button" className="link poi-goto" data-testid="poi-goto" onClick={() => onGoTo!(poi)}>
