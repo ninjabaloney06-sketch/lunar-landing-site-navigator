@@ -172,6 +172,40 @@ a:hover {
   top: var(--s-1);
 }
 
+/* Beside the point (SceneView: only when the Sun and Earth labels would lie on each other and neither above nor
+   below is free): the text level with the point, the tick horizontal. */
+.obj-box.is-right,
+.obj-box.is-left {
+  bottom: auto;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 0 0 0 var(--s-6);
+}
+
+.obj-box.is-right {
+  left: var(--s-3);
+}
+
+.obj-box.is-left {
+  left: auto;
+  right: var(--s-3);
+  padding: 0 var(--s-6) 0 0;
+}
+
+.obj-box.is-right .obj-tick,
+.obj-box.is-left .obj-tick {
+  top: 50%;
+  bottom: auto;
+  left: var(--s-1);
+  width: var(--s-4);
+  height: 1px;
+}
+
+.obj-box.is-left .obj-tick {
+  left: auto;
+  right: var(--s-1);
+}
+
 .obj-site {
   position: absolute;
   left: 0;
