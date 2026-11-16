@@ -458,7 +458,8 @@ export const DOC_INTRO = (
   <>
     <p className="docs-lede">
       What the Lunar Landing Site Navigator answers, how to read it and where its numbers come from. This page
-      describes the app as it is on 15 Nov 2026. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn. The
+      describes the app as it is on 15 Nov 2026. This is version 1.0.1: the submitted state (version 1.0.0, 15 Nov 2026)
+      with the improvements of 16 Nov 2026, made after the submission deadline. Team SFZ | MEXG, NASA Space Apps 2026, local event Heilbronn. The
       full documentation, with the scientific proof of each calculation and the credits, is at{' '}
       <a href="/docs">/docs</a>.
     </p>
@@ -1112,7 +1113,7 @@ export const DOC_SECTIONS: DocSection[] = [
           slips&quot; rows and the year rows as displayed, the slope warning thresholds as displayed (8° and 10°), and the
           terrain shadow and lighting rendering choices in the 3D view. The computations beneath the rows and the slope
           warning existed before the statement. The record also lists two input figures as open decisions (ICPS dry mass,
-          Orion mass through the injection). Post-deadline fix, 16 Nov 2026: the terrain cast shadows (16 Nov 2026) and
+          Orion mass through the injection). Improvement after the submission deadline, 16 Nov 2026: the terrain cast shadows (16 Nov 2026) and
           this wording change were made after the event&apos;s submission deadline.
         </p>
         <p>

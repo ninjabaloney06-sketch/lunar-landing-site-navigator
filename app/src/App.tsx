@@ -1173,6 +1173,10 @@ function Main({ sites, periods, stations }: { sites: Site[]; periods: Period[]; 
             >
               Documentation
             </button>
+            {/* Not on a phone (one footer line); the Documentation view opens with the same statement. */}
+            <span className="foot-data" data-testid="foot-version">
+              {' · '}Version 1.0.1: improved after the submission of 15 Nov 2026
+            </span>
           </p>
           {!VALIDATED && (
             <p className="foot-sample" data-testid="sample-flag">
