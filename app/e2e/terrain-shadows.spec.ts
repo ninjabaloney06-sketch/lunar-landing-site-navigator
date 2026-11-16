@@ -24,6 +24,7 @@ interface Scene {
   terrainAt(x: number, y: number): { x: number; y: number; z: number } | null
   shadowInfo(): { runs: number; active: boolean; levels: { n: number; spacing: number; ext: number }[] }
   shadowProbe(li: number, x: number, y: number): Probe
+  setStagedShadows(on: boolean): void
 }
 const scene = <T>(page: Page, fn: (s: Scene) => T | Promise<T>) => page.evaluate(`(${fn.toString()})(window.__scene)`) as Promise<T>
 
@@ -179,5 +180,42 @@ test.describe('terrain shadows in the default Play', () => {
     expect(await scene(page, (s) => s.shadowInfo().runs)).toBe(a)
     await scene(page, (s) => s.setView({ utc: '2027-08-18T06:00Z', level: 'site' }))
     expect(await scene(page, (s) => s.shadowInfo().runs)).toBe(a + 1)
+  })
+
+  test('while the time plays half of the levels is updated per frame; once the Sun stands still the textures are those of its direction', async ({ page }) => {
+    await open(page)
+    await scene(page, (s) => s.setView({ site: 'connecting-ridge', utc: '2027-08-21T00:00Z', level: 'site' }))
+    const info = await scene(page, (s) => s.shadowInfo())
+    await scene(page, (s) => s.setStagedShadows(true))
+    // Twelve steps of 10 minutes (0.085° of the Sun's azimuth each), one frame per step, as under Play.
+    const t0 = Date.parse('2027-08-21T00:00Z')
+    for (let k = 1; k <= 12; k++) await page.evaluate((t) => (window as unknown as { __scene: Scene }).__scene.load('connecting-ridge', new Date(t).toISOString()), t0 + k * 600_000)
+    const during = (await scene(page, (s) => s.shadowInfo())).runs - info.runs
+    // One half per drawn frame: a frame per step, and the loop's own frames in between while a half is behind.
+    expect(during).toBeGreaterThanOrEqual(12)
+    expect(during).toBeLessThanOrEqual(25)
+    // The Sun stands still: the frames that follow finish both halves, then nothing more runs.
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r))))))
+    const settled = (await scene(page, (s) => s.shadowInfo())).runs
+    expect(settled - info.runs - during).toBeLessThanOrEqual(2)
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    expect((await scene(page, (s) => s.shadowInfo())).runs).toBe(settled)
+    const rows = await page.evaluate((levels) => {
+      const s = (window as unknown as { __scene: Scene }).__scene
+      const out: { gpu: number; cpu: number }[] = []
+      levels.forEach((l, li) => {
+        for (let a = 0; a < 9; a++) {
+          for (let b = 0; b < 9; b++) {
+            const p = s.shadowProbe(li, (((a + 0.37) / 9) * 2 - 1) * l.ext, (((b + 0.61) / 9) * 2 - 1) * l.ext)
+            if (p) out.push({ gpu: p.gpu, cpu: p.cpu })
+          }
+        }
+      })
+      return out
+    }, info.levels)
+    const diff = rows.map((q) => Math.abs(share(q.gpu) - share(q.cpu)))
+    expect(rows.length).toBe(info.levels.length * 81)
+    expect(diff.reduce((a, b) => a + b, 0) / diff.length, 'mean difference of the Sun share after the Sun stopped').toBeLessThan(0.03)
+    await scene(page, (s) => s.setStagedShadows(false))
   })
 })

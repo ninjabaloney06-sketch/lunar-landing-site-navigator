@@ -400,6 +400,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   // A click on another site's pin on the globe: the app asks for the site view at once and delivers that site's
   // frame a moment later. The fly waits for the frame (at most AWAIT_SITE_MS), so it goes to the right site.
   let awaiting: { id: string; until: number } | null = null
+  let stagedShadows = !testMode
+  let shadowsBehind = false // drawSite: half of the terrain shadow levels is still to be updated, in the next frame
   const markDirty = () => {
     dirty = true
     viewVersion++
@@ -1607,7 +1609,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!sky) return
     site.updateMarker(siteCam, size.y, showMast(), showCross())
     site.updateMarks(siteCam, size.y)
-    site.prepare(renderer) // the terrain's shadows for this frame's Sun (shadowmap.ts)
+    // The terrain's shadows for this frame's Sun (shadowmap.ts): half of the levels per frame while the time plays;
+    // a frame more while a half is behind. Test mode: all at once, so a picture never depends on the frame before.
+    shadowsBehind = site.prepare(renderer, stagedShadows)
     syncSky('site')
     renderer.clear()
     if (frame) sky.render(renderer)
@@ -1758,7 +1762,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
-      dirty = false
+      dirty = shadowsBehind
+      shadowsBehind = false
       fpsFrames++
     }
     if (fpsEl && now - fpsT0 > 500) {
@@ -2163,6 +2168,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       },
       sunShareAt: (x, y) => site.sunShareAt(x, y),
       shadowInfo: () => site.shadowInfo(),
+      setStagedShadows(on) {
+        stagedShadows = on
+      },
       setMarkerVisible(on) {
         site.markerOff = !on
         markDirty()

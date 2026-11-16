@@ -125,15 +125,16 @@ uniform vec3 uBounceDir;
 uniform float uSiteC;
 uniform float uLunar;
 varying vec3 vEnu;
-varying float vSiteC0;
 ${SHADOW_GLSL}
 `
-// sunlight.ts drawnC and the brightness law, per fragment. vSiteC0 is the terrain's own c at the site (the same
-// for every vertex), uSiteC the mask's: at the marker the drawn share is the site's computed (eased) disc share.
+// sunlight.ts drawnC and the brightness law, per fragment. c0 is the terrain's own c at the site (the site lies
+// well inside the finest level, so that level's texture alone gives it), uSiteC the mask's: at the marker the
+// drawn share is the site's computed (eased) disc share.
 const SUN_APPLY_GLSL = /* glsl */ `#include <lights_fragment_end>
   {
     float c = lunarTerrainC(lunarGrid(vEnu.xy));
-    c = clamp(c + exp(-dot(vEnu.xy, vEnu.xy) / ${(SITE_BLEND_M * SITE_BLEND_M).toFixed(1)}) * (uSiteC - vSiteC0), -1.0, 1.0);
+    float near = exp(-dot(vEnu.xy, vEnu.xy) / ${(SITE_BLEND_M * SITE_BLEND_M).toFixed(1)});
+    if (near > 0.002) c = clamp(c + near * (uSiteC - lunarTerrainC(vec2(0.0))), -1.0, 1.0);
     float sunShare = c <= -1.0 ? 1.0 : (c >= 1.0 ? 0.0 : (acos(c) - c * sqrt(1.0 - c * c)) / PI);
     vec3 sunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xyz);
     float mu0 = max(dot(normal, sunView), 0.0);
@@ -150,11 +151,11 @@ const regolith = (u: SunUniforms) => {
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u)
     sh.vertexShader = sh.vertexShader
-      .replace('void main() {', `varying vec3 vEnu;\nvarying float vSiteC0;\n${SHADOW_GLSL}\nvoid main() {`)
-      .replace('#include <project_vertex>', '#include <project_vertex>\n  vEnu = (modelMatrix * vec4(transformed, 1.0)).xyz;\n  vSiteC0 = lunarTerrainC(vec2(0.0));')
+      .replace('void main() {', 'varying vec3 vEnu;\nvoid main() {')
+      .replace('#include <project_vertex>', '#include <project_vertex>\n  vEnu = (modelMatrix * vec4(transformed, 1.0)).xyz;')
     sh.fragmentShader = sh.fragmentShader.replace('void main() {', `${SUN_GLSL}\nvoid main() {`).replace('#include <lights_fragment_end>', SUN_APPLY_GLSL)
   }
-  m.customProgramCacheKey = () => 'regolith-sun-2'
+  m.customProgramCacheKey = () => 'regolith-sun-3'
   return m
 }
 const RAD_TO_DEG = 180 / Math.PI
@@ -406,11 +407,12 @@ export class SiteWorld {
 
   /**
    * Before the site scene is drawn: the shadow textures for the Sun of this frame (computed only when the Sun or
-   * the terrain changed) and the shader's handles on them.
+   * the terrain changed) and the shader's handles on them. staged: a small step of the Sun updates half of the
+   * levels per frame (shadowmap.ts); true is returned while the other half is still to come.
    */
-  prepare(renderer: WebGLRenderer) {
+  prepare(renderer: WebGLRenderer, staged = false): boolean {
     this.shadowMap.setSun(this.sunDir, this.sunAngRadDeg)
-    this.shadowMap.update(renderer)
+    const behind = this.shadowMap.update(renderer, staged)
     const u = this.sunU
     for (let i = 0; i < MAX_SHADOW_LEVELS; i++) {
       const t = this.shadowMap.texture(i)
@@ -419,6 +421,7 @@ export class SiteWorld {
       const outer = this.shadowMap.texture(i + 1)
       u[`uShB${i}`].value = t && outer ? MORPH_CELLS * outer.spacing : 0
     }
+    return behind
   }
 
   /** Test helper: how often the shadow passes ran, and whether the GPU can run them at all. */

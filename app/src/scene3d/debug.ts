@@ -54,6 +54,8 @@ export interface DebugView {
   sunShareAt(x: number, y: number): number
   /** The terrain shadow passes: how often they ran, whether the GPU can run them, the levels they cover. */
   shadowInfo(): { runs: number; active: boolean; levels: { n: number; spacing: number; ext: number }[] }
+  /** Test mode updates every shadow level at once; true: half of them per frame for a small step of the Sun, as the app does while the time plays. */
+  setStagedShadows(on: boolean): void
   /** The site's mast and cross on or off (a picture of the ground under them). */
   setMarkerVisible(on: boolean): void
   /** The terrain's own c at a sample of shadow level li, from the GPU's texture and from the CPU's direct march (shadows.ts). */
@@ -174,6 +176,7 @@ export function installDebug(v: DebugView) {
     dataIds: () => v.dataIds(),
     sunShareAt: (x: number, y: number) => v.sunShareAt(x, y),
     shadowInfo: () => v.shadowInfo(),
+    setStagedShadows: (on: boolean) => v.setStagedShadows(on),
     setMarkerVisible: (on: boolean) => v.setMarkerVisible(on),
     shadowProbe: (li: number, x: number, y: number) => v.shadowProbe(li, x, y),
     projectMe: (p: number[]) => v.projectMe(p),

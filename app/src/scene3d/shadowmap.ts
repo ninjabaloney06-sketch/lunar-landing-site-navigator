@@ -12,10 +12,12 @@
 // For a ray toward the Sun with elevation tangent T, S′(x) is the height of the shadow boundary at ground point x:
 // the highest of z(occluder) − distance · T over all terrain ahead of x along the Sun's azimuth (heights in the
 // site's ENU frame, so the Moon's curvature is in z and the ray is straight; shadows.ts header). A point at height
-// z sees that ray iff z > S′(x). S′ over a reach of 2m steps follows from S′ over m steps:
-//   S′₂ₘ(x) = max(S′ₘ(x), S′ₘ(x + m·s·dir) − m·s·T)
-// so log₂(samples across) passes over a level's texture cover every occluder in the level, each pass one bilinear
-// read of the previous one. A step that leaves the level's square reads the next coarser level's finished texture
+// z sees that ray iff z > S′(x). S′ over a reach of 4m steps follows from S′ over m steps:
+//   S′₄ₘ(x) = max over k = 0…3 of S′ₘ(x + k·m·s·dir) − k·m·s·T
+// so log₄(samples across) passes over a level's texture cover every occluder in the level (5 passes for 500
+// samples a side), each pass three bilinear reads of the previous one (shadows.ts SHADOW_RADIX = 4; doubling needs
+// 11 passes per level, and measured, the passes cost more than the reads).
+// A step that leaves the level's square reads the next coarser level's finished texture
 // where the ray leaves, which already holds everything beyond; levels are therefore computed coarsest first.
 // Three rays are followed at once (the red, green and blue channel): toward the Sun's lower limb, its centre and
 // its upper limb. The disc is whole where the lower limb's ray is free and gone where the upper limb's is blocked;
@@ -26,6 +28,12 @@
 // Stored is D = S′ − z(x) (half floats, relative precision 1/2048: fine near a shadow edge, where D is small).
 // Heights are stored as two half floats (a multiple of 64 m and the rest), exact to 2 cm.
 // shadows.ts propagate() is the same recursion on the CPU; its unit test compares it with the direct march.
+//
+// Cost (measured on an integrated GPU, five levels): 2.7 ms for all levels. While the time plays, the Sun moves by
+// less than a tenth of a degree per frame, and the levels are then updated in two halves on alternating frames
+// (the coarser levels, then the finer ones, about 1.4 ms each), each for the Sun of its own frame; when the Sun
+// stops, the frames that follow bring both to its final direction. A larger step of the Sun (a jump of the time, a
+// new site) updates everything at once, and so does test mode.
 
 import {
   ClampToEdgeWrapping,
@@ -46,7 +54,7 @@ import {
   type Texture,
   type WebGLRenderer,
 } from 'three'
-import { limbTans, type ShadowLevel } from './shadows'
+import { SHADOW_RADIX, limbTans, shadowPasses, type ShadowLevel } from './shadows'
 
 /** Most levels the terrain shader reads (fine, 80 m tile, near, mid, far). */
 export const MAX_SHADOW_LEVELS = 5
@@ -68,7 +76,7 @@ uniform vec3 uLvl;   // samples a side, spacing (m), half-width (m)
 uniform vec3 uLvlC;  // the next coarser level; half-width 0: there is none
 uniform vec2 uDir;   // unit horizontal direction toward the Sun (east, north)
 uniform vec3 uTan;   // elevation tangents of the lower limb, the centre and the upper limb
-uniform float uJump; // reach of this pass's step, m
+uniform float uJump; // length of one step of this pass, m
 uniform float uFirst;
 vec2 uvOf(vec2 g, vec3 l) {
   return vec2((g.x + l.z) / l.y + 0.5, (l.z - g.y) / l.y + 0.5) / l.x;
@@ -82,22 +90,28 @@ void main() {
   vec2 ij = gl_FragCoord.xy - 0.5;
   vec2 x = vec2(ij.x * uLvl.y - uLvl.z, uLvl.z - ij.y * uLvl.y);
   float z0 = heightOf(uH, uv);
-  vec2 q = x + uJump * uDir;
-  vec3 cand = vec3(-1.0e9);
-  if (max(abs(q.x), abs(q.y)) <= uLvl.z) {
-    vec2 uq = uvOf(q, uLvl);
-    vec3 dq = uFirst > 0.5 ? vec3(0.0) : texture2D(uPrev, uq).rgb;
-    cand = heightOf(uH, uq) + dq - uJump * uTan;
-  } else if (uLvlC.z > 0.0) {
-    // Where the ray leaves this level's square: the coarser level's ground there and everything beyond it.
-    vec2 lim = vec2(
-      abs(uDir.x) > 1.0e-6 ? (sign(uDir.x) * uLvl.z - x.x) / uDir.x : 1.0e9,
-      abs(uDir.y) > 1.0e-6 ? (sign(uDir.y) * uLvl.z - x.y) / uDir.y : 1.0e9);
-    float tExit = max(min(lim.x, lim.y), 0.0);
-    vec2 ue = uvOf(x + tExit * uDir, uLvlC);
-    cand = heightOf(uHc, ue) + max(texture2D(uDc, ue).rgb, vec3(0.0)) - tExit * uTan;
+  vec3 best = vec3(-1.0e9);
+  for (int k = 1; k < ${SHADOW_RADIX}; k++) {
+    float t = float(k) * uJump;
+    vec2 q = x + t * uDir;
+    if (max(abs(q.x), abs(q.y)) <= uLvl.z) {
+      vec2 uq = uvOf(q, uLvl);
+      vec3 dq = uFirst > 0.5 ? vec3(0.0) : texture2D(uPrev, uq).rgb;
+      best = max(best, heightOf(uH, uq) + dq - t * uTan);
+    } else {
+      if (uLvlC.z > 0.0) {
+        // Where the ray leaves this level's square: the coarser level's ground there and everything beyond it.
+        vec2 lim = vec2(
+          abs(uDir.x) > 1.0e-6 ? (sign(uDir.x) * uLvl.z - x.x) / uDir.x : 1.0e9,
+          abs(uDir.y) > 1.0e-6 ? (sign(uDir.y) * uLvl.z - x.y) / uDir.y : 1.0e9);
+        float tExit = max(min(lim.x, lim.y), 0.0);
+        vec2 ue = uvOf(x + tExit * uDir, uLvlC);
+        best = max(best, heightOf(uHc, ue) + max(texture2D(uDc, ue).rgb, vec3(0.0)) - tExit * uTan);
+      }
+      break; // every farther step leaves the square too
+    }
   }
-  vec3 d = cand - z0;
+  vec3 d = best - z0;
   if (uFirst < 0.5) d = max(d, texture2D(uPrev, uv).rgb);
   gl_FragColor = vec4(clamp(d, ${NONE.toFixed(1)}, 30000.0), 1.0);
 }`
@@ -142,13 +156,25 @@ function target(n: number): WebGLRenderTarget {
   })
 }
 
+/** A step of the Sun's direction larger than this (squared chord, about 0.3°) updates every level in one frame. */
+const STAGED_MAX_SQ = 0.005 * 0.005
+
 export class ShadowMap {
   private levels: GpuLevel[] = []
   private pending: ShadowLevel[] | null = null
-  private dirty = true
   private supported: boolean | null = null
   private readonly sun = new Vector3(0, 1, 0)
   private angRadDeg = 0.27
+  // What is up to date: `version` counts the changes of the Sun and the terrain; each half of the levels (0: the
+  // coarser ones, 1: the finer ones, split at `split`) remembers the version it was computed for, and the finer
+  // half the coarser half's version it read at its edges.
+  private version = 0
+  private readonly computed = [-1, -1]
+  private fineRead = -1
+  private split = 0
+  private turn = 0
+  private all = true // the next update runs every level (new terrain)
+  private readonly ranFor = new Vector3()
   private readonly mat = new ShaderMaterial({
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -181,14 +207,15 @@ export class ShadowMap {
   /** The terrain's levels, finest first (at most MAX_SHADOW_LEVELS: the coarsest are kept). Uploaded at the next update. */
   setLevels(levels: ShadowLevel[]) {
     this.pending = levels.slice(-MAX_SHADOW_LEVELS)
-    this.dirty = true
+    this.version++
+    this.all = true
   }
 
   setSun(sun: Vector3, angRadDeg: number) {
     if (this.sun.distanceToSquared(sun) < 1e-18 && angRadDeg === this.angRadDeg) return
     this.sun.copy(sun)
     this.angRadDeg = angRadDeg
-    this.dirty = true
+    this.version++
   }
 
   /** False where the GPU cannot render to half-float textures: the terrain is then drawn without cast shadows. */
@@ -226,24 +253,30 @@ export class ShadowMap {
       o.a.dispose()
       o.b.dispose()
     }
+    // The two halves: levels [split, …) and [0, split), cut where the larger half is smallest (by samples).
+    const size = this.levels.map((g) => g.level.n * g.level.n)
+    const total = size.reduce((a, b) => a + b, 0)
+    let best = Infinity
+    let fine = 0
+    this.split = 0
+    for (let k = 0; k <= this.levels.length; k++) {
+      const worst = Math.max(fine, total - fine)
+      if (worst < best) {
+        best = worst
+        this.split = k
+      }
+      fine += size[k] ?? 0
+    }
   }
 
-  /** Runs the passes if the Sun or the terrain changed since the last call. Returns true when it did. */
-  update(renderer: WebGLRenderer): boolean {
-    if (this.supported === null) {
-      const gl = renderer.getContext()
-      this.supported = renderer.capabilities.isWebGL2 !== false && !!(gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float'))
-    }
-    if (!this.supported || !this.dirty) return false
-    this.dirty = false
-    this.upload()
-    const hl = Math.hypot(this.sun.x, this.sun.y)
-    if (hl < 1e-9 || !this.levels.length) return false
+  /** The passes of levels [from, to), coarsest first, for the current Sun. */
+  private run(renderer: WebGLRenderer, from: number, to: number) {
     const u = this.mat.uniforms
+    const hl = Math.hypot(this.sun.x, this.sun.y)
     ;(u.uDir.value as Vector2).set(this.sun.x / hl, this.sun.y / hl)
     ;(u.uTan.value as Vector3).fromArray(limbTans(this.sun, this.angRadDeg))
     const before = renderer.getRenderTarget()
-    for (let li = this.levels.length - 1; li >= 0; li--) {
+    for (let li = to - 1; li >= from; li--) {
       const g = this.levels[li]
       const c = this.levels[li + 1] as GpuLevel | undefined
       const { n, spacing, ext } = g.level
@@ -252,22 +285,60 @@ export class ShadowMap {
       u.uH.value = g.heights
       u.uHc.value = c?.heights ?? g.heights
       u.uDc.value = c?.done.texture ?? null
-      const passes = Math.ceil(Math.log2(Math.SQRT2 * (n - 1)))
-      let from = g.b
-      let to = g.a
-      for (let p = 0; p <= passes; p++) {
+      // Never the texture the shader may still be reading as the finished one of a pass before.
+      let from_ = g.done === g.a ? g.a : g.b
+      let to_ = g.done === g.a ? g.b : g.a
+      const jumps = shadowPasses(n)
+      for (let p = 0; p < jumps.length; p++) {
         u.uFirst.value = p === 0 ? 1 : 0
-        u.uJump.value = spacing * (p === 0 ? 1 : 2 ** (p - 1))
-        u.uPrev.value = p === 0 ? null : from.texture
-        renderer.setRenderTarget(to)
+        u.uJump.value = spacing * jumps[p]
+        u.uPrev.value = p === 0 ? null : from_.texture
+        renderer.setRenderTarget(to_)
         renderer.render(this.scene, this.camera)
-        ;[from, to] = [to, from]
+        ;[from_, to_] = [to_, from_]
       }
-      g.done = from
+      g.done = from_
     }
     renderer.setRenderTarget(before)
+    this.ranFor.copy(this.sun)
     this.runs++
-    return true
+  }
+
+  /**
+   * Brings the shadow textures up to date with the Sun and the terrain, all levels at once or (`staged`, for a
+   * small step of the Sun) one half of them per call. Returns true while a half is still behind: the caller then
+   * draws another frame.
+   */
+  update(renderer: WebGLRenderer, staged = false): boolean {
+    if (this.supported === null) {
+      const gl = renderer.getContext()
+      this.supported = !!(gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float'))
+    }
+    if (!this.supported) return false
+    this.upload()
+    const n = this.levels.length
+    const behind = () => this.computed[0] !== this.version || this.computed[1] !== this.version || this.fineRead !== this.computed[0]
+    if (!behind() || !n || Math.hypot(this.sun.x, this.sun.y) < 1e-9) return false
+    const whole = !staged || this.all || this.split === 0 || this.split === n || this.ranFor.distanceToSquared(this.sun) > STAGED_MAX_SQ
+    if (whole) {
+      this.all = false
+      this.run(renderer, 0, n)
+      this.computed[0] = this.computed[1] = this.fineRead = this.version
+      return false
+    }
+    const coarseBehind = this.computed[0] !== this.version
+    const fineBehind = this.computed[1] !== this.version || this.fineRead !== this.computed[0]
+    if (coarseBehind && (!fineBehind || this.turn === 0)) {
+      this.run(renderer, this.split, n)
+      this.computed[0] = this.version
+      this.turn = 1
+    } else {
+      this.run(renderer, 0, this.split)
+      this.computed[1] = this.version
+      this.fineRead = this.computed[0]
+      this.turn = 0
+    }
+    return behind()
   }
 
   /**

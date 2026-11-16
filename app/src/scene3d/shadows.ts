@@ -149,13 +149,32 @@ export function cOfClearances(lower: number, centre: number, upper: number): num
   return centre > 0 ? centre / (centre - upper) : -1 + lower / (lower - centre)
 }
 
+/** Steps a GPU pass looks ahead, counting the sample itself: each pass multiplies the reach by this. */
+export const SHADOW_RADIX = 4
+
+/**
+ * The step length (in sample spacings) of every pass for a level of n samples a side. The first pass looks 1 …
+ * RADIX − 1 spacings ahead; each later pass steps by the reach so far, which multiplies it by RADIX, until the
+ * reach covers the level's diagonal.
+ */
+export function shadowPasses(n: number): number[] {
+  const jumps = [1]
+  let reach = SHADOW_RADIX - 1
+  while (reach < Math.SQRT2 * (n - 1)) {
+    jumps.push(reach)
+    reach *= SHADOW_RADIX
+  }
+  return jumps
+}
+
 /**
  * The GPU pass on the CPU (shadowmap.ts runs the same recursion per texel in a fragment shader), for one level:
  * D[k] = S′ − z per sample, where S′ is the height of the shadow boundary there for ray k (tangent tans[k]): the
- * highest of height(occluder) − distance · tan over every occluder ahead toward the Sun. The first pass looks one
- * spacing ahead; each later pass doubles the reach: S′₂ₘ(x) = max(S′ₘ(x), S′ₘ(x + m·s·dir) − m·s·tan). A step that
- * leaves the level's square takes the next coarser level's finished result at the point where the ray leaves
- * (`coarse`, with its level), which already holds everything beyond; without one there is nothing beyond.
+ * highest of height(occluder) − distance · tan over every occluder ahead toward the Sun. The first pass looks up
+ * to RADIX − 1 spacings ahead; each later pass multiplies the reach m by RADIX:
+ * S′(x) = max over k = 0 … RADIX − 1 of S′ₘ(x + k·m·s·dir) − k·m·s·tan. A step that leaves the level's square
+ * takes the next coarser level's finished result at the point where the ray leaves (`coarse`, with its level),
+ * which already holds everything beyond; without one there is nothing beyond.
  */
 export function propagate(
   l: ShadowLevel,
@@ -179,36 +198,43 @@ export function propagate(
     const o = (i0 * lv.n + j0) * stride + k
     return (a[o] * (1 - dj) + a[o + stride] * dj) * (1 - di) + (a[o + lv.n * stride] * (1 - dj) + a[o + (lv.n + 1) * stride] * dj) * di
   }
-  const passes = Math.ceil(Math.log2(Math.SQRT2 * (n - 1)))
-  for (let p = 0; p <= passes; p++) {
+  const best = new Float64Array(ch)
+  shadowPasses(n).forEach((jumpCells, p) => {
     const first = p === 0
-    const jump = l.spacing * (first ? 1 : 2 ** (p - 1))
+    const jump = l.spacing * jumpCells
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         const x = j * l.spacing - l.ext
         const y = l.ext - i * l.spacing
         const v = i * n + j
-        const qx = x + jump * dx
-        const qy = y + jump * dy
-        const inside = Math.max(Math.abs(qx), Math.abs(qy)) <= l.ext
-        let tExit = 0
-        let hq = 0
-        if (inside) hq = bil(l, l.z, 1, 0, qx, qy)
-        else if (coarse) {
-          const tx = dx !== 0 ? (Math.sign(dx) * l.ext - x) / dx : Infinity
-          const ty = dy !== 0 ? (Math.sign(dy) * l.ext - y) / dy : Infinity
-          tExit = Math.max(Math.min(tx, ty), 0)
-          hq = bil(coarse.level, coarse.level.z, 1, 0, x + tExit * dx, y + tExit * dy)
+        best.fill(-1e9)
+        for (let step = 1; step < SHADOW_RADIX; step++) {
+          const t = step * jump
+          const qx = x + t * dx
+          const qy = y + t * dy
+          if (Math.max(Math.abs(qx), Math.abs(qy)) <= l.ext) {
+            const hq = bil(l, l.z, 1, 0, qx, qy)
+            for (let k = 0; k < ch; k++) best[k] = Math.max(best[k], hq + (first ? 0 : bil(l, prev, ch, k, qx, qy)) - t * tans[k])
+            continue
+          }
+          if (coarse) {
+            const tx = dx !== 0 ? (Math.sign(dx) * l.ext - x) / dx : Infinity
+            const ty = dy !== 0 ? (Math.sign(dy) * l.ext - y) / dy : Infinity
+            const tExit = Math.max(Math.min(tx, ty), 0)
+            const ex = x + tExit * dx
+            const ey = y + tExit * dy
+            const hq = bil(coarse.level, coarse.level.z, 1, 0, ex, ey)
+            for (let k = 0; k < ch; k++) best[k] = Math.max(best[k], hq + Math.max(bil(coarse.level, coarse.d, ch, k, ex, ey), 0) - tExit * tans[k])
+          }
+          break // every farther step leaves the square too
         }
         for (let k = 0; k < ch; k++) {
-          let cand = -1e9
-          if (inside) cand = hq + (first ? 0 : bil(l, prev, ch, k, qx, qy)) - jump * tans[k]
-          else if (coarse) cand = hq + Math.max(bil(coarse.level, coarse.d, ch, k, x + tExit * dx, y + tExit * dy), 0) - tExit * tans[k]
-          next[v * ch + k] = Math.min(Math.max(first ? cand - l.z[v] : Math.max(prev[v * ch + k], cand - l.z[v]), NONE), 30000)
+          const d = best[k] - l.z[v]
+          next[v * ch + k] = Math.min(Math.max(first ? d : Math.max(prev[v * ch + k], d), NONE), 30000)
         }
       }
     }
     ;[prev, next] = [next, prev]
-  }
+  })
   return prev
 }
