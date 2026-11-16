@@ -534,7 +534,7 @@ export function FlightPanel(p: FlightPanelProps) {
       <Section id="halo" title="The halo orbit: why it looks unusual">
         <HaloOrbit plan={plan} rendezvous={rendezvous} />
       </Section>
-      <Section id="landing" title="Apollo and Artemis: two ways to land">
+      <Section id="landing" title="Apollo and the halo orbit: two ways to land">
         <LandingWays plan={plan} rendezvous={rendezvous} />
       </Section>
       <Section id="stay" title="Time on the surface">

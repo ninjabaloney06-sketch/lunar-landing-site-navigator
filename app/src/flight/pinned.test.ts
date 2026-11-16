@@ -133,13 +133,17 @@ interface Case {
 //   south pole   hash 2929ad9b139feb06, 34004 numbers, touchdown 1820725369184.2961, Δv 18.32295133172373, end 1822203540320
 //   near-side eq hash 6571c85994af7b1e, 57793 numbers, touchdown 1820722454644.831,  Δv 18.633059033097766, end 1822203540164
 // Apollo and SLS Block 1B (Blue Moon) cases are unchanged.
+// The three NRHO hashes re-recorded on fix/validation-wording (16 Nov) for the architecture name only ("Artemis: …" is
+// now "Halo orbit: …"; ids unchanged). Every numeric field of every plan was dumped as exact Float64 bits before and
+// after: the dumps are identical, and touchdown, end, Δv and the number counts below did not move. Before:
+//   NRHO Starship south pole 2514afc97b90ec5e, near-side equator d690a21a3fae4cdb, NRHO Blue Moon 74ca95dd2572d682
 const CASES: Case[] = [
   { name: 'LLO Apollo, south pole, KSC', arch: 'apollo', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 0.9, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 16), hash: '3d7560aeb9ee4c9f', numbers: 26306, touchdownMs: 1818382412530.1104, dvTotalKms: 17.504151609677404, endMs: 1818869649448 },
   { name: 'LLO Apollo, near-side equator, Kourou, return window', arch: 'apollo', pad: 'kourou-ela4', latDeg: 0.5, lonDeg: 10, stayDays: 3, returnWindowDays: 1, earliest: Date.UTC(2027, 8, 2), hash: '727c6242f81822d7', numbers: 42812, touchdownMs: 1819868980204.582, dvTotalKms: 17.66859890387239, endMs: 1820607705999 },
   { name: 'LLO Apollo, far side 30°N, Tanegashima', arch: 'apollo', pad: 'tanegashima-yoshinobu', latDeg: 30, lonDeg: 180, stayDays: 14, returnWindowDays: 0, earliest: Date.UTC(2027, 7, 20), hash: 'c5fa43da369a3947', numbers: 124209, touchdownMs: 1818753479166.3254, dvTotalKms: 19.18636812821884, endMs: 1820353443252 },
-  { name: 'NRHO Starship, south pole, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '2514afc97b90ec5e', numbers: 33378, touchdownMs: 1820722416766.5542, dvTotalKms: 18.23125232559566, endMs: 1822210822579 },
-  { name: 'NRHO Starship, near-side equator, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: 0, lonDeg: 0, stayDays: 3, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: 'd690a21a3fae4cdb', numbers: 57162, touchdownMs: 1820719505615.8423, dvTotalKms: 18.541888448935264, endMs: 1822210822424 },
-  { name: 'NRHO Blue Moon, far side 30°N, Kourou', arch: 'artemis-blue-moon', pad: 'kourou-ela4', latDeg: 30, lonDeg: 180, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '74ca95dd2572d682', numbers: 36580, touchdownMs: 1820729878208.522, dvTotalKms: 18.66390897217201, endMs: 1822210863741 },
+  { name: 'NRHO Starship, south pole, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: -89.5, lonDeg: 0, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: 'c48bea50993579a7', numbers: 33378, touchdownMs: 1820722416766.5542, dvTotalKms: 18.23125232559566, endMs: 1822210822579 },
+  { name: 'NRHO Starship, near-side equator, KSC', arch: 'artemis-starship', pad: 'ksc-39b', latDeg: 0, lonDeg: 0, stayDays: 3, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: 'd74d59a50d6e4fc8', numbers: 57162, touchdownMs: 1820719505615.8423, dvTotalKms: 18.541888448935264, endMs: 1822210822424 },
+  { name: 'NRHO Blue Moon, far side 30°N, Kourou', arch: 'artemis-blue-moon', pad: 'kourou-ela4', latDeg: 30, lonDeg: 180, stayDays: 6.5, returnWindowDays: 0, earliest: Date.UTC(2027, 8, 12), hash: '79185cf1d3fbc53e', numbers: 36580, touchdownMs: 1820729878208.522, dvTotalKms: 18.66390897217201, endMs: 1822210863741 },
 ]
 
 // PIN_RECORD=1 prints the values instead of checking them (only for recording a new case).
