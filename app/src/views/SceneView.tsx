@@ -35,7 +35,7 @@ import { inPinRegion } from '../scene3d/region'
 import type { Poi } from '../data/pois'
 import { parseCustomSiteId } from '../data/customSite'
 import { PoiInfo } from './PoiInfo'
-import { REGION_TEXT } from './poiLayer'
+import { REGION_TEXT, qualifiersOf } from './poiLayer'
 import { SITE_REGION_TEXT } from './custom'
 import { ViewMenu, VIEWPOINTS } from './ViewMenu'
 import type { ViewItem } from './ViewMenu'
@@ -494,7 +494,7 @@ export function SceneView(props: Props) {
         const me: Box = { x0: b.left - o.left, y0: b.top - o.top, x1: b.right - o.left, y1: b.bottom - o.top }
         return blocked.some((x) => overlaps(me, x))
       }
-      box.classList.remove('is-below')
+      box.classList.remove('is-below', 'is-right', 'is-left')
       if (!covered()) return
       if (box.classList.contains('obj-box')) {
         box.classList.add('is-below')
@@ -504,16 +504,76 @@ export function SceneView(props: Props) {
       el.hidden = true
     }
 
+    // Sun and Earth a few degrees apart low over the horizon (3D audit, 15 Nov): their labels lay on each other.
+    // One of the two then goes to another side of its tick: the one whose point is farther from the page's own text
+    // (header, timeline, panels), so the move is the least likely to end on that text. Sides in order: the other
+    // side of the point (below, or above), then beside it, away from the other label first. A side is taken only
+    // if the label is then clear of the other label, of the page's text, of the Landing site label and inside the
+    // stage. If the first label has no such side, the second is tried; if neither has one, the Earth label is not
+    // drawn (as a label covered by the header is not drawn).
+    type Side = 'above' | 'below' | 'right' | 'left'
+    const sideOf = (box: Element): Side => (box.classList.contains('is-below') ? 'below' : box.classList.contains('is-right') ? 'right' : box.classList.contains('is-left') ? 'left' : 'above')
+    const setSide = (box: Element, side: Side) => {
+      box.classList.toggle('is-below', side === 'below')
+      box.classList.toggle('is-right', side === 'right')
+      box.classList.toggle('is-left', side === 'left')
+    }
+    const apart = () => {
+      const s = sun.current
+      const e = earth.current
+      const stage = host.current
+      if (!s || !e || !stage || s.hidden || e.hidden) return
+      const sb = s.firstElementChild
+      const eb = e.firstElementChild
+      if (!sb || !eb) return
+      const o = stage.getBoundingClientRect()
+      const rect = (el: Element): Box => {
+        const r = el.getBoundingClientRect()
+        return { x0: r.left - o.left, y0: r.top - o.top, x1: r.right - o.left, y1: r.bottom - o.top }
+      }
+      // data-apart marks the label this function moved (read by the e2e sweep)
+      sb.removeAttribute('data-apart')
+      eb.removeAttribute('data-apart')
+      if (!overlaps(grown(rect(sb)), rect(eb))) return
+      const blocked = overlayBoxes(stage)
+      const siteBox = site.current && !site.current.hidden && site.current.firstElementChild ? rect(site.current.firstElementChild) : null
+      // .obj is a zero-size anchor at the body's point
+      const pointOf = (el: Element) => ({ x: rect(el).x0, y: rect(el).y0 })
+      const room = (el: Element) => {
+        const p = pointOf(el)
+        return blocked.reduce((d, x) => Math.min(d, Math.hypot(Math.max(x.x0 - p.x, 0, p.x - x.x1), Math.max(x.y0 - p.y, 0, p.y - x.y1))), Infinity)
+      }
+      const pairs: [HTMLDivElement, Element, HTMLDivElement, Element][] = room(e) >= room(s) ? [[e, eb, s, sb], [s, sb, e, eb]] : [[s, sb, e, eb], [e, eb, s, sb]]
+      for (const [el, box, otherEl, otherBox] of pairs) {
+        const was = sideOf(box)
+        const other = grown(rect(otherBox))
+        const away: Side[] = pointOf(el).x >= pointOf(otherEl).x ? ['right', 'left'] : ['left', 'right']
+        for (const side of [was === 'above' ? 'below' : 'above', ...away] as Side[]) {
+          if (side === was) continue
+          setSide(box, side)
+          const b = rect(box)
+          const inside = b.x0 >= 0 && b.y0 >= 0 && b.x1 <= o.width && b.y1 <= o.height
+          if (inside && !overlaps(b, other) && !blocked.some((x) => overlaps(b, x)) && !(siteBox && overlaps(b, siteBox))) {
+            box.setAttribute('data-apart', side)
+            return
+          }
+        }
+        setSide(box, was)
+      }
+      e.hidden = true
+    }
+
     let raf = 0
     const tick = () => {
       h.setFlightTime(flightRef.current.clock.timeMs)
+      place(site.current, h.project('site'), true)
+      clearOfText(site.current)
       place(sun.current, h.labelPoint('sun'), have.current.sun)
       clearOfText(sun.current)
       const ep = h.labelPoint('earth')
       place(earth.current, ep, have.current.earth)
       clearOfText(earth.current)
-      place(site.current, h.project('site'), true)
-      clearOfText(site.current)
+      apart()
       const n = namedNow()
       const named = n && n.visible ? poiOf(n) : null
       if (named !== dismissed.current) dismissed.current = null // the pointer has left the dismissed pin
@@ -703,6 +763,7 @@ export function SceneView(props: Props) {
       {info && poiById?.get(info.id) && (
         <PoiInfo
           poi={poiById.get(info.id)!}
+          qualifier={qualifiersOf(poiById).get(info.id)}
           pinned={info.pinned}
           boxRef={box}
           from={deps.sites.find((s) => s.id === siteId) ?? null}

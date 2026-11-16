@@ -210,7 +210,11 @@ test.describe('U8: the Full data switch in the site-details drawer', () => {
       expect(s.y).toBeLessThan(d.y + 80)
       // summary: the decision values (station state), no method, raw elevations or sources
       await expect(drawer.locator('table.stations thead th')).toHaveText(['Station', 'State'])
-      await expect(drawer).not.toContainText('not a guaranteed radio link')
+      // 16 Nov: since the team lead's summary commit 7795441 (15 Nov 23:03, "each summary value says what it means")
+      // the Station contact line of the summary carries the line-of-sight caveat itself; until then this line
+      // asserted that the caveat was absent in summary mode. The Stations section's own sentence stays full data.
+      await expect(drawer.getByTestId('summary-contact')).toContainText('not a guaranteed radio link')
+      await expect(drawer).not.toContainText('Station contact means geometric line of sight')
       await expect(drawer).not.toContainText('Access not assessed')
       await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toHaveCount(0)
       await expect(page.getByTestId('drawer-tab-dates')).toBeVisible() // 15 Nov: the date search is the Dates tab
@@ -219,7 +223,7 @@ test.describe('U8: the Full data switch in the site-details drawer', () => {
       await sw.click()
       await expect(sw).toHaveAttribute('aria-checked', 'true')
       await expect(drawer.locator('table.stations thead th')).toHaveCount(4)
-      await expect(drawer).toContainText('not a guaranteed radio link')
+      await expect(drawer).toContainText('Station contact means geometric line of sight')
       await expect(drawer.getByRole('heading', { name: 'How this is computed' })).toBeAttached()
       await expect(drawer.getByTestId('views-note')).toBeAttached()
       // one global setting, kept across a reload

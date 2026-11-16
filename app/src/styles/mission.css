@@ -123,8 +123,11 @@
 }
 
 @media (max-width: 640px) {
+  /* The mission font (Michroma) runs about a third wider than the serif it replaced: at 24 px "Mission 1" pushed
+     Edit mission onto a row of its own at 375 px and the scene fell under half the screen. 20 px, and the row
+     does not wrap: a long name breaks inside its own box and Edit mission stays beside it. */
   .mission-h {
-    font-size: var(--t-display-sm);
+    font-size: 20px;
   }
 
   .mission-h .icon {
@@ -133,6 +136,8 @@
 
   /* Room on the right for the Menu button, which sits on the title's row (index.css). */
   .title-row {
+    flex-wrap: nowrap;
+    gap: var(--s-3);
     padding-right: 84px;
     min-height: 44px;
   }

@@ -59,12 +59,67 @@ export const REGION_TEXT = `south of ${Math.abs(PIN_REGION_NORTH_LAT)}° S`
 /** A landing record that is one of the app's sites is drawn once, as that site's pin. */
 const isSitePin = (p: Poi, siteIds: Set<string>) => p.group === 'landing' && p.siteId !== null && siteIds.has(p.siteId)
 
-/** The pins of the chosen groups, as the scene draws them. */
+// ---------- points that share a name (16 Nov) ----------
+// The records come from different sources and several carry the same name for different features: "Cabeus" is the
+// host crater (USGS nomenclature) and a permanently shadowed region of the LROC atlas, different points in the data.
+// Wherever such points can stand in one list (the search results, a result's other records, the pins of the scene
+// and their cards) each gets a short qualifier made of fields the record already has: its plain type, the host of
+// its first source and, where two records still read the same, its coordinates. No data changes.
+
+export interface PoiQualifier {
+  kind: string // the record's plain type ("Host crater"), or its category in words where it has none
+  source: string // host of the record's first source ("planetarynames.wr.usgs.gov")
+  where: string | null // "83.52° S 91.02° E": only where kind and source are the same for two records of one name
+  text: string // "Host crater, planetarynames.wr.usgs.gov"
+}
+
+const kindOf = (p: Poi) => p.plain?.type || p.category.replace(/_/g, ' ')
+
+/**
+ * The qualifier of every POI whose displayed name is shared: by another POI of `pois`, or by one of `otherNames`
+ * (names shown in the same list that are not POIs, e.g. the app's landing sites; a POI that is itself that site,
+ * siteId set, does not count against its own site). A POI with a name of its own is not in the map.
+ */
+export function poiQualifiers(pois: Poi[], otherNames: string[] = []): Map<string, PoiQualifier> {
+  const byName = new Map<string, Poi[]>()
+  for (const p of pois) byName.set(p.name, [...(byName.get(p.name) ?? []), p])
+  const others = new Set(otherNames)
+  const out = new Map<string, PoiQualifier>()
+  for (const [name, group] of byName) {
+    const other = others.has(name) && group.every((p) => p.siteId === null) ? 1 : 0
+    if (group.length + other < 2) continue
+    const sourceOf = (p: Poi) => (p.sources[0] ? sourceHost(p.sources[0]) : 'no source')
+    const base = (p: Poi) => `${kindOf(p)}, ${sourceOf(p)}`
+    const count = new Map<string, number>()
+    for (const p of group) count.set(base(p), (count.get(base(p)) ?? 0) + 1)
+    for (const p of group) {
+      const where = count.get(base(p))! > 1 ? fmtLatLon(p.lat, p.lon, ' ') : null
+      out.set(p.id, { kind: kindOf(p), source: sourceOf(p), where, text: where ? `${base(p)}, ${where}` : base(p) })
+    }
+  }
+  return out
+}
+
+const qualifierCache = new WeakMap<Map<string, Poi>, Map<string, PoiQualifier>>()
+
+/** poiQualifiers of the loaded POIs (the byId map of usePois), computed once per load. */
+export function qualifiersOf(byId: Map<string, Poi>): Map<string, PoiQualifier> {
+  let q = qualifierCache.get(byId)
+  if (!q) qualifierCache.set(byId, (q = poiQualifiers([...byId.values()])))
+  return q
+}
+
+/** "Cabeus (Host crater, planetarynames.wr.usgs.gov)" where the name is shared, the plain name where it is not. */
+export const qualifiedName = (name: string, q: PoiQualifier | undefined) => (q ? `${name} (${q.text})` : name)
+
+/** The pins of the chosen groups, as the scene draws them; a pin whose name another point shares carries its
+ *  qualifier in the name (the plain name label of a pin, shown while another point's card is kept open). */
 export function scenePois(pois: Poi[], groups: PoiGroup[], sites: Site[]): ScenePoi[] {
   const ids = new Set(sites.map((s) => s.id))
+  const q = poiQualifiers(pois)
   return pois
     .filter((p) => groups.includes(p.group) && !isSitePin(p, ids))
-    .map((p) => ({ id: p.id, name: p.name, lat: p.lat, lon: p.lon, color: groupInfo(p.group).color, landing: p.group === 'landing' }))
+    .map((p) => ({ id: p.id, name: qualifiedName(p.name, q.get(p.id)), lat: p.lat, lon: p.lon, color: groupInfo(p.group).color, landing: p.group === 'landing' }))
 }
 
 /** Pins per group (what the key counts). */
