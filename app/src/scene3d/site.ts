@@ -283,11 +283,14 @@ const NIGHT_FILL = 0.05 * Math.PI
 // The directed part of that scattered light. A shadowed point sees the sunlit terrain on the side away from the Sun
 // (the slopes that face the Sun face it too), so the light comes from the anti-solar side, here from 27° above the
 // horizontal there (BOUNCE_UP = tan 27°). It gives the relief inside a shadow its shape; an even fill alone draws
-// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.13·π ≈ 0.11·π, 3.6 % of what a
+// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.10·π ≈ 0.095·π, 3 % of what a
 // surface facing the Sun gets (before 16 Nov: 0.12·π from the 12 % "hidden Sun" and the fill together); a shadowed
-// slope facing the sunlit side at most 0.18·π. A display level like NIGHT_FILL: shadowed ground comes out at about
-// a tenth of the display range, dark against the sunlit ground and distinct from the black sky.
-const TERRAIN_BOUNCE = 0.13 * Math.PI
+// slope facing the sunlit side at most 0.15·π. A display level like NIGHT_FILL: shadowed ground comes out at about
+// a tenth of the display range (24 of 255), dark against sunlit ground (100–170) and distinct from the black sky.
+// Two older checks bracket it: e2e/scene.spec.ts T17 wants terrain in front of a hidden Sun below 30 of 255 (at
+// 0.13·π four of its 35 cases read 30–33), e2e/scene-audit-context.spec.ts wants the mean of a whole picture of
+// Haworth above 20 (19.3 at this level: most of that picture is real shadow now).
+const TERRAIN_BOUNCE = 0.1 * Math.PI
 const BOUNCE_UP = 0.5
 export class SiteWorld {
   readonly scene = new Scene()
@@ -327,6 +330,14 @@ export class SiteWorld {
         [`uShB${i}`, { value: 0 }],
       ]).flat() as [string, { value: unknown }][],
     ),
+  }
+  // The eye-level crest strip (addCrests) is a connector up to the mask's sight line, not relief: its faces stand
+  // steep toward the eye, and the directed scattered light would draw them as a lit rim along the horizon under a
+  // hidden Sun. They take level ground's share of that light instead, evenly.
+  private readonly crestU: SunUniforms = {
+    ...this.sunU,
+    uBounce: { value: 0 },
+    uFill: { value: NIGHT_FILL + (TERRAIN_BOUNCE * BOUNCE_UP) / Math.hypot(1, BOUNCE_UP) },
   }
   // The terrain's own shadows: the drawn heights (CPU, for sunShareAt) and their GPU textures for the Sun of this frame.
   private readonly shadowMap = new ShadowMap()
@@ -465,9 +476,9 @@ export class SiteWorld {
     this.eyeOnly.visible = eye
   }
 
-  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both'): Mesh {
+  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both', u: SunUniforms = this.sunU): Mesh {
     const grp = where === 'both' ? this.terrain : where === 'orbit' ? this.orbitOnly : this.eyeOnly
-    grp.add(new Mesh(g, regolith(this.sunU)))
+    grp.add(new Mesh(g, regolith(u)))
     // Occlusion tests use an invisible double-sided twin (coarse for the tile, so project() stays cheap).
     const p = new Mesh(rayProxy ?? g, this.rayMat)
     p.visible = false
@@ -702,7 +713,7 @@ export class SiteWorld {
     }
     const g = gridMesh(n, rows, pos, true)
     g.setAttribute('normal', new Float32BufferAttribute(nor, 3))
-    this.addMesh(g, undefined, 'eye')
+    this.addMesh(g, undefined, 'eye', this.crestU)
   }
 
   /** Test helper: the nested levels as built, finest first (name, samples a side, spacing and half-width in m). */
