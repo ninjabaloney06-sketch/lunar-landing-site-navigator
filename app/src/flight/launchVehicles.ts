@@ -88,6 +88,20 @@ const MCDOWELL_ARTEMIS1: SourceRef = {
   label: "J. McDowell, Artemis I mission notes (fallback: no NASA or Boeing document states the ICPS dry mass)",
   url: 'https://planet4589.org/space/misc/artemis1.txt',
 }
+// Source check of 16 Nov 2026 for the ICPS (dry mass, specific impulse). The three documents below are quoted in
+// the comments of the ICPS stage. They are NOT in its `sources` field yet, and the label above is left as it was
+// (it is out of date: NASA does state an unfueled weight, see the stage): a plan carries its vehicle's sources,
+// and flight/pinned.test.ts hashes the whole plan, so adding or rewording a source needs the two SLS Block 1
+// pins re-recorded (strings only; touchdown, end time and total Δv do not move).
+//  - NASA, Space Launch System Reference Guide for Artemis II (SLS-5558, PDF of January 2026), "SLS Block 1 by the
+//    Numbers": https://www.nasa.gov/wp-content/uploads/2026/01/sls-5558-artemis-ii-sls-reference-guide-final-review-508-012026.pdf
+//    (text layer read in memory; that layer drops the digit 9, so "72,197" reads "72,1 7").
+//  - Borowski et al. (NASA Glenn), Key Technologies, Systems, and Infrastructure Enabling the Commercialization
+//    and Human Settlement of the Moon and Cislunar Space, IAC 2019 (NTRS 20200000008):
+//    https://ntrs.nasa.gov/api/citations/20200000008/downloads/20200000008.txt
+//    (a NASA study that quotes the engine's performance; not an SLS programme document).
+//  - United Launch Alliance, Delta IV Launch Services User's Guide (June 2013), manufacturer of the stage the
+//    ICPS is modified from: https://www.ulalaunch.com/docs/default-source/rockets/delta-iv-user's-guide.pdf
 const SLS_B1B_FACTS: SourceRef = {
   label: 'NASA, SLS Block 1B fact sheet (December 2025)',
   url: 'https://www.nasa.gov/wp-content/uploads/2026/02/sls-5644-sls-block-1b-fact-sheet-dec2025-508.pdf',
@@ -366,6 +380,11 @@ const LVSA_KG = 10000 * LBM
 // Planned times, Artemis I timeline: "Service module fairing jettison (MET 00:03:11)", "Launch abort system
 // jettison (MET 00:03:16)". Both are counted here, so payloadKg must NOT contain them: Orion on SLS is the crew
 // module, the service module and the spacecraft adapter.
+// Checked 16 Nov 2026: the Artemis I guide reads "Liftoff weight 16,700 lb (7,600 kg)" and "Weight of spacecraft
+// adapter jettisoned fairings 2,800 lb (1,300 kg)", "Weight of spacecraft adapter 1,000 lb (450 kg)". NASA's
+// Orion by the Numbers (2026, Artemis II figures) differs and is NOT applied: launch abort system "MASS AT
+// LIFTOFF ... 17,000 lbs / 7,711 kg"; "SPACECRAFT ADAPTER MASS ... 2,800 lbs / 1,270 kg", "JETTISONED FAIRINGS
+// MASS ... 1,000 lbs / 454 kg" (the two labels the other way round). Open for the science lead.
 const ORION_JETTISONS: LaunchVehicleSpec['jettisons'] = [
   { name: 'Service module fairing', massKg: 1300, afterStage: 0, delayS: 191, sources: [ARTEMIS_I_REF_GUIDE, ARTEMIS_I_TIMELINE] },
   { name: 'Launch Abort System', massKg: 7600, afterStage: 0, delayS: 196, sources: [ARTEMIS_I_REF_GUIDE, ARTEMIS_I_TIMELINE] },
@@ -456,11 +475,20 @@ const SLS_BLOCK_1: AscentVehicle = {
     {
       id: 'icps',
       name: 'Interim Cryogenic Propulsion Stage (ICPS)',
-      // Fallback, no NASA, Boeing or ULA document states it: "Dry mass of 3.8 tonnes; 32.7 tonnes fuelled."
-      // (J. McDowell; Wikipedia's ICPS entry gives the same 3,800 kg)
+      // Model value, not from NASA: "Dry mass of 3.8 tonnes; 32.7 tonnes fuelled." (J. McDowell, who names no
+      // source for it; Wikipedia's ICPS entry gives the same 3,800 kg).
+      // NASA states a DIFFERENT figure (found 16 Nov 2026). Artemis II SLS Reference Guide, SLS Block 1 by the
+      // Numbers, Interim Cryogenic Propulsion Stage: "Weight: 72,197 lbs. (32.748 t) fueled; 8,200 lbs (3.71 t)
+      // unfueled" (the PDF's text layer drops the digit 9, so the metric value may be 3.719 t).
+      // 8,200 lb = 3,719.5 kg: 80.5 kg (2.1 %) below the model value. NOT applied; the science lead decides.
+      // Direction if applied: dry mass down by 80.5 kg and, through the line below, propellant up by 80.5 kg,
+      // so a larger ICPS propellant margin. The guide does not say whether "unfueled" is the Artemis II stage
+      // (RL10C-2) only; the Artemis I guides give the fueled weight alone. No Boeing or ULA figure was found.
       dryKg: 3800,
-      // Reference guide: "Weight: 72,197 lbs. (32.7 t) fueled"; 72,197 lb = 32,748 kg, less the dry mass above.
-      // ASSUMPTION: everything that is not dry mass is usable main-engine propellant.
+      // Reference guide: "Weight: 72,197 lbs. (32.7 t) fueled"; 72,197 lb = 32,748 kg, less the dry mass above
+      // = 28,948 kg. (With NASA's 8,200 lb unfueled it would be 63,997 lb = 29,028.5 kg; not applied.)
+      // ASSUMPTION: everything that is not dry mass is usable main-engine propellant. No NASA, Boeing or ULA
+      // document opened states the ICPS usable propellant; hydrazine, helium and residuals are in that difference.
       propellantKg: 72197 * LBM - 3800,
       engine: {
         name: 'RL10B-2',
@@ -468,7 +496,14 @@ const SLS_BLOCK_1: AscentVehicle = {
         // Reference guide: "single Aerojet Rocketdyne RL10B-2 engine producing 24,750 lbs. (110 kN) of thrust"
         thrustVacN: 24750 * LBF,
         thrustSlN: null,
-        // National Academies review, RL10B-2: "develops an Isp of 465.5 sec."
+        // NASA (Borowski et al., NASA Glenn, IAC 2019): "allowing the RL10B-2 to achieve the highest specific
+        // impulse (Isp) of any cryogenic engine – 465.5 s"; the same paper: "O/H MR (5.88:1) and Isp (465.5 s)".
+        // Same figure: National Academies review, RL10B-2: "develops an Isp of 465.5 sec."
+        // Manufacturer of the stage, rounded: ULA Delta IV guide, "has a specific impulse of 465 sec."
+        // Another NASA figure, not used: NASA-TM-107470 (1997, before the engine first flew), "a delivered Isp
+        // of 466.5 se[c] at a mixture ratio of 6.0" (NTRS 19970026009; +1.0 s, a different mixture ratio).
+        // No NASA SLS document opened states the engine's specific impulse (reference guides for Artemis I and
+        // II, ICPS and RL10 fact sheets); L3Harris had no RL10 product page on 16 Nov 2026 (HTTP 404).
         ispVacS: 465.5,
         ispSlS: null,
         throttleMin: 1,
@@ -480,7 +515,7 @@ const SLS_BLOCK_1: AscentVehicle = {
     },
   ],
   jettisons: ORION_JETTISONS,
-  // Orion Stage Adapter. Reference guide: "Weight: 1,800 lbs. (0.8 t)"
+  // Orion Stage Adapter. Reference guide: "Weight: 1,800 lbs. (0.8 t)"; Artemis II guide: "Weight: 1,800 lbs. (0.82 t)"
   upperStageExtrasKg: 1800 * LBM,
   note:
     'As flown on Artemis I. The Launch Vehicle Stage Adapter leaves with the Core Stage, the Orion Stage Adapter stays on the ICPS. ' +
@@ -576,7 +611,8 @@ export const launchVehicle = (id: string): AscentVehicle | undefined => LAUNCH_V
 //  - SLS booster tail-off shape after 90 s: chosen to give the QM-1 total impulse.
 //  - SLS core stage: the whole propellant capacity counts as usable.
 //  - SLS acceleration limit: the 3.25 g observed on Artemis I.
-//  - ICPS dry mass 3,800 kg: J. McDowell / Wikipedia; propellant = fuelled weight minus that.
+//  - ICPS dry mass 3,800 kg: J. McDowell / Wikipedia; propellant = fuelled weight minus that. NASA's Artemis II
+//    guide states 8,200 lb (3,719.5 kg) unfueled; not applied, open for the science lead (see the ICPS stage).
 //  - EUS dry mass, propellant, specific impulse, size: Wikipedia.
 //  - Block 1B interstage and Universal Stage Adapter: each the Launch Vehicle Stage Adapter's 10,000 lb.
 //  - SLS tower clearance: no figure; the simulator's default (1.5 × the summed stage lengths) applies.

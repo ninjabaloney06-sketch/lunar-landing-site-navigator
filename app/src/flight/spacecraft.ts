@@ -288,6 +288,12 @@ export const SPACECRAFT: SpacecraftSpec[] = [
     name: 'Orion',
     role: 'capsule',
     note: 'Crew Module and European Service Module (ESM), Artemis II figures. One Orbital Maneuvering System Engine of fixed thrust.',
+    // Orion by the Numbers opened and the three figures below confirmed on 16 Nov 2026. The same sheet also states
+    // "TRANS-LUNAR INSERTION MASS ... 58,500 lbs / 26,536 kg" and "POST TRANS-LUNAR INSERTION MASS ... 57,000 lbs /
+    // 25,854 kg". The mass the ICPS carries in this model is Crew Module + Service Module = 10,387 + 15,604 =
+    // 25,991 kg, 545 kg less than NASA's injection mass (the sheet does not itemise the difference; the spacecraft
+    // adapter is not a module here). NOT applied; a heavier Orion would lower the ICPS propellant margin. The
+    // Artemis I guide gives lower figures for that flight ("Trans-lunar injection mass 53,000 lb (24,050 kg)").
     modules: [
       {
         id: 'orion-cm',
