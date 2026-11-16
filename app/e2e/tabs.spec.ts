@@ -159,3 +159,26 @@ test('a link opened while the app is about to write its own link is not lost', a
   await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
   await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe('Aurora')
 })
+
+// The same race from the writer's side (it stalled scene-audit-memory's flight in/out loop once in a full run): the
+// app has a link write pending when a navigation sets the hash; the write must not put the old link back, or the
+// next navigation to that old link changes nothing and fires no event.
+test('a link write that is due when a navigation arrives does not put the old link back', async ({ page }) => {
+  await open(page, `${DEMO}&view=site`)
+  for (let i = 0; i < 6; i++) {
+    const name = `Run${i}`
+    // a state change schedules the app's own write (400 ms); the navigation lands at a different point of that wait each round
+    await page.keyboard.press('ArrowRight')
+    await page.waitForTimeout(330 + i * 20)
+    await page.evaluate((n) => {
+      const p = new URLSearchParams(location.hash.slice(1))
+      p.set('name', n)
+      location.hash = p.toString()
+    }, name)
+    // read at once, as a script that edits the link in steps does
+    expect(await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe(name)
+    await expect(page.getByTestId('mission-name')).toContainText(name)
+    await page.waitForTimeout(450)
+    expect(await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe(name)
+  }
+})
