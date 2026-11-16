@@ -2,9 +2,8 @@
 // Terrain = the Track B tile (if any) inside 20 km, and beyond it a ring whose crest is built from the horizon
 // mask: crest vertex k sits at eye + mask_dist · dir(az_k, mask_k), so the silhouette seen from the eye is the
 // mask (linear between samples, great-circle arcs). Ground surfaces run straight from the inner edge to the
-// crest, which keeps them at or below every crest sight line. No shadow maps: lit/dark comes from the computed
-// horizon mask (sunlight.ts: the site's disc fraction, and the mask's crest at the Sun's azimuth shading the ground
-// around the site; elsewhere the Sun without cast shadows).
+// crest, which keeps them at or below every crest sight line. Light and shadow: sunlight.ts (the terrain casts its
+// own shadows, shadowmap.ts; at the marker the picture follows the computed mask).
 // Tile without a horizon file: a neutral skirt continues each azimuth's tile-edge height on the sphere (it never
 // rises above the edge's own sight line). Tile nodata (−32768) is a hole: no tile quad, no skirt column there.
 //
@@ -43,13 +42,17 @@ import {
   Vector2,
   Vector3,
   type Object3D,
+  type Texture,
+  type WebGLRenderer,
 } from 'three'
 import type { Horizon, TerrainTile } from '../data/types'
 import { MOON_RADIUS_KM, OBSERVER_HEIGHT_M, maskAt } from '../geometry'
 import { azElOfEnu, enuDir } from './frames'
 import { PinField, type PinItem } from './pins'
-import { LAMBERT_WRAP, SITE_DISC_M, crestShare, drawnShare, sunCrest, type SunCrest } from './sunlight'
-import { heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, surfaceZ, type Level, type LevelGrid } from './levels'
+import { LUNAR_WEIGHT, SITE_BLEND_M, drawnC } from './sunlight'
+import { MAX_SHADOW_LEVELS, ShadowMap } from './shadowmap'
+import { cOfClearances, cOfShare, shadowLevels, shareOfC, sunC, type ShadowLevel } from './shadows'
+import { BLEND_FROM_M, BLEND_TO_M, MORPH_CELLS, heightAt, levelGrid, levelMesh, levelNormals, nestedLevels, normalsOf, place, sphereZ, stitch, surfaceZ, type Level, type LevelGrid } from './levels'
 
 const TILE_RADIUS_M = 20_000 // tile used inside this radius, ring from the mask beyond (Brief C1)
 const NO_HORIZON_RADIUS_M = 200_000 // smooth-sphere ground when a site has no horizon file
@@ -77,51 +80,71 @@ export interface SiteMarker {
 // The Sun's light is added by the shader below, per fragment (sunlight.ts says what is computed and what is a
 // rendering choice); three's own lights in this scene are earthshine only.
 type SunUniforms = Record<string, { value: unknown }>
-const OBS_GLSL = OBSERVER_HEIGHT_M.toFixed(2)
-const SUN_GLSL = /* glsl */ `
-uniform vec3 uSunDir;
-uniform vec3 uSunH;
-uniform vec3 uCrest;
-uniform float uHalfW;
-uniform float uAngR;
-uniform float uSunI;
-uniform vec3 uSunColor;
-uniform float uHidden;
-uniform float uFill;
-uniform float uDelta;
-uniform float uSite;
-uniform float uWrap;
-varying vec3 vEnu;
-// sunlight.ts crestShare, per fragment: the share of the Sun's disc above the mask's crest at the Sun's azimuth,
-// seen from an eye OBSERVER_HEIGHT_M above this point (geometry.discFraction's formula), on the strip the crest is
-// taken to shade; 1 (no cast shadow known) off it; the site's own level uSite next to the site (sunlight.ts
-// drawnShare is this function). uDelta: the site's eased level minus its computed one (non-zero only during the
-// 500 ms fade after a jump of the time).
-float lunarSunShare(vec3 p) {
-  vec3 eye = p + vec3(0.0, 0.0, ${OBS_GLSL});
-  float along = dot(eye.xy, uSunH.xy);
-  float lateral = length(eye.xy - along * uSunH.xy);
-  float w = 1.0 - smoothstep(uHalfW, 2.0 * uHalfW, lateral);
-  float ahead = dot(uCrest.xy, uSunH.xy) - along;
-  float share = 1.0;
-  if (ahead > 1.0) {
-    float elSun = atan(uSunDir.z, length(uSunDir.xy));
-    float elCrest = atan(uCrest.z - eye.z, ahead);
-    float c = (elCrest - elSun) / uAngR;
-    share = c <= -1.0 ? 1.0 : (c >= 1.0 ? 0.0 : (acos(c) - c * sqrt(1.0 - c * c)) / PI);
-  }
-  float crest = mix(1.0, clamp(share + uDelta, 0.0, 1.0), w);
-  return mix(crest, uSite, 1.0 - smoothstep(${SITE_DISC_M.toFixed(1)}, ${(2 * SITE_DISC_M).toFixed(1)}, length(p.xy)));
+const SHADOW_SLOTS = Array.from({ length: MAX_SHADOW_LEVELS }, (_, i) => i)
+// The terrain's shadow textures (shadowmap.ts), finest level in slot 0. uShL: samples a side, spacing, half-width
+// (0: slot unused); uShB: width of the band inside the level's edge over which it fades into the next coarser one
+// (the band where levels.ts morphs its heights into that level, so the two agree there and no border shows).
+const SHADOW_GLSL = /* glsl */ `
+${SHADOW_SLOTS.map((i) => `uniform sampler2D uShD${i};\nuniform vec3 uShL${i};\nuniform float uShB${i};`).join('\n')}
+uniform float uEyeH;
+uniform float uRsite;
+// The grid offset of the terrain sample drawn at ENU (x, y): the inverse of levels.ts place(), which moves the
+// near, mid and far levels' vertices toward the Moon's centre line beyond 20 km (to well within one sample
+// spacing of the level drawn there). uRsite 0: the terrain is drawn at its grid offsets.
+vec2 lunarGrid(vec2 p) {
+  if (uRsite <= 0.0) return p;
+  float rho = length(p);
+  float b = clamp((rho - ${BLEND_FROM_M.toFixed(1)}) / ${(BLEND_TO_M - BLEND_FROM_M).toFixed(1)}, 0.0, 1.0);
+  float w = b * b * (3.0 - 2.0 * b);
+  float s = uRsite / sqrt(rho * rho + ${(MOON_RADIUS_KM * 1000).toFixed(1)} * ${(MOON_RADIUS_KM * 1000).toFixed(1)});
+  return p / (1.0 + w * (s - 1.0));
+}
+// Where the Sun's disc stands against the terrain's horizon at grid offset g, seen from the eye above the ground:
+// −1 whole disc above … +1 all of it below (shadows.ts cOfClearances, from the three rays of shadowmap.ts).
+float lunarTerrainC(vec2 g) {
+  vec3 d = vec3(-1.0e4);
+  float m = max(abs(g.x), abs(g.y));
+${[...SHADOW_SLOTS]
+  .reverse()
+  .map(
+    (i) =>
+      `  if (uShL${i}.z > m) d = mix(d, texture2D(uShD${i}, vec2((g.x + uShL${i}.z) / uShL${i}.y + 0.5, (uShL${i}.z - g.y) / uShL${i}.y + 0.5) / uShL${i}.x).rgb, uShB${i} > 0.0 ? smoothstep(0.0, uShB${i}, uShL${i}.z - m) : 1.0);`,
+  )
+  .join('\n')}
+  d -= uEyeH;
+  return d.z >= 0.0 ? 1.0 : (d.x <= 0.0 ? -1.0 : (d.y > 0.0 ? d.y / (d.y - d.z) : -1.0 + d.x / (d.x - d.y)));
 }
 `
+const SUN_GLSL = /* glsl */ `
+uniform vec3 uSunDir;
+uniform float uSunI;
+uniform vec3 uSunColor;
+uniform float uFill;
+uniform float uBounce;
+uniform vec3 uBounceDir;
+uniform float uSiteC;
+uniform float uLunar;
+varying vec3 vEnu;
+${SHADOW_GLSL}
+`
+// sunlight.ts drawnC and the brightness law, per fragment. c0 is the terrain's own c at the site (the site lies
+// well inside the finest level, so that level's texture alone gives it), uSiteC the mask's: at the marker the
+// drawn share is the site's computed (eased) disc share.
 const SUN_APPLY_GLSL = /* glsl */ `#include <lights_fragment_end>
   {
-    float sunShare = lunarSunShare(vEnu);
+    float c = lunarTerrainC(lunarGrid(vEnu.xy));
+    float near = exp(-dot(vEnu.xy, vEnu.xy) / ${(SITE_BLEND_M * SITE_BLEND_M).toFixed(1)});
+    if (near > 0.002) c = clamp(c + near * (uSiteC - lunarTerrainC(vec2(0.0))), -1.0, 1.0);
+    float sunShare = c <= -1.0 ? 1.0 : (c >= 1.0 ? 0.0 : (acos(c) - c * sqrt(1.0 - c * c)) / PI);
     vec3 sunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xyz);
-    float lambert = clamp((dot(normal, sunView) + uWrap) / (1.0 + uWrap), 0.0, 1.0);
+    float mu0 = max(dot(normal, sunView), 0.0);
+    float mu = max(dot(normal, normalize(vViewPosition)), 0.0);
+    float bright = mix(mu0, 2.0 * mu0 / (mu0 + mu + 1.0e-4), uLunar);
     vec3 lambertBrdf = BRDF_Lambert(material.diffuseColor);
-    reflectedLight.directDiffuse += uSunColor * (uSunI * mix(uHidden, 1.0, sunShare) * lambert) * lambertBrdf;
-    reflectedLight.indirectDiffuse += vec3(uFill * (1.0 - sunShare * lambert)) * lambertBrdf;
+    reflectedLight.directDiffuse += uSunColor * (uSunI * sunShare * bright) * lambertBrdf;
+    vec3 bounceView = normalize((viewMatrix * vec4(uBounceDir, 0.0)).xyz);
+    float fill = uFill + uBounce * max(dot(normal, bounceView), 0.0);
+    reflectedLight.indirectDiffuse += vec3(fill * (1.0 - sunShare * min(bright, 1.0))) * lambertBrdf;
   }`
 const regolith = (u: SunUniforms) => {
   const m = new MeshPhysicalMaterial({ color: 0x8b8781, roughness: 1, metalness: 0, specularIntensity: 0 })
@@ -132,7 +155,7 @@ const regolith = (u: SunUniforms) => {
       .replace('#include <project_vertex>', '#include <project_vertex>\n  vEnu = (modelMatrix * vec4(transformed, 1.0)).xyz;')
     sh.fragmentShader = sh.fragmentShader.replace('void main() {', `${SUN_GLSL}\nvoid main() {`).replace('#include <lights_fragment_end>', SUN_APPLY_GLSL)
   }
-  m.customProgramCacheKey = () => 'regolith-sun-1'
+  m.customProgramCacheKey = () => 'regolith-sun-3'
   return m
 }
 const RAD_TO_DEG = 180 / Math.PI
@@ -250,11 +273,25 @@ function sightLine(h: Horizon): SightLine {
 
 const SUN_INTENSITY = 3 * Math.PI
 const SUN_COLOR = 0xfff4e6
-const HIDDEN_SUN_FRACTION = 0.12 // Sun hidden from the eye: dim, not black (see setLevels)
-// Even fill with the Sun hidden, fading out as the disc rises. Not a physical light: at a polar site the hidden
-// Sun's remaining 12 % arrives at a grazing angle and would leave flat ground black. 0.05·π puts flat regolith
-// (0x8b8781) at a pre-tone-mapping radiance of about 0.013, a dark grey just above the page background.
+// Ground the Sun does not reach gets none of its direct light (until 16 Nov it kept 12 %). lights() still reports
+// the level, now 0, for the tests that read it.
+const HIDDEN_SUN_FRACTION = 0
+// Even fill on ground the Sun does not light directly: sunlight scattered into the shadows by the sunlit terrain
+// around (sunlight.ts; a display level, not a computed radiance). 0.05·π against the Sun's 3·π puts shadowed
+// regolith (0x8b8781) at a pre-tone-mapping radiance of about 0.013: dark, and still above the page background.
 const NIGHT_FILL = 0.05 * Math.PI
+// The directed part of that scattered light. A shadowed point sees the sunlit terrain on the side away from the Sun
+// (the slopes that face the Sun face it too), so the light comes from the anti-solar side, here from 27° above the
+// horizontal there (BOUNCE_UP = tan 27°). It gives the relief inside a shadow its shape; an even fill alone draws
+// every shadow as one flat patch. Level ground in shadow gets 0.05·π + 0.45 · 0.10·π ≈ 0.095·π, 3 % of what a
+// surface facing the Sun gets (before 16 Nov: 0.12·π from the 12 % "hidden Sun" and the fill together); a shadowed
+// slope facing the sunlit side at most 0.15·π. A display level like NIGHT_FILL: shadowed ground comes out at about
+// a tenth of the display range (24 of 255), dark against sunlit ground (100–170) and distinct from the black sky.
+// Two older checks bracket it: e2e/scene.spec.ts T17 wants terrain in front of a hidden Sun below 30 of 255 (at
+// 0.13·π four of its 35 cases read 30–33), e2e/scene-audit-context.spec.ts wants the mean of a whole picture of
+// Haworth above 20 (19.3 at this level: most of that picture is real shadow now).
+const TERRAIN_BOUNCE = 0.1 * Math.PI
+const BOUNCE_UP = 0.5
 export class SiteWorld {
   readonly scene = new Scene()
   private readonly terrain = new Group() // terrain for both levels
@@ -277,22 +314,39 @@ export class SiteWorld {
   private readonly nightFill = new AmbientLight(0xffffff, 0)
   private readonly sunU: SunUniforms = {
     uSunDir: { value: new Vector3(0, 1, 0) },
-    uSunH: { value: new Vector3(0, 1, 0) },
-    uCrest: { value: new Vector3(0, 5000, 0) },
-    uHalfW: { value: 1000 },
-    uAngR: { value: 0.0047 },
     uSunI: { value: SUN_INTENSITY },
     uSunColor: { value: new Color(SUN_COLOR) },
-    uHidden: { value: HIDDEN_SUN_FRACTION },
     uFill: { value: NIGHT_FILL },
-    uDelta: { value: 0 },
-    uSite: { value: 1 },
-    uWrap: { value: LAMBERT_WRAP },
+    uBounce: { value: TERRAIN_BOUNCE },
+    uBounceDir: { value: new Vector3(0, -1, 0.5).normalize() },
+    uSiteC: { value: -1 },
+    uLunar: { value: LUNAR_WEIGHT },
+    uEyeH: { value: OBSERVER_HEIGHT_M },
+    uRsite: { value: 0 },
+    ...Object.fromEntries(
+      Array.from({ length: MAX_SHADOW_LEVELS }, (_, i) => [
+        [`uShD${i}`, { value: null as Texture | null }],
+        [`uShL${i}`, { value: new Vector3(1, 1, 0) }],
+        [`uShB${i}`, { value: 0 }],
+      ]).flat() as [string, { value: unknown }][],
+    ),
   }
-  private horizon: Horizon | null = null
+  // The eye-level crest strip (addCrests) is a connector up to the mask's sight line, not relief: its faces stand
+  // steep toward the eye, and the directed scattered light would draw them as a lit rim along the horizon under a
+  // hidden Sun. They take level ground's share of that light instead, evenly.
+  private readonly crestU: SunUniforms = {
+    ...this.sunU,
+    uBounce: { value: 0 },
+    uFill: { value: NIGHT_FILL + (TERRAIN_BOUNCE * BOUNCE_UP) / Math.hypot(1, BOUNCE_UP) },
+  }
+  // The terrain's own shadows: the drawn heights (CPU, for sunShareAt) and their GPU textures for the Sun of this frame.
+  private readonly shadowMap = new ShadowMap()
+  private shadowLv: ShadowLevel[] = []
   private readonly sunDir = new Vector3(0, 1, 0)
   private sunAngRadDeg = 0.27
-  private crest: SunCrest | null = null
+  private siteLevel = 1 // the site's (eased) disc share
+  /** Test helper: the mast and its cross off, so a picture shows the ground they stand on. */
+  markerOff = false
   private readonly raycaster = new Raycaster()
   private readonly rayMat = new MeshBasicMaterial({ side: DoubleSide })
   private readonly flatMat = new MeshBasicMaterial({ color: 0x808080, toneMapped: false })
@@ -338,8 +392,6 @@ export class SiteWorld {
     }
     this.rays.both.length = this.rays.orbit.length = this.rays.eye.length = 0
     this.levelNames = []
-    this.horizon = horizon
-    this.updateSun()
     const rSite = MOON_RADIUS_KM * 1000 + (elevM ?? 0)
     const line = horizon ? sightLine(horizon) : null
     const levels = tile ? nestedLevels(tile) : null
@@ -348,13 +400,73 @@ export class SiteWorld {
       // Nested levels reach ±300 km: no skirt, no ring ground; at eye level only the crest strip on the mask.
       this.addLevels(levels, rSite, line)
       if (horizon) this.addCrests(horizon, levels, rSite)
-      return
+    } else {
+      if (tile) this.levelNames = ['tile']
+      if (tile) this.addTile(tile, rSite, line)
+      if (tile) this.addSkirt(tile, rSite, line, horizon ? 'orbit' : 'both')
+      if (horizon) this.addRing(horizon, tile, rSite, tile ? 'eye' : 'both')
+      if (!tile && !horizon) this.addSphereGround(rSite)
     }
-    if (tile) this.levelNames = ['tile']
-    if (tile) this.addTile(tile, rSite, line)
-    if (tile) this.addSkirt(tile, rSite, line, horizon ? 'orbit' : 'both')
-    if (horizon) this.addRing(horizon, tile, rSite, tile ? 'eye' : 'both')
-    if (!tile && !horizon) this.addSphereGround(rSite)
+    // The heights the shadows are cast from: the drawn levels, or the 80 m tile alone; a sample without data
+    // takes the smooth sphere. Skirt and mask ring carry no relief and cast none.
+    const grids = this.ground.grids ?? (this.ground.tileGrid ? [this.ground.tileGrid] : [])
+    this.shadowLv = shadowLevels(grids, (x, y) => sphereZ(Math.hypot(x, y), rSite)).slice(-MAX_SHADOW_LEVELS)
+    this.shadowMap.setLevels(this.shadowLv)
+    // Levels are placed with the blend to the radial placement (levels.ts place); the tile alone is not.
+    this.sunU.uRsite.value = levels ? rSite : 0
+    this.updateSun()
+  }
+
+  /**
+   * Before the site scene is drawn: the shadow textures for the Sun of this frame (computed only when the Sun or
+   * the terrain changed) and the shader's handles on them. staged: a small step of the Sun updates half of the
+   * levels per frame (shadowmap.ts); true is returned while the other half is still to come.
+   */
+  prepare(renderer: WebGLRenderer, staged = false): boolean {
+    this.shadowMap.setSun(this.sunDir, this.sunAngRadDeg)
+    const behind = this.shadowMap.update(renderer, staged)
+    const u = this.sunU
+    for (let i = 0; i < MAX_SHADOW_LEVELS; i++) {
+      const t = this.shadowMap.texture(i)
+      u[`uShD${i}`].value = t?.tex ?? null
+      ;(u[`uShL${i}`].value as Vector3).set(t?.n ?? 1, t?.spacing ?? 1, t?.ext ?? 0)
+      const outer = this.shadowMap.texture(i + 1)
+      u[`uShB${i}`].value = t && outer ? MORPH_CELLS * outer.spacing : 0
+    }
+    return behind
+  }
+
+  /** Test helper: how often the shadow passes ran, and whether the GPU can run them at all. */
+  shadowInfo(): { runs: number; active: boolean; levels: { n: number; spacing: number; ext: number }[] } {
+    return { runs: this.shadowMap.runs, active: this.shadowMap.active, levels: this.shadowLv.map((l) => ({ n: l.n, spacing: l.spacing, ext: l.ext })) }
+  }
+
+  /**
+   * Test helper: the terrain's own c (shadows.ts sunC's scale, before the site's correction) at the sample of
+   * shadow level li nearest to the grid offset (x, y), as the GPU holds it and as the direct march on the CPU
+   * gives it for that sample. null where the GPU's texture cannot be read back.
+   */
+  shadowProbe(renderer: WebGLRenderer, li: number, x: number, y: number): { x: number; y: number; gpu: number; cpu: number } | null {
+    const l = this.shadowLv[li]
+    if (!l) return null
+    const col = Math.min(Math.max(Math.round((x + l.ext) / l.spacing), 0), l.n - 1)
+    const row = Math.min(Math.max(Math.round((l.ext - y) / l.spacing), 0), l.n - 1)
+    const d = this.shadowMap.read(renderer, li, row, col)
+    if (!d) return null
+    const sx = col * l.spacing - l.ext
+    const sy = l.ext - row * l.spacing
+    const h = OBSERVER_HEIGHT_M
+    // The march from this level's own sample height, over the levels from this one outward (what the pass sees).
+    return { x: sx, y: sy, gpu: cOfClearances(d[0] - h, d[1] - h, d[2] - h), cpu: sunC(this.shadowLv.slice(li), sx, sy, this.sunDir, this.sunAngRadDeg) }
+  }
+
+  /** After a lost WebGL context has come back: the shadow textures are empty and are computed again. */
+  contextRestored() {
+    this.shadowMap.invalidate()
+  }
+
+  dispose() {
+    this.shadowMap.dispose()
   }
 
   /** Site level (false) or eye level (true): which terrain is drawn and used for occlusion. */
@@ -364,9 +476,9 @@ export class SiteWorld {
     this.eyeOnly.visible = eye
   }
 
-  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both'): Mesh {
+  private addMesh(g: BufferGeometry, rayProxy?: BufferGeometry, where: 'both' | 'orbit' | 'eye' = 'both', u: SunUniforms = this.sunU): Mesh {
     const grp = where === 'both' ? this.terrain : where === 'orbit' ? this.orbitOnly : this.eyeOnly
-    grp.add(new Mesh(g, regolith(this.sunU)))
+    grp.add(new Mesh(g, regolith(u)))
     // Occlusion tests use an invisible double-sided twin (coarse for the tile, so project() stays cheap).
     const p = new Mesh(rayProxy ?? g, this.rayMat)
     p.visible = false
@@ -601,7 +713,7 @@ export class SiteWorld {
     }
     const g = gridMesh(n, rows, pos, true)
     g.setAttribute('normal', new Float32BufferAttribute(nor, 3))
-    this.addMesh(g, undefined, 'eye')
+    this.addMesh(g, undefined, 'eye', this.crestU)
   }
 
   /** Test helper: the nested levels as built, finest first (name, samples a side, spacing and half-width in m). */
@@ -706,35 +818,54 @@ export class SiteWorld {
     this.updateSun()
   }
 
-  /** The shader's Sun: direction, the mask's crest at the Sun's azimuth, and the site's eased level (sunlight.ts). */
+  /** The shader's Sun: its direction and the site's eased level as a position of the disc against the horizon (sunlight.ts). */
   private updateSun() {
-    const c = sunCrest(this.horizon, this.sunDir, this.sunAngRadDeg)
-    this.crest = c
     const u = this.sunU
-    ;(u.uSunDir.value as Vector3).copy(c.sun)
-    ;(u.uSunH.value as Vector3).copy(c.horiz)
-    ;(u.uCrest.value as Vector3).copy(c.crest)
-    u.uHalfW.value = c.halfWidth
-    u.uAngR.value = (c.angRadDeg * Math.PI) / 180
-    // At the site the shader gives the eased level exactly: the drawn light there is the site's computed share.
-    const level = (this.sunLight.intensity / SUN_INTENSITY - HIDDEN_SUN_FRACTION) / (1 - HIDDEN_SUN_FRACTION)
-    u.uDelta.value = level - crestShare(c, new Vector3()).share
-    u.uSite.value = level
+    ;(u.uSunDir.value as Vector3).copy(this.sunDir)
+    const hl = Math.hypot(this.sunDir.x, this.sunDir.y) || 1
+    ;(u.uBounceDir.value as Vector3).set(-this.sunDir.x / hl, -this.sunDir.y / hl, BOUNCE_UP).normalize()
+    u.uSiteC.value = cOfShare(this.siteLevel)
   }
 
-  /** Test helper: the share of the Sun the terrain shader gives the ground point (x, y, z) (ENU m), 0..1. */
-  sunShareAt(x: number, y: number, z: number): number {
-    if (!this.crest) return 1
-    return drawnShare(this.crest, new Vector3(x, y, z), this.sunU.uSite.value as number, this.sunU.uDelta.value as number)
+  /**
+   * The share of the Sun's disc (0..1) visible from the drawn ground at ENU (x, y) m, as the terrain shader draws
+   * it: the terrain's own shadowing (the direct march of shadows.ts over the drawn heights; the shader reads the
+   * GPU's result of the same) with the site's correction near the site (sunlight.ts drawnC). At the site it is
+   * the site's computed (eased) disc share. 1 where no level has terrain, or where the GPU cannot cast shadows.
+   */
+  sunShareAt(x: number, y: number): number {
+    const c0 = this.terrainC(0, 0)
+    return shareOfC(drawnC(this.terrainC(x, y), c0, cOfShare(this.siteLevel), Math.hypot(x, y)))
+  }
+
+  /**
+   * The terrain's own answer at ENU (x, y) m, before the site's correction: where the Sun's disc stands against
+   * the horizon of the drawn terrain there (shadows.ts sunC: −1 whole disc above … +1 none of it). `from`: the
+   * finest shadow level to use (test helper: what a coarser level alone would give at the same point).
+   */
+  terrainC(x: number, y: number, from = 0): number {
+    const lv = this.shadowMap.active ? this.shadowLv.slice(from) : []
+    // Grid offset of the ENU point: the shader's lunarGrid.
+    let gx = x
+    let gy = y
+    if (this.ground.levels) {
+      const rho = Math.hypot(x, y)
+      const b = Math.min(Math.max((rho - BLEND_FROM_M) / (BLEND_TO_M - BLEND_FROM_M), 0), 1)
+      const k = 1 + b * b * (3 - 2 * b) * (this.ground.rSite / Math.hypot(rho, MOON_RADIUS_KM * 1000) - 1)
+      gx = x / k
+      gy = y / k
+    }
+    return sunC(lv, gx, gy, this.sunDir, this.sunAngRadDeg)
   }
 
   /**
    * sunFrac = share of the Sun's disc above the terrain mask seen from the eye, 0..1, eased (index.ts): the site's
-   * own level, from full down to HIDDEN_SUN_FRACTION (dimmed, not switched off). The shader draws it at the site
-   * and on the ground around it; elsewhere it follows the mask's crest or, off the crest's strip, the Sun
-   * (sunlight.ts). Before 15 Nov night this one level lit the whole scene.
+   * own level. The shader draws it at the marker (sunlight.ts: the terrain's own shadow, shifted to this answer in
+   * a small round neighbourhood); everywhere else the terrain's own shadows decide. Before 15 Nov night this one
+   * level lit the whole scene.
    */
   setLevels(sunFrac: number, earthFill: number) {
+    this.siteLevel = sunFrac
     this.sunLight.intensity = SUN_INTENSITY * (HIDDEN_SUN_FRACTION + (1 - HIDDEN_SUN_FRACTION) * sunFrac)
     this.nightFill.intensity = NIGHT_FILL * (1 - sunFrac)
     this.earthLight.intensity = earthFill
@@ -753,7 +884,7 @@ export class SiteWorld {
 
   /** Keeps the mast and cross a constant on-screen thickness; hides them at eye level. */
   updateMarker(cam: PerspectiveCamera, heightPx: number, show: boolean, cross = show) {
-    this.marker.visible = show
+    this.marker.visible = show && !this.markerOff
     // The ground cross is drawn through the terrain for the view from above; standing on the ground it would float.
     for (const c of this.cross) c.visible = cross
     const dist = cam.position.length()

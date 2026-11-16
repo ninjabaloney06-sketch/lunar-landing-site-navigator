@@ -391,6 +391,9 @@ test.describe('notes 5 and 12 on a phone (375 × 812, touch only)', () => {
     const pin = (await pinOf(page, 'haworth'))!
     expect(pin.visible).toBe(true)
     await expect(page.getByTestId('pin-name')).toBeHidden()
+    // 16 Nov 2026: the page ignores a scene tap for 400 ms after a menu closed (clickGuard in App.tsx), on purpose;
+    // a tap inside that window was the cause of this test failing about one run in four.
+    await page.waitForTimeout(450)
     await page.touchscreen.tap(pin.x, pin.y)
     await expect(page.getByTestId('pin-name')).toBeVisible()
     await expect(page.getByTestId('pin-name')).toHaveText(haworth.name)

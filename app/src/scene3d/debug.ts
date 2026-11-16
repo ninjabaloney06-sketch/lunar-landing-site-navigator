@@ -50,8 +50,16 @@ export interface DebugView {
   /** At site and eye level: the head of another landing site's pin on screen (visible: not behind terrain); null where it has none. */
   projectNearSite(id: string): ScreenPoint | null
   /** Which site the frame's site, horizon and terrain belong to, and those the terrain was last built from. */
-  /** The share of the Sun (0..1) the terrain shader gives the drawn ground at ENU (x, y) m (sunlight.ts). */
+  /** The share of the Sun's disc (0..1) visible from the drawn ground at ENU (x, y) m, as the terrain shader draws it (sunlight.ts). */
   sunShareAt(x: number, y: number): number
+  /** The terrain shadow passes: how often they ran, whether the GPU can run them, the levels they cover. */
+  shadowInfo(): { runs: number; active: boolean; levels: { n: number; spacing: number; ext: number }[] }
+  /** Test mode updates every shadow level at once; true: half of them per frame for a small step of the Sun, as the app does while the time plays. */
+  setStagedShadows(on: boolean): void
+  /** The site's mast and cross on or off (a picture of the ground under them). */
+  setMarkerVisible(on: boolean): void
+  /** The terrain's own c at a sample of shadow level li, from the GPU's texture and from the CPU's direct march (shadows.ts). */
+  shadowProbe(li: number, x: number, y: number): { x: number; y: number; gpu: number; cpu: number } | null
   dataIds(): { frame: { site: string | null; horizon: string | null; terrain: string | null }; built: { site: string | null; horizon: string | null; terrain: string | null } }
   projectMe(p: number[]): ScreenPoint | null
   region(): { boundary: number[][]; cap: number[][] } | null
@@ -167,6 +175,10 @@ export function installDebug(v: DebugView) {
     projectNearSite: (id: string) => v.projectNearSite(id),
     dataIds: () => v.dataIds(),
     sunShareAt: (x: number, y: number) => v.sunShareAt(x, y),
+    shadowInfo: () => v.shadowInfo(),
+    setStagedShadows: (on: boolean) => v.setStagedShadows(on),
+    setMarkerVisible: (on: boolean) => v.setMarkerVisible(on),
+    shadowProbe: (li: number, x: number, y: number) => v.shadowProbe(li, x, y),
     projectMe: (p: number[]) => v.projectMe(p),
     // The pin region on the globe: the vertices of its boundary line and of its tint, and a switch to hide it.
     region: () => v.region(),

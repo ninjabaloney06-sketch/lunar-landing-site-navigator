@@ -5,6 +5,12 @@
 // site's horizontal plane but above its mask), and one light level for the whole scene took the site's own share,
 // so terrain the Sun reaches was dimmed whenever the site was in shadow. sunlight.ts and the site.ts shader now
 // shade per fragment; the site's computed disc fraction stays the number at the site.
+// 16 Nov: the terrain casts its own shadows (shadowmap.ts) instead of one crest shading a strip. Changed here with
+// it: the ground is measured in a small box at the marker's foot (groundLum: a sunlit ridge site has real shadow
+// 100 m from it, so the old 160 × 80 px box now holds mostly shadow), the shadowed ground's level (the scattered
+// light of site.ts instead of 12 % of the Sun: below 45 instead of below 30, and still under half of sunlit ground), and "terrain off the strip keeps the Sun" (the share exactly 1 at
+// one point 25 km to the side, which was the strip model's own rule) became "sunlit terrain remains in the scene
+// while the site is in shadow" (the same intent: the site's shadow is not the scene's).
 // Run: PW_GPU=1 PW_PORT=5215 npx playwright test e2e/terrain-sunlight.spec.ts
 import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
@@ -35,17 +41,21 @@ async function open(page: Page) {
   await scene(page, '(s) => s.ready')
 }
 
-/** Mean luminance of the ground in a 160 × 80 px box around the marker (the site is the centre of the default view). */
+/**
+ * Mean luminance of the ground at the marker's foot (the site is the centre of the default view): an 8 × 4 px box,
+ * about 150 m × 250 m of ground seen from 17 km, with the mast and its cross switched off. Not a wide box as
+ * before: a sunlit ridge or peak site is a lit crest a few pixels deep with real shadow beside it.
+ */
 async function groundLum(page: Page) {
+  await scene(page, '(s) => { s.setMarkerVisible(false); return s.setView({}) }')
   const png = PNG.sync.read(await page.screenshot())
+  await scene(page, '(s) => { s.setMarkerVisible(true); return s.setView({}) }')
   let sum = 0
   let n = 0
-  for (let y = png.height / 2 - 30; y < png.height / 2 + 50; y++) {
-    for (let x = png.width / 2 - 80; x < png.width / 2 + 80; x++) {
+  for (let y = png.height / 2 - 2; y < png.height / 2 + 2; y++) {
+    for (let x = png.width / 2 - 4; x < png.width / 2 + 4; x++) {
       const i = (y * png.width + x) * 4
-      const d = png.data
-      if (d[i] > 215 && d[i + 1] > 215 && d[i + 2] > 215) continue // the mast and its cross
-      sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]
+      sum += 0.2126 * png.data[i] + 0.7152 * png.data[i + 1] + 0.0722 * png.data[i + 2]
       n++
     }
   }
@@ -94,16 +104,17 @@ test.describe('terrain sunlight at the landing site agrees with the computed dis
     await page.screenshot({ path: 'test-results/scene-fix/light-test-sunlit-last.png' })
   })
 
-  test('shadowed sites read as shadowed at the site, while terrain the crest does not shade keeps the Sun', async ({ page }) => {
+  test('shadowed sites read as shadowed at the site, while sunlit terrain remains in the scene', async ({ page }) => {
     await open(page)
     for (const [site, utc] of SHADOWED) {
       const r = await show(page, site, utc)
-      const far = await scene<number>(page, '(s) => { const d = s.sunAzEl(); const a = (d.az + 90) * Math.PI / 180; return s.sunShareAt(25000 * Math.sin(a), 25000 * Math.cos(a)) }')
+      // The largest share on six rings of 24 points around the site (3 to 40 km).
+      const far = await scene<number>(page, '(s) => { let m = 0; for (const r of [3000, 6000, 10000, 15000, 25000, 40000]) for (let k = 0; k < 24; k++) m = Math.max(m, s.sunShareAt(r * Math.sin(k * Math.PI / 12), r * Math.cos(k * Math.PI / 12))); return m }')
       console.log(`shadow ${site} ${utc}: disc ${r.frac.toFixed(3)} drawn ${r.drawn.toFixed(3)} far ${far.toFixed(3)} ground ${r.lum.toFixed(1)}`)
       expect(r.frac, `${site} ${utc} is (almost) hidden in the data`).toBeLessThan(0.1)
       expect(r.drawn, 'drawn share at the site').toBeCloseTo(r.frac, 6)
       expect(r.below, 'the Sun is drawn hollow exactly when the disc is gone').toBe(r.frac <= 0)
-      expect(far, 'terrain 25 km to the side of the Sun line is not dimmed by the site being in shadow').toBe(1)
+      expect(far, 'terrain around the site that the Sun reaches is not dimmed by the site being in shadow').toBe(1)
     }
     // At one site, shadow against sunlight: Peak Near Shackleton on 22 Aug (6 % of the disc) and 18 Aug (all of it).
     const dark = await show(page, 'peak-near-shackleton', '2027-08-22T12:00Z')
@@ -113,6 +124,6 @@ test.describe('terrain sunlight at the landing site agrees with the computed dis
     expect(lit.lum / dark.lum, 'sunlit against shadowed ground around the marker').toBeGreaterThan(1.8)
     // Shackleton Rim Site04 (crater wall, no Sun in August 2027): the ground at the marker is dark.
     const sr = await show(page, 'shackleton-rim-site04', '2027-08-22T12:00Z')
-    expect(sr.lum).toBeLessThan(30)
+    expect(sr.lum).toBeLessThan(45)
   })
 })

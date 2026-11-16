@@ -26,7 +26,9 @@ test('the picture comes back by itself after the WebGL context is lost and resto
   page.on('console', (m) => logs.push(m.text()))
   await open(page)
   const before = await meanLuma(page)
-  expect(before).toBeGreaterThan(20)
+  // 16 Nov 2026: with real cast shadows most of this Haworth picture is shadow (mean about 19); the check is
+  // "a picture is drawn", and the restored canvas below is still compared with this value.
+  expect(before).toBeGreaterThan(12)
   await page.evaluate(() => {
     const c = document.querySelector('canvas')!
     const gl = (c.getContext('webgl2') ?? c.getContext('webgl')) as WebGL2RenderingContext

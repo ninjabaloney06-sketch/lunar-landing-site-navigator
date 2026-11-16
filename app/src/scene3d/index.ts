@@ -161,7 +161,11 @@ export interface SceneHandle {
   /** Whether zooming past a limit changes the view (zoomSwitch.ts): in at the Moon's floor opens the landing-site
    *  view, out at the site's outer limit goes back to the Moon; onLevel reports it. Off until the page asks. */
   setZoomSwitch(on: boolean): void
-  /** Flies to a viewpoint; false when it is not available (nothing loaded yet, a fly running, the flight level). */
+  /**
+   * Flies to a viewpoint; false when it is not available (nothing loaded yet, the flight level). While another fly
+   * runs it is not refused (16 Nov): a fly down to a site turns back from where it is, a fly through space is
+   * redirected from where it is, any other one is finished first; onLevel reports 'globe' at once.
+   */
   goTo(v: Viewpoint): boolean
   /** Flies the space camera to above a point of the Moon (planetocentric degrees), from any level; ends at 'globe'. */
   goToPoint(lat: number, lon: number): boolean
@@ -397,9 +401,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
   let dirty = true
   let viewVersion = 0 // bumped whenever the picture may change; project() caches per version
   let wanted: SceneLevel | null = null // setLevel request that arrived before a site frame or during a fly
+  let moonNext = false // goTo('moon') arrived during a fly: the fly to the Moon view starts when that one has ended
   // A click on another site's pin on the globe: the app asks for the site view at once and delivers that site's
   // frame a moment later. The fly waits for the frame (at most AWAIT_SITE_MS), so it goes to the right site.
   let awaiting: { id: string; until: number } | null = null
+  let stagedShadows = !testMode
+  let shadowsBehind = false // drawSite: half of the terrain shadow levels is still to be updated, in the next frame
   const markDirty = () => {
     dirty = true
     viewVersion++
@@ -433,7 +440,10 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
 
   // A lost WebGL context takes the picture with it; three restores its own state and re-uploads on the next draw,
   // but the loop draws only a dirty frame, so after a restore the canvas stayed black until the user moved.
-  const onContextRestored = () => markDirty()
+  const onContextRestored = () => {
+    site.contextRestored() // the terrain shadow textures went with the context
+    markDirty()
+  }
   canvas.addEventListener('webglcontextrestored', onContextRestored)
 
   // Another screen (a window dragged between monitors, a browser zoom step) changes devicePixelRatio without
@@ -1193,6 +1203,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       if (cam === siteCam) siteCam.position.z = Math.max(siteCam.position.z, groundBelow(siteCam.position) + site.eyeHeight)
     }
     stopGlide()
+    moonNext = false
     fly = { cam, t0: nowMs(), ms: FLY_MS, place, site: null, done }
     setControls()
     markDirty()
@@ -1251,6 +1262,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     const partTurn = new Quaternion()
     const shown = { ...ground.shown, mix: toSite ? 0 : 1, toSite }
     stopGlide()
+    moonNext = false
     const place = (e: number) => {
       const u = toSite ? e : 1 - e
       const a = k > 1.001 ? (k - k ** (1 - u)) / (k - 1) : u
@@ -1354,6 +1366,12 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (nearWaiting) applyNear(nearWaiting)
     setControls()
     markDirty()
+    if (moonNext) {
+      // goTo('moon') arrived during this fly: on to the Moon view from where it ended.
+      moonNext = false
+      wanted = null
+      flyInSpace(() => setGlobeView(), motion())
+    }
   }
 
   /** To a pose in the space scene, from wherever the camera is. `place` puts globeCam and its controls there. */
@@ -1397,10 +1415,41 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     notifyCamera()
   }
 
-  /** The Moon viewpoint (U14: the only one left): the default globe view, flown to from wherever the camera is. */
+  /**
+   * The Moon viewpoint (U14: the only one left): the default globe view, flown to from wherever the camera is.
+   * During a fly (16 Nov; before, the request was refused and "View > Moon" did nothing until the fly had ended):
+   *   - the fly down to a site (the usual case: a site was just picked) turns back along its own path from where
+   *     the camera is, in the time it took to get there, and then goes on to the Moon view;
+   *   - a fly through space is dropped where it is and the fly to the Moon view starts from that pose;
+   *   - any other fly (up from a site, a walk, between site and eye level) runs to its end first.
+   * A level asked for meanwhile (setLevel during the fly) is dropped: this request is the later one.
+   */
   function goTo(v: Viewpoint, animate = motion()): boolean {
-    if (!frame || !sky || !globe || fly || level === 'flight' || v !== 'moon') return false
-    flyInSpace(() => setGlobeView(), animate)
+    if (!frame || !sky || !globe || level === 'flight' || v !== 'moon') return false
+    if (!fly) {
+      flyInSpace(() => setGlobeView(), animate)
+      return true
+    }
+    wanted = null
+    awaiting = null
+    if (!animate) {
+      finishFly()
+      flyInSpace(() => setGlobeView(), false)
+      return true
+    }
+    const cur = fly
+    if (cur.site?.toSite) {
+      const e0 = easeInOut(Math.min(Math.max((nowMs() - cur.t0) / cur.ms, 0), 1))
+      cur.site.toSite = false // no longer a fly a new site's frame may retarget (applyFrame)
+      moonNext = true
+      fly = { cam: cur.cam, t0: nowMs(), ms: Math.max(cur.ms * e0, 200), place: (e) => cur.place(e0 * (1 - e)), site: cur.site, done: () => setFov(globeCam, baseFov) }
+    } else if (cur.cam === globeCam && !cur.site) {
+      fly = null
+      flyInSpace(() => setGlobeView(), true)
+    } else moonNext = true
+    // The page learns the level now (it believes 'site' during a fly down), so it does not ask for it again.
+    emitLevel('globe')
+    markDirty()
     return true
   }
 
@@ -1607,6 +1656,9 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (!sky) return
     site.updateMarker(siteCam, size.y, showMast(), showCross())
     site.updateMarks(siteCam, size.y)
+    // The terrain's shadows for this frame's Sun (shadowmap.ts): half of the levels per frame while the time plays;
+    // a frame more while a half is behind. Test mode: all at once, so a picture never depends on the frame before.
+    shadowsBehind = site.prepare(renderer, stagedShadows)
     syncSky('site')
     renderer.clear()
     if (frame) sky.render(renderer)
@@ -1757,7 +1809,8 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
     if (dirty || debug) {
       render()
       if (dirty) notifyCamera()
-      dirty = false
+      dirty = shadowsBehind
+      shadowsBehind = false
       fpsFrames++
     }
     if (fpsEl && now - fpsT0 > 500) {
@@ -2059,6 +2112,7 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
       siteControls.dispose()
       globeControls.dispose()
       dissolve.dispose()
+      site.dispose()
       flightControls?.dispose()
       flight?.dispose()
       // The other scenes: their meshes, materials and the shared texture set (the flight scene's are freed above).
@@ -2159,7 +2213,16 @@ export function mountScene(container: HTMLElement, deps: SceneDeps): SceneHandle
         const head = site.nearTop('poi', id)
         return head ? toScreen(head, siteCam) : null
       },
-      sunShareAt: (x, y) => site.sunShareAt(x, y, site.groundZ(x, y)),
+      sunShareAt: (x, y) => site.sunShareAt(x, y),
+      shadowInfo: () => site.shadowInfo(),
+      setStagedShadows(on) {
+        stagedShadows = on
+      },
+      setMarkerVisible(on) {
+        site.markerOff = !on
+        markDirty()
+      },
+      shadowProbe: (li, x, y) => site.shadowProbe(renderer, li, x, y),
       dataIds: () => ({
         frame: { site: frame?.site?.id ?? null, horizon: frame?.horizon?.site_id ?? null, terrain: frame?.terrain?.meta.site_id ?? null },
         built: { site: builtFor?.site?.id ?? null, horizon: builtFor?.horizon?.site_id ?? null, terrain: builtFor?.terrain?.meta.site_id ?? null },
