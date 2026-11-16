@@ -215,6 +215,14 @@
   font: 500 var(--t-ui) / 1.35 var(--font-sans);
 }
 
+/* After a name that several points share (poiLayer.poiQualifiers): what this one is and where it comes from. */
+.poi-qual {
+  margin-left: var(--s-2);
+  font: 400 var(--t-small) / 1.35 var(--font-sans);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .poi-info-summary {
   margin: var(--s-2) 0 0;
 }

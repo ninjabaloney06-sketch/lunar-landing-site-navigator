@@ -17,8 +17,8 @@ import { useFullData } from './advanced'
 import type { ViewPeriod } from './Drawer'
 import { fmtCoords, fmtPct, fmtRange, fmtSpanH } from './format'
 import { FullDataSwitch } from './FullDataSwitch'
-import type { PoiData } from './poiLayer'
-import { groupInfo, REGION_TEXT } from './poiLayer'
+import type { PoiData, PoiQualifier } from './poiLayer'
+import { groupInfo, poiQualifiers, qualifiedName, REGION_TEXT } from './poiLayer'
 import { useSiteRows } from './useSiteRows'
 import { customSiteId } from '../data/customSite'
 import { COMMS_HINT, SlopeValue } from './SiteTable'
@@ -104,6 +104,9 @@ export function SearchPanel(p: Props) {
       pois.status === 'ready' && extra !== null ? searchCandidates(sites, extra, pois.pois) : sites.map((s) => ({ site: s, selfPoiId: null, records: [] })),
     [pois, extra, sites],
   )
+  // Points that share a name with another point or with a listed site get a qualifier after the name (poiLayer).
+  const quals = useMemo(() => (pois.status === 'ready' ? poiQualifiers(pois.pois, sites.map((s) => s.name)) : new Map<string, PoiQualifier>()), [pois, sites])
+  const poiIdOf = useMemo(() => new Map((extra ?? []).map((e) => [e.id, e.poi_id])), [extra]) // a folded record is named by its search id
   // The mission's site first (when it is a candidate: a custom site is not), then the rest in list order: the row a
   // user is looking at fills in first.
   const computeOrder = useMemo(() => {
@@ -326,6 +329,7 @@ export function SearchPanel(p: Props) {
           {list.map((r) => {
             const c = byId.get(r.siteId)!
             const poi = c.selfPoiId && pois.status === 'ready' ? (pois.byId.get(c.selfPoiId) ?? null) : null
+            const qual = c.selfPoiId ? quals.get(c.selfPoiId) : undefined
             const entry = rows[r.siteId]
             const value = (v: number | null) => (entry?.status === 'done' && v !== null ? fmtPct(v) : entry?.status === 'none' ? 'no data' : '…')
             const sum = entry?.status === 'done' ? entry.summary : null
@@ -344,6 +348,11 @@ export function SearchPanel(p: Props) {
                     <span className="mono search-rank">{ordered && r.rank !== null ? r.rank : ''}</span>
                     <span className="search-item-title">
                       {c.site.name}
+                      {qual && (
+                        <span className="poi-qual" data-testid="search-qual">
+                          {qual.text}
+                        </span>
+                      )}
                       {ordered && r.best && (
                         <span className="search-best" title={bestHint}>
                           Best
@@ -436,7 +445,7 @@ export function SearchPanel(p: Props) {
                     </p>
                     {c.records.length > 0 && (
                       <p className="search-item-sub" data-testid="search-records">
-                        Same place in {c.records.length} more {c.records.length === 1 ? 'record' : 'records'}: {c.records.map((x) => x.name).join('; ')}
+                        Same place in {c.records.length} more {c.records.length === 1 ? 'record' : 'records'}: {c.records.map((x) => qualifiedName(x.name, quals.get(poiIdOf.get(x.id) ?? ''))).join('; ')}
                       </p>
                     )}
                     {c.site.source_url && (

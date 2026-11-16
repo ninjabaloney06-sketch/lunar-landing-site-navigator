@@ -92,6 +92,79 @@ for (const vp of [
   })
 }
 
+// 16 Nov (3D audit, 15 Nov): the Sun and Earth labels lay on each other when the two bodies stand a few degrees apart
+// low over the horizon (around full Moon the Sun and Earth are close together in the Moon's sky). SceneView moves one
+// of them to another side of its tick. The sweep steps through the mission.
+for (const vp of [
+  { name: '1280', width: 1280, height: 720 },
+  { name: '375', width: 375, height: 812 },
+]) {
+  test(`${vp.name} px: the Sun and Earth labels never lie on each other, on the page text or on the Landing site label, also when the bodies are a few degrees apart`, async ({ page }) => {
+    test.setTimeout(300_000)
+    await page.setViewportSize({ width: vp.width, height: vp.height })
+    await open(page, `${DEMO}&view=site`)
+    const read = () =>
+      page.evaluate(() => {
+        const r = (id: string) => {
+          const el = document.querySelector(`[data-testid="${id}"]`) as HTMLElement | null
+          if (!el || el.closest('[hidden]')) return null
+          const b = el.getBoundingClientRect()
+          const p = el.parentElement!.getBoundingClientRect() // the zero-size anchor at the body's point
+          const side = ['is-below', 'is-right', 'is-left'].find((c) => el.classList.contains(c)) ?? 'above'
+          return b.width ? { x0: b.left, y0: b.top, x1: b.right, y1: b.bottom, px: p.left, py: p.top, side, apart: el.dataset.apart ?? null } : null
+        }
+        return { sun: r('label-sun'), earth: r('label-earth'), site: r('label-site') }
+      })
+    const START = Date.UTC(2027, 7, 16)
+    const HOUR = 3_600_000
+    let both = 0
+    let moved = 0
+    let shot = false
+    const at = async (ms: number) => {
+      const t = new Date(ms).toISOString().slice(0, 16) + 'Z'
+      await page.evaluate((hash) => (location.hash = hash), `${DEMO}&view=site&t=${t}`)
+      await expect(page.getByTestId('answer')).toHaveAttribute('data-state', 'ready')
+      // the scene has drawn this time once the labels rest: two equal readings 80 ms apart
+      let now = await read()
+      for (let k = 0; k < 40; k++) {
+        await page.waitForTimeout(80)
+        const next = await read()
+        const same = JSON.stringify(next) === JSON.stringify(now)
+        now = next
+        if (same) break
+      }
+      const { sun, earth, site } = now
+      const text = await textBoxes(page)
+      for (const [id, b] of [['label-sun', sun], ['label-earth', earth]] as const) {
+        if (b) expect(text.filter((x) => overlaps(b, x)), `${id} over the page text at ${t}`).toEqual([])
+      }
+      if (!sun || !earth) return null
+      both++
+      expect(overlaps(sun, earth), `the labels overlap at ${t}: Sun ${sun.side}, Earth ${earth.side}`).toBe(false)
+      for (const b of [sun, earth]) {
+        if (!b.apart) continue
+        moved++
+        if (site) expect(overlaps(b, site), `a moved label covers the Landing site label at ${t}`).toBe(false)
+        if (!shot) {
+          shot = true
+          await page.screenshot({ path: join(SHOTS, `cam-labels-apart-${vp.name}.png`) })
+        }
+      }
+      return Math.hypot(sun.px - earth.px, sun.py - earth.py)
+    }
+    // Every 2 h through the mission; where the two points come within 250 px, the half hours around that step too
+    // (the ephemeris step), so the passage of one body past the other is not stepped over.
+    for (let h = 0; h < 14 * 24; h += 2) {
+      const d = await at(START + h * HOUR)
+      if (d !== null && d < 250) for (const m of [0.5, 1, 1.5]) await at(START + (h + m) * HOUR)
+    }
+    console.log(`Sun/Earth labels at ${vp.name} px: both drawn at ${both} times, one moved off the other at ${moved}, none overlapping`)
+    // The sweep must meet the case it is for and solve it by moving a label (desktop: the phone's narrow view rarely
+    // holds both bodies under its header).
+    if (vp.width > 640) expect(moved).toBeGreaterThan(0)
+  })
+}
+
 test('U7: the search panel no longer says per point that it waits for the science lead', async ({ page }) => {
   await open(page, `${DEMO}&view=site`)
   await page.getByTestId('search-open').click()

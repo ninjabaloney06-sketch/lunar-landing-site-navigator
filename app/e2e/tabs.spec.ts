@@ -73,7 +73,17 @@ test('the date menu leads to the Dates tab', async ({ page }) => {
 
 test('header and timeline controls are drawn as buttons: a 1 px box, no underline', async ({ page }) => {
   await open(page)
-  for (const id of ['details', 'search-open', 'date', 'view', 'simulate']) {
+  // 16 Nov: on desktop the header actions are one joined bar since the team lead's commit 57bca1f (15 Nov 22:58):
+  // the 1 px box is the bar's, its actions are segments with hairlines between them and no box of their own. Until
+  // then 'details' and 'search-open' were asserted to carry the box themselves.
+  for (const id of ['details', 'search-open']) {
+    const css = await page.getByTestId(id).evaluate((el) => {
+      const bar = getComputedStyle(el.closest('#header-actions')!)
+      return { w: bar.borderTopWidth, s: bar.borderTopStyle, own: getComputedStyle(el).borderTopWidth, line: getComputedStyle(el).textDecorationLine }
+    })
+    expect(css, id).toEqual({ w: '1px', s: 'solid', own: '0px', line: 'none' })
+  }
+  for (const id of ['mission', 'date', 'view', 'simulate']) {
     const css = await page.getByTestId(id).evaluate((el) => {
       const c = getComputedStyle(el)
       return { w: c.borderTopWidth, s: c.borderTopStyle, line: c.textDecorationLine }
@@ -133,4 +143,42 @@ test('the landing-site label in the scene carries the mission name once the miss
   await open(page, `${DEMO}&view=site&name=Aurora`)
   await expect(page.getByTestId('mission-name')).toContainText('Aurora')
   await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
+})
+
+// 16 Nov: the test above failed now and then under load ("Mission 1" instead of "Aurora"). Cause, in the app
+// (state.ts): the throttled link writer could run between a hash navigation and its hashchange event and put the old
+// state back into the address bar, which the handler then read. This replays that order without timing.
+test('a link opened while the app is about to write its own link is not lost', async ({ page }) => {
+  await open(page, `${DEMO}&view=site`)
+  await page.evaluate((hash) => {
+    const before = location.href
+    location.hash = hash // the navigation: its hashchange event is queued
+    history.replaceState(null, '', before) // the app's pending write, running first
+  }, `site=${RIDGE}&period=${AUG}&view=site&name=Aurora`)
+  await expect(page.getByTestId('mission-name')).toContainText('Aurora')
+  await expect(page.getByTestId('label-site')).toHaveText('Aurora landing site')
+  await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe('Aurora')
+})
+
+// The same race from the writer's side (it stalled scene-audit-memory's flight in/out loop once in a full run): the
+// app has a link write pending when a navigation sets the hash; the write must not put the old link back, or the
+// next navigation to that old link changes nothing and fires no event.
+test('a link write that is due when a navigation arrives does not put the old link back', async ({ page }) => {
+  await open(page, `${DEMO}&view=site`)
+  for (let i = 0; i < 6; i++) {
+    const name = `Run${i}`
+    // a state change schedules the app's own write (400 ms); the navigation lands at a different point of that wait each round
+    await page.keyboard.press('ArrowRight')
+    await page.waitForTimeout(330 + i * 20)
+    await page.evaluate((n) => {
+      const p = new URLSearchParams(location.hash.slice(1))
+      p.set('name', n)
+      location.hash = p.toString()
+    }, name)
+    // read at once, as a script that edits the link in steps does
+    expect(await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe(name)
+    await expect(page.getByTestId('mission-name')).toContainText(name)
+    await page.waitForTimeout(450)
+    expect(await page.evaluate(() => new URLSearchParams(location.hash.slice(1)).get('name'))).toBe(name)
+  }
 })

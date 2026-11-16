@@ -316,20 +316,46 @@ export function useHashState(): [HashState, (patch: Partial<HashState>) => void,
   const latest = useRef(state)
   latest.current = state
   const timer = useRef<number | null>(null)
+  const known = useRef(window.location.hash) // the address bar's hash as this hook last wrote or read it
 
   const write = useCallback(() => {
     if (timer.current !== null) {
       window.clearTimeout(timer.current)
       timer.current = null
     }
+    // The address bar no longer holds what this hook last wrote or read: a navigation (a pasted link, Back, a
+    // test setting location.hash) whose hashchange event has not been delivered yet. It wins: writing now would put
+    // the previous state back, and a caller that then set the same hash again would get no event at all.
+    if (window.location.hash !== known.current) {
+      known.current = window.location.hash
+      const next = parseHash(window.location.hash)
+      latest.current = next
+      setState(next)
+      return
+    }
     const h = serializeHash(latest.current)
     if (h !== window.location.hash.replace(/^#/, '')) {
       window.history.replaceState(null, '', h ? `#${h}` : window.location.pathname + window.location.search)
+      known.current = window.location.hash
     }
   }, [])
 
   useEffect(() => {
-    const onHash = () => setState(parseHash(window.location.hash))
+    // The hash is read from the event, not from the address bar: should anything have replaced the address between
+    // the navigation and its hashchange event, the navigation (a pasted link, Back, a test's goto) is still the
+    // one that counts. `latest` follows at once, so a write before the next render does not undo it either.
+    const onHash = (e: HashChangeEvent) => {
+      let hash = window.location.hash
+      try {
+        if (e.newURL) hash = new URL(e.newURL).hash
+      } catch {
+        /* keep the address bar's hash */
+      }
+      const next = parseHash(hash)
+      latest.current = next
+      known.current = window.location.hash
+      setState(next)
+    }
     window.addEventListener('hashchange', onHash)
     return () => {
       window.removeEventListener('hashchange', onHash)

@@ -297,3 +297,41 @@ for (const vp of [
     await expect(page.getByTestId('search')).toHaveCount(0)
   })
 }
+
+// 16 Nov: about eleven differently sourced points carry "Cabeus" in their name, and the data lists several under one
+// name (the host crater, a permanently shadowed region of the LROC atlas). In the result list every name that
+// another row shares carries a qualifier from the record's own type and source (poiLayer.poiQualifiers).
+test.describe('search: points that share a name at 1440 × 900', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('no two rows read the same; a shared name carries its type and source, a name of its own nothing', async ({ page }) => {
+    test.setTimeout(240_000)
+    const { panel } = await openSearch(page)
+    const rows = await panel.getByTestId('search-results').locator('li').evaluateAll((lis) =>
+      lis.map((li) => {
+        const title = li.querySelector('.search-item-title')!
+        const qual = title.querySelector('[data-testid="search-qual"]')?.textContent ?? null
+        const name = [...title.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join('').trim()
+        return { id: (li as HTMLElement).dataset.siteId!, name, qual, sub: li.querySelector('.search-item-sub')?.textContent ?? '' }
+      }),
+    )
+    expect(rows.length).toBeGreaterThan(18)
+    // what a reader sees of a row: name, qualifier, and the line under it (point group or "Listed landing site")
+    const shown = rows.map((r) => `${r.name} | ${r.qual ?? ''} | ${r.sub}`)
+    expect(shown.filter((s, i) => shown.indexOf(s) !== i)).toEqual([])
+    const byName = new Map<string, typeof rows>()
+    for (const r of rows) byName.set(r.name, [...(byName.get(r.name) ?? []), r])
+    const shared = [...byName.values()].filter((g) => g.length > 1)
+    expect(shared.length).toBeGreaterThan(0)
+    for (const g of shared) for (const r of g) if (r.id.startsWith('poi-')) expect(r.qual, `${r.name} (${r.id})`).toMatch(/^[A-Z][^,]+, [a-z0-9.-]+\.[a-z]+/)
+    // the Cabeus rows
+    const cabeus = rows.filter((r) => r.name === 'Cabeus').map((r) => r.qual)
+    if (cabeus.length > 1) expect(new Set(cabeus).size).toBe(cabeus.length)
+    const host = rows.find((r) => r.id === 'poi-cold-trap-host-cabeus')
+    if (host) expect(host.qual).toBe('Host crater, planetarynames.wr.usgs.gov')
+    const lcross = rows.find((r) => r.id === 'poi-water-lcross-measurements')
+    if (lcross) expect(lcross.qual).toBeNull()
+    await row(page, host ? host.id : rows[0].id).scrollIntoViewIfNeeded()
+    await page.screenshot({ path: 'test-results/search-shared-names.png' })
+  })
+})

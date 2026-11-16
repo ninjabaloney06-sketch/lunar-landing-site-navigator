@@ -21,6 +21,10 @@ import {
   goToState,
   missionFromLink,
   POI_ABBR,
+  poiQualifiers,
+  qualifiedName,
+  scenePois,
+  sourceHost,
 } from './poiLayer'
 
 // The search rows as shipped, without a fetch.
@@ -206,5 +210,75 @@ describe('cleanText: a note that only repeats the stated centre', () => {
     expect(cleanText(t, { lat: -89.67, lon: 129.78 })).toBe('floor 6.6 km wide; walls ~30°.')
     expect(cleanText(t, { lat: -89.5, lon: 129.78 })).toContain('Another note gives 89.67° S 129.78° E')
     expect(cleanText(t)).toContain('Another note gives')
+  })
+})
+
+
+// 16 Nov: points of different sources that share a name ("Cabeus": the host crater and a permanently shadowed region
+// of the LROC atlas) are told apart by a qualifier from the record's own fields, in every list they can share.
+describe('poiQualifiers: points that share a name', () => {
+  const all = poisJson as unknown as Poi[]
+  const q = poiQualifiers(all)
+  const groups = new Map<string, Poi[]>()
+  for (const p of all) groups.set(p.name, [...(groups.get(p.name) ?? []), p])
+  const shared = [...groups.entries()].filter(([, g]) => g.length > 1)
+
+  it('the shipped data has such groups, Cabeus, Cabeus A and Cabeus B among them', () => {
+    expect(shared.length).toBeGreaterThanOrEqual(10)
+    for (const name of ['Cabeus', 'Cabeus A', 'Cabeus B']) expect(groups.get(name)!.length, name).toBe(2)
+    // about eleven sourced points carry "Cabeus" in their name
+    expect(all.filter((p) => p.name.includes('Cabeus')).length).toBeGreaterThanOrEqual(11)
+  })
+
+  it('every point of every shared-name group has a qualifier, and no two of a group read the same', () => {
+    for (const [name, g] of shared) {
+      const texts = g.map((p) => qualifiedName(p.name, q.get(p.id)))
+      for (const t of texts) expect(t, name).not.toBe(name)
+      expect(new Set(texts).size, `${name}: ${texts.join(' | ')}`).toBe(g.length)
+    }
+  })
+
+  it('a point with a name of its own has none and keeps its plain name', () => {
+    const alone = all.filter((p) => groups.get(p.name)!.length === 1)
+    expect(alone.length).toBeGreaterThan(100)
+    for (const p of alone) expect(q.has(p.id), p.name).toBe(false)
+    const lcross = all.find((p) => p.id === 'water:lcross_measurements')!
+    expect(qualifiedName(lcross.name, q.get(lcross.id))).toBe('LCROSS impact measurements (Cabeus)')
+  })
+
+  it('the qualifier is the record\'s own type and the host of its first source', () => {
+    expect(q.get('cold-trap:host_cabeus')!.text).toBe('Host crater, planetarynames.wr.usgs.gov')
+    expect(q.get('cold-trap:atlas_24')!.text).toBe('Permanently shadowed region, lroc.im-ldi.com')
+    expect(qualifiedName('Cabeus', q.get('cold-trap:host_cabeus'))).toBe('Cabeus (Host crater, planetarynames.wr.usgs.gov)')
+    for (const [id, x] of q) {
+      const p = all.find((r) => r.id === id)!
+      expect(x.kind).toBe(p.plain!.type)
+      expect(x.source).toBe(sourceHost(p.sources[0]))
+    }
+  })
+
+  it('two records of one name with the same type and source are told apart by their coordinates', () => {
+    // the LROC atlas lists two shadowed regions named Amundsen
+    const a = q.get('cold-trap:atlas_05')!
+    const b = q.get('cold-trap:atlas_21')!
+    expect(a.where).toBe('83.52° S 91.01° E') // fmtLatLon's two decimals of 91.015
+    expect(b.where).toBe('83.26° S 82.06° E')
+    expect(a.text).toBe('Permanently shadowed region, lroc.im-ldi.com, 83.52° S 91.01° E')
+    // the third Amundsen (the host crater) differs by type and source already
+    expect(q.get('cold-trap:host_amundsen')!.where).toBeNull()
+  })
+
+  it('a name shared with a listed landing site counts, except for the record that is that site', () => {
+    const poi = (id: string, name: string, siteId: string | null): Poi => ({ ...all[0], id, name, siteId })
+    expect(poiQualifiers([poi('a', 'Ridge', null)]).size).toBe(0)
+    expect(poiQualifiers([poi('a', 'Ridge', null)], ['Ridge']).has('a')).toBe(true)
+    expect(poiQualifiers([poi('a', 'Ridge', 'ridge')], ['Ridge']).size).toBe(0)
+  })
+
+  it('the pins of the scene carry the qualified name', () => {
+    const pins = scenePois(all, ['cold-trap'], [])
+    const names = pins.filter((p) => p.name.startsWith('Cabeus (')).map((p) => p.name)
+    expect(names).toEqual(expect.arrayContaining(['Cabeus (Host crater, planetarynames.wr.usgs.gov)', 'Cabeus (Permanently shadowed region, lroc.im-ldi.com)']))
+    expect(new Set(pins.map((p) => p.name)).size).toBe(pins.length)
   })
 })
