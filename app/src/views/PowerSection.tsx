@@ -1,6 +1,6 @@
 // P1 power estimate section of the details drawer: four inputs (kept in the link), one answer sentence (does the
 // battery survive the longest dark window, by how much) and the period's numbers. Arithmetic: power/power.ts, on the
-// same series and sun windows the summary uses. First estimate, not a power budget; validated by the science lead (statement of 15 Nov 2026; see record).
+// same series and sun windows the summary uses. First estimate, not a power budget; stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).
 //
 // Number format (U17, wave 3): thousands grouped with a comma ("1,915 Wh"), as the rest of the app prints them
 // (views/flightFormat.ts "405,760 km", flightResult.tsx, FlightExplain.tsx: toLocaleString('en-US')). power.ts's
@@ -34,7 +34,7 @@ interface Props {
   onChange?(next: PowerInputs): void
 }
 
-/** The power rows of the drawer's CSV export (P1: first estimate; validated by the science lead, statement of 15 Nov 2026). */
+/** The power rows of the drawer's CSV export (P1: first estimate; stated as validated by the science lead on 15 Nov 2026, no per-check sign-off). */
 export function powerCsvLines(r: Results, inputs: PowerInputs = POWER_DEFAULTS): string[] {
   return powerCsvRows(inputs, estimateForResults(r, inputs))
 }
@@ -154,7 +154,7 @@ export function PowerSection(props: Props) {
 
   return (
     <Fold id={`${uid}-h`} title="Power and battery estimate" className="power" testId="power-section" hint="How much electricity a solar panel would make here, and whether a battery lasts through the longest dark stretch. Change the numbers to match your lander." summary="First estimate for an example panel and battery">
-      <p className="msg sample-note power-status">First estimate, not a power budget. Validated by the science lead (statement of 15 Nov 2026; see record).</p>
+      <p className="msg sample-note power-status">First estimate, not a power budget. Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).</p>
       {examples.length > 0 && (
         <p className="quiet power-example" data-testid="power-example">
           Example values, change them: {examples.join(', ')}.

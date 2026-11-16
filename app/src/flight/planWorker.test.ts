@@ -18,7 +18,7 @@ describe('runPlan', () => {
   })
 })
 
-// ---- Dispersion analysis in the worker (dispersion.ts; validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md)
+// ---- Dispersion analysis in the worker (dispersion.ts; stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md)
 import aug2027 from '../../public/data/ephem/2027-08.json?raw'
 import sep2027 from '../../public/data/ephem/2027-09.json?raw'
 import type { EphemMonth } from '../data/types'
@@ -103,7 +103,7 @@ describe('runDispersionRequest', () => {
   })
 })
 
-// ---- Maximum payload as the follow-up of a plan (payload.ts; validated by the science lead: statement of 15 Nov 2026, see docs/event/validation.md)
+// ---- Maximum payload as the follow-up of a plan (payload.ts; stated as validated by the science lead on 15 Nov 2026, no per-check sign-off, see docs/event/validation.md)
 import { runPayload } from './planWorker'
 
 describe('runPayload', () => {
@@ -135,7 +135,7 @@ describe('runPayload', () => {
     expect(reply.kind).toBe('payload')
     expect(reply.id).toBe(31)
     expect(reply.payload).not.toBeNull()
-    expect(reply.payload!.validation.text).toBe('validated by the science lead (statement of 15 Nov 2026; see record)')
+    expect(reply.payload!.validation.text).toBe('stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)')
     expect(reply.payload!.verdict).toBe('payload')
     expect(reply.payload!.maxPayloadKg).toBeGreaterThan(0)
     expect(reply.payload!.epsilonKg).toBeGreaterThan(0)

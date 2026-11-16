@@ -554,15 +554,15 @@ export function FlightPanel(p: FlightPanelProps) {
             <li>Launch time, azimuth, burn lengths and ignition points searched for the least propellant</li>
             <li>
               Max payload: the rocket equation per stage on the plan's burns, every element loaded with what it needs plus a 3 % reserve, the
-              error a root sum of squares of one-at-a-time changes (validated by the science lead: statement of 15 Nov 2026; see record)
+              error a root sum of squares of one-at-a-time changes (stated as validated by the science lead on 15 Nov 2026; no per-check sign-off; see record)
             </li>
             <li>
-              Cheapest route: one full plan per option (landing day and transfer limit), ranked by total propellant (validated by the
-              science lead: statement of 15 Nov 2026; see record)
+              Cheapest route: one full plan per option (landing day and transfer limit), ranked by total propellant (stated as validated by the
+              science lead on 15 Nov 2026; no per-check sign-off; see record)
             </li>
             <li>
-              Landing dispersion: 200 descents flown with small errors in thrust, specific impulse (<Abbr>Isp</Abbr>), pointing and launch time (validated
-              by the science lead: statement of 15 Nov 2026; see record)
+              Landing dispersion: 200 descents flown with small errors in thrust, specific impulse (<Abbr>Isp</Abbr>), pointing and launch time (stated as validated
+              by the science lead on 15 Nov 2026; no per-check sign-off; see record)
             </li>
             <li>
               Not modelled: the Moon's uneven gravity in the plans (its <Abbr>J2</Abbr> term is in the landing dispersion only), winds, engine
@@ -576,7 +576,7 @@ export function FlightPanel(p: FlightPanelProps) {
               Gravity of Earth, Moon and Sun; positions from <Abbr>JPL DE440</Abbr>
             </li>
             <li>Launch time, azimuth and burns searched for least propellant</li>
-            <li>Payload, cheapest route, dispersion: validated by the science lead (statement of 15 Nov 2026; see record)</li>
+            <li>Payload, cheapest route, dispersion: stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)</li>
           </ul>
         )}
         {full && plan && plan.sources.length > 0 && (

@@ -291,7 +291,7 @@ export function earthField(ephem: FlightEphemeris, fromMs: number, toMs: number,
  *  2014), as tabulated in https://en.wikipedia.org/wiki/Gravitation_of_the_Moon ("Selected coefficients").
  *  Reference radius 1738.0 km: label of the GRAIL field GL0660B,
  *  https://pds-geosciences.wustl.edu/grail/grail-l-lgrs-5-rdr-v1/grail_1001/shadr/jggrx_0660b_sha.xml
- *  Validated by the science lead (statement of 15 Nov 2026, see docs/event/validation.md); the term is off in every plan the app shows (MoonFieldOptions.j2) and
+ *  Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off, see docs/event/validation.md); the term is off in every plan the app shows (MoonFieldOptions.j2) and
  *  is switched on only in the dispersion runs (dispersion.ts) and in tests that measure its effect. */
 export const J2_MOON = 203.3e-6
 export const J2_MOON_REF_RADIUS_KM = 1738.0

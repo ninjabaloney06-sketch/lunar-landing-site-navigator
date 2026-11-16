@@ -104,7 +104,7 @@ const LAYER_CHECKS: { key: 'paths' | 'burns' | 'burnNames' | 'stageNames' | 'tra
   { key: 'burnNames', label: 'Burn names', hint: 'a name at each burn' },
   { key: 'stageNames', label: 'Stage names', hint: 'the stage or engine that fires, at each burn' },
   { key: 'trail', label: 'Trail only', hint: 'nothing is drawn ahead; the path fades out behind' },
-  { key: 'tube', label: 'Dispersion tube', hint: 'the 1σ and 3σ spread of 200 unguided descents around the planned one; every error size is an assumption (validated by the science lead: statement of 15 Nov 2026; see record)' },
+  { key: 'tube', label: 'Dispersion tube', hint: 'the 1σ and 3σ spread of 200 unguided descents around the planned one; every error size is an assumption (stated as validated by the science lead on 15 Nov 2026; no per-check sign-off; see record)' },
 ]
 
 /** The layer toggles, always in view: one plain checkbox per layer; the trail length appears while the trail is

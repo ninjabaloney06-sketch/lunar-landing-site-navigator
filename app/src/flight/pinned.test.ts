@@ -179,7 +179,10 @@ describe('pinned planner results, bit for bit', () => {
 // payload.ts: the ascent sensitivity (two ascents) and the payload maximum over the Apollo south-pole plan.
 // Hash re-recorded on w4/audit (15 Nov) for the marker text only (was 11c093ab8aec1c5a): with the new text mapped back
 // to "not yet validated by the science lead" the result hashes to the old value, so no number moved.
-const PAYLOAD = { sensitivity: 0.800912174302066, hash: 'f8bea5f4de455c8d' }
+// Hash re-recorded on fix/validation-wording (16 Nov) for the marker text only (was f8bea5f4de455c8d): the marker now
+// reads "stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)". Every numeric
+// field of the result was dumped as exact Float64 bits before and after the change; the two dumps are identical.
+const PAYLOAD = { sensitivity: 0.800912174302066, hash: '477419cfbad72f3e' }
 describe('pinned payload results, bit for bit', () => {
   it('ascent sensitivity and maximum payload, Apollo south pole', () => {
     const c = CASES[0]
@@ -226,7 +229,10 @@ describe('pinned patched-conic planner, bit for bit', () => {
 // dispersion.ts: the scenario of dispersion.test.ts, 12 runs, with and without the Moon's J2.
 // Both hashes re-recorded on w4/audit (15 Nov) for the marker text only (were 52247f4859b5a807 / 287ae50ecf6befd9):
 // with the new text mapped back to the old one the results hash to the old values, so no number moved.
-const DISPERSION = { j2: 'a0d1a5c57425d726', noJ2: '551db25675492271' }
+// Both re-recorded again on fix/validation-wording (16 Nov) for the marker and method text only (were
+// a0d1a5c57425d726 / 551db25675492271; text now "stated as validated by the science lead on 15 Nov 2026 (no per-check
+// sign-off; see record)"): every numeric field dumped as exact Float64 bits before and after, dumps identical.
+const DISPERSION = { j2: 'f3ba251f9698b178', noJ2: '93d1d2c7ef8907ac' }
 describe('pinned descent dispersion, bit for bit', () => {
   it('12 runs, seed 7', () => {
     const e = circularEphemeris()

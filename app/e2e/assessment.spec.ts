@@ -41,7 +41,7 @@ test('a listed site: no request before the section opens; then the file values, 
   await expect(sec.getByTestId('assess-slope')).toHaveCount(0)
 
   await openSection(page, sec)
-  await expect(sec.getByTestId('assess-status')).toHaveText('Validated by the science lead (statement of 15 Nov 2026; see record).')
+  await expect(sec.getByTestId('assess-status')).toHaveText('Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).')
   expect(urls).toHaveLength(1)
   await expect(sec.getByTestId('assess-criteria')).toContainText('project criteria (set by the team), not NASA or vehicle limits')
 

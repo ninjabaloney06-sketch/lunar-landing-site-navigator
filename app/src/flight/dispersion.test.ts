@@ -1,5 +1,5 @@
 // Monte Carlo dispersion of the descent (dispersion.ts) and the open-loop replay it flies (lunar.ts,
-// replayDescent). Validated by the science lead (statement of 15 Nov 2026, see docs/event/validation.md); these tests check the machinery (exact reproduction,
+// replayDescent). Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off, see docs/event/validation.md); these tests check the machinery (exact reproduction,
 // seeded statistics, convergence), not that the σ values are right; those are assumptions.
 import { describe, expect, it } from 'vitest'
 import { MU_MOON, R_MOON } from './astro'
@@ -107,7 +107,7 @@ describe('runDispersion', () => {
     expect(r.validated).toBe(false)
     expect(r.marker).toBe(NOT_VALIDATED)
     expect(r.method).toContain(NOT_VALIDATED)
-    expect(landingSentence(r)).toContain('Validated by the science lead (statement of 15 Nov 2026; see record)')
+    expect(landingSentence(r)).toContain('Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)')
     expect(r.sigmas).toEqual(DEFAULT_SIGMAS)
     expect(r.flown).toBe(200)
     expect(r.tube.length).toBe(64)

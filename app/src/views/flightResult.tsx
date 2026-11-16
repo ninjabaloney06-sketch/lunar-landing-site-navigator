@@ -1,4 +1,4 @@
-// The analyses of the Rocket flight menu (all validated by the science lead: statement of 15 Nov 2026; see record): the maximum payload as one
+// The analyses of the Rocket flight menu (all stated as validated by the science lead on 15 Nov 2026; no per-check sign-off; see record): the maximum payload as one
 // line in the result, the cheapest route and the landing dispersion as actions the user starts (they take
 // seconds), each with progress and a way to stop it, and their details for the collapsed sections. Reads the
 // store that useFlight fills (flightAnalysis.ts); the words come from flightResultText.ts.
@@ -30,7 +30,7 @@ const signed = (v: number, unit: string, digits = 0) => {
   return `${r > 0 ? '+' : r < 0 ? '−' : '±'}${Math.abs(r).toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits })} ${unit}`
 }
 
-/** The validation line every new number carries (Trap 2): NOT_VALIDATED_TEXT, now the statement of 15 Nov 2026. */
+/** The validation line every new number carries (Trap 2): NOT_VALIDATED_TEXT, worded as the statement of 15 Nov 2026 (no per-check sign-off). */
 export function Unvalidated() {
   return <span className="flight-unvalidated">{NOT_VALIDATED_TEXT}</span>
 }

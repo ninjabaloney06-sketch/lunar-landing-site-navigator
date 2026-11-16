@@ -59,7 +59,7 @@ test('summary mode: the answer first, no internals, every abbreviation explained
   const panel = await ready(page)
 
   // the answer: payload with its marker, propellant status, the three times, the Δv in m/s
-  await expect(panel.getByTestId('flight-payload')).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
+  await expect(panel.getByTestId('flight-payload')).toContainText('Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).')
   await expect(panel.getByTestId('flight-glance-propellant')).toContainText(/^Propellant: /)
   await expect(panel.getByTestId('flight-glance-times')).toContainText('Launch')
   await expect(panel.getByTestId('flight-glance-times')).toContainText('Landing')
@@ -77,7 +77,7 @@ test('summary mode: the answer first, no internals, every abbreviation explained
   await panel.getByTestId('flight-dispersion-start').click()
   await expect(panel.getByTestId('flight-dispersion')).toHaveAttribute('data-state', 'ready', { timeout: 120_000 })
   await expect(panel.getByTestId('flight-dispersion-sentence')).toContainText('unguided runs')
-  await expect(panel.getByTestId('flight-dispersion-sentence')).toContainText('Validated by the science lead (statement of 15 Nov 2026; see record).')
+  await expect(panel.getByTestId('flight-dispersion-sentence')).toContainText('Stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record).')
   await expect(panel.getByTestId('flight-dispersion-meaning')).toHaveText('Unguided descent: a guided lander lands much closer. Every error size is an assumption.')
 
   // the explanations: at most four bullets of at most twelve words each
@@ -90,7 +90,7 @@ test('summary mode: the answer first, no internals, every abbreviation explained
     for (const t of texts) expect(t.trim().split(/\s+/).length, t).toBeLessThanOrEqual(12)
   }
   await panel.locator('[data-section="how"] > summary').click()
-  await expect(panel.locator('[data-section="how"]')).toContainText('validated by the science lead (statement of 15 Nov 2026; see record)')
+  await expect(panel.locator('[data-section="how"]')).toContainText('stated as validated by the science lead on 15 Nov 2026 (no per-check sign-off; see record)')
 
   const text = await menuText(page)
   for (const bad of INTERNALS) expect(text, bad).not.toContain(bad)

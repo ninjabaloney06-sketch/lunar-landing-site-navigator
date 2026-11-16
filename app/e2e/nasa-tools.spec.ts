@@ -40,7 +40,7 @@ test('listed site: Connecting Ridge opens in the three tools at its coordinates 
   expect(Math.abs(Number(await ours.getAttribute('data-el')) - 1.4935)).toBeLessThan(0.0001)
   // the claim line says only what validation.md records and links to the record
   const claim = page.getByTestId('nt-claim')
-  await expect(claim).toContainText('All computed results validated by the science lead; statement of 15 Nov 2026')
+  await expect(claim).toContainText('Computed results stated as validated by the science lead; 15 Nov 2026, no per-check sign-off')
   await expect(claim).not.toContainText(/\b(verified|certified)\b/i)
   const record = claim.getByRole('link', { name: 'see record' })
   await expect(record).toHaveAttribute('href', '/docs#validation-results')
