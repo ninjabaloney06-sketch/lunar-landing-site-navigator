@@ -30,7 +30,7 @@
 // shadows.ts propagate() is the same recursion on the CPU; its unit test compares it with the direct march.
 //
 // Cost (measured on an integrated GPU, five levels): 2.7 ms for all levels. While the time plays, the Sun moves by
-// less than a tenth of a degree per frame, and the levels are then updated in two halves on alternating frames
+// a small angle per frame (under 0.3°), and the levels are then updated in two halves on alternating frames
 // (the coarser levels, then the finer ones, about 1.4 ms each), each for the Sun of its own frame; when the Sun
 // stops, the frames that follow bring both to its final direction. A larger step of the Sun (a jump of the time, a
 // new site) updates everything at once, and so does test mode.
