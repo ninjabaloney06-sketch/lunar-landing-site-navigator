@@ -811,7 +811,17 @@ export class SiteWorld {
    * the site's computed (eased) disc share. 1 where no level has terrain, or where the GPU cannot cast shadows.
    */
   sunShareAt(x: number, y: number): number {
-    const lv = this.shadowMap.active ? this.shadowLv : []
+    const c0 = this.terrainC(0, 0)
+    return shareOfC(drawnC(this.terrainC(x, y), c0, cOfShare(this.siteLevel), Math.hypot(x, y)))
+  }
+
+  /**
+   * The terrain's own answer at ENU (x, y) m, before the site's correction: where the Sun's disc stands against
+   * the horizon of the drawn terrain there (shadows.ts sunC: −1 whole disc above … +1 none of it). `from`: the
+   * finest shadow level to use (test helper: what a coarser level alone would give at the same point).
+   */
+  terrainC(x: number, y: number, from = 0): number {
+    const lv = this.shadowMap.active ? this.shadowLv.slice(from) : []
     // Grid offset of the ENU point: the shader's lunarGrid.
     let gx = x
     let gy = y
@@ -822,9 +832,7 @@ export class SiteWorld {
       gx = x / k
       gy = y / k
     }
-    const c0 = sunC(lv, 0, 0, this.sunDir, this.sunAngRadDeg)
-    const c = sunC(lv, gx, gy, this.sunDir, this.sunAngRadDeg)
-    return shareOfC(drawnC(c, c0, cOfShare(this.siteLevel), Math.hypot(x, y)))
+    return sunC(lv, gx, gy, this.sunDir, this.sunAngRadDeg)
   }
 
   /**

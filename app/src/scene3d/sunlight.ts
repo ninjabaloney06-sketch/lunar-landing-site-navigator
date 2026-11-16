@@ -21,7 +21,8 @@
 //     by the difference at the site, c_site(mask) − c_site(terrain), weighted exp(−(r / SITE_BLEND_M)²) with the
 //     distance r from the site: a smooth round falloff with no edge, zero wherever terrain and mask agree, and it
 //     moves the terrain's own shadow edge instead of painting a patch.
-//     (scripts in e2e/shadow-agreement.spec.ts measure how often and how far they disagree.)
+//     sunlight-seams.test.ts measures how often they disagree, per site (0–3.9 % of the default period at 17
+//     sites, 12.9 % at one; always the drawn terrain lit while the mask says shadow).
 //
 // RENDERING CHOICES (site.ts, shader):
 //   - Surface brightness: the Lommel–Seeliger law, μ₀ / (μ₀ + μ) with μ₀ and μ the cosines of the angles of
