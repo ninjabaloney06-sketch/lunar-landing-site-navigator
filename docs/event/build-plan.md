@@ -59,7 +59,7 @@ Why we can't take a shortcut with Earth's direction: the site sits up to 1737 km
 | Site terrain tile (on fly-in) | 500 × 500 heights Int16 ~0.5 MB + overlay PNG ~0.2 MB |
 | Target first load | ≤ 5 MB gzipped (was 1.5 MB before the 3D-first decision); numbers render before textures finish |
 
-**Code folders (only these two):** `scripts/` (Python pipeline, tests in `scripts/tests/`) and `app/` (frontend). Raw data path comes from the environment variable `CLPS_DATA`: `~/Documents/clps-data/clps` on ninja's Mac, or the USB stick's `clps/` folder elsewhere. Sub-paths are listed in the "Path under root" column of [data-sources.md](../reference/data-sources.md).
+**Code folders (only these two):** `scripts/` (Python pipeline, tests in `scripts/tests/`) and `app/` (frontend). Raw data path comes from the environment variable `CLPS_DATA`: `~/Documents/clps/data/clps` on ninja's Mac, or the USB stick's `clps/` folder elsewhere. Sub-paths are listed in the "Path under root" column of [data-sources.md](../reference/data-sources.md).
 
 ---
 

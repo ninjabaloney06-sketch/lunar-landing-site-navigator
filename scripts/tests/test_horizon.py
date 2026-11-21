@@ -217,7 +217,7 @@ def test_t8_synthetic_edge_truncates_not_zero():
     assert all(math.isfinite(v) for v in res["mask"])
 
 
-DEM = Path(os.environ.get("CLPS_DATA", "~/Documents/clps-data/clps")).expanduser() / "lola" / "LDEM_80S_20MPP_ADJ.TIF"
+DEM = Path(os.environ.get("CLPS_DATA", "~/Documents/clps/data/clps")).expanduser() / "lola" / "LDEM_80S_20MPP_ADJ.TIF"
 
 
 @pytest.mark.skipif(not DEM.exists(), reason="real DEM not available (set CLPS_DATA)")

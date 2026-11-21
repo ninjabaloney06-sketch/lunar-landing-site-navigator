@@ -356,7 +356,7 @@ Plotly.newPlot("plot", [{x: [1, 2, 3, 4], y: [10, 15, 13, 17], type: "scatter"}]
 
 ### 7 — Ninja's Mac setup, 6 Nov 2026
 
-Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps-offline-prep`, outside this repo:
+Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps/offline-prep`, outside this repo:
 
 - Existing Python 3.14.8 and Node v26.7.0; ninja confirmed tools/login already ready.
 - `.venv`: all six required Python library pins above installed; exact transitive versions in `requirements.lock.txt` there.
@@ -365,8 +365,8 @@ Prepared on ninja's Mac (`isaacmac`) at `~/Documents/clps-offline-prep`, outside
 - The small leap-seconds kernel was copied from the previously approved local download; no mission data was processed.
 - Online preflight passed: library tutorial examples, pytest sample, Vite production build, and saved-doc local resource checks. Ninja then reported the offline check worked and local pages opened in Safari; pasted terminal output confirms Python examples, pytest and Vite build passed. On 8 Nov ninja confirmed React live updates work with Wi-Fi off. **Ninja's laptop preparation is complete**; O/B/L's laptop confirmations remain pending.
 
-Ninja completed the offline React dev-server/live-update check on 8 Nov. Full local handoff: `~/Documents/clps-offline-prep/README.md`.
+Ninja completed the offline React dev-server/live-update check on 8 Nov. Full local handoff: `~/Documents/clps/offline-prep/README.md`.
 
-13 Nov re-check on ninja's Mac: venv still works after Homebrew moved Python to 3.14.10 (library examples + pytest sample pass; run with Wi-Fi on, the Wi-Fi-off run is ninja's via `check-offline.command`); all five SPICE kernels in `~/Documents/clps-data/clps/spice` load with spiceypy. 44 pages added to `~/Documents/clps-offline-prep/docs` for the 13 Nov stack: NAIF frames/time/kernel required reading, two NAIF tutorial PDFs (lunar PCK/FK, frames), 8 CSPICE function pages, 4 rasterio topics, 8 three.js manual + 12 three.js API pages, D3, TypeScript, Playwright; sources and hashes in `docs/manifest.json`. Not offline yet: three.js, D3, TypeScript, Playwright npm packages and Playwright's Chromium (step 0 installs them with venue Wi-Fi).
+13 Nov re-check on ninja's Mac: venv still works after Homebrew moved Python to 3.14.10 (library examples + pytest sample pass; run with Wi-Fi on, the Wi-Fi-off run is ninja's via `check-offline.command`); all five SPICE kernels in `~/Documents/clps/data/clps/spice` load with spiceypy. 44 pages added to `~/Documents/clps/offline-prep/docs` for the 13 Nov stack: NAIF frames/time/kernel required reading, two NAIF tutorial PDFs (lunar PCK/FK, frames), 8 CSPICE function pages, 4 rasterio topics, 8 three.js manual + 12 three.js API pages, D3, TypeScript, Playwright; sources and hashes in `docs/manifest.json`. Not offline yet: three.js, D3, TypeScript, Playwright npm packages and Playwright's Chromium (step 0 installs them with venue Wi-Fi).
 
 13 Nov stick update (`Ninja`, `clps/`, README.txt on the stick): added `repo/` (git bundle, clone tested), `textures/`, `python/wheels-macos-arm64-cp314` (15 wheels, 56 MB, offline install tested with `--no-index`; macOS arm64 + Python 3.14 only), `offline-docs/`, `pitch/`. Re-verified on the stick: spice 6/6, lola 3/3, illumination 12/12, textures 8/8 SHA-256 OK; wheels, docs and pitch byte-identical to the Mac copies.

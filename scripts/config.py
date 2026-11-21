@@ -11,7 +11,7 @@ def data_root() -> Path:
     if not root:
         raise SystemExit(
             "Set CLPS_DATA to the raw data folder "
-            "(~/Documents/clps-data/clps on ninja's Mac, or the USB stick's clps/)."
+            "(~/Documents/clps/data/clps on ninja's Mac, or the USB stick's clps/)."
         )
     path = Path(root).expanduser()
     if not path.is_dir():
